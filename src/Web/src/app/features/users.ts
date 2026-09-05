@@ -8,7 +8,10 @@ import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
 import { I18n, Translate } from '../core/i18n';
@@ -19,6 +22,7 @@ import { createUser } from '../api/fn/framework/create-user';
 import { updateUser } from '../api/fn/framework/update-user';
 import { IDEMPOTENCY_KEY } from '../core/interceptors';
 import { Features } from '../core/features';
+import { Notifications } from '../core/notifications';
 @Component({
   selector: 'app-users',
   imports: [
@@ -29,12 +33,15 @@ import { Features } from '../core/features';
     HlmCardImports,
     HlmTableImports,
     HlmBadgeImports,
-    HlmNativeSelectImports,
+    HlmToggleGroupImports,
+    HlmAlertImports,
+    HlmEmptyImports,
+    HlmSpinnerImports,
     Translate,
   ],
   template: ` <div class="mb-8">
       <p class="mb-2 text-sm text-muted-foreground">{{ 'people' | t }}</p>
-      <h1 class="text-3xl font-semibold tracking-tight">{{ 'users' | t }}</h1>
+      <h1 class="page-title">{{ 'users' | t }}</h1>
       <p class="mt-3 text-muted-foreground">{{ 'intro' | t }}</p>
       @if (auth.has('jobs.trigger') && features.enabled('maintenance')) {
         <button hlmBtn variant="outline" class="mt-4" [disabled]="busy()" (click)="maintenance()">
@@ -43,9 +50,9 @@ import { Features } from '../core/features';
       }
     </div>
     @if (pendingDisable(); as user) {
-      <section class="mb-6" aria-labelledby="disable-title">
-        <h2 id="disable-title">{{ 'confirmDisable' | t }}: {{ user.displayName }}</h2>
-        <p>{{ 'disableHelp' | t }}</p>
+      <section hlmAlert variant="destructive" class="mb-6" aria-labelledby="disable-title">
+        <h2 hlmAlertTitle id="disable-title">{{ 'confirmDisable' | t }}: {{ user.displayName }}</h2>
+        <p hlmAlertDescription>{{ 'disableHelp' | t }}</p>
         <button hlmBtn variant="destructive" [disabled]="busy()" (click)="toggle(user, true)">
           {{ 'disable' | t }}</button
         ><button hlmBtn variant="ghost" (click)="pendingDisable.set(null)">
@@ -53,7 +60,9 @@ import { Features } from '../core/features';
         </button>
       </section>
     }
-    <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_340px]">
+    <div
+      class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_var(--directory-form-width)]"
+    >
       <section hlmCard class="min-w-0">
         <div hlmCardHeader>
           <h2 hlmCardTitle>
@@ -132,24 +141,23 @@ import { Features } from '../core/features';
                         >
                           {{ (user.disabled ? 'enable' : 'disable') | t }}
                         </button>
-                        <label class="sr-only" [for]="'role-' + user.id">{{ 'role' | t }}</label>
-                        <select
-                          hlmNativeSelect
-                          [id]="'role-' + user.id"
-                          multiple
-                          [disabled]="busy()"
-                          (change)="selectRoles(user, $event)"
-                        >
-                          <option value="Reader" [selected]="user.roles.includes('Reader')">
-                            {{ 'reader' | t }}
-                          </option>
-                          <option
-                            value="Administrator"
-                            [selected]="user.roles.includes('Administrator')"
+                        <fieldset hlmFieldSet>
+                          <legend hlmFieldLegend class="sr-only">{{ 'role' | t }}</legend>
+                          <hlm-toggle-group
+                            type="multiple"
+                            variant="outline"
+                            [nullable]="false"
+                            [attr.aria-label]="('role' | t) + ': ' + user.displayName"
+                            [value]="roleDrafts.get(user.id) ?? user.roles"
+                            [disabled]="busy()"
+                            (valueChange)="selectRoles(user, $event)"
                           >
-                            {{ 'administrator' | t }}
-                          </option>
-                        </select>
+                            <button hlmToggleGroupItem value="Reader">{{ 'reader' | t }}</button>
+                            <button hlmToggleGroupItem value="Administrator">
+                              {{ 'administrator' | t }}
+                            </button>
+                          </hlm-toggle-group>
+                        </fieldset>
                         <button
                           hlmBtn
                           variant="outline"
@@ -163,7 +171,16 @@ import { Features } from '../core/features';
                   </tr>
                 } @empty {
                   <tr hlmTr>
-                    <td hlmTd colspan="4">{{ (busy() ? 'loading' : 'empty') | t }}</td>
+                    <td hlmTd colspan="4">
+                      <div hlmEmpty role="status">
+                        <div hlmEmptyHeader>
+                          @if (busy()) {
+                            <hlm-spinner />
+                          }
+                          <p hlmEmptyTitle>{{ (busy() ? 'loading' : 'empty') | t }}</p>
+                        </div>
+                      </div>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -217,20 +234,35 @@ import { Features } from '../core/features';
                 email
               />
             </div>
-            <div hlmField>
-              <label hlmFieldLabel for="role">{{ 'role' | t }}</label
-              ><select hlmNativeSelect id="role" name="role" multiple [(ngModel)]="roles">
-                <option value="Reader">{{ 'reader' | t }}</option>
-                <option value="Administrator">{{ 'administrator' | t }}</option>
-              </select>
-            </div>
-            <div hlmField>
-              <label hlmFieldLabel for="culture">{{ 'culture' | t }}</label
-              ><select hlmNativeSelect id="culture" name="culture" [(ngModel)]="culture">
-                <option value="en-ZA">English</option>
-                <option value="af-ZA">Afrikaans</option>
-              </select>
-            </div>
+            <fieldset hlmFieldSet>
+              <legend hlmFieldLegend>{{ 'role' | t }}</legend>
+              <hlm-toggle-group
+                id="role"
+                type="multiple"
+                variant="outline"
+                [nullable]="false"
+                name="role"
+                [(ngModel)]="roles"
+                [attr.aria-label]="'role' | t"
+              >
+                <button hlmToggleGroupItem value="Reader">{{ 'reader' | t }}</button>
+                <button hlmToggleGroupItem value="Administrator">{{ 'administrator' | t }}</button>
+              </hlm-toggle-group>
+            </fieldset>
+            <fieldset hlmFieldSet>
+              <legend hlmFieldLegend>{{ 'culture' | t }}</legend>
+              <hlm-toggle-group
+                type="single"
+                variant="outline"
+                [nullable]="false"
+                name="culture"
+                [(ngModel)]="culture"
+                [attr.aria-label]="'culture' | t"
+              >
+                <button hlmToggleGroupItem value="en-ZA">English</button>
+                <button hlmToggleGroupItem value="af-ZA">Afrikaans</button>
+              </hlm-toggle-group>
+            </fieldset>
             <button hlmBtn [disabled]="busy() || inviteForm.invalid">{{ 'invite' | t }}</button>
           </form>
           <div hlmCardFooter>
@@ -246,6 +278,7 @@ export class UsersPage {
   readonly i18n = inject(I18n);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
+  private readonly notifications = inject(Notifications);
   readonly page = signal<Page>({ items: [], total: 0, pageNumber: 1, pageSize: 25 });
   readonly busy = signal(false);
   search = '';
@@ -273,6 +306,7 @@ export class UsersPage {
           { headers: { 'Idempotency-Key': crypto.randomUUID() } },
         ),
       );
+      this.notifications.success('requested');
     } catch {
       /* Central Problem Details UI. */
     } finally {
@@ -327,6 +361,7 @@ export class UsersPage {
       this.name = '';
       this.email = '';
       await this.load();
+      this.notifications.success('invitationSent');
     } catch {
       /* Retain idempotency key for a retry. */
     } finally {
@@ -338,6 +373,7 @@ export class UsersPage {
     try {
       await this.auth.action('invitations', { userId: user.id, cancel });
       await this.load();
+      this.notifications.success(cancel ? 'invitationCancelled' : 'invitationSent');
     } catch {
       /* Central error UI. */
     } finally {
@@ -359,17 +395,17 @@ export class UsersPage {
         }),
       );
       await this.load();
+      this.notifications.success(user.disabled ? 'accountEnabled' : 'accountDisabled');
     } catch {
       /* Central errors. */
     } finally {
       this.busy.set(false);
     }
   }
-  selectRoles(user: User, event: Event) {
-    this.roleDrafts.set(
-      user.id,
-      Array.from((event.target as HTMLSelectElement).selectedOptions, (option) => option.value),
-    );
+  selectRoles(user: User, roles: unknown) {
+    if (Array.isArray(roles) && roles.every((role) => typeof role === 'string')) {
+      this.roleDrafts.set(user.id, roles);
+    }
   }
   async changeRole(user: User) {
     const roles = this.roleDrafts.get(user.id) ?? user.roles;
@@ -378,6 +414,7 @@ export class UsersPage {
       await firstValueFrom(
         updateUser(this.http, this.runtime.apiUrl, { id: user.id, body: { ...user, roles } }),
       );
+      this.notifications.success('rolesSaved');
     } catch {
       /* Central Problem Details UI. */
     } finally {

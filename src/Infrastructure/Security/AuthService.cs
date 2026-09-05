@@ -35,7 +35,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
             Audit("auth.login_failed", user.Id); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
             return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized);
         }
-        if (user.TwoFactorEnabled || (await users.GetPasskeysAsync(user)).Count > 0)
+        if (user.TwoFactorEnabled)
         {
             var challenge = await security.Challenge(user, "mfa", "", request.Device, ct);
             await tx.CommitAsync(ct);

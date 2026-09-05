@@ -4,6 +4,7 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 import { Auth } from './auth';
 import { Runtime } from './runtime';
 import { I18n } from './i18n';
+import { Notifications } from './notifications';
 @Injectable({ providedIn: 'root' })
 export class Errors {
   readonly problem = signal<{
@@ -59,15 +60,19 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 };
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const errors = inject(Errors);
+  const notifications = inject(Notifications);
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (!request.url.endsWith('/auth/refresh'))
-        errors.problem.set({
+      if (!request.url.endsWith('/auth/refresh')) {
+        const problem = {
           code: error.error?.code ?? 'network.failed',
           traceId: error.error?.traceId,
           title: error.error?.title,
           errors: error.error?.errors,
-        });
+        };
+        errors.problem.set(problem);
+        notifications.error(problem);
+      }
       return throwError(() => error);
     }),
   );

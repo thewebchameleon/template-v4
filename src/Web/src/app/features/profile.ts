@@ -6,12 +6,19 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { Auth } from '../core/auth';
 import { Passkeys } from '../core/passkeys';
 import { Runtime } from '../core/runtime';
 import { Translate } from '../core/i18n';
 import { ProfileResponse } from '../api/models/profile-response';
 import { MfaEnrollment } from '../api/models/mfa-enrollment';
+import { Notifications } from '../core/notifications';
 
 @Component({
   selector: 'app-profile',
@@ -21,23 +28,35 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
     HlmFieldImports,
     HlmInputImports,
     HlmCardImports,
+    HlmCheckboxImports,
+    HlmAlertImports,
+    HlmEmptyImports,
+    HlmBadgeImports,
+    HlmSpinnerImports,
+    HlmSeparatorImports,
     Translate,
   ],
-  template: `<h1 class="text-3xl font-semibold">{{ 'profile' | t }}</h1>
+  template: `<h1 class="page-title">{{ 'profile' | t }}</h1>
     @if (profile(); as user) {
       <p class="mt-3 break-words">{{ user.displayName }} · {{ user.email }}</p>
       @if (auth.access()?.setupRequired) {
-        <p role="status" class="my-4">{{ 'setupRequired' | t }}</p>
+        <div hlmAlert role="status" class="my-4">
+          <p hlmAlertDescription>{{ 'setupRequired' | t }}</p>
+        </div>
       }
-      <section hlmCard class="mt-6 max-w-2xl">
+      <section hlmCard class="mt-6 max-w-(--form-content-width)">
         <div hlmCardHeader>
           <h2 hlmCardTitle>{{ 'security' | t }}</h2>
           <p hlmCardDescription>{{ 'securityHelp' | t }}</p>
         </div>
         <div hlmCardContent class="flex flex-col gap-5">
           <p>
-            {{ (user.mfaRequired ? 'mfaRequired' : 'mfaOptional') | t }} ·
-            {{ (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t }}
+            <span hlmBadge variant="secondary">{{
+              (user.mfaRequired ? 'mfaRequired' : 'mfaOptional') | t
+            }}</span>
+            <span hlmBadge variant="outline">{{
+              (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t
+            }}</span>
           </p>
           <div hlmField>
             <label hlmFieldLabel for="proof-password">{{ 'password' | t }}</label
@@ -57,9 +76,11 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
                 id="proof-code"
                 autocomplete="one-time-code"
                 [(ngModel)]="proofCode"
-              /><label
-                ><input type="checkbox" [(ngModel)]="recovery" /> {{ 'useRecovery' | t }}</label
-              >
+              />
+              <div hlmField orientation="horizontal">
+                <hlm-checkbox inputId="proof-recovery" [(ngModel)]="recovery" />
+                <label hlmFieldLabel for="proof-recovery">{{ 'useRecovery' | t }}</label>
+              </div>
             </div>
           }
           <div class="flex flex-wrap gap-3">
@@ -115,9 +136,9 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
             </form>
           }
           @if (codes().length) {
-            <div role="status">
-              <h3>{{ 'saveRecovery' | t }}</h3>
-              <p>{{ 'recoveryHelp' | t }}</p>
+            <div hlmAlert role="status">
+              <h3 hlmAlertTitle>{{ 'saveRecovery' | t }}</h3>
+              <p hlmAlertDescription>{{ 'recoveryHelp' | t }}</p>
               <ul class="grid grid-cols-2 gap-2 mt-3">
                 @for (item of codes(); track item) {
                   <li>
@@ -130,6 +151,7 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
               </button>
             </div>
           }
+          <hlm-separator />
           <h3 class="text-xl font-semibold">{{ 'passkeys' | t }}</h3>
           <p>{{ 'passkeysHelp' | t }}</p>
           <ul class="flex flex-col gap-3">
@@ -146,7 +168,13 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
                 </button>
               </li>
             } @empty {
-              <li>{{ 'noPasskeys' | t }}</li>
+              <li>
+                <div hlmEmpty>
+                  <div hlmEmptyHeader>
+                    <p hlmEmptyTitle>{{ 'noPasskeys' | t }}</p>
+                  </div>
+                </div>
+              </li>
             }
           </ul>
           @if (passkeys.supported) {
@@ -163,15 +191,16 @@ import { MfaEnrollment } from '../api/models/mfa-enrollment';
               {{ 'addPasskey' | t }}
             </button>
           } @else {
-            <p>{{ 'passkeysUnsupported' | t }}</p>
+            <div hlmAlert>
+              <p hlmAlertDescription>{{ 'passkeysUnsupported' | t }}</p>
+            </div>
           }
-        </div>
-        <div hlmCardFooter>
-          <p role="status">{{ message() | t }}</p>
         </div>
       </section>
     } @else {
-      <p role="status">{{ 'loading' | t }}</p>
+      <div class="flex items-center gap-2 mt-6" role="status">
+        <hlm-spinner />{{ 'loading' | t }}
+      </div>
     }`,
 })
 export class ProfilePage {
@@ -183,7 +212,7 @@ export class ProfilePage {
   readonly enrollment = signal<MfaEnrollment | null>(null);
   readonly codes = signal<string[]>([]);
   readonly busy = signal(false);
-  readonly message = signal('');
+  private readonly notifications = inject(Notifications);
   password = '';
   proofCode = '';
   recovery = false;
@@ -205,7 +234,6 @@ export class ProfilePage {
   private async run(action: () => Promise<void>) {
     if (this.busy()) return;
     this.busy.set(true);
-    this.message.set('');
     try {
       await action();
     } catch {
@@ -219,7 +247,7 @@ export class ProfilePage {
     this.proofCode = '';
     await this.auth.refresh();
     await this.load();
-    this.message.set('securitySaved');
+    this.notifications.success('securitySaved');
   }
   enroll() {
     return this.run(async () => {

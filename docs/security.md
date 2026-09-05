@@ -20,6 +20,10 @@ SMTP requires STARTTLS in production. Supply provider credentials through secret
 
 ## Configurable MFA and optional passkeys
 
-Admin settings offers Optional, Administrators (default), and Everyone. My profile owns authenticator enrollment, recovery codes, and optional passkeys. WebAuthn user verification is required. Password-only sessions become restricted immediately when enforcement requires enrollment. See ADR 0005 for challenge lifetime, single-use semantics, reauthentication, replay protection and recovery policy.
+Admin settings offers Optional, Administrators (default), and Everyone. Saving admin settings relies on the authenticated session and settings permission without additional password or MFA confirmation. My profile owns authenticator enrollment, recovery codes, and optional passkeys. WebAuthn user verification is required. Password-only sessions become restricted immediately when enforcement requires enrollment, but password sign-in asks for a second factor only after authenticator MFA is enabled. A registered passkey remains an optional sign-in method and does not by itself add a password-login challenge. See ADR 0005 for challenge lifetime, single-use semantics, factor-management reauthentication, replay protection and recovery policy.
 
 Credential throttling uses PostgreSQL counters shared across replicas. Routine auth operations have a separate budget. Forgot-password and invitation requests have per-account cooldowns. The production Nginx ingress overwrites forwarded headers and provides the only trusted proxy hop.
+
+## Public registration
+
+Public registration is disabled by default. Administrators change the persisted flag using the settings permission and optimistic concurrency, without additional credential or factor confirmation. Signup always grants Reader and requires email confirmation before password login. The endpoint uses CSRF/Origin validation and the shared credential rate limit. Existing-account submissions do not replace passwords or resend email. Verification and password recovery continue working after registration is disabled. See [ADR 0009](adr/0009-configurable-public-registration.md).

@@ -71,16 +71,19 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByRole('link', { name: 'User management', exact: true }).click();
   await page.getByLabel('Full name', { exact: true }).fill('Browser invite');
   await page.getByLabel('Email', { exact: true }).fill('invited-browser@example.test');
-  await page.locator('#role').selectOption(['Reader', 'Administrator']);
+  await page.locator('#role').getByRole('button', { name: 'Administrator', exact: true }).click();
   await page.getByRole('button', { name: 'Invite user', exact: true }).click();
   await expect(page.getByText('Browser invite', { exact: true })).toBeVisible();
   const row = page.getByRole('row').filter({ hasText: 'Browser invite' });
   await expect(row).toContainText('Invitation pending');
-  expect(
-    await row
-      .locator('select')
-      .evaluate((el: HTMLSelectElement) => Array.from(el.selectedOptions, (x) => x.value)),
-  ).toEqual(['Reader', 'Administrator']);
+  await expect(row.getByRole('button', { name: 'Reader', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(row.getByRole('button', { name: 'Administrator', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
@@ -88,12 +91,17 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await accessible();
   await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
   await accessible();
-  await expect(page.getByLabel('MFA policy')).toHaveValue('Administrators');
+  await expect(
+    page
+      .locator('hlm-toggle-group[aria-label="MFA policy"]')
+      .getByRole('button', { pressed: true }),
+  ).toHaveText('Required for administrators');
   await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByLabel('MFA policy').selectOption('Everyone');
+  await page.getByRole('button', { name: 'Required for everyone', exact: true }).click();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Security settings saved');
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByRole('button', { name: 'Account Manage your account' }).click();
+  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign in with a passkey', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
@@ -119,7 +127,8 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await expect(page.getByText('Save your recovery codes', { exact: true })).toBeVisible();
   const recovery = await page.locator('li code').first().innerText();
   await page.getByRole('button', { name: 'I have saved these codes', exact: true }).click();
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByRole('button', { name: 'Account Manage your account' }).click();
+  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByLabel('Username', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
@@ -128,7 +137,8 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByLabel('Use a recovery code', { exact: true }).check();
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
-  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByRole('button', { name: 'Account Manage your account' }).click();
+  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.reload();
   await page.goto('/profile');

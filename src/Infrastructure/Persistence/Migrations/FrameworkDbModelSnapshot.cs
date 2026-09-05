@@ -532,6 +532,9 @@ namespace templatev4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("RegistrationEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");

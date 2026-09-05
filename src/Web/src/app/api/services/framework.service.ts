@@ -39,6 +39,8 @@ import { getFeatures } from '../fn/framework/get-features';
 import { GetFeatures$Params } from '../fn/framework/get-features';
 import { getProfile } from '../fn/framework/get-profile';
 import { GetProfile$Params } from '../fn/framework/get-profile';
+import { getRegistrationSettings } from '../fn/framework/get-registration-settings';
+import { GetRegistrationSettings$Params } from '../fn/framework/get-registration-settings';
 import { getSecuritySettings } from '../fn/framework/get-security-settings';
 import { GetSecuritySettings$Params } from '../fn/framework/get-security-settings';
 import { listSessions } from '../fn/framework/list-sessions';
@@ -63,8 +65,11 @@ import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-regis
 import { ProfileResponse } from '../models/profile-response';
 import { refresh } from '../fn/framework/refresh';
 import { Refresh$Params } from '../fn/framework/refresh';
+import { registerAccount } from '../fn/framework/register-account';
+import { RegisterAccount$Params } from '../fn/framework/register-account';
 import { registerPasskey } from '../fn/framework/register-passkey';
 import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
+import { RegistrationSettings } from '../models/registration-settings';
 import { removePasskey } from '../fn/framework/remove-passkey';
 import { RemovePasskey$Params } from '../fn/framework/remove-passkey';
 import { replayDelivery } from '../fn/framework/replay-delivery';
@@ -115,6 +120,60 @@ export class FrameworkService extends BaseService {
    */
   getCsrfToken(params?: GetCsrfToken$Params, context?: HttpContext): Observable<void> {
     const resp = this.getCsrfToken$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getRegistrationSettings()` */
+  static readonly GetRegistrationSettingsPath = '/api/v1/auth/registration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getRegistrationSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getRegistrationSettings$Response(params?: GetRegistrationSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<RegistrationSettings>> {
+    const obs = getRegistrationSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getRegistrationSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getRegistrationSettings(params?: GetRegistrationSettings$Params, context?: HttpContext): Observable<RegistrationSettings> {
+    const resp = this.getRegistrationSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<RegistrationSettings>): RegistrationSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `registerAccount()` */
+  static readonly RegisterAccountPath = '/api/v1/auth/register';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `registerAccount()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerAccount$Response(params: RegisterAccount$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = registerAccount(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `registerAccount$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerAccount(params: RegisterAccount$Params, context?: HttpContext): Observable<void> {
+    const resp = this.registerAccount$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

@@ -11,7 +11,7 @@ public sealed record MfaLoginRequest(string ChallengeId, string Code, bool Recov
 public sealed record SecurityProof(string Password, string Code = "", bool RecoveryCode = false);
 public sealed record MfaEnrollment(string Key, string Uri);
 public sealed record MfaConfirmation(string Code);
-public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, SecurityProof Proof);
+public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool RegistrationEnabled = false);
 public sealed record ProfileResponse(Guid Id, string Email, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys);
 public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt);
 
@@ -156,8 +156,6 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         if (request.MfaPolicy is not ("Optional" or "Administrators" or "Everyone")) return Result<SecuritySettings>.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
-        var user = (await users.FindByIdAsync(actor.ToString()))!;
-        if (!await Proof(user, request.Proof, ct)) { await tx.CommitAsync(ct); return Result<SecuritySettings>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         var settings = await db.SecuritySettings.SingleOrDefaultAsync(ct);
         if (settings is not null && settings.Version != request.Version) return Result<SecuritySettings>.Fail("concurrency.conflict", ErrorKind.Conflict);
         if (settings is null)
@@ -165,7 +163,7 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
             if (request.Version != Guid.Empty) return Result<SecuritySettings>.Fail("concurrency.conflict", ErrorKind.Conflict);
             settings = new(); db.SecuritySettings.Add(settings);
         }
-        settings.MfaPolicy = request.MfaPolicy; settings.Version = Guid.NewGuid();
+        settings.MfaPolicy = request.MfaPolicy; settings.RegistrationEnabled = request.RegistrationEnabled; settings.Version = Guid.NewGuid();
         db.Audit.Add(new() { ActorId = actor, Action = "security.policy_changed", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<SecuritySettings>.Success(settings);
     }

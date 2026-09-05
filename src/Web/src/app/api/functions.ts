@@ -3,6 +3,10 @@
 
 export type { GetCsrfToken$Params as GetCsrfToken$Params } from './fn/framework/get-csrf-token';
 export { getCsrfToken as getCsrfToken } from './fn/framework/get-csrf-token';
+export type { GetRegistrationSettings$Params as GetRegistrationSettings$Params } from './fn/framework/get-registration-settings';
+export { getRegistrationSettings as getRegistrationSettings } from './fn/framework/get-registration-settings';
+export type { RegisterAccount$Params as RegisterAccount$Params } from './fn/framework/register-account';
+export { registerAccount as registerAccount } from './fn/framework/register-account';
 export type { Login$Params as Login$Params } from './fn/framework/login';
 export { login as login } from './fn/framework/login';
 export type { Refresh$Params as Refresh$Params } from './fn/framework/refresh';

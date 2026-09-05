@@ -12,6 +12,7 @@ public sealed class SecuritySettings
 {
     public int Id { get; set; } = 1;
     public string MfaPolicy { get; set; } = "Administrators";
+    public bool RegistrationEnabled { get; set; }
     public DateTimeOffset? BootstrapCompletedAt { get; set; }
     public Guid Version { get; set; } = Guid.NewGuid();
 }

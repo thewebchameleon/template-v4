@@ -37,6 +37,10 @@ Supported examples are en-ZA and af-ZA. User preference precedes Accept-Language
 
 Spartan Brain supplies behavior; copied Helm components in `src/Web/libs/ui` supply customizable styling. Use semantic theme colors, fields with labels/errors, accessible dialogs with titles, and native form semantics. `components.json` records ownership and paths. Use `npx ng g @spartan-ng/cli:info --json` before adding components.
 
+User feedback follows Spartan's distinction between persistent and transient content: keep `hlmAlert` in the page for state, warnings, and actions that must remain visible, and publish operation results through the single root `hlm-toaster`. Toast copy is localized at publication time; HTTP Problem Details use error toasts and retain the error code and trace identifier for support.
+
+The header appearance control offers Light, Dark and System (default), including before sign-in. Following [Spartan dark-mode guidance](https://www.spartan.ng/documentation/dark-mode), `Theme` toggles the root `dark` class; the existing semantic tokens and `color-scheme` style controls and overlays. The browser-local `templatev4-theme` preference persists across reloads and synchronizes across tabs. System mode follows live device changes. `public/theme-init.js` applies the initial preference before Angular renders using an external script permitted by the production CSP. Keep its storage key and normalization consistent with `core/theme.ts`; storage failures must not prevent rendering or changing appearance.
+
 ## CLI
 
 `node tools/framework.mjs inspect|validate|doctor|dev|clients|upgrade` inspects the manifest, verifies its schema, reports toolchains, starts development, regenerates clients, or explains supported upgrades. `new <kind> <PascalCaseName>` creates deterministic files without overwriting existing work. Supported kinds are command, query, entity, permission, event, consumer, endpoint, job, email, localisation, page, adr, feature, migration. Scaffolds require explicit implementation/registration review; they are not automatically enabled endpoints or jobs.
@@ -44,3 +48,14 @@ Spartan Brain supplies behavior; copied Helm components in `src/Web/libs/ui` sup
 ## Production and security settings
 
 See [production deployment](production.md), [MFA and passkey policy](adr/0005-configurable-mfa-and-passkeys.md), [interactive administrator bootstrap](adr/0007-interactive-administrator-bootstrap.md), [delivery recovery](adr/0006-delivery-leases-and-reconciliation.md), and [package reuse](packages.md). Users land on their own profile; the directory and security settings require administrative permissions. The bootstrap administrator completes factor setup before managing users.
+
+## UI customization
+
+The template follows [Spartan Sidebar 2](https://spartan.ng/blocks/sidebar#sidebar-2), [Login 2](https://spartan.ng/blocks/login#login-2), and [Signup 2](https://spartan.ng/blocks/signup#signup-2). See [ADR 0010](adr/0010-spartan-design-tokens.md).
+
+- `src/Web/src/styles.css`: semantic light/dark colors, chart palette, base font family and radius. Tailwind's `--spacing`, `--text-*`, and font-weight theme variables are the shared spacing/type scales; override them with `@theme` to customize every copied component consistently.
+- `src/Web/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and image treatment. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
+- `src/Web/src/app/features/auth-layout.ts`: shared two-column authentication composition and the local `public/auth-background.jpg` artwork. Change the `appBrand` translation for branding.
+- `src/Web/libs/ui`: owned Helm variants and component styles. Extend these for control-wide changes; prefer their variants and semantic tokens in page templates. Use `hlm-native-select` for native dropdowns, not an unsupported `hlmNativeSelect` attribute.
+
+Public registration is disabled by default. Administrators enable **Allow public registration** under **Admin settings** without additional credential or factor confirmation. New users register at `/signup`, verify email, and receive Reader access. MFA policy still applies. See [registration policy](adr/0009-configurable-public-registration.md).

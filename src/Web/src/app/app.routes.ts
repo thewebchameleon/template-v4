@@ -12,6 +12,7 @@ export const routes: Routes = [
     canActivate: [bootstrapLoginGuard],
     loadComponent: () => import('./features/login').then((m) => m.LoginPage),
   },
+  { path: 'signup', loadComponent: () => import('./features/signup').then((m) => m.SignupPage) },
   { path: 'account', loadComponent: () => import('./features/account').then((m) => m.AccountPage) },
   {
     path: 'users',

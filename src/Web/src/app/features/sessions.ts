@@ -3,9 +3,14 @@ import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
 import { I18n, Translate } from '../core/i18n';
+import { Notifications } from '../core/notifications';
 interface Session {
   id: string;
   device: string;
@@ -14,33 +19,51 @@ interface Session {
 }
 @Component({
   selector: 'app-sessions',
-  imports: [HlmButtonImports, Translate],
-  template: `<h1 class="text-3xl font-semibold">{{ 'sessions' | t }}</h1>
+  imports: [
+    HlmSpinnerImports,
+    HlmBadgeImports,
+    HlmEmptyImports,
+    HlmCardImports,
+    HlmButtonImports,
+    Translate,
+  ],
+  template: `<h1 class="page-title">{{ 'sessions' | t }}</h1>
     <ul class="mt-6 flex flex-col gap-4">
       @for (session of sessions(); track session.id) {
-        <li
-          class="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-5"
-        >
-          <div>
-            <p class="break-all">
-              {{ session.device }}
-              @if (session.current) {
-                <strong>{{ 'currentSession' | t }}</strong>
-              }
-            </p>
-            <p class="text-muted-foreground">{{ i18n.date(session.createdAt) }}</p>
+        <li hlmCard>
+          <div hlmCardHeader>
+            <div>
+              <h2 hlmCardTitle class="break-all">
+                {{ session.device }}
+                @if (session.current) {
+                  <span hlmBadge variant="secondary">{{ 'currentSession' | t }}</span>
+                }
+              </h2>
+              <p hlmCardDescription>{{ i18n.date(session.createdAt) }}</p>
+            </div>
           </div>
-          <button
-            hlmBtn
-            variant="outline"
-            [disabled]="busy()"
-            (click)="revoke(session.id, session.current)"
-          >
-            {{ 'revoke' | t }}
-          </button>
+          <div hlmCardFooter>
+            <button
+              hlmBtn
+              variant="outline"
+              [disabled]="busy()"
+              (click)="revoke(session.id, session.current)"
+            >
+              {{ 'revoke' | t }}
+            </button>
+          </div>
         </li>
       } @empty {
-        <li role="status">{{ (busy() ? 'loading' : 'noSessions') | t }}</li>
+        <li>
+          <div hlmEmpty role="status">
+            <div hlmEmptyHeader>
+              @if (busy()) {
+                <hlm-spinner />
+              }
+              <p hlmEmptyTitle>{{ (busy() ? 'loading' : 'noSessions') | t }}</p>
+            </div>
+          </div>
+        </li>
       }
     </ul>`,
 })
@@ -51,6 +74,7 @@ export class SessionsPage {
   private readonly auth = inject(Auth);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
+  private readonly notifications = inject(Notifications);
   readonly sessions = signal<Session[]>([]);
   constructor() {
     void this.load();
@@ -73,6 +97,7 @@ export class SessionsPage {
     this.busy.set(true);
     try {
       await this.auth.revoke(id);
+      this.notifications.success('sessionRevoked');
       if (current) {
         this.auth.access.set(null);
         await this.router.navigateByUrl('/login');

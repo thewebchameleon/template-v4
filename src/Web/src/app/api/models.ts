@@ -20,6 +20,8 @@ export type { PasskeyCredential } from './models/passkey-credential';
 export type { PasskeyOptions } from './models/passkey-options';
 export type { PasskeySummary } from './models/passkey-summary';
 export type { ProfileResponse } from './models/profile-response';
+export type { RegistrationRequest } from './models/registration-request';
+export type { RegistrationSettings } from './models/registration-settings';
 export type { RemovePasskeyRequest } from './models/remove-passkey-request';
 export type { ReplayRequest } from './models/replay-request';
 export type { ResetPasswordRequest } from './models/reset-password-request';

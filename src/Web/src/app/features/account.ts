@@ -4,46 +4,68 @@ import { FormsModule } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { AuthLayout } from './auth-layout';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Errors } from '../core/interceptors';
 import { Auth } from '../core/auth';
 import { Translate } from '../core/i18n';
 @Component({
   selector: 'app-account',
-  imports: [RouterLink, FormsModule, HlmButtonImports, HlmInputImports, HlmFieldImports, Translate],
-  template: `<h1>{{ 'account' | t }}</h1>
-    <form
-      class="mt-6 flex max-w-md flex-col gap-4"
-      #form="ngForm"
-      (ngSubmit)="form.valid && submit()"
-    >
-      @if (kind !== 'Verification') {
-        <div hlmField>
-          <label hlmFieldLabel for="password">{{ 'password' | t }}</label
-          ><input
-            hlmInput
-            id="password"
-            name="password"
-            type="password"
-            autocomplete="new-password"
-            minlength="8"
-            aria-describedby="password-help password-errors"
-            [(ngModel)]="password"
-            required
-          />
-          <p hlmFieldDescription id="password-help">{{ 'passwordHelp' | t }}</p>
-          <hlm-field-error id="password-errors">{{
-            errors.problem()?.errors?.['password']?.join(' ')
-          }}</hlm-field-error>
-        </div>
-      }
-      <button hlmBtn [disabled]="busy() || form.invalid || done()">
-        {{ (kind === 'Verification' ? 'confirm' : 'newPassword') | t }}
-      </button>
-      @if (done()) {
-        <p role="status">{{ (kind === 'Verification' ? 'sent' : 'passwordSaved') | t }}</p>
-        <a hlmBtn routerLink="/login">{{ 'signIn' | t }}</a>
-      }
-    </form>`,
+  imports: [
+    AuthLayout,
+    HlmAlertImports,
+    HlmSpinnerImports,
+    RouterLink,
+    FormsModule,
+    HlmButtonImports,
+    HlmInputImports,
+    HlmFieldImports,
+    Translate,
+  ],
+  template: `<app-auth-layout
+    ><div hlmFieldGroup>
+      <div class="auth-heading">
+        <h1 class="auth-title">{{ 'account' | t }}</h1>
+      </div>
+      <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">
+        @if (kind !== 'Verification') {
+          <div hlmField>
+            <label hlmFieldLabel for="password">{{ 'password' | t }}</label
+            ><input
+              hlmInput
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              aria-describedby="password-help password-errors"
+              [(ngModel)]="password"
+              required
+            />
+            <p hlmFieldDescription id="password-help">{{ 'passwordHelp' | t }}</p>
+            <hlm-field-error id="password-errors">{{
+              errors.problem()?.errors?.['password']?.join(' ')
+            }}</hlm-field-error>
+          </div>
+        }
+        <button hlmBtn [disabled]="busy() || form.invalid || done()">
+          @if (busy()) {
+            <hlm-spinner />
+          }
+          {{ (kind === 'Verification' ? 'confirm' : 'newPassword') | t }}
+        </button>
+        @if (done()) {
+          <div hlmAlert role="status">
+            <p hlmAlertDescription>
+              {{ (kind === 'Verification' ? 'emailVerified' : 'passwordSaved') | t }}
+            </p>
+          </div>
+          <a hlmBtn routerLink="/login">{{ 'signIn' | t }}</a>
+        }
+      </form>
+    </div></app-auth-layout
+  >`,
 })
 export class AccountPage {
   private readonly auth = inject(Auth);

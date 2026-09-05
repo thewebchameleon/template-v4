@@ -163,6 +163,21 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         Assert.Equal("authorization.denied", (await sp.GetRequiredService<Dispatcher<ListUsers, Page<UserDto>>>().Send(new())).Error!.Code);
     }
     [Fact]
+    public async Task Password_login_does_not_challenge_until_authenticator_mfa_is_enabled()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+        var user = await User(sp); var users = sp.GetRequiredService<UserManager<AppUser>>();
+        var passkey = new UserPasskeyInfo([1], [2], _clock.Now, 0, ["internal"], true, false, false, [], []) { Name = "Test passkey" };
+        Assert.True((await users.AddOrUpdatePasskeyAsync(user, passkey)).Succeeded);
+
+        var login = await sp.GetRequiredService<AuthService>().Login(new(user.Email!, "Test-only!Password942", "test"), default);
+
+        Assert.True(login.IsSuccess);
+        Assert.Null(login.Value!.Access.ChallengeId);
+        Assert.NotEmpty(login.Value.Access.AccessToken);
+        Assert.True(login.Value.Access.SetupRequired);
+    }
+    [Fact]
     public async Task Mfa_challenge_is_single_use_and_recovery_code_cannot_be_reused()
     {
         string email; string recovery; string challenge;
@@ -346,6 +361,10 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
     {
         await using var factory = new ApiFactory(_configuration);
         using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost"), AllowAutoRedirect = false });
+        Assert.False((await client.GetFromJsonAsync<RegistrationSettings>("/api/v1/auth/registration"))!.Enabled);
+        using var registrationWithoutCsrf = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/register") { Content = JsonContent.Create(new RegistrationRequest("reader@example.test", "Reader", "Test-only!Password942", "en-ZA")) };
+        registrationWithoutCsrf.Headers.Add("Origin", "https://localhost");
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.SendAsync(registrationWithoutCsrf)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/users")).StatusCode);
         Assert.True((await client.GetFromJsonAsync<AdminBootstrapStatus>("/api/v1/bootstrap/status"))!.Available);
         using var bootstrapWithoutCsrf = new HttpRequestMessage(HttpMethod.Post, "/api/v1/bootstrap") { Content = JsonContent.Create(new AdminBootstrapRequest("secret", "admin", "Test-only!Password942")) };
@@ -362,11 +381,14 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         }
         var csrf = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         client.DefaultRequestHeaders.Add("Origin", "https://localhost"); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/register", new RegistrationRequest("new@example.test", "New", "Test-only!Password942", "en-ZA"))).StatusCode);
         var signedIn = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, "Test-only!Password942", "test"));
         Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
         var access = (await signedIn.Content.ReadFromJsonAsync<AccessResponse>())!;
         client.DefaultRequestHeaders.Authorization = new("Bearer", access.AccessToken);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/users")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/settings/security")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/settings/security", new SecurityPolicyRequest("Optional", Guid.Empty, true))).StatusCode);
         Assert.Equal(readerId, (await client.GetFromJsonAsync<ProfileResponse>("/api/v1/auth/profile"))!.Id);
         // The same anonymous-bound CSRF token remains valid after the principal changes at login.
         Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/v1/auth/logout", new { })).StatusCode);
@@ -378,6 +400,46 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         Assert.True(bootstrapContract.TryGetProperty("post", out _));
         if (Environment.GetEnvironmentVariable("TEMPLATEV4_EXPORT_OPENAPI") is { Length: > 0 } output)
         { Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); await File.WriteAllTextAsync(output, contract.Replace("\r\n", "\n") + "\n"); }
+    }
+    [Fact]
+    public async Task Public_registration_is_disabled_by_default_and_policy_changes_require_permission_and_version()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+        var registration = sp.GetRequiredService<RegistrationService>();
+        Assert.False((await registration.Settings(default)).Enabled);
+        var request = new RegistrationRequest("reader@example.test", "Reader", "Test-only!Password942", "en-ZA");
+        Assert.Equal("auth.registration_disabled", (await registration.Register(request, default)).Error!.Code);
+        var admin = await User(sp); var security = sp.GetRequiredService<SecurityService>();
+        var enabled = await security.SetPolicy(admin.Id, new("Administrators", Guid.Empty, true), default);
+        Assert.True(enabled.IsSuccess); Assert.True((await registration.Settings(default)).Enabled);
+        Assert.Equal("concurrency.conflict", (await security.SetPolicy(admin.Id, new("Administrators", Guid.Empty, false), default)).Error!.Code);
+        Assert.True((await security.SetPolicy(admin.Id, new("Administrators", enabled.Value!.Version, false), default)).IsSuccess);
+        Assert.Equal("auth.registration_disabled", (await registration.Register(request, default)).Error!.Code);
+    }
+
+    [Fact]
+    public async Task Public_registration_creates_only_reader_and_requires_single_use_email_verification()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+        var db = sp.GetRequiredService<FrameworkDb>(); db.SecuritySettings.Add(new() { RegistrationEnabled = true }); await db.SaveChangesAsync();
+        var registration = sp.GetRequiredService<RegistrationService>();
+        var request = new RegistrationRequest("reader@example.test", "Reader", "Test-only!Password942", "af-ZA");
+        Assert.Equal("validation.failed", (await registration.Register(request with { Password = "weak" }, default)).Error!.Code);
+        Assert.True((await registration.Register(request, default)).IsSuccess);
+        Assert.True((await registration.Register(request with { Email = "READER@example.test" }, default)).IsSuccess);
+        var users = sp.GetRequiredService<UserManager<AppUser>>(); var user = (await users.FindByEmailAsync(request.Email))!;
+        Assert.False(user.EmailConfirmed); Assert.Equal(new[] { "Reader" }, await users.GetRolesAsync(user));
+        Assert.Equal("af-ZA", (await db.Profiles.SingleAsync()).Culture);
+        Assert.Single(await db.Outbox.ToArrayAsync()); Assert.Single(await db.Audit.Where(x => x.Action == "auth.registered").ToArrayAsync());
+        var auth = sp.GetRequiredService<AuthService>();
+        Assert.False((await auth.Login(new(request.Email, request.Password, "test"), default)).IsSuccess);
+        var accounts = sp.GetRequiredService<AccountService>(); var token = await users.GenerateEmailConfirmationTokenAsync(user);
+        Assert.False((await accounts.Confirm(new(user.Id, "invalid"), default)).IsSuccess);
+        Assert.True((await accounts.Confirm(new(user.Id, token), default)).IsSuccess);
+        Assert.False((await accounts.Confirm(new(user.Id, token), default)).IsSuccess);
+        Assert.Single(await db.Outbox.ToArrayAsync()); // Password already exists; no reset email follows verification.
+        var signedIn = await auth.Login(new(request.Email, request.Password, "test"), default);
+        Assert.True(signedIn.IsSuccess); Assert.Empty(signedIn.Value!.Access.Permissions);
     }
     private sealed class ApiFactory(Dictionary<string, string?> config) : WebApplicationFactory<templatev4.API.HttpExecutionContext>
     {

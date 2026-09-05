@@ -1,4 +1,54 @@
 export const dictionary: Record<string, [string, string]> = {
+  accountNavigation: ['Account', 'Rekening'],
+  appBrand: ['templatev4', 'templatev4'],
+  signupTitle: ['Create an account', 'Skep ’n rekening'],
+  signupHelp: [
+    'Enter your details below to create your account.',
+    'Voer jou besonderhede hieronder in om jou rekening te skep.',
+  ],
+  registrationUnavailable: ['Registration is closed', 'Registrasie is gesluit'],
+  registrationUnavailableHelp: [
+    'Contact an administrator to request an invitation.',
+    'Kontak ’n administrateur om ’n uitnodiging te versoek.',
+  ],
+  checkEmail: ['Check your email', 'Gaan jou e-pos na'],
+  registrationSent: [
+    'If your email can be registered, a verification link is on its way. Verify your email before signing in.',
+    'As jou e-pos geregistreer kan word, is ’n verifikasieskakel onderweg. Verifieer jou e-pos voordat jy aanmeld.',
+  ],
+  nameRequired: ['Enter your name.', 'Voer jou naam in.'],
+  emailInvalid: ['Enter a valid email address.', 'Voer ’n geldige e-posadres in.'],
+  signupEmailHelp: [
+    'Use this email address as your username when signing in.',
+    'Gebruik hierdie e-posadres as jou gebruikersnaam wanneer jy aanmeld.',
+  ],
+  confirmPassword: ['Confirm password', 'Bevestig wagwoord'],
+  passwordMismatch: ['Passwords must match.', 'Wagwoorde moet ooreenstem.'],
+  createAccount: ['Create account', 'Skep rekening'],
+  alreadyAccount: ['Already have an account?', 'Het jy reeds ’n rekening?'],
+  noAccount: ['Don’t have an account?', 'Het jy nie ’n rekening nie?'],
+  signUp: ['Sign up', 'Registreer'],
+  orContinueWith: ['Or continue with', 'Of gaan voort met'],
+  emailVerified: [
+    'Your email is verified. Sign in to continue, or follow the password setup email if you were invited.',
+    'Jou e-pos is geverifieer. Meld aan om voort te gaan, of volg die wagwoordopstelling-e-pos as jy uitgenooi is.',
+  ],
+  registrationEnabled: ['Allow public registration', 'Laat openbare registrasie toe'],
+  registrationHelp: [
+    'New users must verify their email and receive Reader access. Registration is disabled by default.',
+    'Nuwe gebruikers moet hul e-pos verifieer en ontvang Leser-toegang. Registrasie is by verstek gedeaktiveer.',
+  ],
+
+  workspace: ['Workspace', 'Werkruimte'],
+  administration: ['Administration', 'Administrasie'],
+  accountSettings: ['Manage your account', 'Bestuur jou rekening'],
+  toggleNavigation: ['Toggle navigation', 'Wissel navigasie'],
+  breadcrumb: ['Breadcrumb', 'Broodkrummelnavigasie'],
+  dismissError: ['Dismiss error', 'Maak fout toe'],
+  theme: ['Appearance', 'Voorkoms'],
+  themeSystem: ['System theme', 'Stelseltema'],
+  themeLight: ['Light theme', 'Ligte tema'],
+  themeDark: ['Dark theme', 'Donker tema'],
   bootstrapTitle: ['Create the first administrator', 'Skep die eerste administrateur'],
   bootstrapHelp: [
     'Use the one-time token printed in the server console. This page closes permanently after setup.',
@@ -35,6 +85,8 @@ export const dictionary: Record<string, [string, string]> = {
     'Enter the email address associated with your account to request a reset.',
     'Voer die e-posadres in wat met jou rekening geassosieer is om ’n herstel aan te vra.',
   ],
+  forgotPasswordTitle: ['Reset your password', 'Stel jou wagwoord terug'],
+  sendResetLink: ['Send reset link', 'Stuur herstelskakel'],
   confirmDisable: ['Disable account?', 'Deaktiveer rekening?'],
   disableHelp: [
     'This signs the user out of every session and prevents sign-in.',
@@ -105,10 +157,7 @@ export const dictionary: Record<string, [string, string]> = {
     'This browser does not support passkeys. Use an up-to-date browser.',
     'Hierdie blaaier ondersteun nie toegangsleutels nie. Gebruik �n bygewerkte blaaier.',
   ],
-  securitySaved: [
-    'Security settings saved. Other sessions have been signed out where applicable.',
-    'Sekuriteitsinstellings gestoor. Ander sessies is waar toepaslik afgemeld.',
-  ],
+  securitySaved: ['Security settings saved.', 'Sekuriteitsinstellings gestoor.'],
   adminSettings: ['Admin settings', 'Administrateurinstellings'],
   policyHelp: [
     'Policy changes apply immediately. Users who need a factor must complete setup before accessing protected pages.',
@@ -118,10 +167,6 @@ export const dictionary: Record<string, [string, string]> = {
   policyOptional: ['Optional for everyone', 'Opsioneel vir almal'],
   policyAdministrators: ['Required for administrators', 'Vereis vir administrateurs'],
   policyEveryone: ['Required for everyone', 'Vereis vir almal'],
-  policyProofHelp: [
-    'Enter your authenticator code if enabled. Passkey-only users must have signed in with a passkey in the last five minutes.',
-    'Voer jou verifikasiekode in indien geaktiveer. Toegangsleutelgebruikers moet binne die laaste vyf minute aangemeld het.',
-  ],
   save: ['Save changes', 'Stoor veranderinge'],
   invited: ['Invitation pending', 'Uitnodiging hangende'],
   skipContent: ['Skip to content', 'Spring na inhoud'],
@@ -173,4 +218,11 @@ export const dictionary: Record<string, [string, string]> = {
   actions: ['Actions', 'Aksies'],
   maintenance: ['Request maintenance', 'Versoek instandhouding'],
   requested: ['Maintenance queued.', 'Instandhouding in die tou.'],
+  replayQueued: ['Delivery replay queued.', 'Afleweringsherhaling in die tou.'],
+  sessionRevoked: ['Session revoked.', 'Sessie herroep.'],
+  invitationSent: ['Invitation sent.', 'Uitnodiging gestuur.'],
+  invitationCancelled: ['Invitation cancelled.', 'Uitnodiging gekanselleer.'],
+  accountEnabled: ['Account enabled.', 'Rekening geaktiveer.'],
+  accountDisabled: ['Account disabled.', 'Rekening gedeaktiveer.'],
+  rolesSaved: ['Roles saved.', 'Rolle gestoor.'],
 };

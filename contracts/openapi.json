@@ -23,6 +23,49 @@
         }
       }
     },
+    "/api/v1/auth/registration": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetRegistrationSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationSettings"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RegisterAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -1293,6 +1336,40 @@
           }
         }
       },
+      "RegistrationRequest": {
+        "required": [
+          "email",
+          "displayName",
+          "password",
+          "culture"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "culture": {
+            "type": "string"
+          }
+        }
+      },
+      "RegistrationSettings": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "RemovePasskeyRequest": {
         "required": [
           "id",
@@ -1347,8 +1424,7 @@
       "SecurityPolicyRequest": {
         "required": [
           "mfaPolicy",
-          "version",
-          "proof"
+          "version"
         ],
         "type": "object",
         "properties": {
@@ -1359,8 +1435,9 @@
             "type": "string",
             "format": "uuid"
           },
-          "proof": {
-            "$ref": "#/components/schemas/SecurityProof"
+          "registrationEnabled": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -1392,6 +1469,9 @@
           },
           "mfaPolicy": {
             "type": "string"
+          },
+          "registrationEnabled": {
+            "type": "boolean"
           },
           "bootstrapCompletedAt": {
             "type": [

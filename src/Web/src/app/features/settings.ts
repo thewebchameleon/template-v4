@@ -4,105 +4,139 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
 import { Translate } from '../core/i18n';
 import { DeliverySummary } from '../api/models/delivery-summary';
 import { SecuritySettings } from '../api/models/security-settings';
+import { Notifications } from '../core/notifications';
 @Component({
   selector: 'app-settings',
   imports: [
     FormsModule,
     HlmButtonImports,
     HlmFieldImports,
-    HlmInputImports,
-    HlmNativeSelectImports,
+    HlmToggleGroupImports,
+    HlmSwitchImports,
+    HlmCardImports,
+    HlmAlertImports,
+    HlmEmptyImports,
+    HlmBadgeImports,
+    HlmSpinnerImports,
     Translate,
   ],
-  template: ` <h1 class="text-3xl font-semibold">{{ 'adminSettings' | t }}</h1>
-    <p class="mt-3">{{ 'policyHelp' | t }}</p>
-    <form
-      #form="ngForm"
-      (ngSubmit)="form.valid && save()"
-      class="mt-6 flex max-w-xl flex-col gap-5"
-    >
-      <div hlmField>
-        <label hlmFieldLabel for="policy">{{ 'mfaPolicy' | t }}</label
-        ><select hlmNativeSelect id="policy" name="policy" [(ngModel)]="policy">
-          <option value="Optional">{{ 'policyOptional' | t }}</option>
-          <option value="Administrators">{{ 'policyAdministrators' | t }}</option>
-          <option value="Everyone">{{ 'policyEveryone' | t }}</option>
-        </select>
+  template: ` <h1 class="page-title">{{ 'adminSettings' | t }}</h1>
+    <section hlmCard class="mt-6 max-w-(--form-content-width)">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle>{{ 'security' | t }}</h2>
+        <p hlmCardDescription>{{ 'policyHelp' | t }}</p>
       </div>
-      <div hlmField>
-        <label hlmFieldLabel for="settings-password">{{ 'password' | t }}</label
-        ><input
-          hlmInput
-          id="settings-password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          [(ngModel)]="password"
-          required
-        />
-      </div>
-      <div hlmField>
-        <label hlmFieldLabel for="settings-code">{{ 'factorCode' | t }}</label
-        ><input
-          hlmInput
-          id="settings-code"
-          name="code"
-          autocomplete="one-time-code"
-          [(ngModel)]="code"
-        />
-        <p hlmFieldDescription>{{ 'policyProofHelp' | t }}</p>
-        <label
-          ><input type="checkbox" name="recovery" [(ngModel)]="recovery" />
-          {{ 'useRecovery' | t }}</label
-        >
-      </div>
-      <button hlmBtn [disabled]="busy() || form.invalid || !settings()">{{ 'save' | t }}</button>
-      <p role="status">{{ message() | t }}</p>
-    </form>
-    <section class="mt-10">
-      <h2 class="text-2xl font-semibold">{{ 'deliveryOperations' | t }}</h2>
-      <p class="mt-3">{{ 'deliveryHelp' | t }}</p>
-      <button hlmBtn variant="outline" class="my-4" [disabled]="busy()" (click)="loadOperations()">
-        {{ 'refreshList' | t }}
-      </button>
-      <ul class="flex flex-col gap-4">
-        @for (item of deliveries(); track item.id) {
-          <li class="flex flex-wrap items-center gap-3">
-            <span class="break-all"
-              >{{ item.type }} � {{ item.state }} � {{ item.attempts }} � {{ item.errorCode }}</span
-            >
-            @if (item.state === 'Failed') {
-              <button
-                hlmBtn
-                variant="outline"
-                [disabled]="busy()"
-                (click)="pendingReplay.set(item)"
-              >
-                {{ 'replay' | t }}
-              </button>
-            }
-          </li>
-        } @empty {
-          <li>{{ 'noPendingDelivery' | t }}</li>
-        }
-      </ul>
-      @if (pendingReplay(); as item) {
-        <div class="my-4">
-          <p>{{ 'replayWarning' | t }}</p>
-          <button hlmBtn [disabled]="busy()" (click)="replay(item)">
-            {{ 'confirmReplay' | t }}</button
-          ><button hlmBtn variant="ghost" (click)="pendingReplay.set(null)">
-            {{ 'cancel' | t }}
-          </button>
+      <form
+        hlmCardContent
+        #form="ngForm"
+        (ngSubmit)="form.valid && save()"
+        class="flex flex-col gap-5"
+      >
+        <fieldset hlmFieldSet>
+          <legend hlmFieldLegend>{{ 'mfaPolicy' | t }}</legend>
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            [nullable]="false"
+            name="policy"
+            [(ngModel)]="policy"
+            [attr.aria-label]="'mfaPolicy' | t"
+            class="flex-wrap"
+          >
+            <button hlmToggleGroupItem value="Optional">{{ 'policyOptional' | t }}</button>
+            <button hlmToggleGroupItem value="Administrators">
+              {{ 'policyAdministrators' | t }}
+            </button>
+            <button hlmToggleGroupItem value="Everyone">{{ 'policyEveryone' | t }}</button>
+          </hlm-toggle-group>
+        </fieldset>
+        <div hlmField orientation="horizontal">
+          <hlm-switch
+            inputId="registration-enabled"
+            name="registrationEnabled"
+            [(ngModel)]="registrationEnabled"
+            aria-describedby="registration-help"
+            [disabled]="busy() || !settings()"
+          />
+          <div hlmFieldContent>
+            <label hlmFieldLabel for="registration-enabled">{{ 'registrationEnabled' | t }}</label>
+            <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
+          </div>
         </div>
-      }
+        <button hlmBtn [disabled]="busy() || form.invalid || !settings()">
+          @if (busy()) {
+            <hlm-spinner />
+          }
+          {{ 'save' | t }}
+        </button>
+      </form>
+    </section>
+    <section hlmCard class="mt-6">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle>{{ 'deliveryOperations' | t }}</h2>
+        <p hlmCardDescription>{{ 'deliveryHelp' | t }}</p>
+      </div>
+      <div hlmCardContent>
+        <button
+          hlmBtn
+          variant="outline"
+          class="my-4"
+          [disabled]="busy()"
+          (click)="loadOperations()"
+        >
+          {{ 'refreshList' | t }}
+        </button>
+        <ul class="flex flex-col gap-4">
+          @for (item of deliveries(); track item.id) {
+            <li class="flex flex-wrap items-center gap-3">
+              <span class="break-all"
+                >{{ item.type }} · <span hlmBadge variant="secondary">{{ item.state }}</span> ·
+                {{ item.attempts }} · {{ item.errorCode }}</span
+              >
+              @if (item.state === 'Failed') {
+                <button
+                  hlmBtn
+                  variant="outline"
+                  [disabled]="busy()"
+                  (click)="pendingReplay.set(item)"
+                >
+                  {{ 'replay' | t }}
+                </button>
+              }
+            </li>
+          } @empty {
+            <li>
+              <div hlmEmpty>
+                <div hlmEmptyHeader>
+                  <p hlmEmptyTitle>{{ 'noPendingDelivery' | t }}</p>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+        @if (pendingReplay(); as item) {
+          <div hlmAlert class="my-4">
+            <p hlmAlertDescription>{{ 'replayWarning' | t }}</p>
+            <button hlmBtn [disabled]="busy()" (click)="replay(item)">
+              {{ 'confirmReplay' | t }}</button
+            ><button hlmBtn variant="ghost" (click)="pendingReplay.set(null)">
+              {{ 'cancel' | t }}
+            </button>
+          </div>
+        }
+      </div>
     </section>`,
 })
 export class SettingsPage {
@@ -113,11 +147,9 @@ export class SettingsPage {
   readonly pendingReplay = signal<DeliverySummary | null>(null);
   readonly settings = signal<SecuritySettings | null>(null);
   readonly busy = signal(false);
-  readonly message = signal('');
+  private readonly notifications = inject(Notifications);
   policy = 'Administrators';
-  password = '';
-  code = '';
-  recovery = false;
+  registrationEnabled = false;
   constructor() {
     void this.load();
     void this.loadOperations();
@@ -129,6 +161,7 @@ export class SettingsPage {
       );
       this.settings.set(value);
       this.policy = value.mfaPolicy ?? 'Administrators';
+      this.registrationEnabled = value.registrationEnabled ?? false;
     } catch {
       /* Central error UI. */
     }
@@ -153,6 +186,7 @@ export class SettingsPage {
       });
       this.pendingReplay.set(null);
       await this.loadOperations();
+      this.notifications.success('replayQueued');
     } catch {
       /* Central errors. */
     } finally {
@@ -166,13 +200,11 @@ export class SettingsPage {
       this.settings.set(
         await this.auth.action<SecuritySettings>('settings/security', {
           mfaPolicy: this.policy,
+          registrationEnabled: this.registrationEnabled,
           version: this.settings()?.version,
-          proof: { password: this.password, code: this.code, recoveryCode: this.recovery },
         }),
       );
-      this.password = '';
-      this.code = '';
-      this.message.set('securitySaved');
+      this.notifications.success('securitySaved');
       await this.auth.refresh();
     } catch {
       /* Central error UI. */

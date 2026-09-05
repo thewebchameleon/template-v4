@@ -63,7 +63,7 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
         if (user.EmailConfirmed) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         if (!(await users.ConfirmEmailAsync(user, request.Token)).Succeeded) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
-        await QueueAction(user, EmailTemplate.PasswordReset, profile.Culture, ct);
+        if (user.PasswordHash is null) await QueueAction(user, EmailTemplate.PasswordReset, profile.Culture, ct);
         await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<Unit>> Reset(ResetPasswordRequest request, CancellationToken ct)

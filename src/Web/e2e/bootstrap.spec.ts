@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/auth/registration', (route) =>
+    route.fulfill({ json: { enabled: false } }),
+  );
+});
+
 test('first-run landing creates the administrator without exposing the token', async ({ page }) => {
   let submitted: unknown;
   let antiforgeryHeader: string | undefined;

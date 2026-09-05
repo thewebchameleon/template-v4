@@ -1,89 +1,231 @@
-import { Component, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, Router } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideCommand,
+  lucideUserRound,
+  lucideUsersRound,
+  lucideSettings2,
+  lucideMonitor,
+  lucideLogOut,
+  lucideChevronsUpDown,
+} from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
-import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmToasterImports } from '@spartan-ng/helm/sonner';
+import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
+import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
+import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { Auth } from './core/auth';
-import { I18n, Translate } from './core/i18n';
-import { Runtime } from './core/runtime';
-import { Errors } from './core/interceptors';
+import { Translate } from './core/i18n';
+import { Theme } from './core/theme';
+import { Preferences } from './core/preferences';
 @Component({
   selector: 'app-root',
   imports: [
+    NgTemplateOutlet,
     RouterOutlet,
     RouterLink,
+    RouterLinkActive,
+    NgIcon,
     HlmButtonImports,
-    HlmNativeSelectImports,
-    HlmAlertImports,
+    HlmToasterImports,
+    HlmSidebarImports,
+    HlmAvatarImports,
+    HlmDropdownMenuImports,
+    HlmBreadcrumbImports,
+    HlmSeparatorImports,
+    Preferences,
     Translate,
   ],
-  template: ` <div class="min-h-screen bg-background text-foreground">
-    <a href="#main" class="sr-only focus:not-sr-only">{{ 'skipContent' | t }}</a>
-    <header class="border-b border-border">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-5">
-        <a routerLink="/profile" class="font-semibold tracking-tight"
-          >templatev4 <span class="text-muted-foreground">/ {{ 'people' | t }}</span></a
+  providers: [
+    provideIcons({
+      lucideCommand,
+      lucideUserRound,
+      lucideUsersRound,
+      lucideSettings2,
+      lucideMonitor,
+      lucideLogOut,
+      lucideChevronsUpDown,
+    }),
+  ],
+  template: `
+    <a href="#main" class="skip-link">{{ 'skipContent' | t }}</a>
+    @if (auth.access()) {
+      <div
+        hlmSidebarWrapper
+        sidebarWidth="var(--app-sidebar-width)"
+        sidebarWidthIcon="var(--app-sidebar-icon-width)"
+      >
+        <hlm-sidebar
+          [mobileTitle]="'toggleNavigation' | t"
+          variant="inset"
+          sidebarWidthMobile="var(--app-sidebar-mobile-width)"
         >
-        <div class="flex flex-wrap items-center gap-3">
-          <label class="sr-only" for="language">{{ 'culture' | t }}</label
-          ><select
-            id="language"
-            hlmNativeSelect
-            [value]="i18n.culture()"
-            (change)="language($event)"
-          >
-            @for (culture of runtime.supportedCultures; track culture) {
-              <option [value]="culture">{{ culture === 'af-ZA' ? 'Afrikaans' : 'English' }}</option>
+          <div hlmSidebarHeader>
+            <ul hlmSidebarMenu>
+              <li hlmSidebarMenuItem>
+                <a hlmSidebarMenuButton size="lg" routerLink="/profile" closeMobileSidebarOnClick>
+                  <span class="brand-mark"><ng-icon name="lucideCommand" /></span>
+                  <span class="brand-copy"
+                    ><span>{{ 'appBrand' | t }}</span
+                    ><small>{{ 'workspace' | t }}</small></span
+                  >
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div hlmSidebarContent>
+            <nav hlmSidebarGroup [attr.aria-label]="'accountNavigation' | t">
+              <div hlmSidebarGroupLabel>{{ 'accountNavigation' | t }}</div>
+              <ul hlmSidebarMenu>
+                @for (item of accountLinks; track item.path) {
+                  <li hlmSidebarMenuItem>
+                    <a
+                      hlmSidebarMenuButton
+                      [routerLink]="item.path"
+                      routerLinkActive
+                      #active="routerLinkActive"
+                      [isActive]="active.isActive"
+                      ariaCurrentWhenActive="page"
+                      closeMobileSidebarOnClick
+                    >
+                      <ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </nav>
+            @if (auth.has('users.manage') || auth.has('settings.manage')) {
+              <nav hlmSidebarGroup [attr.aria-label]="'administration' | t">
+                <div hlmSidebarGroupLabel>{{ 'administration' | t }}</div>
+                <ul hlmSidebarMenu>
+                  @for (item of adminLinks; track item.path) {
+                    @if (auth.has(item.permission)) {
+                      <li hlmSidebarMenuItem>
+                        <a
+                          hlmSidebarMenuButton
+                          [routerLink]="item.path"
+                          routerLinkActive
+                          #active="routerLinkActive"
+                          [isActive]="active.isActive"
+                          ariaCurrentWhenActive="page"
+                          closeMobileSidebarOnClick
+                          ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
+                        >
+                      </li>
+                    }
+                  }
+                </ul>
+              </nav>
             }
-          </select>
-          @if (auth.access()) {
-            <a hlmBtn variant="ghost" routerLink="/profile">{{ 'profile' | t }}</a>
-            @if (auth.has('users.manage')) {
-              <a hlmBtn variant="ghost" routerLink="/users">{{ 'users' | t }}</a>
-            }
-            @if (auth.has('settings.manage')) {
-              <a hlmBtn variant="ghost" routerLink="/settings">{{ 'adminSettings' | t }}</a>
-            }
-            <a hlmBtn variant="ghost" routerLink="/sessions">{{ 'sessions' | t }}</a
-            ><button hlmBtn variant="outline" (click)="logout()">{{ 'signOut' | t }}</button>
-          }
-        </div>
+          </div>
+          <div hlmSidebarFooter>
+            <ul hlmSidebarMenu>
+              <li hlmSidebarMenuItem>
+                <button
+                  hlmSidebarMenuButton
+                  size="lg"
+                  [hlmDropdownMenuTrigger]="accountMenu"
+                  [side]="sidebar.isMobile() ? 'top' : 'right'"
+                  align="end"
+                >
+                  <hlm-avatar
+                    ><span hlmAvatarFallback><ng-icon name="lucideUserRound" /></span
+                  ></hlm-avatar>
+                  <span class="brand-copy"
+                    ><span>{{ 'accountNavigation' | t }}</span
+                    ><small>{{ 'accountSettings' | t }}</small></span
+                  >
+                  <ng-icon name="lucideChevronsUpDown" class="ml-auto" />
+                </button>
+              </li>
+            </ul>
+          </div>
+        </hlm-sidebar>
+        <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0">
+          <header class="app-header">
+            <div class="flex min-w-0 items-center gap-2">
+              <button
+                hlmSidebarTrigger
+                [srOnlyText]="'toggleNavigation' | t"
+                [attr.aria-label]="'toggleNavigation' | t"
+              ></button>
+              <hlm-separator orientation="vertical" class="header-separator" />
+              <nav hlmBreadcrumb [attr.aria-label]="'breadcrumb' | t">
+                <ol hlmBreadcrumbList>
+                  <li hlmBreadcrumbItem>
+                    <span hlmBreadcrumbPage>{{ pageTitle() | t }}</span>
+                  </li>
+                </ol>
+              </nav>
+            </div>
+            <app-preferences />
+          </header>
+          <div class="app-content"><ng-container *ngTemplateOutlet="page" /></div>
+        </main>
       </div>
-    </header>
-    <main id="main" tabindex="-1" class="mx-auto max-w-7xl px-6 py-10">
-      @if (errors.problem(); as error) {
-        <div hlmAlert variant="destructive" role="alert" class="mb-6">
-          <h2 hlmAlertTitle>{{ 'error' | t }}</h2>
-          <p hlmAlertDescription>
-            {{ error.title }} <small>{{ error.code }} · {{ error.traceId }}</small>
-          </p>
-          <button
-            hlmBtn
-            variant="ghost"
-            aria-label="Dismiss error"
-            (click)="errors.problem.set(null)"
-          >
-            ×
-          </button>
-        </div>
-      }
+    } @else {
+      <main id="main" tabindex="-1"><ng-container *ngTemplateOutlet="page" /></main>
+    }
+    <hlm-toaster [theme]="theme.preference()" position="top-right" richColors closeButton />
+    <ng-template #page>
       <router-outlet />
-    </main>
-  </div>`,
+    </ng-template>
+    <ng-template #accountMenu>
+      <hlm-dropdown-menu>
+        <hlm-dropdown-menu-group>
+          <a hlmDropdownMenuItem routerLink="/profile" (click)="sidebar.setOpenMobile(false)"
+            ><ng-icon name="lucideUserRound" />{{ 'profile' | t }}</a
+          >
+          <a hlmDropdownMenuItem routerLink="/sessions" (click)="sidebar.setOpenMobile(false)"
+            ><ng-icon name="lucideMonitor" />{{ 'sessions' | t }}</a
+          >
+        </hlm-dropdown-menu-group>
+        <hlm-dropdown-menu-separator />
+        <button hlmDropdownMenuItem (click)="logout()">
+          <ng-icon name="lucideLogOut" />{{ 'signOut' | t }}
+        </button>
+      </hlm-dropdown-menu>
+    </ng-template>
+  `,
 })
 export class App {
   readonly auth = inject(Auth);
-  readonly runtime = inject(Runtime);
-  readonly i18n = inject(I18n);
-  readonly errors = inject(Errors);
+  readonly theme = inject(Theme);
+  readonly sidebar = inject(HlmSidebarService);
   private readonly router = inject(Router);
+  readonly accountLinks = [
+    { path: '/profile', label: 'profile', icon: 'lucideUserRound' },
+    { path: '/sessions', label: 'sessions', icon: 'lucideMonitor' },
+  ];
+  readonly adminLinks = [
+    { path: '/users', label: 'users', icon: 'lucideUsersRound', permission: 'users.manage' },
+    {
+      path: '/settings',
+      label: 'adminSettings',
+      icon: 'lucideSettings2',
+      permission: 'settings.manage',
+    },
+  ];
+  private readonly navigation = toSignal(
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)),
+  );
+  readonly pageTitle = computed(() => {
+    this.navigation();
+    return (
+      [...this.accountLinks, ...this.adminLinks].find((item) =>
+        this.router.url.startsWith(item.path),
+      )?.label ?? 'account'
+    );
+  });
   async logout() {
     await this.auth.logout();
+    this.sidebar.setOpenMobile(false);
     await this.router.navigateByUrl('/login');
-  }
-  async language(event: Event) {
-    const culture = (event.target as HTMLSelectElement).value;
-    if (this.auth.access()) await this.auth.action('culture', { culture });
-    this.i18n.set(culture);
   }
 }

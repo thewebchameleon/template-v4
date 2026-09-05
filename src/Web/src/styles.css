@@ -91,3 +91,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+@import './design-tokens.css';

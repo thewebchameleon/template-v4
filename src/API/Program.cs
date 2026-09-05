@@ -150,7 +150,7 @@ auth.AddEndpointFilter(async (invocation, next) =>
 {
     var context = invocation.HttpContext;
     var limiter = context.RequestServices.GetRequiredService<SharedRateLimiter>();
-    var credential = context.Request.Path.Value is "/api/v1/auth/login" or "/api/v1/auth/mfa/login" or "/api/v1/auth/passkeys/login" or "/api/v1/auth/passkeys/options" or "/api/v1/auth/forgot-password";
+    var credential = context.Request.Path.Value is "/api/v1/auth/login" or "/api/v1/auth/mfa/login" or "/api/v1/auth/passkeys/login" or "/api/v1/auth/passkeys/options" or "/api/v1/auth/forgot-password" or "/api/v1/auth/register";
     var subject = credential ? context.Connection.RemoteIpAddress?.ToString() ?? "unknown" : context.User.FindFirstValue("sub") ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     if (!await limiter.Allow(credential ? "credentials" : "session", subject, credential ? 20 : 120, TimeSpan.FromMinutes(1), context.RequestAborted))
     { context.Response.Headers.RetryAfter = "60"; return Results.StatusCode(429); }
@@ -164,6 +164,12 @@ auth.AddEndpointFilter(async (invocation, next) =>
     finally { context.User = principal; }
     return await next(invocation);
 });
+auth.MapGet("/registration", async (RegistrationService service, CancellationToken ct) => await service.Settings(ct)).WithName("GetRegistrationSettings").Produces<RegistrationSettings>();
+auth.MapPost("/register", async (RegistrationRequest request, RegistrationService service, CancellationToken ct) =>
+{
+    var result = await service.Register(request, ct);
+    return result.IsSuccess ? Results.Accepted() : ApiResults.Failure(result.Error!);
+}).WithName("RegisterAccount").Produces(StatusCodes.Status202Accepted);
 auth.MapPost("/login", async (LoginRequest request, AuthService service, HttpContext context, CancellationToken ct) => Tokens(await service.Login(request, ct), context.Response)).WithName("Login").Produces<AccessResponse>();
 auth.MapPost("/refresh", async (AuthService service, HttpContext context, CancellationToken ct) => Tokens(await service.Refresh(context.Request.Cookies[refreshCookie], ct), context.Response)).WithName("Refresh").Produces<AccessResponse>();
 auth.MapPost("/logout", async (AuthService service, HttpContext context, CancellationToken ct) =>
