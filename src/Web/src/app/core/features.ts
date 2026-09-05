@@ -1,0 +1,20 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { Runtime } from './runtime';
+@Injectable({ providedIn: 'root' })
+export class Features {
+  private readonly http = inject(HttpClient);
+  private readonly runtime = inject(Runtime);
+  readonly evaluated = signal<Record<string, boolean>>({});
+  async load() {
+    this.evaluated.set(
+      await firstValueFrom(
+        this.http.get<Record<string, boolean>>(`${this.runtime.apiUrl}/api/v1/features`),
+      ),
+    );
+  }
+  enabled(name: string) {
+    return this.evaluated()[name] === true;
+  }
+}

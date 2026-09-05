@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:templatev4:framework:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "frameworkVersion",
+    "templateVersion",
+    "scaffoldingVersion",
+    "name",
+    "toolchains",
+    "modules",
+    "projects",
+    "workloads",
+    "generatedCode",
+    "documentation",
+    "adrs",
+    "extensions",
+    "cultures"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "frameworkVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "templateVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "scaffoldingVersion": {
+      "$ref": "#/$defs/version"
+    },
+    "name": {
+      "const": "templatev4"
+    },
+    "toolchains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dotnet",
+        "node",
+        "npm",
+        "docmd",
+        "angular",
+        "spartan"
+      ],
+      "properties": {
+        "dotnet": {
+          "$ref": "#/$defs/version"
+        },
+        "node": {
+          "$ref": "#/$defs/version"
+        },
+        "npm": {
+          "$ref": "#/$defs/version"
+        },
+        "docmd": {
+          "$ref": "#/$defs/version"
+        },
+        "angular": {
+          "$ref": "#/$defs/version"
+        },
+        "spartan": {
+          "$ref": "#/$defs/version"
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "projects": {
+      "$ref": "#/$defs/map"
+    },
+    "workloads": {
+      "$ref": "#/$defs/map"
+    },
+    "generatedCode": {
+      "$ref": "#/$defs/map"
+    },
+    "extensions": {
+      "$ref": "#/$defs/map"
+    },
+    "documentation": {
+      "type": "string"
+    },
+    "adrs": {
+      "type": "string"
+    },
+    "cultures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default",
+        "supported"
+      ],
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "packages": {
+      "$ref": "#/$defs/map"
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1
+    }
+  }
+}

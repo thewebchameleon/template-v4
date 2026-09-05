@@ -1,0 +1,141 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { CanActivateFn, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { Runtime } from './runtime';
+import { I18n } from './i18n';
+import { AccessResponse as Access } from '../api/models/access-response';
+@Injectable({ providedIn: 'root' })
+export class Auth {
+  private readonly http = inject(HttpClient);
+  private readonly runtime = inject(Runtime);
+  private readonly i18n = inject(I18n);
+  readonly access = signal<Access | null>(null);
+  readonly challenge = signal<string | null>(null);
+  private readonly channel =
+    typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('templatev4-auth');
+  private generation = 0;
+  constructor() {
+    this.channel?.addEventListener('message', () => {
+      this.generation++;
+      this.access.set(null);
+      location.assign('/login');
+    });
+  }
+  private async serial<T>(work: () => Promise<T>): Promise<T> {
+    return navigator.locks ? navigator.locks.request('templatev4-auth', work) : work();
+  }
+  private csrf = '';
+  private pending: Promise<boolean> | null = null;
+  has(permission: string) {
+    return this.access()?.permissions.includes(permission) ?? false;
+  }
+  private async csrfToken() {
+    if (!this.csrf)
+      this.csrf = (
+        await firstValueFrom(
+          this.http.get<{ token: string }>(`${this.runtime.apiUrl}/api/v1/auth/csrf`, {
+            withCredentials: true,
+          }),
+        )
+      ).token;
+    return this.csrf;
+  }
+  async action<T>(path: string, body: unknown = {}): Promise<T> {
+    const token = await this.csrfToken();
+    return firstValueFrom(
+      this.http.post<T>(`${this.runtime.apiUrl}/api/v1/auth/${path}`, body, {
+        withCredentials: true,
+        headers: { 'X-CSRF-TOKEN': token },
+      }),
+    );
+  }
+  async login(username: string, password: string) {
+    return this.serial(async () => {
+      const value = await this.action<Access>('login', {
+        username,
+        password,
+        device: navigator.userAgent.slice(0, 200),
+      });
+      this.challenge.set(value.challengeId ?? null);
+      if (!value.challengeId) this.accept(value);
+    });
+  }
+  async completeMfa(code: string, recoveryCode: boolean) {
+    await this.serial(async () => {
+      try {
+        this.accept(
+          await this.action<Access>('mfa/login', {
+            challengeId: this.challenge(),
+            code,
+            recoveryCode,
+          }),
+        );
+      } finally {
+        this.challenge.set(null);
+      }
+    });
+  }
+  async passkeyLogin(work: () => Promise<Access>) {
+    await this.serial(async () => this.accept(await work()));
+  }
+  private accept(value: Access) {
+    this.access.set(value);
+    this.csrf = '';
+    this.i18n.set(value.culture);
+  }
+  refresh(): Promise<boolean> {
+    if (this.pending) return this.pending;
+    const generation = this.generation;
+    const execute = async () => {
+      try {
+        this.csrf = '';
+        const value = await this.action<Access>('refresh');
+        if (generation !== this.generation) return false;
+        this.accept(value);
+        return true;
+      } catch (error) {
+        if (!(error instanceof HttpErrorResponse) || error.status !== 401) throw error;
+        this.access.set(null);
+        this.csrf = '';
+        return false;
+      }
+    };
+    this.pending = this.serial(execute).finally(() => (this.pending = null));
+    return this.pending;
+  }
+  async logout() {
+    this.generation++;
+    await this.serial(async () => {
+      await this.action('logout');
+      this.access.set(null);
+      this.csrf = '';
+      this.challenge.set(null);
+      this.channel?.postMessage('logout');
+    });
+  }
+  async revoke(id: string) {
+    const token = await this.csrfToken();
+    await firstValueFrom(
+      this.http.delete(`${this.runtime.apiUrl}/api/v1/auth/sessions/${id}`, {
+        withCredentials: true,
+        headers: { 'X-CSRF-TOKEN': token },
+      }),
+    );
+  }
+}
+export const authGuard: CanActivateFn = async (_route, state) => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
+  if (auth.access()?.setupRequired && state.url !== '/profile')
+    return router.createUrlTree(['/profile']);
+  return true;
+};
+
+export const adminGuard: CanActivateFn = async () => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  if (!auth.access()) await auth.refresh();
+  return auth.has('users.manage') ? true : router.createUrlTree(['/profile']);
+};

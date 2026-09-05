@@ -1,0 +1,70 @@
+name: Validate
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read toolchains
+        id: tools
+        run: |
+          echo "dotnet=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
+          echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
+          echo "npm=$(jq -r .toolchains.npm framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+          cache: npm
+          cache-dependency-path: |
+            src/Web/package-lock.json
+            src/Documentation/package-lock.json
+      - run: npm install -g npm@${{ steps.tools.outputs.npm }}
+      - run: npm ci --prefix src/Web
+      - run: npm ci --prefix src/Documentation
+      - run: node tools/framework.mjs validate
+      - run: node --test tools/cli.test.mjs
+      - run: dotnet tool restore
+      - run: dotnet restore templatev4.slnx --locked-mode
+      - run: dotnet format templatev4.slnx --verify-no-changes --no-restore
+      - run: npm run format:check --prefix src/Web
+      - run: npm run lint --prefix src/Web
+      - run: dotnet build templatev4.slnx -c Release --no-restore
+      - run: dotnet test tests/templatev4.Tests -c Release --no-build --logger trx
+        env:
+          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
+      - run: node tools/framework.mjs clients
+      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/Web/src/app/api)"
+      - run: npm run build --prefix src/Web
+      - run: npm run validate --prefix src/Documentation
+      - run: npm run build --prefix src/Documentation
+      - name: Test independent package consumer
+        shell: pwsh
+        run: ./tools/test-packages.ps1
+      - run: npm audit --prefix src/Web --audit-level=moderate
+      - run: npm audit --prefix src/Documentation --audit-level=moderate
+      - name: NuGet vulnerability check
+        run: node tools/audit-nuget.mjs
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      - run: |
+          for project in API Worker DatabaseMigrator; do
+            docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=$project -t templatev4-${project,,}:ci .
+          done
+          docker build -f src/Web/Dockerfile -t templatev4-web:ci .
+      - name: Browser security and accessibility
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .local | Out-Null
+          openssl genrsa -out .local/jwt.pem 3072
+          chmod 644 .local/jwt.pem
+          node src/Web/node_modules/@playwright/test/cli.js install --with-deps chromium
+          ./tools/test-browser.ps1

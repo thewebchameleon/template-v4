@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/API/templatev4.API.csproj" />
+    <Project Path="src/AppHost/templatev4.AppHost.csproj" />
+    <Project Path="src/Application/templatev4.Application.csproj" />
+    <Project Path="src/DatabaseMigrator/templatev4.DatabaseMigrator.csproj" />
+    <Project Path="src/Documentation/templatev4.Documentation.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="src/Domain/templatev4.Domain.csproj" />
+    <Project Path="src/Framework.Core/templatev4.Framework.Core.csproj" />
+    <Project Path="src/Infrastructure/templatev4.Infrastructure.csproj" />
+    <Project Path="src/ServiceDefaults/templatev4.ServiceDefaults.csproj" />
+    <Project Path="src/Web/templatev4.Web.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="src/Worker/templatev4.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/templatev4.Tests/templatev4.Tests.csproj" />
+  </Folder>
+</Solution>

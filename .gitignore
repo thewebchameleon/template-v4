@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.angular/
+**/dist/
+src/Documentation/site/
+**/coverage/
+TestResults/
+.vs/
+.local/
+.env
+*.user
+*.pfx
+*.pem
+artifacts/

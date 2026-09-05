@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0.400 AS build
+ARG PROJECT=API
+WORKDIR /source
+COPY . .
+RUN dotnet restore src/${PROJECT}/templatev4.${PROJECT}.csproj --locked-mode
+RUN dotnet publish src/${PROJECT}/templatev4.${PROJECT}.csproj -c Release --no-restore -o /app /p:UseAppHost=false
+RUN cp /app/templatev4.${PROJECT}.dll /app/entry.dll && cp /app/templatev4.${PROJECT}.deps.json /app/entry.deps.json && cp /app/templatev4.${PROJECT}.runtimeconfig.json /app/entry.runtimeconfig.json
+RUN mkdir /keys
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.11-noble-chiseled-extra
+ARG PROJECT=API
+WORKDIR /app
+COPY --from=build /app .
+COPY --from=build --chown=1654:1654 /keys /keys
+ENV ASPNETCORE_HTTP_PORTS=8080
+USER $APP_UID
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "entry.dll"]

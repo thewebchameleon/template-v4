@@ -1,0 +1,75 @@
+name: templatev4
+services:
+  key-permissions:
+    image: postgres:18.6-alpine
+    user: "0"
+    entrypoint: ["sh", "-c", "chown 1654:1654 /keys && chmod 700 /keys"]
+    volumes: ["keys:/keys"]
+  postgres:
+    image: postgres:18.6-alpine
+    environment:
+      POSTGRES_DB: templatev4
+      POSTGRES_USER: templatev4
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["postgres:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U templatev4 -d templatev4"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:v1.31.0
+    ports: ["127.0.0.1:8025:8025", "127.0.0.1:1025:1025"]
+  migrator:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.dotnet
+      args: {PROJECT: DatabaseMigrator}
+    environment: &environment
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4;Password=${POSTGRES_PASSWORD}
+      DataProtection__KeyPath: /keys
+      Jwt__PrivateKeyPath: /secrets/jwt.pem
+      Jwt__KeyId: local-v1
+      Web__PublicUrl: https://localhost:8443
+      Web__AllowedOrigins__0: https://localhost:8443
+    volumes: ["keys:/keys", "./.local/jwt.pem:/secrets/jwt.pem:ro"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      key-permissions: {condition: service_completed_successfully}
+  api:
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: API}}
+    environment:
+      <<: *environment
+      ReverseProxy__Address: 172.29.0.10
+    volumes: ["keys:/keys", "./.local/jwt.pem:/secrets/jwt.pem:ro"]
+    depends_on:
+      migrator: {condition: service_completed_successfully}
+  worker:
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: Worker}}
+    environment:
+      <<: *environment
+      Email__Host: mailpit
+      Email__Port: 1025
+    volumes: ["keys:/keys"]
+    depends_on:
+      migrator: {condition: service_completed_successfully}
+  web:
+    build: {context: ., dockerfile: src/Web/Dockerfile}
+    networks:
+      default: {ipv4_address: 172.29.0.10}
+    depends_on: [api]
+  gateway:
+    image: caddy:2.11.4-alpine
+    ports: ["127.0.0.1:8443:8443"]
+    volumes: ["./deploy/Caddyfile:/etc/caddy/Caddyfile:ro", "caddy:/data"]
+    depends_on: [web]
+volumes:
+  postgres:
+  keys:
+  caddy:
+networks:
+  default:
+    ipam:
+      config: [{subnet: 172.29.0.0/24}]

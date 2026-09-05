@@ -1,0 +1,77 @@
+{
+  "$schema": "./framework.schema.json",
+  "schemaVersion": "1.0.0",
+  "frameworkVersion": "0.1.0",
+  "templateVersion": "0.1.0",
+  "scaffoldingVersion": "0.1.0",
+  "name": "templatev4",
+  "toolchains": {
+    "dotnet": "10.0.400",
+    "node": "24.18.0",
+    "npm": "11.6.4",
+    "docmd": "0.9.4",
+    "angular": "22.1.5",
+    "spartan": "1.4.1"
+  },
+  "modules": [
+    "identity",
+    "cqrs",
+    "postgresql",
+    "outbox",
+    "quartz",
+    "email",
+    "localisation",
+    "feature-flags",
+    "idempotency",
+    "storage",
+    "mfa",
+    "passkeys",
+    "operations"
+  ],
+  "projects": {
+    "Domain": "src/Domain",
+    "Application": "src/Application",
+    "Infrastructure": "src/Infrastructure",
+    "API": "src/API",
+    "Worker": "src/Worker",
+    "DatabaseMigrator": "src/DatabaseMigrator",
+    "AppHost": "src/AppHost",
+    "ServiceDefaults": "src/ServiceDefaults",
+    "Documentation": "src/Documentation",
+    "Web": "src/Web",
+    "CLI": "tools/framework.mjs",
+    "FrameworkCore": "src/Framework.Core"
+  },
+  "workloads": {
+    "Web": "src/Web/Dockerfile",
+    "API": "deploy/Dockerfile.dotnet",
+    "Worker": "deploy/Dockerfile.dotnet"
+  },
+  "generatedCode": {
+    "src/Web/src/app/api": "ng-openapi-gen",
+    "src/Infrastructure/Persistence/Migrations": "dotnet-ef"
+  },
+  "documentation": "docs",
+  "adrs": "docs/adr",
+  "extensions": {
+    "persistence": "EF Core / PostgreSQL",
+    "transport": "PostgreSQL outbox / local Worker consumers",
+    "email": "SMTP",
+    "storage": "local flat-key filesystem",
+    "featureFlags": "configuration",
+    "apiClient": "ng-openapi-gen",
+    "documentation": "DocMD",
+    "ui": "Spartan NG"
+  },
+  "cultures": {
+    "default": "en-ZA",
+    "supported": [
+      "en-ZA",
+      "af-ZA"
+    ]
+  },
+  "packages": {
+    "templatev4.Framework.Core": "src/Framework.Core",
+    "templatev4.ServiceDefaults": "src/ServiceDefaults"
+  }
+}

@@ -1,0 +1,27 @@
+services:
+  postgres:
+    ports: !reset []
+  mailpit:
+    ports: !override ['127.0.0.1:9025:8025']
+  migrator:
+    environment:
+      Web__PublicUrl: https://localhost:9443
+      Web__AllowedOrigins__0: https://localhost:9443
+  api:
+    environment:
+      Web__PublicUrl: https://localhost:9443
+      Web__AllowedOrigins__0: https://localhost:9443
+      ReverseProxy__Address: 172.31.0.10
+  worker:
+    environment:
+      Web__PublicUrl: https://localhost:9443
+  web:
+    networks:
+      default: {ipv4_address: 172.31.0.10}
+  gateway:
+    ports: !override ['127.0.0.1:9443:8443']
+networks:
+  default:
+    ipam:
+      config: !override [{subnet: 172.31.0.0/24}]
+  
