@@ -1,4 +1,4 @@
-FROM node:24.18.0-alpine AS build
+FROM node:26.8.1-alpine AS build
 WORKDIR /app
 COPY src/Web/package*.json ./
 RUN npm install --global npm@11.6.4
