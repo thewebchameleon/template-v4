@@ -16,10 +16,9 @@ services:
     environment:
       Web__PublicUrl: https://localhost:9443
   web:
+    ports: !override ['127.0.0.1:9443:8443']
     networks:
       default: {ipv4_address: 172.31.0.10}
-  gateway:
-    ports: !override ['127.0.0.1:9443:8443']
 networks:
   default:
     ipam:

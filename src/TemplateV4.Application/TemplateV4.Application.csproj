@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Domain/TemplateV4.Domain.csproj" />
+    <ProjectReference Include="../TemplateV4.SharedKernel/TemplateV4.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

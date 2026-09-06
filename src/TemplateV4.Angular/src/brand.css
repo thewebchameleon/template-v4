@@ -1,0 +1,114 @@
+/*
+ * Project brand guide
+ *
+ * Configure project fonts and colors here. Components consume the semantic
+ * tokens below, so application templates should not reference palette shades
+ * directly.
+ */
+:root {
+  /* Typography */
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-heading:
+    'Segoe UI Variable Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+  --font-sans: var(--font-body);
+
+  /* Primary palette: blue */
+  --brand-primary-50: oklch(0.97 0.014 254.604);
+  --brand-primary-100: oklch(0.932 0.032 255.585);
+  --brand-primary-200: oklch(0.882 0.059 254.128);
+  --brand-primary-300: oklch(0.809 0.105 251.813);
+  --brand-primary-400: oklch(0.707 0.165 254.624);
+  --brand-primary-500: oklch(0.623 0.214 259.815);
+  --brand-primary-600: oklch(0.546 0.245 262.881);
+  --brand-primary-700: oklch(0.488 0.243 264.376);
+  --brand-primary-800: oklch(0.424 0.199 265.638);
+  --brand-primary-900: oklch(0.379 0.146 265.522);
+  --brand-primary-950: oklch(0.282 0.091 267.935);
+
+  /* Neutral palette */
+  --brand-neutral-50: oklch(0.985 0 0);
+  --brand-neutral-100: oklch(0.967 0.001 286.375);
+  --brand-neutral-200: oklch(0.92 0.004 286.32);
+  --brand-neutral-300: oklch(0.871 0.006 286.286);
+  --brand-neutral-400: oklch(0.705 0.015 286.067);
+  --brand-neutral-500: oklch(0.552 0.016 285.938);
+  --brand-neutral-600: oklch(0.442 0.017 285.786);
+  --brand-neutral-700: oklch(0.37 0.013 285.805);
+  --brand-neutral-800: oklch(0.274 0.006 286.033);
+  --brand-neutral-900: oklch(0.21 0.006 285.885);
+  --brand-neutral-950: oklch(0.141 0.005 285.823);
+
+  /* Light theme semantic colors */
+  --background: oklch(1 0 0);
+  --foreground: var(--brand-neutral-950);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--brand-neutral-950);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--brand-neutral-950);
+  --primary: var(--brand-primary-600);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--brand-neutral-100);
+  --secondary-foreground: var(--brand-neutral-900);
+  --muted: var(--brand-neutral-100);
+  --muted-foreground: var(--brand-neutral-500);
+  --accent: var(--brand-primary-50);
+  --accent-foreground: var(--brand-primary-900);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--brand-neutral-200);
+  --input: var(--brand-neutral-200);
+  --ring: var(--brand-primary-500);
+  --sidebar: var(--brand-neutral-50);
+  --sidebar-foreground: var(--brand-neutral-950);
+  --sidebar-primary: var(--brand-primary-600);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--brand-primary-50);
+  --sidebar-accent-foreground: var(--brand-primary-900);
+  --sidebar-border: var(--brand-neutral-200);
+  --sidebar-ring: var(--brand-primary-500);
+
+  /* Data visualization palette */
+  --chart-1: var(--brand-primary-600);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.646 0.222 41.116);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+}
+
+:root.dark {
+  /* Dark theme semantic colors */
+  --background: var(--brand-neutral-950);
+  --foreground: var(--brand-neutral-50);
+  --card: var(--brand-neutral-900);
+  --card-foreground: var(--brand-neutral-50);
+  --popover: var(--brand-neutral-900);
+  --popover-foreground: var(--brand-neutral-50);
+  --primary: var(--brand-primary-400);
+  --primary-foreground: var(--brand-primary-950);
+  --secondary: var(--brand-neutral-800);
+  --secondary-foreground: var(--brand-neutral-50);
+  --muted: var(--brand-neutral-800);
+  --muted-foreground: var(--brand-neutral-400);
+  --accent: var(--brand-primary-950);
+  --accent-foreground: var(--brand-primary-100);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--brand-primary-400);
+  --sidebar: var(--brand-neutral-900);
+  --sidebar-foreground: var(--brand-neutral-50);
+  --sidebar-primary: var(--brand-primary-400);
+  --sidebar-primary-foreground: var(--brand-primary-950);
+  --sidebar-accent: var(--brand-primary-950);
+  --sidebar-accent-foreground: var(--brand-primary-100);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--brand-primary-400);
+
+  --chart-1: var(--brand-primary-400);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+}

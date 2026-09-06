@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="TemplateV4.Angular/TemplateV4.Angular.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="TemplateV4.ApiService/TemplateV4.ApiService.csproj" />
+    <Project Path="TemplateV4.AppHost/TemplateV4.AppHost.csproj" />
+    <Project Path="TemplateV4.Application/TemplateV4.Application.csproj" />
+    <Project Path="TemplateV4.BackgroundWorker/TemplateV4.BackgroundWorker.csproj" />
+    <Project Path="TemplateV4.DatabaseMigrator/TemplateV4.DatabaseMigrator.csproj" />
+    <Project Path="TemplateV4.Domain/TemplateV4.Domain.csproj" />
+    <Project Path="TemplateV4.Infrastructure/TemplateV4.Infrastructure.csproj" />
+    <Project Path="TemplateV4.ServiceDefaults/TemplateV4.ServiceDefaults.csproj" />
+    <Project Path="TemplateV4.SharedKernel/TemplateV4.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/documentation/">
+    <Project Path="../documentation/TemplateV4.Documentation.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj" />
+    <Project Path="TemplateV4.Ui.Tests/TemplateV4.Ui.Tests.csproj" />
+    <Project Path="TemplateV4.Utility.Tests/TemplateV4.Utility.Tests.csproj" />
+  </Folder>
+</Solution>

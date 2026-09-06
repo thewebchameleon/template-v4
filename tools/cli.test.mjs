@@ -13,10 +13,10 @@ test('scaffolding is deterministic, bounded and never overwrites existing work',
     fs.copyFileSync(path.join(root, 'framework.json'), path.join(temporary, 'framework.json'));
     const run = (...args) => spawnSync(process.execPath, ['tools/framework.mjs', ...args], { cwd: temporary, encoding: 'utf8' });
     assert.equal(run('new', 'feature', 'Reports').status, 0);
-    assert.ok(fs.existsSync(path.join(temporary, 'src/API/ReportsEndpoints.cs')));
-    const before = fs.readFileSync(path.join(temporary, 'src/Application/Reports/Reports.cs'), 'utf8');
+    assert.ok(fs.existsSync(path.join(temporary, 'src/TemplateV4.ApiService/Endpoints/ReportsEndpoints.cs')));
+    const before = fs.readFileSync(path.join(temporary, 'src/TemplateV4.Application/Reports/Reports.cs'), 'utf8');
     assert.notEqual(run('new', 'feature', 'Reports').status, 0);
-    assert.equal(fs.readFileSync(path.join(temporary, 'src/Application/Reports/Reports.cs'), 'utf8'), before);
+    assert.equal(fs.readFileSync(path.join(temporary, 'src/TemplateV4.Application/Reports/Reports.cs'), 'utf8'), before);
     assert.notEqual(run('new', 'entity', '../Escape').status, 0);
     assert.notEqual(run('new', 'unknown', 'Example').status, 0);
     assert.equal(run('new', 'command', 'ArchiveUser').status, 0);

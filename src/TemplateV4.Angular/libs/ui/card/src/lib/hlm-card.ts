@@ -1,0 +1,22 @@
+import { Directive, input } from '@angular/core';
+import { classes } from '@spartan-ng/helm/utils';
+import { HlmCardConfig, injectHlmCardConfig } from './hlm-card.token';
+
+@Directive({
+  selector: '[hlmCard],hlm-card',
+  host: {
+    'data-slot': 'card',
+    '[attr.data-size]': 'size()',
+  },
+})
+export class HlmCard {
+  private readonly _defaultConfig = injectHlmCardConfig();
+  public readonly size = input<HlmCardConfig['size']>(this._defaultConfig.size);
+
+  constructor() {
+    classes(
+      () =>
+        'group/card flex flex-col gap-0 overflow-hidden rounded-(--panel-radius) bg-muted/60 p-(--panel-inset) text-sm text-card-foreground [--card-spacing:var(--panel-content-spacing)] data-[size=sm]:[--card-spacing:--spacing(4)]',
+    );
+  }
+}

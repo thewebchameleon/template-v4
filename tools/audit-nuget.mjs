@@ -5,7 +5,11 @@ const root = path.resolve(import.meta.dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'framework.json'), 'utf8'));
 const projects = Object.values(manifest.projects).filter(value => fs.existsSync(path.join(root, value)) && fs.statSync(path.join(root, value)).isDirectory())
   .flatMap(directory => fs.readdirSync(path.join(root, directory)).filter(file => file.endsWith('.csproj')).map(file => path.join(directory, file)));
-projects.push('tests/templatev4.Tests/templatev4.Tests.csproj');
+projects.push(
+  'src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj',
+  'src/TemplateV4.Ui.Tests/TemplateV4.Ui.Tests.csproj',
+  'src/TemplateV4.Utility.Tests/TemplateV4.Utility.Tests.csproj'
+);
 let failed = false;
 await Promise.all(projects.map(project => new Promise(resolve => {
   const child = spawn('dotnet', ['list', project, 'package', '--vulnerable', '--include-transitive', '--format', 'json'], { cwd: root });

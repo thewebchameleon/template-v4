@@ -1,0 +1,12 @@
+{
+  "title": "TemplateV4 Developer Guide",
+  "src": "docs",
+  "out": "site",
+  "security": {
+    "html": "escape"
+  },
+  "theme": {
+    "name": "default",
+    "appearance": "system"
+  }
+}

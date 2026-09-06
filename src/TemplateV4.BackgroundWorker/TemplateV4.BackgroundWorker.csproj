@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Infrastructure/TemplateV4.Infrastructure.csproj" />
+    <ProjectReference Include="../TemplateV4.ServiceDefaults/TemplateV4.ServiceDefaults.csproj" />
+
+    <PackageReference Include="Quartz.Extensions.Hosting" />
+    <PackageReference Include="Quartz.Serialization.SystemTextJson" />
+  </ItemGroup>
+</Project>

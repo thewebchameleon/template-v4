@@ -1,4 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup><ProjectReference Include="../Domain/templatev4.Domain.csproj" />
-    <ProjectReference Include="../Framework.Core/templatev4.Framework.Core.csproj" /></ItemGroup>
-</Project>

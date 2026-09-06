@@ -3,7 +3,7 @@
 **/node_modules/
 **/.angular/
 **/dist/
-src/Documentation/site/
+documentation/site/
 **/coverage/
 TestResults/
 .vs/

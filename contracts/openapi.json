@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "templatev4.API | v1",
+    "title": "TemplateV4.ApiService | v1",
     "version": "1.0.0"
   },
   "servers": [
@@ -313,6 +313,36 @@
         }
       }
     },
+    "/api/v1/auth/mfa/email": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SendEmailMfaCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailMfaChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailMfaChallengeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/profile": {
       "get": {
         "tags": [
@@ -329,6 +359,29 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/preference": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SetMfaPreference",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaPreferenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -488,6 +541,66 @@
           "Framework"
         ],
         "operationId": "PasskeyLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyCredential"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/mfa-options": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "PasskeyMfaOptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasskeyOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/mfa": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CompletePasskeyMfa",
         "requestBody": {
           "content": {
             "application/json": {
@@ -942,7 +1055,8 @@
           "expiresAt",
           "userId",
           "permissions",
-          "culture"
+          "culture",
+          "mfaConfigured"
         ],
         "type": "object",
         "properties": {
@@ -966,6 +1080,9 @@
           "culture": {
             "type": "string"
           },
+          "mfaConfigured": {
+            "type": "boolean"
+          },
           "setupRequired": {
             "type": "boolean",
             "default": false
@@ -975,6 +1092,36 @@
               "null",
               "string"
             ]
+          },
+          "passkeyRequired": {
+            "type": "boolean",
+            "default": false
+          },
+          "mfaMethods": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredMfaMethod": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emailCodeSent": {
+            "type": "boolean",
+            "default": false
+          },
+          "emailResendAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -1110,6 +1257,34 @@
           }
         }
       },
+      "EmailMfaChallengeRequest": {
+        "required": [
+          "challengeId"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailMfaChallengeResponse": {
+        "required": [
+          "expiresAt",
+          "resendAt"
+        ],
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resendAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ForgotPasswordRequest": {
         "required": [
           "email"
@@ -1199,6 +1374,21 @@
           "recoveryCode": {
             "type": "boolean",
             "default": false
+          },
+          "method": {
+            "type": "string",
+            "default": "Authenticator"
+          }
+        }
+      },
+      "MfaPreferenceRequest": {
+        "required": [
+          "method"
+        ],
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string"
           }
         }
       },
@@ -1228,6 +1418,17 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PasskeyChallengeRequest": {
+        "required": [
+          "challengeId"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string"
           }
         }
       },
@@ -1295,7 +1496,10 @@
           "mfaEnabled",
           "mfaRequired",
           "recoveryCodes",
-          "passkeys"
+          "passkeys",
+          "emailMfaEnabled",
+          "mfaMethods",
+          "preferredMfaMethod"
         ],
         "type": "object",
         "properties": {
@@ -1333,6 +1537,18 @@
             "items": {
               "$ref": "#/components/schemas/PasskeySummary"
             }
+          },
+          "emailMfaEnabled": {
+            "type": "boolean"
+          },
+          "mfaMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredMfaMethod": {
+            "type": "string"
           }
         }
       },

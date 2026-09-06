@@ -3,14 +3,14 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const commands = [
   ['node', ['tools/framework.mjs', 'validate']],
-  ['dotnet', ['restore', 'templatev4.slnx', '--locked-mode']],
-  ['dotnet', ['format', 'templatev4.slnx', '--verify-no-changes', '--no-restore']],
-  ['dotnet', ['build', 'templatev4.slnx', '--no-restore']],
-  ['dotnet', ['test', 'tests/templatev4.Tests', '--no-build']],
-  ['npm', ['run', 'format:check', '--prefix', 'src/Web']],
-  ['npm', ['run', 'lint', '--prefix', 'src/Web']],
-  ['npm', ['run', 'build', '--prefix', 'src/Web']],
-  ['npm', ['audit', '--prefix', 'src/Web', '--audit-level=moderate']]
+  ['dotnet', ['restore', 'src/TemplateV4.slnx', '--locked-mode']],
+  ['dotnet', ['format', 'src/TemplateV4.slnx', '--verify-no-changes', '--no-restore']],
+  ['dotnet', ['build', 'src/TemplateV4.slnx', '--no-restore']],
+  ['dotnet', ['test', 'src/TemplateV4.slnx', '--no-build']],
+  ['npm', ['run', 'format:check', '--prefix', 'src/TemplateV4.Angular']],
+  ['npm', ['run', 'lint', '--prefix', 'src/TemplateV4.Angular']],
+  ['npm', ['run', 'build', '--prefix', 'src/TemplateV4.Angular']],
+  ['npm', ['audit', '--prefix', 'src/TemplateV4.Angular', '--audit-level=moderate']]
 ];
 const start = performance.now();
 for (let [exe, args] of commands) {

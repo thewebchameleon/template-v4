@@ -9,7 +9,7 @@ try {
     $buildOption = if ($NoBuild) { '--no-build' } else { '--build' }
     docker compose -p templatev4-e2e -f compose.yaml -f compose.e2e.yaml up $buildOption -d --scale api=2 --scale worker=2
     if ($LASTEXITCODE -ne 0) { throw 'Browser stack failed to start' }
-    Push-Location src/Web
+    Push-Location src/TemplateV4.Angular
     try {
         node node_modules/@playwright/test/cli.js test
         if ($LASTEXITCODE -ne 0) { throw 'Browser tests failed' }

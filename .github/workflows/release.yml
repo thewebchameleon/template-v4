@@ -40,10 +40,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - {name: api, project: API, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: worker, project: Worker, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: migrator, project: DatabaseMigrator, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: web, project: Web, dockerfile: src/Web/Dockerfile}
+          - {name: api, project: TemplateV4.ApiService, dockerfile: deploy/Dockerfile.dotnet}
+          - {name: worker, project: TemplateV4.BackgroundWorker, dockerfile: deploy/Dockerfile.dotnet}
+          - {name: migrator, project: TemplateV4.DatabaseMigrator, dockerfile: deploy/Dockerfile.dotnet}
+          - {name: web, project: Web, dockerfile: src/TemplateV4.Angular/Dockerfile}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check release version

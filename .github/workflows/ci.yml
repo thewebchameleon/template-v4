@@ -26,45 +26,45 @@ jobs:
           node-version: ${{ steps.tools.outputs.node }}
           cache: npm
           cache-dependency-path: |
-            src/Web/package-lock.json
-            src/Documentation/package-lock.json
+            src/TemplateV4.Angular/package-lock.json
+            documentation/package-lock.json
       - run: npm install -g npm@${{ steps.tools.outputs.npm }}
-      - run: npm ci --prefix src/Web
-      - run: npm ci --prefix src/Documentation
+      - run: npm ci --prefix src/TemplateV4.Angular
+      - run: npm ci --prefix documentation
       - run: node tools/framework.mjs validate
       - run: node --test tools/cli.test.mjs
       - run: dotnet tool restore
-      - run: dotnet restore templatev4.slnx --locked-mode
-      - run: dotnet format templatev4.slnx --verify-no-changes --no-restore
-      - run: npm run format:check --prefix src/Web
-      - run: npm run lint --prefix src/Web
-      - run: dotnet build templatev4.slnx -c Release --no-restore
-      - run: dotnet test tests/templatev4.Tests -c Release --no-build --logger trx
+      - run: dotnet restore src/TemplateV4.slnx --locked-mode
+      - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore
+      - run: npm run format:check --prefix src/TemplateV4.Angular
+      - run: npm run lint --prefix src/TemplateV4.Angular
+      - run: dotnet build src/TemplateV4.slnx -c Release --no-restore
+      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
         env:
           TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
       - run: node tools/framework.mjs clients
-      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/Web/src/app/api)"
-      - run: npm run build --prefix src/Web
-      - run: npm run validate --prefix src/Documentation
-      - run: npm run build --prefix src/Documentation
+      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
+      - run: npm run build --prefix src/TemplateV4.Angular
+      - run: npm run validate --prefix documentation
+      - run: npm run build --prefix documentation
       - name: Test independent package consumer
         shell: pwsh
         run: ./tools/test-packages.ps1
-      - run: npm audit --prefix src/Web --audit-level=moderate
-      - run: npm audit --prefix src/Documentation --audit-level=moderate
+      - run: npm audit --prefix src/TemplateV4.Angular --audit-level=moderate
+      - run: npm audit --prefix documentation --audit-level=moderate
       - name: NuGet vulnerability check
         run: node tools/audit-nuget.mjs
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - run: |
-          for project in API Worker DatabaseMigrator; do
-            docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=$project -t templatev4-${project,,}:ci .
-          done
-          docker build -f src/Web/Dockerfile -t templatev4-web:ci .
+          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.ApiService -t templatev4-api:ci .
+          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.BackgroundWorker -t templatev4-worker:ci .
+          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.DatabaseMigrator -t templatev4-databasemigrator:ci .
+          docker build -f src/TemplateV4.Angular/Dockerfile -t templatev4-web:ci .
       - name: Browser security and accessibility
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force .local | Out-Null
           openssl genrsa -out .local/jwt.pem 3072
           chmod 644 .local/jwt.pem
-          node src/Web/node_modules/@playwright/test/cli.js install --with-deps chromium
+          node src/TemplateV4.Angular/node_modules/@playwright/test/cli.js install --with-deps chromium
           ./tools/test-browser.ps1

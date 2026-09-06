@@ -29,30 +29,33 @@
     "operations"
   ],
   "projects": {
-    "Domain": "src/Domain",
-    "Application": "src/Application",
-    "Infrastructure": "src/Infrastructure",
-    "API": "src/API",
-    "Worker": "src/Worker",
-    "DatabaseMigrator": "src/DatabaseMigrator",
-    "AppHost": "src/AppHost",
-    "ServiceDefaults": "src/ServiceDefaults",
-    "Documentation": "src/Documentation",
-    "Web": "src/Web",
+    "Domain": "src/TemplateV4.Domain",
+    "Application": "src/TemplateV4.Application",
+    "Infrastructure": "src/TemplateV4.Infrastructure",
+    "API": "src/TemplateV4.ApiService",
+    "Worker": "src/TemplateV4.BackgroundWorker",
+    "DatabaseMigrator": "src/TemplateV4.DatabaseMigrator",
+    "AppHost": "src/TemplateV4.AppHost",
+    "ServiceDefaults": "src/TemplateV4.ServiceDefaults",
+    "Documentation": "documentation",
+    "Web": "src/TemplateV4.Angular",
     "CLI": "tools/framework.mjs",
-    "FrameworkCore": "src/Framework.Core"
+    "SharedKernel": "src/TemplateV4.SharedKernel",
+    "ApplicationTests": "src/TemplateV4.Application.Tests",
+    "UiTests": "src/TemplateV4.Ui.Tests",
+    "UtilityTests": "src/TemplateV4.Utility.Tests"
   },
   "workloads": {
-    "Web": "src/Web/Dockerfile",
+    "Web": "src/TemplateV4.Angular/Dockerfile",
     "API": "deploy/Dockerfile.dotnet",
     "Worker": "deploy/Dockerfile.dotnet"
   },
   "generatedCode": {
-    "src/Web/src/app/api": "ng-openapi-gen",
-    "src/Infrastructure/Persistence/Migrations": "dotnet-ef"
+    "src/TemplateV4.Angular/src/app/api": "ng-openapi-gen",
+    "src/TemplateV4.Infrastructure/Persistence/Migrations": "dotnet-ef"
   },
-  "documentation": "docs",
-  "adrs": "docs/adr",
+  "documentation": "documentation/docs",
+  "adrs": "documentation/docs/adr",
   "extensions": {
     "persistence": "EF Core / PostgreSQL",
     "transport": "PostgreSQL outbox / local Worker consumers",
@@ -71,7 +74,7 @@
     ]
   },
   "packages": {
-    "templatev4.Framework.Core": "src/Framework.Core",
-    "templatev4.ServiceDefaults": "src/ServiceDefaults"
+    "TemplateV4.SharedKernel": "src/TemplateV4.SharedKernel",
+    "TemplateV4.ServiceDefaults": "src/TemplateV4.ServiceDefaults"
   }
 }

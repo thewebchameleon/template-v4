@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: deploy/Dockerfile.dotnet
-      args: {PROJECT: DatabaseMigrator}
+      args: {PROJECT: TemplateV4.DatabaseMigrator}
     environment: &environment
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4;Password=${POSTGRES_PASSWORD}
@@ -39,7 +39,7 @@ services:
       postgres: {condition: service_healthy}
       key-permissions: {condition: service_completed_successfully}
   api:
-    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: API}}
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.ApiService}}
     environment:
       <<: *environment
       ReverseProxy__Address: 172.29.0.10
@@ -47,7 +47,7 @@ services:
     depends_on:
       migrator: {condition: service_completed_successfully}
   worker:
-    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: Worker}}
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.BackgroundWorker}}
     environment:
       <<: *environment
       Email__Host: mailpit
@@ -56,19 +56,15 @@ services:
     depends_on:
       migrator: {condition: service_completed_successfully}
   web:
-    build: {context: ., dockerfile: src/Web/Dockerfile}
+    build: {context: ., dockerfile: src/TemplateV4.Angular/Dockerfile}
+    ports: ["127.0.0.1:8443:8443"]
+    volumes: ["./.local/web.pem:/run/secrets/web.pem:ro", "./.local/web.key:/run/secrets/web.key:ro"]
     networks:
       default: {ipv4_address: 172.29.0.10}
     depends_on: [api]
-  gateway:
-    image: caddy:2.11.4-alpine
-    ports: ["127.0.0.1:8443:8443"]
-    volumes: ["./deploy/Caddyfile:/etc/caddy/Caddyfile:ro", "caddy:/data"]
-    depends_on: [web]
 volumes:
   postgres:
   keys:
-  caddy:
 networks:
   default:
     ipam:

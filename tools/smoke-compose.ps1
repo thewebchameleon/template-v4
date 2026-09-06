@@ -5,7 +5,7 @@ foreach ($line in Get-Content -LiteralPath (Join-Path $repository '.env')) {
     if ($line -match '^([^#=]+)=(.*)$') { $settings[$Matches[1]] = $Matches[2] }
 }
 $origin = 'https://localhost:8443'
-# Certificate bypass is confined to this local Caddy development smoke test.
+# Certificate bypass is confined to this local Nginx development smoke test.
 $csrf = Invoke-RestMethod "$origin/api/v1/auth/csrf" -SkipCertificateCheck -SessionVariable browserSession
 $headers = @{ Origin = $origin; 'X-CSRF-TOKEN' = $csrf.token }
 $body = @{ email = $settings.BOOTSTRAP_EMAIL; password = $settings.BOOTSTRAP_PASSWORD; device = 'Compose smoke test' } | ConvertTo-Json

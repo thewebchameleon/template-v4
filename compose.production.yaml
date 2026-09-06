@@ -33,7 +33,7 @@ services:
       retries: 20
     stop_grace_period: 60s
   migrator:
-    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: DatabaseMigrator}}
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.DatabaseMigrator}}
     environment:
       <<: *runtime
       Database__GrantRuntimeRoles: 'true'
@@ -46,7 +46,7 @@ services:
       postgres: {condition: service_healthy}
       key-permissions: {condition: service_completed_successfully}
   api:
-    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: API}}
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.ApiService}}
     restart: unless-stopped
     environment:
       <<: *runtime
@@ -63,7 +63,7 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   worker:
-    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: Worker}}
+    build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.BackgroundWorker}}
     restart: unless-stopped
     environment:
       <<: *runtime
@@ -82,11 +82,10 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   web:
-    build: {context: ., dockerfile: src/Web/Dockerfile}
+    build: {context: ., dockerfile: src/TemplateV4.Angular/Dockerfile}
     restart: unless-stopped
-    ports: ['80:8080', '443:8443']
-    volumes: ['./deploy/nginx.production.conf:/etc/nginx/conf.d/default.conf:ro', 'acme:/var/www/acme:ro']
-    secrets: [tls_fullchain, tls_key]
+    expose: ['8080']
+    volumes: ['./deploy/nginx.production.conf:/etc/nginx/conf.d/default.conf:ro']
     depends_on:
       api: {condition: service_healthy}
     networks:
@@ -110,12 +109,9 @@ secrets:
   dp_password: {file: '${SECRETS_DIR}/dp_password'}
   smtp_username: {file: '${SECRETS_DIR}/smtp_username'}
   smtp_password: {file: '${SECRETS_DIR}/smtp_password'}
-  tls_fullchain: {file: '${SECRETS_DIR}/tls_fullchain'}
-  tls_key: {file: '${SECRETS_DIR}/tls_key'}
 volumes:
   postgres:
   keys:
-  acme:
 networks:
   default:
     ipam:

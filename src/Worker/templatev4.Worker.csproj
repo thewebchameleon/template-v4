@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <ItemGroup>
-    <ProjectReference Include="../Infrastructure/templatev4.Infrastructure.csproj" />
-    <ProjectReference Include="../ServiceDefaults/templatev4.ServiceDefaults.csproj" />
-    <PackageReference Include="Quartz.Extensions.Hosting" />
-    <PackageReference Include="Quartz.Serialization.SystemTextJson" />
-  </ItemGroup>
-</Project>
