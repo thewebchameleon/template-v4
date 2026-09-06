@@ -7,14 +7,22 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { DeliverySummary } from '../../models/delivery-summary';
+import { DeliveryPage } from '../../models/delivery-page';
 
 export interface GetDeliveryOperations$Params {
+  kind?: string;
+  pageNumber?: number;
+  pageSize?: number;
+  failedOnly?: boolean;
 }
 
-export function getDeliveryOperations(http: HttpClient, rootUrl: string, params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<DeliverySummary>>> {
+export function getDeliveryOperations(http: HttpClient, rootUrl: string, params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<StrictHttpResponse<DeliveryPage>> {
   const rb = new RequestBuilder(rootUrl, getDeliveryOperations.PATH, 'get');
   if (params) {
+    rb.query('kind', params.kind, {});
+    rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
+    rb.query('failedOnly', params.failedOnly, {});
   }
 
   return http.request(
@@ -22,7 +30,7 @@ export function getDeliveryOperations(http: HttpClient, rootUrl: string, params?
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<DeliverySummary>>;
+      return r as StrictHttpResponse<DeliveryPage>;
     })
   );
 }

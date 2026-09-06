@@ -4,7 +4,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.BackgroundWorker;
 
-public sealed class WorkerReadiness(IServiceScopeFactory scopes, ISchedulerFactory schedulers) : IHealthCheck
+public sealed class WorkerReadiness(IServiceScopeFactory scopes, ISchedulerFactory schedulers, TimeProvider time) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
@@ -12,9 +12,10 @@ public sealed class WorkerReadiness(IServiceScopeFactory scopes, ISchedulerFacto
         if (!await scope.ServiceProvider.GetRequiredService<FrameworkDb>().Database.CanConnectAsync(cancellationToken)) return HealthCheckResult.Unhealthy("Database unavailable.");
         var scheduler = await schedulers.GetScheduler(cancellationToken);
         var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
-        var cutoff = DateTimeOffset.UtcNow.AddMinutes(-15);
+        var now = time.GetUtcNow();
+        var cutoff = now.AddMinutes(-15);
         if (await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.Outbox.Where(x => x.PoisonedAt != null || x.CompletedAt == null && x.CreatedAt < cutoff), cancellationToken)
-            || await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.JobRuns.Where(x => x.State == "Failed"), cancellationToken))
+            || await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.JobRuns.Where(x => x.State == "Failed" || x.State != "Completed" && x.AvailableAt < cutoff && (x.State != "Running" || x.LeaseUntil < now)), cancellationToken))
             return HealthCheckResult.Degraded("Delivery requires operator attention.");
         return scheduler.IsStarted && !scheduler.IsShutdown && !scheduler.InStandbyMode ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy("Scheduler unavailable.");
     }

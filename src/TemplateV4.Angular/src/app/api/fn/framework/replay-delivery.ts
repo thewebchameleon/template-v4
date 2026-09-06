@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { ReplayRequest } from '../../models/replay-request';
 
 export interface ReplayDelivery$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: ReplayRequest
 }
 
 export function replayDelivery(http: HttpClient, rootUrl: string, params: ReplayDelivery$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, replayDelivery.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

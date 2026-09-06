@@ -78,6 +78,9 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
+        var sessionId = EndpointSession(http);
+        if (sessionId is null || await security.RequiresRecentVerification(user, sessionId.Value, ct))
+            return Result<PasskeyOptions>.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await security.Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<PasskeyOptions>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if ((await users.GetPasskeysAsync(user)).Count >= 10) return Result<PasskeyOptions>.Fail("auth.passkey_limit", ErrorKind.Conflict);
         var options = await handler.MakeCreationOptionsAsync(new() { Id = id.ToString(), Name = user.Email!, DisplayName = user.Email! }, http);
@@ -91,6 +94,8 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var challenge = await security.Consume(request.ChallengeId, "passkey-register", ct);
         await security.Lock(id, ct); var user = (await users.FindByIdAsync(id.ToString()))!;
+        if (await security.RequiresRecentVerification(user, sessionId, ct))
+            return Result.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (challenge is null || challenge.Row.UserId != id || challenge.Row.SecurityStamp != user.SecurityStamp) return Result.Fail("auth.challenge_expired", ErrorKind.Unauthorized);
         var result = await handler.PerformAttestationAsync(new() { HttpContext = http, CredentialJson = request.Credential.GetRawText(), AttestationState = challenge.State });
         if (!result.Succeeded || result.UserEntity!.Id != id.ToString())
@@ -107,10 +112,14 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         if (string.IsNullOrWhiteSpace(request.Id) || request.Id.Length > 1400) return Result.Fail("validation.failed", ErrorKind.Validation);
         byte[] key; try { key = WebEncoders.Base64UrlDecode(request.Id); } catch (FormatException) { return Result.Fail("validation.failed", ErrorKind.Validation); }
         await using var tx = await db.Database.BeginTransactionAsync(ct); var user = (await users.FindByIdAsync(id.ToString()))!;
+        if (await security.RequiresRecentVerification(user, sessionId, ct))
+            return Result.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await security.Proof(user, request.Proof, ct)) { await tx.CommitAsync(ct); return Result.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if (!user.EmailMfaEnabled && !user.TwoFactorEnabled && await security.GloballyRequired(user, ct) && (await users.GetPasskeysAsync(user)).Count <= 1) return Result.Fail("auth.mfa_required", ErrorKind.Conflict);
         if (!(await users.RemovePasskeyAsync(user, key)).Succeeded) return Result.Fail("auth.passkey_missing", ErrorKind.NotFound);
         await security.Changed(user, sessionId, "auth.passkey_removed", ct);
         await tx.CommitAsync(ct); return Result.Success();
     }
+    private static Guid? EndpointSession(HttpContext http) =>
+        Guid.TryParse(http.User.FindFirst("sid")?.Value, out var sessionId) ? sessionId : null;
 }

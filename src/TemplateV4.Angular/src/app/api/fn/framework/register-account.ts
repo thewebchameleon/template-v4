@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { RegistrationRequest } from '../../models/registration-request';
 
 export interface RegisterAccount$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: RegistrationRequest
 }
 
 export function registerAccount(http: HttpClient, rootUrl: string, params: RegisterAccount$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, registerAccount.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

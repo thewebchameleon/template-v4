@@ -11,12 +11,18 @@ import { AccessResponse } from '../../models/access-response';
 import { MfaLoginRequest } from '../../models/mfa-login-request';
 
 export interface CompleteMfa$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: MfaLoginRequest
 }
 
 export function completeMfa(http: HttpClient, rootUrl: string, params: CompleteMfa$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
   const rb = new RequestBuilder(rootUrl, completeMfa.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

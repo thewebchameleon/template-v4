@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { ResetPasswordRequest } from '../../models/reset-password-request';
 
 export interface ResetPassword$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: ResetPasswordRequest
 }
 
 export function resetPassword(http: HttpClient, rootUrl: string, params: ResetPassword$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, resetPassword.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
@@ -9,7 +8,7 @@ namespace TemplateV4.ApiService.Endpoints;
 
 public static class AuthenticationEndpoints
 {
-    public static RouteGroupBuilder MapAuthenticationEndpoints(this RouteGroupBuilder group, CultureCatalog cultures)
+    public static RouteGroupBuilder MapAuthenticationEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/csrf", (HttpContext context, IAntiforgery antiforgery) =>
         {
@@ -44,14 +43,9 @@ public static class AuthenticationEndpoints
             context.Response.Cookies.Delete(EndpointSecurity.RefreshCookie, EndpointSecurity.RefreshCookieOptions());
             return Results.NoContent();
         }).WithName("Logout");
-        group.MapGet("/sessions", async (FrameworkDb db, ClaimsPrincipal principal, CancellationToken ct) =>
+        group.MapGet("/sessions", async (AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
-            var id = EndpointSecurity.Actor(principal);
-            var current = EndpointSecurity.SessionId(principal);
-            return await db.Sessions
-                .Where(x => x.UserId == id && x.RevokedAt == null && x.ExpiresAt > DateTimeOffset.UtcNow)
-                .Select(x => new SessionDto(x.Id, x.Device, x.CreatedAt, x.ExpiresAt, x.Id == current))
-                .ToArrayAsync(ct);
+            return await service.ListSessions(EndpointSecurity.Actor(principal), EndpointSecurity.SessionId(principal), ct);
         }).RequireAuthorization().WithName("ListSessions");
         group.MapDelete("/sessions/{id:guid}", async (Guid id, AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
@@ -69,15 +63,12 @@ public static class AuthenticationEndpoints
         group.MapPost("/reset-password", async (ResetPasswordRequest request, AccountService service, CancellationToken ct) =>
                 (await service.Reset(request, ct)).ToHttp())
             .WithName("ResetPassword");
-        group.MapPost("/culture", async (CultureRequest request, FrameworkDb db, ClaimsPrincipal principal, CancellationToken ct) =>
+        group.MapPost("/culture", async (CultureRequest request, AccountService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
-            if (!cultures.Supported.Contains(request.Culture))
-                return ApiResults.Failure(new("culture.unsupported", ErrorKind.Validation));
-            var profile = await db.Profiles.SingleAsync(x => x.Id == EndpointSecurity.Actor(principal), ct);
-            profile.SetCulture(request.Culture);
-            await db.SaveChangesAsync(ct);
-            return Results.NoContent();
-        }).RequireAuthorization().WithName("SetCulture");
+            var result = await service.SetCulture(EndpointSecurity.Actor(principal), request, ct);
+            return result.IsSuccess ? Results.NoContent() : ApiResults.Failure(result.Error!);
+        })
+            .RequireAuthorization().WithName("SetCulture");
 
         return group;
     }

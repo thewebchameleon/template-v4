@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { ConfirmEmailRequest } from '../../models/confirm-email-request';
 
 export interface ConfirmEmail$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: ConfirmEmailRequest
 }
 
 export function confirmEmail(http: HttpClient, rootUrl: string, params: ConfirmEmail$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, confirmEmail.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

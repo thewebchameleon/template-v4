@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { CultureRequest } from '../../models/culture-request';
 
 export interface SetCulture$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: CultureRequest
 }
 
 export function setCulture(http: HttpClient, rootUrl: string, params: SetCulture$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, setCulture.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

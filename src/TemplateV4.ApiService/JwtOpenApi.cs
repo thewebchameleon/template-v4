@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
@@ -16,14 +17,34 @@ public sealed class JwtOpenApi : IOpenApiDocumentTransformer
             BearerFormat = "JWT",
             Description = "Use a five-minute access token returned by login. Browser cookie endpoints also require CSRF protection."
         };
-        foreach (var path in document.Paths)
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class JwtOperationOpenApi : IOpenApiOperationTransformer
+{
+    public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
+    {
+        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+        if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+            operation.Security = [new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
+            }];
+
+        var path = (context.Description.RelativePath ?? "").TrimEnd('/');
+        var method = context.Description.HttpMethod;
+        if (method is not null && !HttpMethods.IsGet(method) && (path.StartsWith("api/v1/auth/", StringComparison.Ordinal) || path == "api/v1/bootstrap"))
         {
-            if (!path.Key.StartsWith("/api/v1/", StringComparison.Ordinal)) continue;
-            var secured = !path.Key.StartsWith("/api/v1/auth/", StringComparison.Ordinal)
-                || path.Key.StartsWith("/api/v1/auth/sessions", StringComparison.Ordinal) || path.Key == "/api/v1/auth/culture";
-            if (!secured || path.Value.Operations is null) continue;
-            foreach (var operation in path.Value.Operations.Values)
-                operation.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("Bearer", document)] = [] }];
+            operation.Parameters ??= [];
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "X-CSRF-TOKEN",
+                In = ParameterLocation.Header,
+                Required = true,
+                Description = "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+                Schema = new OpenApiSchema { Type = JsonSchemaType.String }
+            });
         }
         return Task.CompletedTask;
     }

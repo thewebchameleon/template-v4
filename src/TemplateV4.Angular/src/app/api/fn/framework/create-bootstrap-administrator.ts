@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { AdminBootstrapRequest } from '../../models/admin-bootstrap-request';
 
 export interface CreateBootstrapAdministrator$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: AdminBootstrapRequest
 }
 
 export function createBootstrapAdministrator(http: HttpClient, rootUrl: string, params: CreateBootstrapAdministrator$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, createBootstrapAdministrator.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

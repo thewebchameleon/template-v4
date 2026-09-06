@@ -31,6 +31,8 @@ Replace `IIntegrationTransport`, `IEmailSender`, `IFeatureFlags`, or `IFileStora
 
 `IExecutionContext` is scoped. HTTP resolves claims and culture; jobs/messages populate an explicit background context. Never pass HttpContext into Application. W3C context is stored with events; diagnostic logs exclude payloads. Security/business audit records are separate from logs.
 
+Account and security HTTP handlers are contract adapters and do not access EF or Identity directly. Session, account, MFA, and passkey behavior belongs to their focused Infrastructure use-case services under the boundary defined by [ADR 0014](adr/0014-account-security-use-case-boundaries.md). Domain factories expose use-case event intent explicitly; callers do not create and then clear domain events.
+
 ## Localisation and UI
 
 Supported examples are en-ZA and af-ZA. User preference precedes Accept-Language and the application default. Background event contracts carry culture explicitly. Angular switches UI text at runtime and formats dates, numbers, and currency with Intl. Backend feature flags are authoritative; permission checks remain mandatory regardless of flag state.
@@ -40,6 +42,8 @@ Spartan Brain supplies behavior; copied Helm components in `src/TemplateV4.Angul
 Display tabular application data through `src/TemplateV4.Angular/src/app/shared/data-table.ts`, the shared implementation of [Spartan's Data Table guide](https://www.spartan.ng/components/data-table). Feature pages own typed TanStack column definitions and server-side query state; render rich or interactive cells as Angular components with `flexRenderComponent`. Extend the shared composition for cross-cutting table behavior, and do not add page-local table implementations or competing grid libraries.
 
 Authenticated page navigation uses `src/TemplateV4.Angular/src/app/shared/breadcrumbs.ts` in the root header. Add `data: { breadcrumb: 'translationKey' }` to route levels for explicit localized labels; levels without data are derived from their URL segment. A page that needs runtime labels, such as an entity name, can inject `Breadcrumbs` and call `set([{ label: 'users', link: '/users' }, { label: user.displayName }])`. The override lasts until the next navigation starts, and `clear()` restores route-derived values. The current level is text, ancestor levels are links, middle levels collapse on mobile, and the back action follows browser history when a previous in-app page is known.
+
+The root derives the document title from the current localized breadcrumb and moves focus to the main landmark after route navigation. Keep every page's first heading descriptive and keep the main landmark programmatically focusable so keyboard and assistive-technology users receive clear navigation feedback.
 
 User feedback follows Spartan's distinction between persistent and transient content: keep `hlmAlert` in the page for state, warnings, and actions that must remain visible, and publish operation results through the single root `hlm-toaster`. Toast copy is localized at publication time; HTTP Problem Details show only their human-readable title. Error codes and trace identifiers remain diagnostic data and must not appear in user notifications. Expected setup-only access failures do not produce a toast because the profile's persistent MFA setup alert provides the required guidance.
 

@@ -16,12 +16,12 @@ public sealed class UserProfile : IDomainEventSource
     public Guid Version { get; private set; } = Guid.NewGuid();
     public IReadOnlyList<IDomainEvent> Events => _events;
 
-    public static UserProfile Create(Guid id, string displayName, string culture)
+    public static UserProfile Create(Guid id, string displayName, string culture, bool invitationRequired = true)
     {
         if (id == Guid.Empty || string.IsNullOrWhiteSpace(displayName) || displayName.Trim().Length > 120)
             throw new ArgumentException("A user requires an identifier and a display name of at most 120 characters.");
         var user = new UserProfile { Id = id, DisplayName = displayName.Trim(), Culture = culture };
-        user._events.Add(new UserProvisioned(id, culture));
+        if (invitationRequired) user._events.Add(new UserProvisioned(id, culture));
         return user;
     }
 

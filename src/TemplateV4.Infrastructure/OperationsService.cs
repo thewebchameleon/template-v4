@@ -4,16 +4,33 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure;
 
 public sealed record DeliverySummary(Guid Id, string Type, string State, int Attempts, DateTimeOffset AvailableAt, string? ErrorCode);
+public sealed record DeliveryPage(IReadOnlyList<DeliverySummary> Items, int Total, int PageNumber, int PageSize, string Kind);
 public sealed record ReplayRequest(Guid Id, string Kind);
 public sealed class OperationsService(FrameworkDb db, TimeProvider time)
 {
-    public async Task<DeliverySummary[]> List(CancellationToken ct)
+    public async Task<Result<DeliveryPage>> List(string kind, int pageNumber, int pageSize, bool failedOnly, CancellationToken ct)
     {
-        var messages = await db.Outbox.AsNoTracking().Where(x => x.CompletedAt == null).OrderBy(x => x.CreatedAt).Take(100)
-            .Select(x => new DeliverySummary(x.Id, x.Type, x.PoisonedAt != null ? "Failed" : x.LeaseId != null ? "Running" : "Pending", x.Attempts, x.AvailableAt, x.LastErrorCode)).ToArrayAsync(ct);
-        var jobs = await db.JobRuns.AsNoTracking().Where(x => x.State != "Completed").OrderBy(x => x.AvailableAt).Take(100)
+        if (kind is not ("message" or "job") || pageNumber < 1 || pageSize is < 1 or > 100 || pageNumber > int.MaxValue / pageSize)
+            return Result<DeliveryPage>.Fail("validation.failed", ErrorKind.Validation);
+
+        if (kind == "message")
+        {
+            var query = db.Outbox.AsNoTracking().Where(x => x.CompletedAt == null);
+            if (failedOnly) query = query.Where(x => x.PoisonedAt != null);
+            var total = await query.CountAsync(ct);
+            var items = await query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id)
+                .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+                .Select(x => new DeliverySummary(x.Id, x.Type, x.PoisonedAt != null ? "Failed" : x.LeaseId != null ? "Running" : "Pending", x.Attempts, x.AvailableAt, x.LastErrorCode)).ToArrayAsync(ct);
+            return Result<DeliveryPage>.Success(new(items, total, pageNumber, pageSize, kind));
+        }
+
+        var jobs = db.JobRuns.AsNoTracking().Where(x => x.State != "Completed");
+        if (failedOnly) jobs = jobs.Where(x => x.State == "Failed");
+        var jobTotal = await jobs.CountAsync(ct);
+        var jobItems = await jobs.OrderBy(x => x.AvailableAt).ThenBy(x => x.Id)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .Select(x => new DeliverySummary(x.Id, "job", x.State, x.Attempts, x.AvailableAt, x.ErrorCode)).ToArrayAsync(ct);
-        return messages.Concat(jobs).ToArray();
+        return Result<DeliveryPage>.Success(new(jobItems, jobTotal, pageNumber, pageSize, kind));
     }
     public async Task<Result<Unit>> Replay(Guid actor, ReplayRequest request, CancellationToken ct)
     {

@@ -26,7 +26,7 @@ import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-a
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
 import { createUser } from '../fn/framework/create-user';
 import { CreateUser$Params } from '../fn/framework/create-user';
-import { DeliverySummary } from '../models/delivery-summary';
+import { DeliveryPage } from '../models/delivery-page';
 import { disableMfa } from '../fn/framework/disable-mfa';
 import { DisableMfa$Params } from '../fn/framework/disable-mfa';
 import { EmailMfaChallengeResponse } from '../models/email-mfa-challenge-response';
@@ -224,7 +224,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  refresh$Response(params?: Refresh$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
+  refresh$Response(params: Refresh$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
     const obs = refresh(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -235,7 +235,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  refresh(params?: Refresh$Params, context?: HttpContext): Observable<AccessResponse> {
+  refresh(params: Refresh$Params, context?: HttpContext): Observable<AccessResponse> {
     const resp = this.refresh$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<AccessResponse>): AccessResponse => r.body)
@@ -251,7 +251,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  logout$Response(params?: Logout$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  logout$Response(params: Logout$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
     const obs = logout(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -262,7 +262,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  logout(params?: Logout$Params, context?: HttpContext): Observable<void> {
+  logout(params: Logout$Params, context?: HttpContext): Observable<void> {
     const resp = this.logout$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
@@ -656,7 +656,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  passkeyLoginOptions$Response(params?: PasskeyLoginOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<PasskeyOptions>> {
+  passkeyLoginOptions$Response(params: PasskeyLoginOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<PasskeyOptions>> {
     const obs = passkeyLoginOptions(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -667,7 +667,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  passkeyLoginOptions(params?: PasskeyLoginOptions$Params, context?: HttpContext): Observable<PasskeyOptions> {
+  passkeyLoginOptions(params: PasskeyLoginOptions$Params, context?: HttpContext): Observable<PasskeyOptions> {
     const resp = this.passkeyLoginOptions$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<PasskeyOptions>): PasskeyOptions => r.body)
@@ -890,6 +890,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `manageInvitation()` */
+  static readonly ManageInvitationPath = '/api/v1/auth/invitations';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `manageInvitation()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  manageInvitation$Response(params: ManageInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = manageInvitation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `manageInvitation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  manageInvitation(params: ManageInvitation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.manageInvitation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
   /** Path part for operation `getDeliveryOperations()` */
   static readonly GetDeliveryOperationsPath = '/api/v1/auth/operations';
 
@@ -899,7 +926,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  getDeliveryOperations$Response(params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<DeliverySummary>>> {
+  getDeliveryOperations$Response(params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<StrictHttpResponse<DeliveryPage>> {
     const obs = getDeliveryOperations(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -910,10 +937,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  getDeliveryOperations(params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<Array<DeliverySummary>> {
+  getDeliveryOperations(params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<DeliveryPage> {
     const resp = this.getDeliveryOperations$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<Array<DeliverySummary>>): Array<DeliverySummary> => r.body)
+      map((r: StrictHttpResponse<DeliveryPage>): DeliveryPage => r.body)
     );
   }
 
@@ -944,28 +971,55 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `manageInvitation()` */
-  static readonly ManageInvitationPath = '/api/v1/auth/invitations';
+  /** Path part for operation `getAdminBootstrapStatus()` */
+  static readonly GetAdminBootstrapStatusPath = '/api/v1/bootstrap/status';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `manageInvitation()` instead.
+   * To access only the response body, use `getAdminBootstrapStatus()` instead.
    *
-   * This method sends `application/json` and handles request body of type `application/json`.
+   * This method doesn't expect any request body.
    */
-  manageInvitation$Response(params: ManageInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = manageInvitation(this.http, this.rootUrl, params, context);
+  getAdminBootstrapStatus$Response(params?: GetAdminBootstrapStatus$Params, context?: HttpContext): Observable<StrictHttpResponse<AdminBootstrapStatus>> {
+    const obs = getAdminBootstrapStatus(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `manageInvitation$Response()` instead.
+   * To access the full response (for headers, for example), `getAdminBootstrapStatus$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getAdminBootstrapStatus(params?: GetAdminBootstrapStatus$Params, context?: HttpContext): Observable<AdminBootstrapStatus> {
+    const resp = this.getAdminBootstrapStatus$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<AdminBootstrapStatus>): AdminBootstrapStatus => r.body)
+    );
+  }
+
+  /** Path part for operation `createBootstrapAdministrator()` */
+  static readonly CreateBootstrapAdministratorPath = '/api/v1/bootstrap';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createBootstrapAdministrator()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  manageInvitation(params: ManageInvitation$Params, context?: HttpContext): Observable<void> {
-    const resp = this.manageInvitation$Response(params, context);
+  createBootstrapAdministrator$Response(params: CreateBootstrapAdministrator$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = createBootstrapAdministrator(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createBootstrapAdministrator$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createBootstrapAdministrator(params: CreateBootstrapAdministrator$Params, context?: HttpContext): Observable<void> {
+    const resp = this.createBootstrapAdministrator$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -1101,60 +1155,6 @@ export class FrameworkService extends BaseService {
    */
   getFeatures(params?: GetFeatures$Params, context?: HttpContext): Observable<void> {
     const resp = this.getFeatures$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `getAdminBootstrapStatus()` */
-  static readonly GetAdminBootstrapStatusPath = '/api/v1/bootstrap/status';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getAdminBootstrapStatus()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getAdminBootstrapStatus$Response(params?: GetAdminBootstrapStatus$Params, context?: HttpContext): Observable<StrictHttpResponse<AdminBootstrapStatus>> {
-    const obs = getAdminBootstrapStatus(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getAdminBootstrapStatus$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getAdminBootstrapStatus(params?: GetAdminBootstrapStatus$Params, context?: HttpContext): Observable<AdminBootstrapStatus> {
-    const resp = this.getAdminBootstrapStatus$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<AdminBootstrapStatus>): AdminBootstrapStatus => r.body)
-    );
-  }
-
-  /** Path part for operation `createBootstrapAdministrator()` */
-  static readonly CreateBootstrapAdministratorPath = '/api/v1/bootstrap';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `createBootstrapAdministrator()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createBootstrapAdministrator$Response(params: CreateBootstrapAdministrator$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = createBootstrapAdministrator(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `createBootstrapAdministrator$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createBootstrapAdministrator(params: CreateBootstrapAdministrator$Params, context?: HttpContext): Observable<void> {
-    const resp = this.createBootstrapAdministrator$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

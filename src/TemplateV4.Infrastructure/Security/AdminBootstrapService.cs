@@ -116,8 +116,7 @@ public sealed class AdminBootstrapService(FrameworkDb db, UserManager<AppUser> u
         if (!(await users.AddToRoleAsync(user, "Administrator")).Succeeded)
             throw new InvalidOperationException("Administrator role assignment failed.");
 
-        var profile = UserProfile.Create(id, user.UserName, cultures.DefaultCulture);
-        profile.ClearEvents();
+        var profile = UserProfile.Create(id, user.UserName, cultures.DefaultCulture, invitationRequired: false);
         db.Profiles.Add(profile);
         db.Audit.Add(new() { Action = "bootstrap.administrator", SubjectId = id, At = time.GetUtcNow() });
         settings ??= AddSettings();

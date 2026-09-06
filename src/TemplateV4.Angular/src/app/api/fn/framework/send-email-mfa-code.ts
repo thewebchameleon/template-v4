@@ -11,12 +11,18 @@ import { EmailMfaChallengeRequest } from '../../models/email-mfa-challenge-reque
 import { EmailMfaChallengeResponse } from '../../models/email-mfa-challenge-response';
 
 export interface SendEmailMfaCode$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: EmailMfaChallengeRequest
 }
 
 export function sendEmailMfaCode(http: HttpClient, rootUrl: string, params: SendEmailMfaCode$Params, context?: HttpContext): Observable<StrictHttpResponse<EmailMfaChallengeResponse>> {
   const rb = new RequestBuilder(rootUrl, sendEmailMfaCode.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

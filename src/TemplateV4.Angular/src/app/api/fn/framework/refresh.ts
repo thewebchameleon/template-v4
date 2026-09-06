@@ -10,11 +10,17 @@ import { RequestBuilder } from '../../request-builder';
 import { AccessResponse } from '../../models/access-response';
 
 export interface Refresh$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
 }
 
-export function refresh(http: HttpClient, rootUrl: string, params?: Refresh$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
+export function refresh(http: HttpClient, rootUrl: string, params: Refresh$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
   const rb = new RequestBuilder(rootUrl, refresh.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 
   return http.request(

@@ -9,8 +9,9 @@ public static class OperationsEndpoints
 {
     public static RouteGroupBuilder MapOperationsEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/operations", async (OperationsService service, CancellationToken ct) => await service.List(ct))
-            .RequireAuthorization(Permissions.Settings).WithName("GetDeliveryOperations");
+        group.MapGet("/operations", async (OperationsService service, CancellationToken ct, string kind = "message", int pageNumber = 1, int pageSize = 25, bool failedOnly = false) =>
+                (await service.List(kind, pageNumber, pageSize, failedOnly, ct)).ToHttp())
+            .RequireAuthorization(Permissions.Settings).WithName("GetDeliveryOperations").Produces<DeliveryPage>();
         group.MapPost("/operations/replay", async (ReplayRequest request, OperationsService service, ClaimsPrincipal principal, CancellationToken ct) =>
                 (await service.Replay(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization(Permissions.Settings).WithName("ReplayDelivery");

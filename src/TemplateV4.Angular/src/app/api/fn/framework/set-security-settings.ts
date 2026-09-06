@@ -11,12 +11,18 @@ import { SecurityPolicyRequest } from '../../models/security-policy-request';
 import { SecuritySettings } from '../../models/security-settings';
 
 export interface SetSecuritySettings$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: SecurityPolicyRequest
 }
 
 export function setSecuritySettings(http: HttpClient, rootUrl: string, params: SetSecuritySettings$Params, context?: HttpContext): Observable<StrictHttpResponse<SecuritySettings>> {
   const rb = new RequestBuilder(rootUrl, setSecuritySettings.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

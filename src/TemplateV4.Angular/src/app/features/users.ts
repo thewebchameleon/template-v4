@@ -78,6 +78,14 @@ const userColumnHelper = createColumnHelper<DataTableFeatures, UserTableRow>();
           <p hlmCardDescription>{{ 'intro' | t }}</p>
         </div>
         <div hlmCardContent class="flex min-w-0 flex-col gap-5">
+          @if (loadState() === 'error') {
+            <div hlmAlert variant="destructive" role="alert">
+              <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
+              <button hlmBtn variant="outline" type="button" (click)="load()">
+                {{ 'retry' | t }}
+              </button>
+            </div>
+          }
           <form class="flex min-w-0 gap-3" (ngSubmit)="pageNumber = 1; load()">
             <label class="sr-only" for="search">{{ 'search' | t }}</label
             ><input
@@ -192,6 +200,7 @@ export class UsersPage {
   private readonly notifications = inject(Notifications);
   readonly page = signal<Page>({ items: [], total: 0, pageNumber: 1, pageSize: 25 });
   readonly busy = signal(false);
+  readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
   search = '';
   pageNumber = 1;
   name = '';
@@ -269,6 +278,7 @@ export class UsersPage {
   async load() {
     const sequence = ++this.loadSequence;
     this.busy.set(true);
+    this.loadState.set('loading');
     try {
       const result = (
         await firstValueFrom(
@@ -279,11 +289,14 @@ export class UsersPage {
           }),
         )
       ).body;
-      if (sequence === this.loadSequence) this.page.set(result);
+      if (sequence === this.loadSequence) {
+        this.page.set(result);
+        this.loadState.set('ready');
+      }
     } catch {
-      /* Central errors. */
+      if (sequence === this.loadSequence) this.loadState.set('error');
     } finally {
-      this.busy.set(false);
+      if (sequence === this.loadSequence) this.busy.set(false);
     }
   }
   async invite() {

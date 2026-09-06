@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { MfaPreferenceRequest } from '../../models/mfa-preference-request';
 
 export interface SetMfaPreference$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: MfaPreferenceRequest
 }
 
 export function setMfaPreference(http: HttpClient, rootUrl: string, params: SetMfaPreference$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, setMfaPreference.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

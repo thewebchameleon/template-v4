@@ -55,7 +55,7 @@ export class UserStatusCell {
   imports: [HlmButtonImports, HlmFieldImports, HlmToggleGroupImports, Translate],
   template: `
     @if (row().canManage && !row().isCurrentUser) {
-      <div class="flex min-w-max flex-wrap items-center gap-2">
+      <div class="flex min-w-56 flex-col items-stretch gap-2">
         @if (row().user.status === 'Invited') {
           <button
             hlmBtn

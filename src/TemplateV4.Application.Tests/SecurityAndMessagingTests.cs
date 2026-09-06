@@ -45,6 +45,7 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         builder.Services.AddSingleton<TimeProvider>(_clock);
         builder.Services.AddLogging(); builder.Services.AddScoped<BackgroundExecutionContext>();
         builder.Services.AddScoped<IExecutionContext>(provider => provider.GetRequiredService<BackgroundExecutionContext>());
+        builder.Services.AddSingleton<TransportControl>();
         builder.Services.AddScoped<IIntegrationTransport, RecordingTransport>();
         _services = builder.Services.BuildServiceProvider();
         await using var scope = _services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>(); await db.Database.MigrateAsync();
@@ -60,7 +61,7 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         var user = new AppUser { Id = Guid.NewGuid(), Email = $"{Guid.NewGuid():N}@example.test", EmailConfirmed = true }; user.UserName = user.Email;
         Assert.True((await users.CreateAsync(user, "Test-only!Password942")).Succeeded);
         await users.AddToRoleAsync(user, "Administrator");
-        var db = services.GetRequiredService<FrameworkDb>(); var profile = UserProfile.Create(user.Id, "Test administrator", "en-ZA"); profile.ClearEvents(); db.Profiles.Add(profile); await db.SaveChangesAsync(); return user;
+        var db = services.GetRequiredService<FrameworkDb>(); var profile = UserProfile.Create(user.Id, "Test administrator", "en-ZA", invitationRequired: false); db.Profiles.Add(profile); await db.SaveChangesAsync(); return user;
     }
     [Fact]
     public async Task Bootstrap_token_creates_exactly_one_durable_administrator_who_can_login_by_username()
@@ -96,6 +97,30 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         token.Enable(TextWriter.Null);
         Assert.False(await bootstrap.Initialize(default));
         Assert.Equal("bootstrap.unavailable", (await bootstrap.Create(new(raw, "second_admin", "Test-only!Password942"), default)).Error!.Code);
+    }
+    [Fact]
+    public async Task Concurrent_bootstrap_requests_create_only_one_administrator()
+    {
+        string raw;
+        await using (var scope = _services.CreateAsyncScope())
+        {
+            var bootstrap = scope.ServiceProvider.GetRequiredService<AdminBootstrapService>();
+            Assert.True(await bootstrap.Initialize(default));
+            using var output = new StringWriter();
+            scope.ServiceProvider.GetRequiredService<AdminBootstrapToken>().Enable(output);
+            raw = output.ToString().Trim().Split(": ", 2)[1];
+        }
+        async Task<Result<Unit>> Create(string username)
+        {
+            await using var scope = _services.CreateAsyncScope();
+            return await scope.ServiceProvider.GetRequiredService<AdminBootstrapService>().Create(new(raw, username, "Test-only!Password942"), default);
+        }
+        var results = await Task.WhenAll(Create("first_admin"), Create("second_admin"));
+        Assert.Single(results, result => result.IsSuccess);
+        Assert.Single(results, result => result.Error?.Code == "bootstrap.unavailable");
+        await using var check = _services.CreateAsyncScope();
+        var db = check.ServiceProvider.GetRequiredService<FrameworkDb>();
+        Assert.Equal(1, await db.UserRoles.Join(db.Roles, membership => membership.RoleId, role => role.Id, (membership, role) => role.NormalizedName).CountAsync(name => name == "ADMINISTRATOR"));
     }
     [Fact]
     public async Task Starting_authenticator_enrollment_preserves_only_the_setup_session()
@@ -152,6 +177,35 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         Assert.True(await pump.Process(default));
         await using var check = _services.CreateAsyncScope();
         Assert.NotNull((await check.ServiceProvider.GetRequiredService<FrameworkDb>().Outbox.SingleAsync()).CompletedAt);
+    }
+    [Fact]
+    public async Task Stale_delivery_owner_cannot_complete_or_fail_a_newer_lease()
+    {
+        Guid id;
+        await using (var scope = _services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
+            var message = new OutboxMessage { Type = "test", Payload = "{}", CreatedAt = _clock.Now, AvailableAt = _clock.Now };
+            db.Outbox.Add(message); await db.SaveChangesAsync(); id = message.Id;
+        }
+        var newerLease = Guid.NewGuid();
+        var control = _services.GetRequiredService<TransportControl>();
+        control.BeforePublish = async () =>
+        {
+            _clock.Now = _clock.Now.AddMinutes(3);
+            await using var scope = _services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<FrameworkDb>().Outbox.Where(x => x.Id == id)
+                .ExecuteUpdateAsync(update => update.SetProperty(x => x.LeaseId, newerLease).SetProperty(x => x.LeaseUntil, _clock.Now.AddMinutes(2)));
+        };
+        try
+        {
+            var pump = new OutboxPump(_services.GetRequiredService<IServiceScopeFactory>(), NullLogger<OutboxPump>.Instance);
+            Assert.True(await pump.Process(default));
+        }
+        finally { control.BeforePublish = null; }
+        await using var check = _services.CreateAsyncScope();
+        var persisted = await check.ServiceProvider.GetRequiredService<FrameworkDb>().Outbox.SingleAsync(x => x.Id == id);
+        Assert.Null(persisted.CompletedAt); Assert.Equal(newerLease, persisted.LeaseId); Assert.Equal(0, persisted.Attempts);
     }
     [Fact]
     public async Task Required_Mfa_issues_only_a_setup_session_and_reader_has_no_directory_permission()
@@ -355,6 +409,52 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         await using (var scope = _services.CreateAsyncScope()) Assert.False((await scope.ServiceProvider.GetRequiredService<AuthService>().Refresh(rotated, default)).IsSuccess);
     }
     [Fact]
+    public async Task Concurrent_refresh_rotation_allows_one_winner_and_revokes_its_family()
+    {
+        string original;
+        await using (var scope = _services.CreateAsyncScope())
+        {
+            var user = await User(scope.ServiceProvider);
+            original = (await scope.ServiceProvider.GetRequiredService<AuthService>().Login(new(user.Email!, "Test-only!Password942", "test"), default)).Value!.RefreshToken;
+        }
+        async Task<Result<AuthTokens>> Rotate()
+        {
+            await using var scope = _services.CreateAsyncScope();
+            return await scope.ServiceProvider.GetRequiredService<AuthService>().Refresh(original, default);
+        }
+        var results = await Task.WhenAll(Rotate(), Rotate());
+        var winner = Assert.Single(results, result => result.IsSuccess);
+        Assert.Single(results, result => result.Error?.Code == "auth.refresh_reuse");
+        await using var check = _services.CreateAsyncScope();
+        Assert.False((await check.ServiceProvider.GetRequiredService<AuthService>().Refresh(winner.Value!.RefreshToken, default)).IsSuccess);
+    }
+    [Fact]
+    public async Task Concurrent_demotions_cannot_remove_the_last_administrator()
+    {
+        Guid firstId; Guid firstVersion; Guid secondId; Guid secondVersion;
+        await using (var scope = _services.CreateAsyncScope())
+        {
+            var first = await User(scope.ServiceProvider); var second = await User(scope.ServiceProvider);
+            var initialDb = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
+            firstId = first.Id; secondId = second.Id;
+            firstVersion = (await initialDb.Profiles.SingleAsync(x => x.Id == firstId)).Version;
+            secondVersion = (await initialDb.Profiles.SingleAsync(x => x.Id == secondId)).Version;
+        }
+        async Task<Result<UserDto>> Demote(Guid id, Guid version)
+        {
+            await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+            var execution = sp.GetRequiredService<BackgroundExecutionContext>();
+            execution.ActorId = Guid.NewGuid(); execution.Permissions = new HashSet<string> { Permissions.Manage };
+            return await sp.GetRequiredService<Dispatcher<UpdateUser, UserDto>>().Send(new(id, version, false, ["Reader"]));
+        }
+        var results = await Task.WhenAll(Demote(firstId, firstVersion), Demote(secondId, secondVersion));
+        Assert.Single(results, result => result.IsSuccess);
+        Assert.Single(results, result => result.Error?.Code == "user.last_administrator");
+        await using var check = _services.CreateAsyncScope();
+        var db = check.ServiceProvider.GetRequiredService<FrameworkDb>();
+        Assert.Equal(1, await db.UserRoles.Join(db.Roles, membership => membership.RoleId, role => role.Id, (membership, role) => role.NormalizedName).CountAsync(name => name == "ADMINISTRATOR"));
+    }
+    [Fact]
     public async Task Expired_refresh_is_rejected_with_deterministic_time()
     {
         string token;
@@ -427,12 +527,15 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
     {
         await using var scope = _services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
         var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        var result = await unit.Execute(() =>
+        var email = $"rollback-{Guid.NewGuid():N}@example.test";
+        var result = await unit.Execute(async () =>
         {
+            var created = await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().CreateAsync(new() { Id = Guid.NewGuid(), UserName = email, Email = email });
+            Assert.True(created.Succeeded);
             scope.ServiceProvider.GetRequiredService<IEventOutbox>().Add(new JobRequested(Guid.NewGuid(), "en-ZA"));
-            return Task.FromResult(Result.Fail("test.failed", ErrorKind.Conflict));
+            return Result.Fail("test.failed", ErrorKind.Conflict);
         }, null, "rollback", default);
-        Assert.False(result.IsSuccess); Assert.Empty(await db.Outbox.ToListAsync());
+        Assert.False(result.IsSuccess); Assert.Empty(await db.Outbox.ToListAsync()); Assert.False(await db.Users.AnyAsync(x => x.Email == email));
     }
     [Fact]
     public async Task User_slice_persists_atomic_outbox_and_idempotent_response_then_worker_consumes()
@@ -447,9 +550,50 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
             var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>(); Assert.Single(await db.Outbox.ToListAsync());
             Assert.Equal("idempotency.conflict", (await dispatcher.Send(command with { DisplayName = "Changed" })).Error!.Code);
         }
-        var pump = new OutboxPump(_services.GetRequiredService<IServiceScopeFactory>(), NullLogger<OutboxPump>.Instance);
-        Assert.True(await pump.Process(default)); Assert.False(await pump.Process(default));
-        await using var check = _services.CreateAsyncScope(); Assert.NotNull((await check.ServiceProvider.GetRequiredService<FrameworkDb>().Outbox.SingleAsync()).CompletedAt);
+        await using var consume = _services.CreateAsyncScope();
+        var services = consume.ServiceProvider; var consumerDb = services.GetRequiredService<FrameworkDb>();
+        var message = await consumerDb.Outbox.SingleAsync();
+        await using var transaction = await consumerDb.Database.BeginTransactionAsync();
+        var transport = new LocalTransport(consumerDb, services.GetRequiredService<UserManager<AppUser>>(), services.GetRequiredService<AccountService>(), services.GetRequiredService<IEmailSender>(), _clock, []);
+        await transport.Publish(new(message.Id, message.Type, message.Payload, message.Culture, message.TraceParent, message.ActorId), default);
+        await consumerDb.SaveChangesAsync(); await transaction.CommitAsync();
+        Assert.Single(await consumerDb.Inbox.ToArrayAsync());
+        Assert.Equal(2, await consumerDb.Outbox.CountAsync());
+        Assert.Contains(await consumerDb.Outbox.ToArrayAsync(), x => x.Type == "email.requested.v1");
+    }
+
+    [Fact]
+    public async Task Email_or_passkey_only_factor_changes_require_a_recent_verified_session()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+        var user = await User(sp); user.EmailMfaEnabled = true;
+        var db = sp.GetRequiredService<FrameworkDb>();
+        var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, CreatedAt = _clock.Now, ExpiresAt = _clock.Now.AddDays(1), MfaVerified = true };
+        db.Sessions.Add(session); await db.SaveChangesAsync();
+        _clock.Now = _clock.Now.AddMinutes(6);
+        var result = await sp.GetRequiredService<SecurityService>().BeginEnrollment(user.Id, session.Id, new("Test-only!Password942"), default);
+        Assert.Equal("auth.reauthentication_required", result.Error!.Code);
+    }
+
+    [Fact]
+    public async Task Operations_are_filterable_and_pageable_without_hiding_failures()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
+        var db = sp.GetRequiredService<FrameworkDb>();
+        for (var index = 0; index < 30; index++) db.Outbox.Add(new() { Type = "test", CreatedAt = _clock.Now.AddSeconds(index), AvailableAt = _clock.Now, PoisonedAt = index % 2 == 0 ? _clock.Now : null });
+        await db.SaveChangesAsync();
+        var operations = sp.GetRequiredService<OperationsService>();
+        var first = await operations.List("message", 1, 10, true, default);
+        var second = await operations.List("message", 2, 10, true, default);
+        Assert.Equal(15, first.Value!.Total); Assert.Equal(10, first.Value.Items.Count); Assert.Equal(5, second.Value!.Items.Count);
+        Assert.All(first.Value.Items.Concat(second.Value.Items), item => Assert.Equal("Failed", item.State));
+    }
+
+    [Fact]
+    public void Bootstrap_accounts_do_not_enter_email_delivery_workflows()
+    {
+        Assert.False(AccountDelivery.CanReceiveEmail(new() { Email = "bootstrap@example.invalid" }));
+        Assert.True(AccountDelivery.CanReceiveEmail(new() { Email = "person@example.test" }));
     }
     [Fact]
     public async Task Setup_only_session_can_save_culture_but_cannot_access_protected_apis()
@@ -516,9 +660,15 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         var contract = await client.GetStringAsync("/openapi/v1.json");
         using var parsed = JsonDocument.Parse(contract); Assert.True(parsed.RootElement.GetProperty("paths").TryGetProperty("/api/v1/users", out _));
         Assert.True(parsed.RootElement.GetProperty("paths").TryGetProperty("/api/v1/bootstrap/status", out var bootstrapStatus));
-        Assert.True(bootstrapStatus.TryGetProperty("get", out _));
+        Assert.True(bootstrapStatus.TryGetProperty("get", out var bootstrapStatusGet));
+        Assert.False(bootstrapStatusGet.TryGetProperty("security", out _));
         Assert.True(parsed.RootElement.GetProperty("paths").TryGetProperty("/api/v1/bootstrap", out var bootstrapContract));
-        Assert.True(bootstrapContract.TryGetProperty("post", out _));
+        Assert.True(bootstrapContract.TryGetProperty("post", out var bootstrapPost));
+        Assert.False(bootstrapPost.TryGetProperty("security", out _));
+        Assert.Contains(bootstrapPost.GetProperty("parameters").EnumerateArray(), parameter => parameter.GetProperty("name").GetString() == "X-CSRF-TOKEN");
+        var profileGet = parsed.RootElement.GetProperty("paths").GetProperty("/api/v1/auth/profile").GetProperty("get");
+        Assert.True(profileGet.TryGetProperty("security", out var profileSecurity));
+        Assert.NotEmpty(profileSecurity.EnumerateArray());
         if (Environment.GetEnvironmentVariable("TEMPLATEV4_EXPORT_OPENAPI") is { Length: > 0 } output)
         { Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); await File.WriteAllTextAsync(output, contract.Replace("\r\n", "\n") + "\n"); }
     }
@@ -571,10 +721,14 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
             foreach (var setting in config) builder.UseSetting(setting.Key, setting.Value);
         }
     }
-    private sealed class RecordingTransport(FrameworkDb db, TimeProvider time) : IIntegrationTransport
+    private sealed class TransportControl
     {
-        public Task Publish(MessageEnvelope message, CancellationToken cancellationToken)
-        { db.Inbox.Add(new() { Id = message.Id, CompletedAt = time.GetUtcNow() }); return Task.CompletedTask; }
+        public Func<Task>? BeforePublish { get; set; }
+    }
+    private sealed class RecordingTransport(FrameworkDb db, TimeProvider time, TransportControl control) : IIntegrationTransport
+    {
+        public async Task Publish(MessageEnvelope message, CancellationToken cancellationToken)
+        { if (control.BeforePublish is not null) await control.BeforePublish(); db.Inbox.Add(new() { Id = message.Id, CompletedAt = time.GetUtcNow() }); }
     }
     private sealed class ManualTime : TimeProvider
     {

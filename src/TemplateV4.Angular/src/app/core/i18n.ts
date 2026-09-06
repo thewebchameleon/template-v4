@@ -9,6 +9,9 @@ export class I18n {
       (c) => c.toLowerCase() === navigator.language.toLowerCase(),
     ) ?? this.runtime.defaultCulture,
   );
+  constructor() {
+    document.documentElement.lang = this.culture();
+  }
   text(key: string): string {
     return dictionary[key]?.[this.culture() === 'af-ZA' ? 1 : 0] ?? key;
   }

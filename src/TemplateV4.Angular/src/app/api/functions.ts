@@ -59,12 +59,16 @@ export type { GetSecuritySettings$Params as GetSecuritySettings$Params } from '.
 export { getSecuritySettings as getSecuritySettings } from './fn/framework/get-security-settings';
 export type { SetSecuritySettings$Params as SetSecuritySettings$Params } from './fn/framework/set-security-settings';
 export { setSecuritySettings as setSecuritySettings } from './fn/framework/set-security-settings';
+export type { ManageInvitation$Params as ManageInvitation$Params } from './fn/framework/manage-invitation';
+export { manageInvitation as manageInvitation } from './fn/framework/manage-invitation';
 export type { GetDeliveryOperations$Params as GetDeliveryOperations$Params } from './fn/framework/get-delivery-operations';
 export { getDeliveryOperations as getDeliveryOperations } from './fn/framework/get-delivery-operations';
 export type { ReplayDelivery$Params as ReplayDelivery$Params } from './fn/framework/replay-delivery';
 export { replayDelivery as replayDelivery } from './fn/framework/replay-delivery';
-export type { ManageInvitation$Params as ManageInvitation$Params } from './fn/framework/manage-invitation';
-export { manageInvitation as manageInvitation } from './fn/framework/manage-invitation';
+export type { GetAdminBootstrapStatus$Params as GetAdminBootstrapStatus$Params } from './fn/framework/get-admin-bootstrap-status';
+export { getAdminBootstrapStatus as getAdminBootstrapStatus } from './fn/framework/get-admin-bootstrap-status';
+export type { CreateBootstrapAdministrator$Params as CreateBootstrapAdministrator$Params } from './fn/framework/create-bootstrap-administrator';
+export { createBootstrapAdministrator as createBootstrapAdministrator } from './fn/framework/create-bootstrap-administrator';
 export type { ListUsers$Params as ListUsers$Params } from './fn/framework/list-users';
 export { listUsers as listUsers } from './fn/framework/list-users';
 export type { CreateUser$Params as CreateUser$Params } from './fn/framework/create-user';
@@ -75,7 +79,3 @@ export type { TriggerMaintenance$Params as TriggerMaintenance$Params } from './f
 export { triggerMaintenance as triggerMaintenance } from './fn/framework/trigger-maintenance';
 export type { GetFeatures$Params as GetFeatures$Params } from './fn/framework/get-features';
 export { getFeatures as getFeatures } from './fn/framework/get-features';
-export type { GetAdminBootstrapStatus$Params as GetAdminBootstrapStatus$Params } from './fn/framework/get-admin-bootstrap-status';
-export { getAdminBootstrapStatus as getAdminBootstrapStatus } from './fn/framework/get-admin-bootstrap-status';
-export type { CreateBootstrapAdministrator$Params as CreateBootstrapAdministrator$Params } from './fn/framework/create-bootstrap-administrator';
-export { createBootstrapAdministrator as createBootstrapAdministrator } from './fn/framework/create-bootstrap-administrator';

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -60,7 +61,7 @@ type MfaProfile = ProfileResponse & {
         <div hlmCardContent class="flex flex-col gap-5">
           <p>
             <span hlmBadge variant="secondary">{{
-              (user.mfaRequired ? 'mfaRequired' : 'mfaOptional') | t
+              (user.mfaRequired || user.mfaMethods.length ? 'mfaRequired' : 'mfaOptional') | t
             }}</span>
             <span hlmBadge variant="outline">{{
               (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t
@@ -69,7 +70,7 @@ type MfaProfile = ProfileResponse & {
               <span hlmBadge variant="outline">{{ 'emailMfaEnabled' | t }}</span>
             }
           </p>
-          @if (user.mfaMethods?.length) {
+          @if (user.mfaMethods.length) {
             <fieldset hlmFieldSet>
               <legend hlmFieldLegend>{{ 'preferredMfaMethod' | t }}</legend>
               <p hlmFieldDescription>{{ 'preferredMfaHelp' | t }}</p>
@@ -136,7 +137,7 @@ type MfaProfile = ProfileResponse & {
               >
                 {{ 'rotateRecovery' | t }}
               </button>
-              @if (!user.mfaRequired || user.passkeys.length > 0) {
+              @if (!user.mfaRequired || user.passkeys.length > 0 || user.emailMfaEnabled) {
                 <button
                   hlmBtn
                   variant="destructive"
@@ -236,6 +237,22 @@ type MfaProfile = ProfileResponse & {
           }
         </div>
       </section>
+      @if (isBootstrapAccount(user.email)) {
+        <div hlmAlert class="mt-6">
+          <p hlmAlertDescription>{{ 'bootstrapRecoveryHelp' | t }}</p>
+        </div>
+      }
+      @if (reauthenticationRequired()) {
+        <div hlmAlert variant="destructive" class="mt-6" role="alert">
+          <p hlmAlertDescription>{{ 'reauthenticationRequired' | t }}</p>
+          <button hlmBtn variant="outline" (click)="signInAgain()">{{ 'signInAgain' | t }}</button>
+        </div>
+      }
+    } @else if (loadState() === 'error') {
+      <div hlmAlert variant="destructive" class="mt-6" role="alert">
+        <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
+        <button hlmBtn variant="outline" (click)="retry()">{{ 'retry' | t }}</button>
+      </div>
     } @else {
       <div class="flex items-center gap-2 mt-6" role="status">
         <hlm-spinner />{{ 'loading' | t }}
@@ -251,6 +268,9 @@ export class ProfilePage {
   readonly enrollment = signal<MfaEnrollment | null>(null);
   readonly codes = signal<string[]>([]);
   readonly busy = signal(false);
+  readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
+  readonly reauthenticationRequired = signal(false);
+  private readonly router = inject(Router);
   private readonly notifications = inject(Notifications);
   password = '';
   proofCode = '';
@@ -264,20 +284,31 @@ export class ProfilePage {
   private proof() {
     return { password: this.password, code: this.proofCode, recoveryCode: this.recovery };
   }
-  private async load() {
-    const profile = await firstValueFrom(
-      this.http.get<ProfileResponse>(`${this.runtime.apiUrl}/api/v1/auth/profile`),
-    );
-    this.profile.set(profile);
-    this.preferredMethod = (profile as MfaProfile).preferredMfaMethod ?? 'Email';
+  protected async load() {
+    this.loadState.set('loading');
+    try {
+      const profile = await firstValueFrom(
+        this.http.get<ProfileResponse>(`${this.runtime.apiUrl}/api/v1/auth/profile`),
+      );
+      this.profile.set(profile);
+      this.preferredMethod = (profile as MfaProfile).preferredMfaMethod ?? 'Email';
+      this.loadState.set('ready');
+    } catch (error) {
+      this.loadState.set('error');
+      throw error;
+    }
   }
-  private async run(action: () => Promise<void>) {
+  protected async run(action: () => Promise<void>) {
     if (this.busy()) return;
     this.busy.set(true);
     try {
       await action();
-    } catch {
-      /* Central error UI. */
+    } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.error?.code === 'auth.reauthentication_required'
+      )
+        this.reauthenticationRequired.set(true);
     } finally {
       this.busy.set(false);
     }
@@ -340,5 +371,15 @@ export class ProfilePage {
       await this.load();
       this.notifications.success('securitySaved');
     });
+  }
+  isBootstrapAccount(email: string) {
+    return email.toLowerCase().endsWith('@example.invalid');
+  }
+  async signInAgain() {
+    await this.auth.logout();
+    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+  }
+  retry() {
+    return this.run(() => this.load());
   }
 }

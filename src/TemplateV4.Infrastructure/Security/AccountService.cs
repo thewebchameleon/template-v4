@@ -7,12 +7,18 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
 
+public static class AccountDelivery
+{
+    public static bool CanReceiveEmail(AppUser user) =>
+        user.Email is { Length: > 0 } email && !email.EndsWith("@example.invalid", StringComparison.OrdinalIgnoreCase);
+}
+
 public sealed record ResetPasswordRequest(Guid UserId, string Token, string Password);
 public sealed record ConfirmEmailRequest(Guid UserId, string Token);
 public sealed record ForgotPasswordRequest(string Email);
 public sealed record CultureRequest(string Culture);
 public sealed record InvitationRequest(Guid UserId, bool Cancel = false);
-public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter)
+public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
     public async Task<Result<Unit>> Invitation(Guid actor, InvitationRequest request, CancellationToken ct)
@@ -47,6 +53,7 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
         if (!await limiter.Allow("email-action", request.Email.Trim().ToUpperInvariant(), 1, TimeSpan.FromMinutes(2), ct)) return;
         var user = await users.FindByEmailAsync(request.Email);
         if (user is null) { await Task.Delay(200, ct); return; }
+        if (!AccountDelivery.CanReceiveEmail(user)) return;
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == user.Id && !x.Disabled, ct);
         if (profile is null) return;
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -80,8 +87,17 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
         if (!reset.Succeeded) return Result<Unit>.Fail("validation.failed", ErrorKind.Validation, new() { ["password"] = reset.Errors.Select(x => x.Description).ToArray() });
         await db.Sessions.Where(x => x.UserId == user.Id && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
-        outbox.Add(new EmailRequest(user.Id, EmailTemplate.SecurityNotification, profile.Culture));
+        if (AccountDelivery.CanReceiveEmail(user))
+            outbox.Add(new EmailRequest(user.Id, EmailTemplate.SecurityNotification, profile.Culture));
         db.Audit.Add(new() { Action = "auth.password_reset", SubjectId = user.Id, ActorId = user.Id, At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
+    }
+    public async Task<Result<Unit>> SetCulture(Guid userId, CultureRequest request, CancellationToken ct)
+    {
+        if (!cultures.Supported.Contains(request.Culture)) return Result.Fail("culture.unsupported", ErrorKind.Validation);
+        var profile = await db.Profiles.SingleAsync(x => x.Id == userId, ct);
+        profile.SetCulture(request.Culture);
+        await db.SaveChangesAsync(ct);
+        return Result.Success();
     }
 }

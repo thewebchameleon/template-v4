@@ -105,6 +105,9 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         }
         return true;
     }
+    public async Task<bool> RequiresRecentVerification(AppUser user, Guid sessionId, CancellationToken ct) =>
+        !user.TwoFactorEnabled && (await ConfiguredMethods(user)).Length > 0 &&
+        !await db.Sessions.AnyAsync(x => x.Id == sessionId && x.UserId == user.Id && x.MfaVerified && x.CreatedAt > time.GetUtcNow().AddMinutes(-5), ct);
     public async Task<ProfileResponse> Profile(Guid id, CancellationToken ct)
     {
         var user = (await users.FindByIdAsync(id.ToString()))!;
@@ -127,6 +130,8 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
+        if (await RequiresRecentVerification(user, sessionId, ct))
+            return Result<MfaEnrollment>.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<MfaEnrollment>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if (user.TwoFactorEnabled) return Result<MfaEnrollment>.Fail("auth.already_enrolled", ErrorKind.Conflict);
         await users.ResetAuthenticatorKeyAsync(user);
@@ -186,7 +191,8 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         var session = await db.Sessions.SingleAsync(x => x.Id == sessionId && x.UserId == user.Id, ct);
         session.SecurityStamp = user.SecurityStamp!; session.MfaVerified = true; session.SetupOnly = false;
         var culture = await db.Profiles.Where(x => x.Id == user.Id).Select(x => x.Culture).SingleAsync(ct);
-        outbox.Add(new EmailRequest(user.Id, EmailTemplate.SecurityNotification, culture));
+        if (AccountDelivery.CanReceiveEmail(user))
+            outbox.Add(new EmailRequest(user.Id, EmailTemplate.SecurityNotification, culture));
         db.Audit.Add(new() { ActorId = user.Id, SubjectId = user.Id, Action = action, At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct);
     }
@@ -202,8 +208,15 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
             if (request.Version != Guid.Empty) return Result<SecuritySettings>.Fail("concurrency.conflict", ErrorKind.Conflict);
             settings = new(); db.SecuritySettings.Add(settings);
         }
+        var previousPolicy = settings.MfaPolicy;
+        var previousRegistration = settings.RegistrationEnabled;
         settings.MfaPolicy = request.MfaPolicy; settings.RegistrationEnabled = request.RegistrationEnabled; settings.Version = Guid.NewGuid();
-        db.Audit.Add(new() { ActorId = actor, Action = "security.policy_changed", At = time.GetUtcNow() });
+        db.Audit.Add(new()
+        {
+            ActorId = actor,
+            Action = $"security.policy_changed:mfa:{previousPolicy}>{request.MfaPolicy}:registration:{previousRegistration}>{request.RegistrationEnabled}",
+            At = time.GetUtcNow()
+        });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<SecuritySettings>.Success(settings);
     }
 }

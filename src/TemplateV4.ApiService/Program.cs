@@ -26,7 +26,11 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
     context.ProblemDetails.Extensions.TryAdd("code", "http." + context.ProblemDetails.Status);
     context.ProblemDetails.Extensions.TryAdd("traceId", System.Diagnostics.Activity.Current?.TraceId.ToString() ?? context.HttpContext.TraceIdentifier);
 });
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer<JwtOpenApi>());
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<JwtOpenApi>();
+    options.AddOperationTransformer<JwtOperationOpenApi>();
+});
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
 builder.Services.AddOutputCache();
 builder.Services.AddAntiforgery(options =>
@@ -131,6 +135,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "templatev4 v1"));
 }
-app.MapApiEndpoints(origins, cultures);
+app.MapApiEndpoints(origins);
 app.Run();
 public partial class Program;

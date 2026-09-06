@@ -6,11 +6,11 @@ const commands = [
   ['dotnet', ['restore', 'src/TemplateV4.slnx', '--locked-mode']],
   ['dotnet', ['format', 'src/TemplateV4.slnx', '--verify-no-changes', '--no-restore']],
   ['dotnet', ['build', 'src/TemplateV4.slnx', '--no-restore']],
-  ['dotnet', ['test', 'src/TemplateV4.slnx', '--no-build']],
   ['npm', ['run', 'format:check', '--prefix', 'src/TemplateV4.Angular']],
   ['npm', ['run', 'lint', '--prefix', 'src/TemplateV4.Angular']],
   ['npm', ['run', 'build', '--prefix', 'src/TemplateV4.Angular']],
-  ['npm', ['audit', '--prefix', 'src/TemplateV4.Angular', '--audit-level=moderate']]
+  ['npm', ['audit', '--prefix', 'src/TemplateV4.Angular', '--audit-level=moderate']],
+  ['dotnet', ['test', 'src/TemplateV4.slnx', '--no-build']]
 ];
 const start = performance.now();
 for (let [exe, args] of commands) {

@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { InvitationRequest } from '../../models/invitation-request';
 
 export interface ManageInvitation$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: InvitationRequest
 }
 
 export function manageInvitation(http: HttpClient, rootUrl: string, params: ManageInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, manageInvitation.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

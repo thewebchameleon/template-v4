@@ -7,6 +7,7 @@ export type { AdminBootstrapStatus } from './models/admin-bootstrap-status';
 export type { ConfirmEmailRequest } from './models/confirm-email-request';
 export type { CreateUser } from './models/create-user';
 export type { CultureRequest } from './models/culture-request';
+export type { DeliveryPage } from './models/delivery-page';
 export type { DeliverySummary } from './models/delivery-summary';
 export type { EmailMfaChallengeRequest } from './models/email-mfa-challenge-request';
 export type { EmailMfaChallengeResponse } from './models/email-mfa-challenge-response';

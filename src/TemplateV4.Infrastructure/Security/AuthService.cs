@@ -213,6 +213,13 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
         Audit("auth.session_revoked", userId); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
     }
+    public async Task<SessionDto[]> ListSessions(Guid userId, Guid currentSessionId, CancellationToken ct) =>
+        await db.Sessions.AsNoTracking()
+            .Where(x => x.UserId == userId && x.RevokedAt == null && x.ExpiresAt > time.GetUtcNow())
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(100)
+            .Select(x => new SessionDto(x.Id, x.Device, x.CreatedAt, x.ExpiresAt, x.Id == currentSessionId))
+            .ToArrayAsync(ct);
     public async Task Logout(string? raw, CancellationToken ct)
     {
         if (raw is null || raw.Length > 256) return;

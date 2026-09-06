@@ -10,12 +10,18 @@ import { RequestBuilder } from '../../request-builder';
 import { SecurityProof } from '../../models/security-proof';
 
 export interface RotateRecoveryCodes$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: SecurityProof
 }
 
 export function rotateRecoveryCodes(http: HttpClient, rootUrl: string, params: RotateRecoveryCodes$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<string>>> {
   const rb = new RequestBuilder(rootUrl, rotateRecoveryCodes.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

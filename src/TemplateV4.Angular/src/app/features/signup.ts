@@ -101,6 +101,9 @@ import { AuthLayout } from './auth-layout';
                 @if (passwordControl.invalid && passwordControl.touched) {
                   <hlm-field-error>{{ 'passwordInvalid' | t }}</hlm-field-error>
                 }
+                @if (passwordErrors().length) {
+                  <hlm-field-error forceShow>{{ passwordErrors().join(' ') }}</hlm-field-error>
+                }
               </div>
               <div hlmField>
                 <label hlmFieldLabel for="signup-confirmation">{{ 'confirmPassword' | t }}</label>
@@ -150,6 +153,7 @@ export class SignupPage implements OnInit {
   readonly enabled = signal(false);
   readonly busy = signal(false);
   readonly done = signal(false);
+  readonly passwordErrors = signal<string[]>([]);
   displayName = '';
   email = '';
   password = '';
@@ -168,6 +172,7 @@ export class SignupPage implements OnInit {
   async submit() {
     if (this.busy() || !this.enabled() || this.password !== this.confirmation) return;
     this.busy.set(true);
+    this.passwordErrors.set([]);
     try {
       await this.registration.register({
         email: this.email.trim(),
@@ -181,6 +186,8 @@ export class SignupPage implements OnInit {
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.error?.code === 'auth.registration_disabled')
         this.enabled.set(false);
+      if (error instanceof HttpErrorResponse)
+        this.passwordErrors.set(error.error?.errors?.password ?? []);
     } finally {
       this.busy.set(false);
     }

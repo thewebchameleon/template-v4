@@ -65,7 +65,7 @@ export class Auth {
       const value = await this.action<ChallengeAccess>('login', {
         username,
         password,
-        device: navigator.userAgent.slice(0, 200),
+        device: 'Browser',
       });
       this.challenge.set(value.challengeId ?? null);
       this.mfaMethods.set(value.mfaMethods ?? []);

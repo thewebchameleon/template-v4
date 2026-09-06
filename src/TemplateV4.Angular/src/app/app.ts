@@ -1,6 +1,7 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { NavigationEnd, RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCommand,
@@ -20,10 +21,10 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { Auth } from './core/auth';
-import { Translate } from './core/i18n';
+import { I18n, Translate } from './core/i18n';
 import { Theme } from './core/theme';
 import { Preferences } from './core/preferences';
-import { AppBreadcrumbs } from './shared/breadcrumbs';
+import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 @Component({
   selector: 'app-root',
   imports: [
@@ -219,6 +220,8 @@ export class App {
   readonly theme = inject(Theme);
   readonly sidebar = inject(HlmSidebarService);
   private readonly router = inject(Router);
+  private readonly breadcrumbs = inject(Breadcrumbs);
+  private readonly i18n = inject(I18n);
   private readonly allAccountLinks = [
     { path: '/profile', label: 'profile', icon: 'lucideUserRound' },
     { path: '/sessions', label: 'sessions', icon: 'lucideMonitor', requiresMfa: true },
@@ -235,6 +238,19 @@ export class App {
       permission: 'settings.manage',
     },
   ];
+  constructor() {
+    effect(() => {
+      const current = this.breadcrumbs.items().at(-1);
+      document.title = current
+        ? `${this.i18n.text(current.label)} | ${this.i18n.text('appBrand')}`
+        : this.i18n.text('appBrand');
+    });
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        setTimeout(() => document.getElementById('main')?.focus());
+      }
+    });
+  }
   async logout() {
     await this.auth.logout();
     this.sidebar.setOpenMobile(false);

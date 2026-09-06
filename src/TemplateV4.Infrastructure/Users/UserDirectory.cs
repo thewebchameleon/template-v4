@@ -55,12 +55,13 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
             if (await db.Profiles.CountAsync(x => ids.Contains(x.Id) && !x.Disabled, cancellationToken) <= 1)
                 return Result<UserDto>.Fail("user.last_administrator", ErrorKind.Conflict);
         }
+        var previousDisabled = profile.Disabled;
         profile.SetDisabled(command.Disabled);
         if (!(await users.RemoveFromRolesAsync(identity, oldRoles.Except(command.Roles))).Succeeded || !(await users.AddToRolesAsync(identity, command.Roles.Except(oldRoles))).Succeeded)
             throw new InvalidOperationException("Role update failed.");
         if (!(await users.UpdateSecurityStampAsync(identity)).Succeeded) throw new InvalidOperationException("Security stamp update failed.");
         await db.Sessions.Where(x => x.UserId == command.Id && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), cancellationToken);
-        Audit("user.security_changed", command.Id);
+        Audit($"user.security_changed:d:{previousDisabled}>{profile.Disabled}:r:{string.Join(',', oldRoles.Order())}>{string.Join(',', command.Roles.Order())}", command.Id);
         outbox.Add(new EmailRequest(command.Id, EmailTemplate.SecurityNotification, profile.Culture));
         return Result<UserDto>.Success(new(identity.Id, identity.Email!, profile.DisplayName, profile.Culture, profile.Disabled, command.Roles, profile.Version));
     }

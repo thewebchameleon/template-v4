@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -44,9 +45,11 @@ import { Translate } from '../core/i18n';
               required
             />
             <p hlmFieldDescription id="password-help">{{ 'passwordHelp' | t }}</p>
-            <hlm-field-error id="password-errors">{{
-              errors.problem()?.errors?.['password']?.join(' ')
-            }}</hlm-field-error>
+            @if (passwordErrors().length) {
+              <hlm-field-error forceShow id="password-errors">{{
+                passwordErrors().join(' ')
+              }}</hlm-field-error>
+            }
           </div>
         }
         <button hlmBtn [disabled]="busy() || form.invalid || done()">
@@ -82,9 +85,11 @@ export class AccountPage {
   password = '';
   readonly busy = signal(false);
   readonly done = signal(false);
+  readonly passwordErrors = signal<string[]>([]);
 
   async submit() {
     this.busy.set(true);
+    this.passwordErrors.set([]);
     try {
       await this.auth.action(this.kind === 'Verification' ? 'confirm-email' : 'reset-password', {
         userId: this.parts[1],
@@ -94,7 +99,9 @@ export class AccountPage {
       history.replaceState(null, '', location.pathname);
       this.password = '';
       this.done.set(true);
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpErrorResponse)
+        this.passwordErrors.set(error.error?.errors?.password ?? []);
       document.getElementById('password')?.focus();
     } finally {
       this.busy.set(false);

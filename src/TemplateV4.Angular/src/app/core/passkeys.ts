@@ -1,13 +1,18 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from './auth';
 import { Errors } from './interceptors';
 import { AccessResponse } from '../api/models/access-response';
 import { SecurityProof } from '../api/models/security-proof';
+import { Notifications } from './notifications';
+import { I18n } from './i18n';
 
 @Injectable({ providedIn: 'root' })
 export class Passkeys {
   private readonly auth = inject(Auth);
   private readonly errors = inject(Errors);
+  private readonly notifications = inject(Notifications);
+  private readonly i18n = inject(I18n);
   readonly supported =
     typeof PublicKeyCredential !== 'undefined' &&
     typeof PublicKeyCredential.parseCreationOptionsFromJSON === 'function';
@@ -28,10 +33,12 @@ export class Passkeys {
         });
       });
     } catch (error) {
-      this.errors.problem.set({
+      const problem = {
         code: 'auth.passkey_failed',
-        title: 'Passkey sign-in was cancelled or unsuccessful. Try again or use your password.',
-      });
+        title: this.i18n.text('passkeyLoginFailed'),
+      };
+      this.errors.problem.set(problem);
+      if (!(error instanceof HttpErrorResponse)) this.notifications.error(problem);
       throw error;
     }
   }
@@ -52,11 +59,12 @@ export class Passkeys {
         });
       });
     } catch (error) {
-      this.errors.problem.set({
+      const problem = {
         code: 'auth.passkey_failed',
-        title:
-          'Passkey verification was cancelled or unsuccessful. Try again or choose another method.',
-      });
+        title: this.i18n.text('passkeyVerificationFailed'),
+      };
+      this.errors.problem.set(problem);
+      if (!(error instanceof HttpErrorResponse)) this.notifications.error(problem);
       throw error;
     }
   }
@@ -76,10 +84,12 @@ export class Passkeys {
         name,
       });
     } catch (error) {
-      this.errors.problem.set({
+      const problem = {
         code: 'auth.passkey_failed',
-        title: 'Passkey registration was cancelled or unsuccessful. Try again.',
-      });
+        title: this.i18n.text('passkeyRegistrationFailed'),
+      };
+      this.errors.problem.set(problem);
+      if (!(error instanceof HttpErrorResponse)) this.notifications.error(problem);
       throw error;
     }
   }

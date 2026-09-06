@@ -39,11 +39,6 @@ jobs:
       - run: npm run format:check --prefix src/TemplateV4.Angular
       - run: npm run lint --prefix src/TemplateV4.Angular
       - run: dotnet build src/TemplateV4.slnx -c Release --no-restore
-      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
-        env:
-          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
-      - run: node tools/framework.mjs clients
-      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
       - run: npm run build --prefix src/TemplateV4.Angular
       - run: npm run validate --prefix documentation
       - run: npm run build --prefix documentation
@@ -54,6 +49,11 @@ jobs:
       - run: npm audit --prefix documentation --audit-level=moderate
       - name: NuGet vulnerability check
         run: node tools/audit-nuget.mjs
+      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
+        env:
+          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
+      - run: node tools/framework.mjs clients
+      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - run: |
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.ApiService -t templatev4-api:ci .
@@ -63,8 +63,5 @@ jobs:
       - name: Browser security and accessibility
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force .local | Out-Null
-          openssl genrsa -out .local/jwt.pem 3072
-          chmod 644 .local/jwt.pem
           node src/TemplateV4.Angular/node_modules/@playwright/test/cli.js install --with-deps chromium
           ./tools/test-browser.ps1

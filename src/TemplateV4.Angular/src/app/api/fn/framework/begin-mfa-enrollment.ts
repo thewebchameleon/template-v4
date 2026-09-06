@@ -11,12 +11,18 @@ import { MfaEnrollment } from '../../models/mfa-enrollment';
 import { SecurityProof } from '../../models/security-proof';
 
 export interface BeginMfaEnrollment$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: SecurityProof
 }
 
 export function beginMfaEnrollment(http: HttpClient, rootUrl: string, params: BeginMfaEnrollment$Params, context?: HttpContext): Observable<StrictHttpResponse<MfaEnrollment>> {
   const rb = new RequestBuilder(rootUrl, beginMfaEnrollment.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 

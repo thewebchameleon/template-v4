@@ -50,7 +50,7 @@ import { Notifications } from '../core/notifications';
             orientation="vertical"
             variant="outline"
             [spacing]="2"
-            value=""
+            [value]="selectedMethod()"
             (valueChange)="selectMethod($event)"
             class="w-full"
           >

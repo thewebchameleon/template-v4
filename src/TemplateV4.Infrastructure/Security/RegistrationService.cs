@@ -38,8 +38,7 @@ public sealed class RegistrationService(FrameworkDb db, UserManager<AppUser> use
         if (!created.Succeeded)
             return Result<Unit>.Fail("validation.failed", ErrorKind.Validation, new() { ["password"] = created.Errors.Select(x => x.Description).ToArray() });
         if (!(await users.AddToRoleAsync(user, "Reader")).Succeeded) throw new InvalidOperationException("Seeded role assignment failed.");
-        var profile = UserProfile.Create(user.Id, request.DisplayName, request.Culture);
-        profile.ClearEvents(); // Queue the verification directly within this same transaction.
+        var profile = UserProfile.Create(user.Id, request.DisplayName, request.Culture, invitationRequired: false);
         db.Profiles.Add(profile);
         db.Audit.Add(new() { SubjectId = user.Id, Action = "auth.registered", At = time.GetUtcNow() });
         await accounts.QueueAction(user, EmailTemplate.Verification, profile.Culture, ct);

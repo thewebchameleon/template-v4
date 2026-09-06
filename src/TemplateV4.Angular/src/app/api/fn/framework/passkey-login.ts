@@ -11,12 +11,18 @@ import { AccessResponse } from '../../models/access-response';
 import { PasskeyCredential } from '../../models/passkey-credential';
 
 export interface PasskeyLogin$Params {
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
       body: PasskeyCredential
 }
 
 export function passkeyLogin(http: HttpClient, rootUrl: string, params: PasskeyLogin$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessResponse>> {
   const rb = new RequestBuilder(rootUrl, passkeyLogin.PATH, 'post');
   if (params) {
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
 
