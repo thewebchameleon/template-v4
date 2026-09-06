@@ -1,0 +1,195 @@
+@layer components {
+  .workspace-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .workspace-eyebrow {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .workspace-description {
+    color: var(--muted-foreground);
+    max-width: 42rem;
+    margin-top: 0.75rem;
+    line-height: 1.65;
+  }
+  .workspace-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .workspace-stack {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .workspace-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .workspace-stat-value {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .workspace-stat-note {
+    margin-top: 0.65rem;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  .workspace-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .workspace-toolbar > [data-slot='field'] {
+    flex: 1;
+    min-width: 10rem;
+  }
+  .workspace-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+  }
+  .workspace-skeleton {
+    display: grid;
+    gap: 1rem;
+    padding-block: 1rem;
+  }
+  .workspace-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.45fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .workspace-icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.8rem;
+    background: var(--muted);
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+  .workspace-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .workspace-notice:last-child {
+    border-bottom: 0;
+  }
+  .workspace-notice.unread .workspace-icon {
+    background: color-mix(in srgb, var(--primary) 10%, var(--background));
+  }
+  .workspace-unread-dot {
+    display: inline-block;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--primary);
+    margin-inline-start: 0.5rem;
+  }
+  .workspace-meta {
+    color: var(--muted-foreground);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .workspace-upload {
+    border: 1px dashed var(--border);
+    background: color-mix(in srgb, var(--muted) 35%, var(--background));
+    border-radius: 0.8rem;
+    padding: 1.5rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .workspace-meter {
+    accent-color: var(--primary);
+    width: 100%;
+    height: 0.5rem;
+    display: block;
+  }
+  .workspace-detail-list {
+    display: grid;
+    gap: 1rem;
+  }
+  .workspace-detail-list > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.875rem;
+  }
+  .workspace-detail-list dt {
+    color: var(--muted-foreground);
+  }
+  .workspace-detail-list dd {
+    text-align: end;
+    font-weight: 500;
+  }
+  .workspace-link {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 1100px) {
+    .workspace-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .workspace-columns {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .workspace-heading {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .workspace-heading-actions {
+      flex-wrap: wrap;
+    }
+    .workspace-pager {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .workspace-toolbar {
+      align-items: stretch;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .workspace-stack {
+      animation: workspace-enter 0.18s ease-out;
+    }
+    @keyframes workspace-enter {
+      from {
+        opacity: 0.7;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+}

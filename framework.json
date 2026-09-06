@@ -26,7 +26,12 @@
     "storage",
     "mfa",
     "passkeys",
-    "operations"
+    "operations",
+    "audit-history",
+    "invitations",
+    "notifications",
+    "privacy",
+    "s3-storage"
   ],
   "projects": {
     "Domain": "src/TemplateV4.Domain",
@@ -60,7 +65,7 @@
     "persistence": "EF Core / PostgreSQL",
     "transport": "PostgreSQL outbox / local Worker consumers",
     "email": "SMTP",
-    "storage": "local flat-key filesystem",
+    "storage": "S3-compatible / SeaweedFS; local flat-key filesystem fallback",
     "featureFlags": "configuration",
     "apiClient": "ng-openapi-gen",
     "documentation": "DocMD",

@@ -30,7 +30,7 @@ import { Translate } from '../core/i18n';
         <h1 class="auth-title">{{ 'account' | t }}</h1>
       </div>
       <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">
-        @if (kind !== 'Verification') {
+        @if (kind !== 'Verification' && kind !== 'EmailChange') {
           <div hlmField>
             <label hlmFieldLabel for="password">{{ 'password' | t }}</label
             ><input
@@ -56,12 +56,19 @@ import { Translate } from '../core/i18n';
           @if (busy()) {
             <hlm-spinner />
           }
-          {{ (kind === 'Verification' ? 'confirm' : 'newPassword') | t }}
+          {{ (kind === 'Verification' || kind === 'EmailChange' ? 'confirm' : 'newPassword') | t }}
         </button>
         @if (done()) {
           <div hlmAlert role="status">
             <p hlmAlertDescription>
-              {{ (kind === 'Verification' ? 'emailVerified' : 'passwordSaved') | t }}
+              {{
+                (kind === 'EmailChange'
+                  ? 'emailChanged'
+                  : kind === 'Verification'
+                    ? 'emailVerified'
+                    : 'passwordSaved'
+                ) | t
+              }}
             </p>
           </div>
           <a hlmBtn routerLink="/login">{{ 'signIn' | t }}</a>
@@ -91,11 +98,16 @@ export class AccountPage {
     this.busy.set(true);
     this.passwordErrors.set([]);
     try {
-      await this.auth.action(this.kind === 'Verification' ? 'confirm-email' : 'reset-password', {
-        userId: this.parts[1],
-        token: this.parts[2],
-        password: this.password,
-      });
+      if (this.kind === 'EmailChange') {
+        await this.auth.action('privacy/confirm-email', { challenge: this.parts[1] });
+        this.auth.access.set(null);
+      } else {
+        await this.auth.action(this.kind === 'Verification' ? 'confirm-email' : 'reset-password', {
+          userId: this.parts[1],
+          token: this.parts[2],
+          password: this.password,
+        });
+      }
       history.replaceState(null, '', location.pathname);
       this.password = '';
       this.done.set(true);

@@ -9,6 +9,11 @@ namespace TemplateV4.Infrastructure.Persistence;
 
 public sealed class AppUser : IdentityUser<Guid>
 {
+    public DateTimeOffset? InvitationSentAt { get; set; }
+    public DateTimeOffset? InvitationExpiresAt { get; set; }
+    public DateTimeOffset? InvitationAcceptedAt { get; set; }
+    public DateTimeOffset? InvitationCancelledAt { get; set; }
+    public bool OptionalEmailEnabled { get; set; }
     public long LastTotpStep { get; set; } = -1;
     public bool EmailMfaEnabled { get; set; }
     public string PreferredMfaMethod { get; set; } = "Email";
@@ -124,6 +129,9 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
     public DbSet<AuthChallenge> AuthChallenges => Set<AuthChallenge>();
     public DbSet<RateBucket> RateBuckets => Set<RateBucket>();
     public DbSet<JobRun> JobRuns => Set<JobRun>();
+    public DbSet<UserNotification> Notifications => Set<UserNotification>();
+    public DbSet<StoredFile> Files => Set<StoredFile>();
+    public DbSet<DeletionRequest> DeletionRequests => Set<DeletionRequest>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -181,6 +189,29 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         {
             entity.ToTable("entries", "audit"); entity.Property(x => x.Action).HasMaxLength(100);
             entity.HasIndex(x => new { x.SubjectId, x.At });
+            entity.HasIndex(x => new { x.At, x.Id });
+            entity.HasIndex(x => new { x.ActorId, x.At });
+        });
+        model.Entity<UserNotification>(entity =>
+        {
+            entity.ToTable("notifications", "app");
+            entity.Property(x => x.Kind).HasMaxLength(100); entity.Property(x => x.Link).HasMaxLength(200);
+            entity.HasIndex(x => new { x.UserId, x.CreatedAt });
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<StoredFile>(entity =>
+        {
+            entity.ToTable("files", "app"); entity.Property(x => x.Name).HasMaxLength(180);
+            entity.Property(x => x.ContentType).HasMaxLength(100);
+            entity.HasIndex(x => new { x.OwnerId, x.CreatedAt }); entity.HasIndex(x => x.DeletedAt);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.OwnerId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeletionRequest>(entity =>
+        {
+            entity.ToTable("deletion_requests", "app"); entity.Property(x => x.State).HasMaxLength(30);
+            entity.HasIndex(x => x.UserId).IsUnique().HasFilter("\"State\" = 'Pending'");
+            entity.HasIndex(x => new { x.State, x.RequestedAt });
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
@@ -201,5 +232,7 @@ public sealed class EventOutbox(FrameworkDb db, IExecutionContext context, TimeP
             CreatedAt = time.GetUtcNow(),
             AvailableAt = time.GetUtcNow()
         });
+        if (message is EmailRequest email && email.Template is EmailTemplate.SecurityNotification or EmailTemplate.Notification)
+            db.Notifications.Add(new() { UserId = email.UserId, Kind = email.Template == EmailTemplate.SecurityNotification ? "notificationSecurity" : "notificationUpdate", Link = "/profile", CreatedAt = time.GetUtcNow() });
     }
 }

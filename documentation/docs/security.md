@@ -1,5 +1,7 @@
 # Security model
 
+Verified email changes and administrator-reviewed anonymisation are described in [platform workflows](platform-workflows.md) and [ADR 0015](adr/0015-platform-baseline-workflows.md). Private file access is enforced by authenticated ownership on every operation; administrators do not bypass it.
+
 Identity lives exclusively in Infrastructure. Access tokens are RS256 JWTs with five-minute lifetimes, held in Angular memory. Each authenticated request checks the session and current Identity security stamp in PostgreSQL. Role changes, disabling users, password resets, refresh reuse and explicit revocation invalidate sessions immediately.
 
 Refresh tokens contain 64 random bytes and are persisted only as SHA-256 hashes. Cookies use Secure, HttpOnly, SameSite=Strict, Path=/, and the __Host- prefix. Rotation consumes each token under a PostgreSQL session-family row lock. Consumed-token reuse revokes the entire family; old hashes remain until the family expires. Browser tabs serialize refresh via Web Locks.

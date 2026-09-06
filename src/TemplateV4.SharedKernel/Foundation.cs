@@ -96,4 +96,5 @@ public interface IFileStorage
 {
     Task Write(string key, Stream content, CancellationToken cancellationToken);
     Task<Stream> Read(string key, CancellationToken cancellationToken);
+    Task Delete(string key, CancellationToken cancellationToken);
 }

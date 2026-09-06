@@ -6,9 +6,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
+using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
+using TemplateV4.Infrastructure.Storage;
 using TemplateV4.Infrastructure.Users;
 
 namespace TemplateV4.Infrastructure;
@@ -57,6 +59,12 @@ public static class Registration
         services.AddScoped<SecurityService>(); services.AddScoped<PasskeyService>();
         services.AddScoped<SharedRateLimiter>();
         services.AddScoped<OperationsService>();
+        services.AddScoped<IAuditHistory, AuditHistory>();
+        services.AddScoped<IHandler<AuditQuery, Page<AuditItem>>, AuditQueryHandler>();
+        services.AddSingleton<IValidator<AuditQuery>, AuditQueryValidator>();
+        services.AddScoped<NotificationService>();
+        services.AddScoped<FileService>();
+        services.AddScoped<PrivacyService>();
         services.AddScoped<IPasskeyHandler<AppUser>, PasskeyHandler<AppUser>>();
         services.Configure<IdentityPasskeyOptions>(options =>
         {
@@ -75,7 +83,9 @@ public static class Registration
         services.AddSingleton<IValidator<ListUsers>, ListUsersValidator>();
         services.AddSingleton<IValidator<UpdateUser>, UpdateUserValidator>();
         services.AddSingleton<IFeatureFlags, ConfigurationFlags>();
-        services.AddSingleton<IFileStorage, LocalFileStorage>();
+        if (config["Storage:Provider"] == "S3") services.AddSingleton<IFileStorage, S3FileStorage>();
+        else if (config["Storage:Provider"] is null or "Local") services.AddSingleton<IFileStorage, LocalFileStorage>();
+        else throw new InvalidOperationException("Unknown Storage:Provider.");
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         if (config["Integrations:Status:BaseUrl"] is { Length: > 0 } endpoint)
         {
@@ -124,4 +134,5 @@ public sealed class LocalFileStorage(IConfiguration config) : IFileStorage
         await content.CopyToAsync(stream, cancellationToken);
     }
     public Task<Stream> Read(string key, CancellationToken cancellationToken) => Task.FromResult<Stream>(File.OpenRead(Resolve(key)));
+    public Task Delete(string key, CancellationToken cancellationToken) { File.Delete(Resolve(key)); return Task.CompletedTask; }
 }

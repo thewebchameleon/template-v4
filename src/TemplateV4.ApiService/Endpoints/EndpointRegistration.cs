@@ -10,7 +10,8 @@ public static class EndpointRegistration
             .AddAuthSecurity(allowedOrigins)
             .MapAuthenticationEndpoints()
             .MapSecurityEndpoints()
-            .MapOperationsEndpoints();
+            .MapOperationsEndpoints()
+            .MapWorkspaceEndpoints();
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")

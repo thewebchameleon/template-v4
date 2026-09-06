@@ -15,6 +15,7 @@ export class Errors {
   } | null>(null);
 }
 export const IDEMPOTENCY_KEY = new HttpContextToken<string>(() => '');
+export const QUIET_REQUEST = new HttpContextToken<boolean>(() => false);
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(Auth);
   const runtime = inject(Runtime);
@@ -67,6 +68,7 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
       if (
+        !request.context.get(QUIET_REQUEST) &&
         !request.url.endsWith('/auth/refresh') &&
         error.error?.code !== 'auth.mfa_setup_required'
       ) {

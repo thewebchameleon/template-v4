@@ -1,0 +1,38 @@
+services:
+  api:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4317
+      OTEL_SERVICE_NAME: templatev4-api
+  worker:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4317
+      OTEL_SERVICE_NAME: templatev4-worker
+  otel:
+    image: otel/opentelemetry-collector-contrib:0.160.0
+    command: ['--config=/etc/otel/config.yaml']
+    volumes: ['./deploy/monitoring/otel.yaml:/etc/otel/config.yaml:ro']
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    volumes:
+      - './deploy/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro'
+      - './deploy/monitoring/alerts.yaml:/etc/prometheus/alerts.yaml:ro'
+      - './deploy/monitoring/public-targets.json:/etc/prometheus/public-targets.json:ro'
+      - 'metrics:/prometheus'
+    ports: ['127.0.0.1:9090:9090']
+    restart: unless-stopped
+  blackbox:
+    image: prom/blackbox-exporter:v0.28.0
+    command: ['--config.file=/etc/blackbox/config.yaml']
+    volumes: ['./deploy/monitoring/blackbox.yaml:/etc/blackbox/config.yaml:ro']
+    restart: unless-stopped
+  alertmanager:
+    image: prom/alertmanager:v0.34.0
+    volumes: ['./deploy/monitoring/alertmanager.yaml:/etc/alertmanager/alertmanager.yml:ro', 'alerts:/alertmanager']
+    secrets: [alert_webhook]
+    restart: unless-stopped
+secrets:
+  alert_webhook: {file: '${SECRETS_DIR:?Set SECRETS_DIR}/alert_webhook'}
+volumes:
+  metrics:
+  alerts:

@@ -5,6 +5,11 @@ x-runtime: &runtime
   DataProtection__CertificatePath: /run/secrets/dp_certificate
   Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
   Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
+  Deployment__Version: ${DEPLOYMENT_VERSION:-0.1.0}
+  Storage__Provider: S3
+  Storage__S3__Endpoint: ${S3_ENDPOINT:?Set S3_ENDPOINT to the HTTPS object-storage origin}
+  Storage__S3__Bucket: ${S3_BUCKET:-templatev4}
+  Storage__S3__Region: ${S3_REGION:-us-east-1}
 x-health: &health
   test: [CMD, dotnet, entry.dll, --health-check]
   interval: 30s
@@ -54,6 +59,8 @@ services:
       ReverseProxy__Address: 172.30.0.10
     secrets:
       - {source: api_connection, target: ConnectionStrings__app}
+      - {source: s3_access_key, target: Storage__S3__AccessKey}
+      - {source: s3_secret_key, target: Storage__S3__SecretKey}
       - jwt_key
       - dp_certificate
       - {source: dp_password, target: DataProtection__CertificatePassword}
@@ -72,6 +79,8 @@ services:
       Email__From: ${SMTP_FROM:?Set SMTP_FROM}
     secrets:
       - {source: worker_connection, target: ConnectionStrings__app}
+      - {source: s3_access_key, target: Storage__S3__AccessKey}
+      - {source: s3_secret_key, target: Storage__S3__SecretKey}
       - {source: smtp_username, target: Email__Username}
       - {source: smtp_password, target: Email__Password}
       - dp_certificate
@@ -97,6 +106,8 @@ services:
       retries: 3
     stop_grace_period: 60s
 secrets:
+  s3_access_key: {file: '${SECRETS_DIR}/s3_access_key'}
+  s3_secret_key: {file: '${SECRETS_DIR}/s3_secret_key'}
   postgres_password: {file: '${SECRETS_DIR:?Set SECRETS_DIR}/postgres_password'}
   migrator_password: {file: '${SECRETS_DIR}/migrator_password'}
   api_password: {file: '${SECRETS_DIR}/api_password'}

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using TemplateV4.Application;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure;
@@ -6,8 +7,20 @@ namespace TemplateV4.Infrastructure;
 public sealed record DeliverySummary(Guid Id, string Type, string State, int Attempts, DateTimeOffset AvailableAt, string? ErrorCode);
 public sealed record DeliveryPage(IReadOnlyList<DeliverySummary> Items, int Total, int PageNumber, int PageSize, string Kind);
 public sealed record ReplayRequest(Guid Id, string Kind);
-public sealed class OperationsService(FrameworkDb db, TimeProvider time)
+public sealed record OperationsOverview(int PendingMessages, int FailedMessages, int ActiveJobs, int FailedJobs, double OldestMessageSeconds, DateTimeOffset? LastMaintenanceAt, string Version, DateTimeOffset CheckedAt, int BacklogWarningSeconds);
+public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfiguration config)
 {
+    public async Task<OperationsOverview> Overview(CancellationToken ct)
+    {
+        var pending = await db.Outbox.CountAsync(x => x.CompletedAt == null && x.PoisonedAt == null, ct);
+        var failed = await db.Outbox.CountAsync(x => x.PoisonedAt != null && x.CompletedAt == null, ct);
+        var jobs = await db.JobRuns.CountAsync(x => x.State != "Completed" && x.State != "Failed", ct);
+        var failedJobs = await db.JobRuns.CountAsync(x => x.State == "Failed", ct);
+        var oldest = await db.Outbox.Where(x => x.CompletedAt == null && x.PoisonedAt == null).MinAsync(x => (DateTimeOffset?)x.CreatedAt, ct);
+        var maintenance = await db.Audit.Where(x => x.Action == "job.maintenance.completed").MaxAsync(x => (DateTimeOffset?)x.At, ct);
+        return new(pending, failed, jobs, failedJobs, oldest is null ? 0 : Math.Max(0, (time.GetUtcNow() - oldest.Value).TotalSeconds), maintenance,
+            config["Deployment:Version"] ?? typeof(OperationsService).Assembly.GetName().Version?.ToString() ?? "unknown", time.GetUtcNow(), Math.Clamp(config.GetValue("Operations:BacklogWarningSeconds", 300), 60, 86400));
+    }
     public async Task<Result<DeliveryPage>> List(string kind, int pageNumber, int pageSize, bool failedOnly, CancellationToken ct)
     {
         if (kind is not ("message" or "job") || pageNumber < 1 || pageSize is < 1 or > 100 || pageNumber > int.MaxValue / pageSize)

@@ -15,6 +15,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
 
     public async Task Send(string recipient, EmailRequest email, Guid messageId, CancellationToken ct)
     {
+        if (email.ProtectedRecipient is not null) recipient = protection.CreateProtector("TemplateV4.email.recipient.v1").Unprotect(email.ProtectedRecipient);
         var af = email.Culture == "af-ZA";
         var subject = email.Template switch
         {

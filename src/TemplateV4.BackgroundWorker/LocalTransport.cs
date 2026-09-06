@@ -23,6 +23,8 @@ public sealed class LocalTransport(FrameworkDb db, UserManager<AppUser> users, A
             case "email.requested.v1":
                 var request = JsonSerializer.Deserialize<EmailRequest>(message.Payload)!;
                 var recipient = await users.FindByIdAsync(request.UserId.ToString()) ?? throw new InvalidOperationException("Recipient missing.");
+                if (request.Template == EmailTemplate.Notification && !recipient.OptionalEmailEnabled) break;
+                if (!await db.Profiles.AnyAsync(x => x.Id == recipient.Id && !x.Disabled, ct)) break;
                 await email.Send(recipient.Email!, request, message.Id, ct);
                 break;
             case "maintenance.requested.v1":

@@ -12,6 +12,12 @@ import {
   lucideMonitor,
   lucideLogOut,
   lucideChevronsUpDown,
+  lucideBell,
+  lucideFolderOpen,
+  lucideHistory,
+  lucideMail,
+  lucideActivity,
+  lucideShieldCheck,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
@@ -25,6 +31,8 @@ import { I18n, Translate } from './core/i18n';
 import { Theme } from './core/theme';
 import { Preferences } from './core/preferences';
 import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
+import { Confirmation } from './shared/confirmation';
+import { UnreadNotifications } from './core/unread-notifications';
 @Component({
   selector: 'app-root',
   imports: [
@@ -43,6 +51,7 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
     HlmDrawerImports,
     Preferences,
     Translate,
+    Confirmation,
   ],
   providers: [
     provideIcons({
@@ -54,6 +63,12 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
       lucideMonitor,
       lucideLogOut,
       lucideChevronsUpDown,
+      lucideBell,
+      lucideFolderOpen,
+      lucideHistory,
+      lucideMail,
+      lucideActivity,
+      lucideShieldCheck,
     }),
   ],
   template: `
@@ -161,6 +176,20 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
               <hlm-separator orientation="vertical" class="header-separator" />
               <app-breadcrumbs />
             </div>
+            @if (!auth.access()?.setupRequired) {
+              <a
+                hlmBtn
+                variant="ghost"
+                routerLink="/notifications"
+                [attr.aria-label]="'notificationCentre' | t"
+                ><ng-icon name="lucideBell" />
+                @if (unread.count()) {
+                  <span class="text-xs font-semibold">{{
+                    unread.count() > 99 ? '99+' : unread.count()
+                  }}</span>
+                }
+              </a>
+            }
             <hlm-drawer direction="right">
               <button
                 hlmBtn
@@ -192,6 +221,7 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
       <main id="main" tabindex="-1"><ng-container *ngTemplateOutlet="page" /></main>
     }
     <hlm-toaster [theme]="theme.preference()" position="top-right" richColors closeButton />
+    <app-confirmation />
     <ng-template #page>
       <router-outlet />
     </ng-template>
@@ -216,6 +246,7 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
   `,
 })
 export class App {
+  readonly unread = inject(UnreadNotifications);
   readonly auth = inject(Auth);
   readonly theme = inject(Theme);
   readonly sidebar = inject(HlmSidebarService);
@@ -225,12 +256,29 @@ export class App {
   private readonly allAccountLinks = [
     { path: '/profile', label: 'profile', icon: 'lucideUserRound' },
     { path: '/sessions', label: 'sessions', icon: 'lucideMonitor', requiresMfa: true },
+    { path: '/notifications', label: 'notificationCentre', icon: 'lucideBell', requiresMfa: true },
+    { path: '/files', label: 'files', icon: 'lucideFolderOpen', requiresMfa: true },
+    { path: '/privacy', label: 'privacyAndData', icon: 'lucideShieldCheck', requiresMfa: true },
   ];
   readonly accountLinks = computed(() =>
     this.allAccountLinks.filter((item) => !item.requiresMfa || !this.auth.access()?.setupRequired),
   );
   readonly adminLinks = [
     { path: '/users', label: 'users', icon: 'lucideUsersRound', permission: 'users.manage' },
+    { path: '/invitations', label: 'invitations', icon: 'lucideMail', permission: 'users.manage' },
+    { path: '/audit', label: 'auditHistory', icon: 'lucideHistory', permission: 'settings.manage' },
+    {
+      path: '/operations',
+      label: 'operations',
+      icon: 'lucideActivity',
+      permission: 'settings.manage',
+    },
+    {
+      path: '/privacy-requests',
+      label: 'privacyRequests',
+      icon: 'lucideShieldCheck',
+      permission: 'settings.manage',
+    },
     {
       path: '/settings',
       label: 'adminSettings',

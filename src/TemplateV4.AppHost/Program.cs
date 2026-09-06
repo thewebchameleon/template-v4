@@ -12,6 +12,12 @@ var mail = builder
     .WithEndpoint(targetPort: 1025, name: "smtp");
 
 var repositoryRoot = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "../.."));
+var storage = builder.AddContainer("storage", "chrislusf/seaweedfs", "4.45")
+    .WithArgs("mini", "-dir=/data", "-bucket=templatev4")
+    .WithVolume("templatev4-storage", "/data")
+    .WithHttpEndpoint(targetPort: 8333, name: "s3")
+    .WithEnvironment("AWS_ACCESS_KEY_ID", "local-development")
+    .WithEnvironment("AWS_SECRET_ACCESS_KEY", "local-development-only-change-in-production");
 var signingKey = Path.Combine(repositoryRoot, ".local/jwt.pem");
 
 if (!File.Exists(signingKey))
@@ -34,6 +40,12 @@ var api = builder
     .WithEnvironment("Jwt__KeyId", "local-v1")
     .WithEnvironment("DataProtection__KeyPath", dataProtectionKeys)
     .WithEnvironment("Web__PublicUrl", "https://localhost:4200")
+    .WaitFor(storage)
+    .WithEnvironment("Storage__Provider", "S3")
+    .WithEnvironment("Storage__S3__Endpoint", storage.GetEndpoint("s3"))
+    .WithEnvironment("Storage__S3__Bucket", "templatev4")
+    .WithEnvironment("Storage__S3__AccessKey", "local-development")
+    .WithEnvironment("Storage__S3__SecretKey", "local-development-only-change-in-production")
     .WithEnvironment("Web__AllowedOrigins__0", "https://localhost:4200");
 
 builder
@@ -41,6 +53,12 @@ builder
     .WithReference(database)
     .WaitForCompletion(migrator)
     .WaitFor(mail)
+    .WaitFor(storage)
+    .WithEnvironment("Storage__Provider", "S3")
+    .WithEnvironment("Storage__S3__Endpoint", storage.GetEndpoint("s3"))
+    .WithEnvironment("Storage__S3__Bucket", "templatev4")
+    .WithEnvironment("Storage__S3__AccessKey", "local-development")
+    .WithEnvironment("Storage__S3__SecretKey", "local-development-only-change-in-production")
     .WithEnvironment("DataProtection__KeyPath", dataProtectionKeys)
     .WithEnvironment("Email__Host", mail.GetEndpoint("smtp").Property(Aspire.Hosting.ApplicationModel.EndpointProperty.Host))
     .WithEnvironment("Email__Port", mail.GetEndpoint("smtp").Property(Aspire.Hosting.ApplicationModel.EndpointProperty.Port))

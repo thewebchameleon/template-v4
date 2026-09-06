@@ -13,6 +13,8 @@ builder.Services.AddScoped<IExecutionContext>(provider => provider.GetRequiredSe
 builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();
 builder.Services.AddHostedService<OutboxPump>();
 builder.Services.AddHostedService<JobReconciler>();
+builder.Services.AddHostedService<StorageRetention>();
+builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddQuartz(options =>
 {
     options.SchedulerId = "AUTO";

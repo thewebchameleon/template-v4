@@ -28,5 +28,6 @@ public sealed class UserProfile : IDomainEventSource
     public void SetDisabled(bool disabled) { Disabled = disabled; Version = Guid.NewGuid(); }
     public void SetCulture(string culture) { Culture = culture; Version = Guid.NewGuid(); }
     public void SoftDelete(DateTimeOffset now) { DeletedAt = now; SetDisabled(true); }
+    public void Anonymise(DateTimeOffset now) { DisplayName = "Deleted account"; Culture = "en-ZA"; SoftDelete(now); }
     public void ClearEvents() => _events.Clear();
 }

@@ -53,6 +53,8 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
                 var run = await db.JobRuns.SingleAsync(x => x.Id == runId, ct); run.State = "Completed"; run.CompletedAt = time.GetUtcNow(); run.LeaseUntil = null;
             }
             db.Audit.Add(new() { Action = "job.maintenance.completed", SubjectId = runId, ActorId = execution.ActorId, At = now, TraceParent = activity?.Id });
+            if (execution.ActorId is { } actor && await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct))
+                db.Notifications.Add(new() { UserId = actor, Kind = "notificationJobCompleted", Link = "/operations", CreatedAt = now });
             await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);
             context.Result = new JobOutcome(true, "maintenance.completed", attempt, now, time.GetUtcNow());
         }

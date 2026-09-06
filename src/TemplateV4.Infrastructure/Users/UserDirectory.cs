@@ -11,7 +11,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
 {
     public async Task<Result<UserDto>> Create(CreateUser command, CancellationToken cancellationToken)
     {
-        var identity = new AppUser { Id = Guid.NewGuid(), UserName = command.Email, Email = command.Email };
+        var identity = new AppUser { Id = Guid.NewGuid(), UserName = command.Email, Email = command.Email, InvitationSentAt = time.GetUtcNow(), InvitationExpiresAt = time.GetUtcNow().AddHours(2) };
         var created = await users.CreateAsync(identity);
         if (!created.Succeeded) return Result<UserDto>.Fail("user.exists", ErrorKind.Conflict);
         var role = await users.AddToRolesAsync(identity, command.Roles);

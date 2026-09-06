@@ -27,7 +27,7 @@ using Xunit;
 
 namespace TemplateV4.Application.Tests;
 
-public sealed class SecurityAndMessagingTests : IAsyncLifetime
+public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18.6-alpine").Build();
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "templatev4-tests", Guid.NewGuid().ToString("N"));
@@ -41,6 +41,7 @@ public sealed class SecurityAndMessagingTests : IAsyncLifetime
         _configuration = new() { ["ConnectionStrings:app"] = _postgres.GetConnectionString(), ["DataProtection:KeyPath"] = _directory, ["Jwt:PrivateKeyPath"] = Path.Combine(_directory, "jwt.pem"), ["Jwt:KeyId"] = "tests", ["Web:PublicUrl"] = "https://localhost", ["Web:AllowedOrigins:0"] = "https://localhost" };
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         builder.Configuration.AddInMemoryCollection(_configuration);
+        builder.Configuration["Storage:Path"] = Path.Combine(_directory, "files");
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
         builder.Services.AddSingleton<TimeProvider>(_clock);
         builder.Services.AddLogging(); builder.Services.AddScoped<BackgroundExecutionContext>();

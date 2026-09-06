@@ -22,6 +22,7 @@ import { IDEMPOTENCY_KEY } from '../core/interceptors';
 import { Features } from '../core/features';
 import { Notifications } from '../core/notifications';
 import { DataTable, type DataTableFeatures } from '../shared/data-table';
+import { ListQuery, protectUnload } from '../shared/workspace';
 import {
   UserActionsCell,
   UserIdentityCell,
@@ -33,6 +34,7 @@ const userColumnHelper = createColumnHelper<DataTableFeatures, UserTableRow>();
 
 @Component({
   selector: 'app-users',
+  host: { '(window:beforeunload)': 'beforeUnload($event)' },
   imports: [
     FormsModule,
     HlmButtonImports,
@@ -96,6 +98,16 @@ const userColumnHelper = createColumnHelper<DataTableFeatures, UserTableRow>();
               [placeholder]="'search' | t"
             /><button hlmBtn variant="outline">{{ 'search' | t }}</button>
           </form>
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            [nullable]="false"
+            [value]="query.text('sort', 'name')"
+            (valueChange)="sort($event)"
+            [attr.aria-label]="'sort' | t"
+            ><button hlmToggleGroupItem value="name">{{ 'name' | t }}</button
+            ><button hlmToggleGroupItem value="email">{{ 'email' | t }}</button></hlm-toggle-group
+          >
           <app-data-table
             class="min-w-0 max-w-full"
             [columns]="columns()"
@@ -192,6 +204,13 @@ const userColumnHelper = createColumnHelper<DataTableFeatures, UserTableRow>();
     </div>`,
 })
 export class UsersPage {
+  readonly query = new ListQuery();
+  hasUnsavedChanges() {
+    return !!(this.name || this.email || this.roleDrafts.size);
+  }
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   readonly features = inject(Features);
   readonly auth = inject(Auth);
   readonly i18n = inject(I18n);
@@ -254,8 +273,15 @@ export class UsersPage {
   private invitationFingerprint = '';
   culture = 'en-ZA';
   private invitationKey = crypto.randomUUID();
+  sort(value: unknown) {
+    if (value === 'name' || value === 'email') void this.query.set({ sort: value, page: 1 });
+  }
   constructor() {
-    void this.load();
+    this.query.connect(() => {
+      this.search = this.query.text('search');
+      this.pageNumber = this.query.page;
+      void this.load();
+    });
     void this.features.load();
   }
   async maintenance() {
@@ -276,6 +302,10 @@ export class UsersPage {
     }
   }
   async load() {
+    if (this.query.text('search') !== this.search || this.query.page !== this.pageNumber) {
+      await this.query.set({ search: this.search || null, page: this.pageNumber });
+      return;
+    }
     const sequence = ++this.loadSequence;
     this.busy.set(true);
     this.loadState.set('loading');
@@ -286,6 +316,7 @@ export class UsersPage {
             pageNumber: this.pageNumber,
             pageSize: 25,
             search: this.search,
+            sort: this.query.text('sort', 'name'),
           }),
         )
       ).body;

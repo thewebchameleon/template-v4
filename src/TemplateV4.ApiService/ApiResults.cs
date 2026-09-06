@@ -17,6 +17,18 @@ public static class ApiResults
         var af = System.Globalization.CultureInfo.CurrentUICulture.Name == "af-ZA";
         return code switch
         {
+            "files.invalid_type" => af ? "Kies ’n ondersteunde lêer waarvan die inhoud by die lêertipe pas." : "Choose a supported file whose content matches its file type.",
+            "files.too_large" => af ? "Lêers mag nie groter as 20 MB wees nie." : "Files must be 20 MB or smaller.",
+            "files.empty" => af ? "Kies ’n lêer wat nie leeg is nie." : "Choose a file that is not empty.",
+            "files.quota" => af ? "Jou bergingtoelaag is vol." : "Your storage allowance is full. Deleted files count until retention cleanup completes.",
+            "files.not_found" => af ? "Hierdie lêer is nie beskikbaar nie." : "This file is no longer available.",
+            "privacy.same_email" => af ? "Kies ’n ander e-posadres." : "Choose a different email address.",
+            "privacy.email_unavailable" => af ? "Hierdie e-posadres is nie beskikbaar nie." : "This email address is not available.",
+            "invitation.wait" => af ? "Wag twee minute voordat jy weer probeer." : "Wait two minutes before trying again.",
+            "invitation.not_pending" => af ? "Hierdie uitnodiging is nie meer hangende nie." : "This invitation is no longer pending. Refresh the list.",
+            "auth.action_invalid" => af ? "Hierdie skakel is ongeldig of het verval." : "This link is invalid or expired. Request a new link.",
+            "user.last_administrator" => af ? "Voeg ’n ander aktiewe administrateur by." : "Add another active administrator before continuing.",
+            "user.self_lockout" => af ? "’n Ander administrateur moet hierdie verandering hersien." : "Another administrator must review this account change.",
             "auth.invalid_credentials" => af ? "Die aanmeldbesonderhede is ongeldig." : "The sign-in details are invalid.",
             "auth.factor_invalid" => af ? "Die wagwoord of kode is ongeldig. Gebruik 'n nuwe kode en begin aanmelding weer indien nodig." : "The password or code is invalid. Use a fresh code and restart sign-in if necessary.",
             "auth.reauthentication_required" => af ? "Meld af en weer aan voordat jy sekuriteitsfaktore verander." : "Sign out and sign in again before changing security factors.",

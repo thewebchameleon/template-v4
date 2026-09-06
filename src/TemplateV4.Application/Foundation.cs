@@ -18,5 +18,5 @@ public sealed record UserCreated(Guid UserId, string Culture) : IIntegrationEven
 public sealed record JobRequested(Guid RequestId, string Culture) : IIntegrationEvent;
 
 public enum EmailTemplate { Verification, PasswordReset, SecurityNotification, Notification, MfaCode }
-public sealed record EmailRequest(Guid UserId, EmailTemplate Template, string Culture, string? ActionUrl = null, string? TemplateName = null, string? ProtectedContent = null) : IIntegrationEvent;
+public sealed record EmailRequest(Guid UserId, EmailTemplate Template, string Culture, string? ActionUrl = null, string? TemplateName = null, string? ProtectedContent = null, string? ProtectedRecipient = null) : IIntegrationEvent;
 public interface IEmailSender { Task Send(string recipient, EmailRequest email, Guid messageId, CancellationToken cancellationToken); }

@@ -13,7 +13,7 @@ public sealed class WorkerReadiness(IServiceScopeFactory scopes, ISchedulerFacto
         var scheduler = await schedulers.GetScheduler(cancellationToken);
         var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
         var now = time.GetUtcNow();
-        var cutoff = now.AddMinutes(-15);
+        var cutoff = now.AddSeconds(-Math.Clamp(scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue("Operations:BacklogWarningSeconds", 300), 60, 86400));
         if (await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.Outbox.Where(x => x.PoisonedAt != null || x.CompletedAt == null && x.CreatedAt < cutoff), cancellationToken)
             || await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.JobRuns.Where(x => x.State == "Failed" || x.State != "Completed" && x.AvailableAt < cutoff && (x.State != "Running" || x.LeaseUntil < now)), cancellationToken))
             return HealthCheckResult.Degraded("Delivery requires operator attention.");

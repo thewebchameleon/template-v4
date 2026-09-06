@@ -1,4 +1,6 @@
+import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  ...workspaceDictionary,
   accountNavigation: ['Account', 'Rekening'],
   appBrand: ['templatev4', 'templatev4'],
   signupTitle: ['Create an account', 'Skep ’n rekening'],

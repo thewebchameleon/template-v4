@@ -5,6 +5,7 @@ import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { UserDto as User } from '../api/models/user-dto';
 import { Translate } from '../core/i18n';
+import { RouterLink } from '@angular/router';
 
 export interface UserTableRow {
   user: User;
@@ -20,8 +21,11 @@ export interface UserTableRow {
 
 @Component({
   selector: 'app-user-identity-cell',
+  imports: [RouterLink],
   template: `
-    <div>{{ user().displayName }}</div>
+    <a routerLink="/audit" [queryParams]="{ subjectId: user().id }" class="workspace-link">{{
+      user().displayName
+    }}</a>
     <div class="text-sm text-muted-foreground">{{ user().email }}</div>
   `,
 })

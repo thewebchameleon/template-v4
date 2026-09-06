@@ -1,0 +1,41 @@
+groups:
+  - name: platform
+    rules:
+      - alert: PlatformDeliveryFailed
+        expr: max(platform_delivery_failed) > 0
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: 'A message or job needs recovery'
+          description: 'Inspect Operations, resolve the cause, then use audited replay.'
+      - alert: PlatformDeliveryDelayed
+        expr: max(platform_delivery_oldest_seconds) > 300
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: 'Delivery backlog is older than five minutes'
+          description: 'Check worker readiness, SMTP availability and database capacity.'
+      - alert: PlatformReadinessFailed
+        expr: probe_success{job="replica-readiness"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: 'An application replica is not ready'
+          description: 'Inspect this replica and its PostgreSQL and scheduler dependencies.'
+      - alert: PlatformMetricsStale
+        expr: time() - max(platform_delivery_sample_timestamp_seconds) > 120 or absent(platform_delivery_sample_timestamp_seconds)
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: 'Delivery monitoring has stopped updating'
+          description: 'Check the worker, collector and metric pipeline before trusting the last snapshot.'
+      - alert: PlatformPublicOriginDown
+        expr: probe_success{job="public-origin"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations: {summary: 'The public origin is unavailable'}
+      - alert: PlatformCertificateExpiring
+        expr: probe_ssl_earliest_cert_expiry{job="public-origin"} - time() < 1209600
+        for: 1h
+        labels: {severity: warning}
+        annotations: {summary: 'The public TLS certificate expires within fourteen days'}

@@ -16,6 +16,8 @@ using TemplateV4.ServiceDefaults;
 
 if (await Hosting.HandleHealthProbe(args)) return;
 var builder = WebApplication.CreateBuilder(args);
+var exportPath = builder.Configuration["OpenApi:ExportPath"];
+if (exportPath is not null && !builder.Environment.IsDevelopment()) throw new InvalidOperationException("OpenAPI export is development-only.");
 builder.AddServiceDefaults();
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
@@ -80,8 +82,9 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("postgresql", tags: ["ready"]);
 var app = builder.Build();
-await using (var bootstrapScope = app.Services.CreateAsyncScope())
+if (exportPath is null)
 {
+    await using var bootstrapScope = app.Services.CreateAsyncScope();
     var bootstrap = bootstrapScope.ServiceProvider.GetRequiredService<AdminBootstrapService>();
     if (await bootstrap.Initialize(CancellationToken.None)) app.Services.GetRequiredService<AdminBootstrapToken>().Enable();
 }
@@ -136,5 +139,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "templatev4 v1"));
 }
 app.MapApiEndpoints(origins);
+if (exportPath is not null)
+{
+    await app.StartAsync();
+    using var client = new HttpClient();
+    var document = await client.GetStringAsync(app.Urls.First() + "/openapi/v1.json");
+    await File.WriteAllTextAsync(Path.GetFullPath(exportPath), document.Replace(app.Urls.First() + "/", "https://localhost/", StringComparison.Ordinal).Replace("\r\n", "\n") + "\n");
+    await app.StopAsync();
+    return;
+}
 app.Run();
 public partial class Program;

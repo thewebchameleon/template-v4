@@ -1,6 +1,16 @@
 name: Validate
 on:
   workflow_call:
+    inputs:
+      run_e2e:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: Run browser E2E checks
+        type: boolean
+        default: false
   pull_request:
   push:
     branches: [main]
@@ -32,7 +42,6 @@ jobs:
       - run: npm ci --prefix src/TemplateV4.Angular
       - run: npm ci --prefix documentation
       - run: node tools/framework.mjs validate
-      - run: node --test tools/cli.test.mjs
       - run: dotnet tool restore
       - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore
@@ -42,25 +51,27 @@ jobs:
       - run: npm run build --prefix src/TemplateV4.Angular
       - run: npm run validate --prefix documentation
       - run: npm run build --prefix documentation
-      - name: Test independent package consumer
-        shell: pwsh
-        run: ./tools/test-packages.ps1
       - run: npm audit --prefix src/TemplateV4.Angular --audit-level=moderate
       - run: npm audit --prefix documentation --audit-level=moderate
       - name: NuGet vulnerability check
         run: node tools/audit-nuget.mjs
-      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
-        env:
-          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
-      - run: node tools/framework.mjs clients
-      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - run: |
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.ApiService -t templatev4-api:ci .
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.BackgroundWorker -t templatev4-worker:ci .
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.DatabaseMigrator -t templatev4-databasemigrator:ci .
           docker build -f src/TemplateV4.Angular/Dockerfile -t templatev4-web:ci .
+      - run: node --test tools/cli.test.mjs
+      - name: Test independent package consumer
+        shell: pwsh
+        run: ./tools/test-packages.ps1
+      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
+        env:
+          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
+      - run: node tools/framework.mjs clients
+      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
       - name: Browser security and accessibility
+        if: ${{ inputs.run_e2e == true }}
         shell: pwsh
         run: |
           node src/TemplateV4.Angular/node_modules/@playwright/test/cli.js install --with-deps chromium

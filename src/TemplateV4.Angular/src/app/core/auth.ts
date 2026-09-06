@@ -60,6 +60,9 @@ export class Auth {
       }),
     );
   }
+  async browserHeaders() {
+    return { 'X-CSRF-TOKEN': await this.csrfToken() };
+  }
   async login(username: string, password: string) {
     return this.serial(async () => {
       const value = await this.action<ChallengeAccess>('login', {
@@ -171,4 +174,9 @@ export const adminGuard: CanActivateFn = async () => {
   const router = inject(Router);
   if (!auth.access()) await auth.refresh();
   return auth.has('users.manage') ? true : router.createUrlTree(['/profile']);
+};
+export const permissionGuard: CanActivateFn = (route) => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  return auth.has(route.data['permission']) || router.createUrlTree(['/forbidden']);
 };

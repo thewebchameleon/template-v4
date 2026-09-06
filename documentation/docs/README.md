@@ -17,6 +17,8 @@ The framework manifest is the inventory and version contract. CLI and CI load it
 
 Start with [user management](user-management.md), then [security](security.md), [operations](operations.md), and [upgrades](upgrades.md). Decisions live in [adr](adr).
 
+The baseline also includes [platform workflows](platform-workflows.md), [S3 object storage](object-storage.md), and [monitoring and restore drills](monitoring.md). Their ownership, privacy and transaction conventions are recorded in [ADR 0015](adr/0015-platform-baseline-workflows.md).
+
 The developer guide is rendered by the DocMD project in `documentation`. Aspire runs it locally; `npm run validate --prefix documentation` checks internal links and `npm run build --prefix documentation` produces the static site.
 
 ## Golden path
