@@ -1,124 +1,142 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
-import { WorkspaceUi, Resource, Confirmations, protectUnload } from '../shared/workspace';
+import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import {
+  WorkspaceUi,
+  workspaceIcons,
+  Resource,
+  Confirmations,
+  DebouncedSearch,
+  ListQuery,
+  protectUnload,
+} from '../shared/workspace';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
+import { RecordIdentity, RecordStatus, RowActions } from '../shared/workspace-cells';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
 import { I18n } from '../core/i18n';
 import { Notifications } from '../core/notifications';
 import { AccessCatalog, RoleItem } from '../api/models';
+const column = createColumnHelper<DataTableFeatures, RoleItem>();
 @Component({
   selector: 'app-roles',
-  imports: [WorkspaceUi, HlmCheckboxImports],
+  imports: [WorkspaceUi, DataTable, HlmCheckboxImports, HlmDrawerImports],
+  providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-header
-      title="rolesPermissions"
-      description="rolesIntro"
-      eyebrow="administration"
-      ><button hlmBtn (click)="select(null)">{{ 'createRole' | t }}</button></app-page-header
+  template: `
+    <app-page-header title="rolesPermissions" description="rolesIntro" eyebrow="administration"
+      ><button hlmBtn (click)="select(null)">
+        <ng-icon name="lucidePlus" />{{ 'createRole' | t }}
+      </button></app-page-header
     >
-    <app-page-state
-      [state]="data.state()"
-      [refreshing]="data.refreshing()"
-      [refreshError]="data.refreshError()"
-      (retry)="load()"
-      ><div class="workspace-columns">
+    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
+      ><div>
         <section hlmCard>
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ 'roles' | t }}</h2>
           </div>
           <div hlmCardContent class="grid gap-4">
+            <div class="workspace-toolbar">
+              <div hlmField>
+                <label hlmFieldLabel for="role-search">{{ 'search' | t }}</label
+                ><input
+                  hlmInput
+                  id="role-search"
+                  [ngModel]="search.value()"
+                  (ngModelChange)="search.update($event)"
+                  maxlength="120"
+                  [placeholder]="'roleSearch' | t"
+                />
+              </div>
+              @if (search.value()) {
+                <button hlmBtn type="button" variant="ghost" (click)="search.update('')">
+                  {{ 'clear' | t }}
+                </button>
+              }
+            </div>
+            <app-data-table
+              [columns]="columns()"
+              [data]="data.value()?.roles.items ?? []"
+              [loading]="data.refreshing()"
+              [loadingText]="'loading' | t"
+              [emptyText]="emptyText()"
+              [sortColumn]="query.text('sort', 'name')"
+              [sortDirection]="query.direction('asc')"
+              (sortChange)="sort($event)"
+            />
+            <app-list-pager
+              [total]="data.value()?.roles.total ?? 0"
+              [page]="query.page"
+              [busy]="data.refreshing()"
+              (pageChange)="query.set({ page: $event })"
+            />
+          </div>
+        </section></div
+    ></app-page-state>
+    <hlm-drawer
+      direction="right"
+      [state]="editorOpen() ? 'open' : 'closed'"
+      [disableClose]="hasUnsavedChanges()"
+      (stateChanged)="drawerStateChanged($event)"
+    >
+      <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-xl">
+        <hlm-drawer-header>
+          <h2 hlmDrawerTitle>
+            {{ (selected()?.builtIn ? 'viewRole' : selected() ? 'editRole' : 'createRole') | t }}
+          </h2>
+          <p hlmDrawerDescription>
+            {{ (selected()?.builtIn ? 'builtInRoleHelp' : 'delegationHelp') | t }}
+          </p>
+        </hlm-drawer-header>
+        <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && save()">
+          <div class="grid min-h-0 flex-1 gap-5 overflow-y-auto px-4">
             <div hlmField>
-              <label hlmFieldLabel for="role-search">{{ 'search' | t }}</label
+              <label hlmFieldLabel for="role-name">{{ 'roleName' | t }}</label
               ><input
                 hlmInput
-                id="role-search"
-                [ngModel]="search()"
-                (ngModelChange)="search.set($event)"
+                id="role-name"
+                name="name"
+                [(ngModel)]="name"
+                required
+                minlength="2"
+                maxlength="80"
+                pattern="[A-Za-z0-9 -]+"
+                [disabled]="selected()?.builtIn || busy()"
               />
             </div>
-            @for (role of filtered(); track role.id) {
-              <button
-                hlmBtn
-                variant="outline"
-                class="h-auto justify-between gap-4 whitespace-normal py-4 text-left"
-                (click)="select(role)"
-              >
-                <span
-                  ><span class="block font-semibold">{{ role.name }}</span
-                  ><span class="block text-xs text-muted-foreground">{{
-                    role.description || (role.builtIn ? ('builtInRoleHelp' | t) : '')
-                  }}</span></span
-                ><span class="shrink-0 text-xs"
-                  >{{ i18n.number(role.members) }} {{ 'members' | t }}
-                  @if (role.builtIn) {
-                    · {{ 'builtIn' | t }}
-                  }
-                </span>
-              </button>
-            } @empty {
-              <p class="workspace-meta">{{ 'empty' | t }}</p>
-            }
-          </div>
-        </section>
-        @if (editorOpen()) {
-          <section hlmCard>
-            <div hlmCardHeader>
-              <h2 hlmCardTitle>
-                {{
-                  (selected()?.builtIn ? 'viewRole' : selected() ? 'editRole' : 'createRole') | t
-                }}
-              </h2>
-              <p hlmCardDescription>
-                {{ (selected()?.builtIn ? 'builtInRoleHelp' : 'delegationHelp') | t }}
-              </p>
+            <div hlmField>
+              <label hlmFieldLabel for="role-description">{{ 'description' | t }}</label
+              ><input
+                hlmInput
+                id="role-description"
+                name="description"
+                [(ngModel)]="description"
+                maxlength="240"
+                [disabled]="selected()?.builtIn || busy()"
+              />
             </div>
-            <form
-              hlmCardContent
-              class="grid gap-5"
-              #form="ngForm"
-              (ngSubmit)="form.valid && save()"
-            >
-              <div hlmField>
-                <label hlmFieldLabel for="role-name">{{ 'roleName' | t }}</label
-                ><input
-                  hlmInput
-                  id="role-name"
-                  name="name"
-                  [(ngModel)]="name"
-                  required
-                  minlength="2"
-                  maxlength="80"
-                  pattern="[A-Za-z0-9 -]+"
-                  [disabled]="selected()?.builtIn || busy()"
-                />
-              </div>
-              <div hlmField>
-                <label hlmFieldLabel for="role-description">{{ 'description' | t }}</label
-                ><input
-                  hlmInput
-                  id="role-description"
-                  name="description"
-                  [(ngModel)]="description"
-                  maxlength="240"
-                  [disabled]="selected()?.builtIn || busy()"
-                />
-              </div>
-              <div hlmField>
-                <label hlmFieldLabel for="permission-search">{{ 'findPermission' | t }}</label
-                ><input
-                  hlmInput
-                  id="permission-search"
-                  name="permissionSearch"
-                  [(ngModel)]="permissionSearch"
-                />
-              </div>
-              @for (group of groups(); track group) {
-                <fieldset hlmFieldSet>
-                  <legend hlmFieldLegend>{{ 'permissionGroup.' + group | t }}</legend>
-                  @for (permission of groupPermissions(group); track permission.key) {
+            <div hlmField>
+              <label hlmFieldLabel for="permission-search">{{ 'findPermission' | t }}</label
+              ><input
+                hlmInput
+                id="permission-search"
+                name="permissionSearch"
+                [(ngModel)]="permissionSearch"
+              />
+            </div>
+            @for (group of groups(); track group) {
+              <fieldset hlmFieldSet>
+                <legend hlmFieldLegend>{{ 'permissionGroup.' + group | t }}</legend>
+                @for (permission of groupPermissions(group); track permission.key) {
+                  <label
+                    hlmFieldLabel
+                    [for]="'permission-' + permission.key"
+                    class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
+                  >
                     <div hlmField orientation="horizontal">
                       <hlm-checkbox
                         [inputId]="'permission-' + permission.key"
@@ -126,49 +144,41 @@ import { AccessCatalog, RoleItem } from '../api/models';
                         [disabled]="selected()?.builtIn || !auth.has(permission.key) || busy()"
                         (checkedChange)="toggle(permission.key, $event)"
                       />
-                      <div>
-                        <label hlmFieldLabel [for]="'permission-' + permission.key">{{
-                          'permission.' + permission.key | t
-                        }}</label>
+                      <div hlmFieldContent>
+                        <span hlmFieldTitle>{{ 'permission.' + permission.key | t }}</span>
                         <p hlmFieldDescription>{{ 'permissionHelp.' + permission.key | t }}</p>
                       </div>
                     </div>
-                  }
-                </fieldset>
-              }
-              @if (conflict()) {
-                <div hlmAlert role="alert">
-                  <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
-                  <button hlmBtn variant="outline" type="button" (click)="discard()">
-                    {{ 'discardDraft' | t }}
-                  </button>
-                </div>
-              }
-              <div class="flex gap-2">
-                @if (!selected()?.builtIn) {
-                  <button
-                    hlmBtn
-                    [disabled]="form.invalid || busy() || conflict() || !hasUnsavedChanges()"
-                  >
-                    {{ 'saveRole' | t }}
-                  </button>
+                  </label>
                 }
-                <button hlmBtn type="button" variant="outline" (click)="close()">
-                  {{ 'close' | t }}
+              </fieldset>
+            }
+            @if (conflict()) {
+              <div hlmAlert role="alert">
+                <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
+                <button hlmBtn variant="outline" type="button" (click)="discard()">
+                  {{ 'discardDraft' | t }}
                 </button>
               </div>
-            </form>
-          </section>
-        } @else {
-          <section hlmCard>
-            <div hlmCardHeader>
-              <h2 hlmCardTitle>{{ 'effectivePermissions' | t }}</h2>
-              <p hlmCardDescription>{{ 'rolesSelectionHelp' | t }}</p>
-            </div>
-          </section>
-        }
-      </div></app-page-state
-    >`,
+            }
+          </div>
+          <hlm-drawer-footer>
+            @if (!selected()?.builtIn) {
+              <button
+                hlmBtn
+                [disabled]="form.invalid || busy() || conflict() || !hasUnsavedChanges()"
+              >
+                {{ 'saveRole' | t }}
+              </button>
+            }
+            <button hlmBtn type="button" variant="outline" (click)="close()">
+              {{ 'close' | t }}
+            </button>
+          </hlm-drawer-footer>
+        </form>
+      </hlm-drawer-content>
+    </hlm-drawer>
+  `,
 })
 export class RolesPage {
   readonly api = inject(WorkspaceApi);
@@ -178,7 +188,8 @@ export class RolesPage {
   readonly selected = signal<RoleItem | null>(null);
   readonly editorOpen = signal(false);
   readonly permissions = signal<string[]>([]);
-  readonly search = signal('');
+  readonly query = new ListQuery();
+  readonly search = new DebouncedSearch(this.query);
   readonly busy = signal(false);
   readonly conflict = signal(false);
   private readonly http = inject(HttpClient);
@@ -188,22 +199,82 @@ export class RolesPage {
   name = '';
   description = '';
   permissionSearch = '';
-  readonly filtered = computed(
-    () =>
-      this.data
-        .value()
-        ?.roles.filter((r) =>
-          (r.name + ' ' + r.description).toLowerCase().includes(this.search().toLowerCase()),
-        ) ?? [],
+  readonly emptyText = computed(() =>
+    this.query.text('search') ? this.i18n.text('roleSearchEmpty') : this.i18n.text('rolesEmpty'),
   );
+  readonly columns = computed(() => {
+    this.i18n.culture();
+    return column.columns([
+      column.accessor('name', {
+        header: this.i18n.text('roleName'),
+        cell: ({ row }) =>
+          flexRenderComponent(RecordIdentity, {
+            inputs: {
+              label: row.original.name,
+              description:
+                row.original.description ||
+                (row.original.builtIn ? this.i18n.text('builtInRoleHelp') : ''),
+            },
+          }),
+      }),
+      column.accessor('members', {
+        header: this.i18n.text('roleMembers'),
+        cell: (cell) => this.i18n.number(cell.getValue()),
+      }),
+      column.accessor('builtIn', {
+        header: this.i18n.text('roleType'),
+        cell: ({ row }) =>
+          flexRenderComponent(RecordStatus, {
+            inputs: { value: row.original.builtIn ? 'builtIn' : 'customRole' },
+          }),
+      }),
+      column.display({
+        id: 'actions',
+        enableSorting: false,
+        header: this.i18n.text('actions'),
+        cell: ({ row }) =>
+          flexRenderComponent(RowActions, {
+            inputs: {
+              actions: [
+                {
+                  label: row.original.builtIn ? 'viewRole' : 'editRole',
+                  run: () => void this.select(row.original),
+                },
+              ],
+            },
+          }),
+      }),
+    ]);
+  });
   readonly groups = computed(() => [
     ...new Set(this.data.value()?.permissions.map((p) => p.group) ?? []),
   ]);
   constructor() {
-    void this.load();
+    this.query.connect(() => {
+      const search = this.query.text('search');
+      this.search.sync(search);
+      void this.load();
+    });
   }
-  load() {
-    return this.data.load((signal) => this.api.get('/roles', {}, signal));
+  async load() {
+    const loaded = await this.data.load((signal) =>
+      this.api.get(
+        '/roles',
+        {
+          pageNumber: this.query.page,
+          pageSize: 25,
+          search: this.query.text('search'),
+          sort: this.query.text('sort', 'name'),
+          direction: this.query.direction('asc'),
+        },
+        signal,
+      ),
+    );
+    if (loaded) this.query.clamp(this.data.value()?.roles.total);
+    return loaded;
+  }
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
   }
   groupPermissions(group: string) {
     return (
@@ -256,10 +327,13 @@ export class RolesPage {
       return;
     this.editorOpen.set(false);
   }
+  drawerStateChanged(state: 'open' | 'closed') {
+    if (state === 'closed' && !this.hasUnsavedChanges()) this.editorOpen.set(false);
+  }
   async discard() {
     if (!(await this.confirm.ask('unsavedTitle', 'unsavedHelp'))) return;
     if (!(await this.load())) return;
-    this.apply(this.data.value()?.roles.find((r) => r.id === this.selected()?.id) ?? null);
+    this.apply(this.data.value()?.roles.items.find((r) => r.id === this.selected()?.id) ?? null);
   }
   async save() {
     if (this.busy() || this.selected()?.builtIn || this.conflict()) return;

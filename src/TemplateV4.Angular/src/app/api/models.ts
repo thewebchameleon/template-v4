@@ -37,6 +37,7 @@ export type { PageOfDeletionItem } from './models/page-of-deletion-item';
 export type { PageOfFileItem } from './models/page-of-file-item';
 export type { PageOfInvitationItem } from './models/page-of-invitation-item';
 export type { PageOfNotificationItem } from './models/page-of-notification-item';
+export type { PageOfRoleItem } from './models/page-of-role-item';
 export type { PageOfUserDto } from './models/page-of-user-dto';
 export type { PasskeyChallengeRequest } from './models/passkey-challenge-request';
 export type { PasskeyCredential } from './models/passkey-credential';

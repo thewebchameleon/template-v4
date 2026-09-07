@@ -7,7 +7,7 @@ import {
   ListQuery,
   Confirmations,
 } from '../shared/workspace';
-import { DataTable, DataTableFeatures } from '../shared/data-table';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { RecordIdentity, RowActions } from '../shared/workspace-cells';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
@@ -37,15 +37,16 @@ const column = createColumnHelper<DataTableFeatures, DeletionItem>();
         <p hlmCardDescription>{{ 'pendingRequestsHelp' | t }}</p>
       </div>
       <div hlmCardContent>
-        <app-page-state
-          [state]="data.state()"
-          [refreshing]="data.refreshing()"
-          [refreshError]="data.refreshError()"
-          (retry)="load()"
+        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [data]="data.value()?.items ?? []"
-            [emptyText]="'privacyRequestsEmpty' | t" /><app-list-pager
+            [loading]="data.state() === 'loading' || data.refreshing()"
+            [loadingText]="'loading' | t"
+            [emptyText]="'privacyRequestsEmpty' | t"
+            [sortColumn]="query.text('sort', 'requestedAt')"
+            [sortDirection]="query.direction('asc')"
+            (sortChange)="sort($event)" /><app-list-pager
             [total]="data.value()?.total ?? 0"
             [page]="query.page"
             (pageChange)="query.set({ page: $event })"
@@ -83,6 +84,7 @@ export class PrivacyRequestsPage {
       }),
       column.display({
         id: 'actions',
+        enableSorting: false,
         header: this.i18n.text('actions'),
         cell: ({ row }) =>
           flexRenderComponent(RowActions, {
@@ -110,9 +112,21 @@ export class PrivacyRequestsPage {
   }
   async load() {
     const loaded = await this.data.load((signal) =>
-      this.api.get('privacy/requests', { pageNumber: this.query.page }, signal),
+      this.api.get(
+        'privacy/requests',
+        {
+          pageNumber: this.query.page,
+          pageSize: 25,
+          sort: this.query.text('sort', 'requestedAt'),
+          direction: this.query.direction('asc'),
+        },
+        signal,
+      ),
     );
     if (loaded) this.query.clamp(this.data.value()?.total);
+  }
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
   }
   async review(item: DeletionItem, approve: boolean) {
     if (

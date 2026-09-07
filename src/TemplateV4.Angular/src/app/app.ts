@@ -34,6 +34,7 @@ import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
 import { UnreadNotifications } from './core/unread-notifications';
+import { NotificationDrawer } from './features/notification-drawer';
 @Component({
   selector: 'app-root',
   imports: [
@@ -53,6 +54,7 @@ import { UnreadNotifications } from './core/unread-notifications';
     Preferences,
     Translate,
     Confirmation,
+    NotificationDrawer,
   ],
   providers: [
     provideIcons({
@@ -187,24 +189,14 @@ import { UnreadNotifications } from './core/unread-notifications';
                 [srOnlyText]="'toggleNavigation' | t"
                 [attr.aria-label]="'toggleNavigation' | t"
               ></button>
-              <hlm-separator orientation="vertical" class="header-separator" />
+              <hlm-separator
+                orientation="vertical"
+                class="header-separator data-vertical:self-center"
+              />
               <app-breadcrumbs />
             </div>
             @if (!auth.access()?.setupRequired) {
-              <a
-                hlmBtn
-                variant="ghost"
-                routerLink="/notifications"
-                [attr.aria-label]="
-                  ('notificationCentre' | t) + ': ' + unread.count() + ' ' + ('unread' | t)
-                "
-                ><ng-icon name="lucideBell" />
-                @if (unread.count()) {
-                  <span class="text-xs font-semibold">{{
-                    unread.count() > 99 ? '99+' : unread.count()
-                  }}</span>
-                }
-              </a>
+              <app-notification-drawer />
             }
             <hlm-drawer direction="right">
               <button
@@ -216,13 +208,13 @@ import { UnreadNotifications } from './core/unread-notifications';
               >
                 <ng-icon name="lucideSettings" />
               </button>
-              <hlm-drawer-content *hlmDrawerPortal>
+              <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
                 <hlm-drawer-header>
                   <h2 hlmDrawerTitle>{{ 'settings' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'settingsDescription' | t }}</p>
                 </hlm-drawer-header>
-                <div class="p-4">
-                  <app-preferences />
+                <div class="min-h-0 flex-1 overflow-y-auto p-4">
+                  <app-preferences [expanded]="true" />
                 </div>
                 <hlm-drawer-footer>
                   <button hlmBtn variant="outline" hlmDrawerClose>{{ 'close' | t }}</button>
@@ -236,7 +228,7 @@ import { UnreadNotifications } from './core/unread-notifications';
     } @else {
       <main id="main" tabindex="-1"><ng-container *ngTemplateOutlet="page" /></main>
     }
-    <hlm-toaster [theme]="theme.preference()" position="top-right" richColors closeButton />
+    <hlm-toaster [theme]="theme.preference()" position="top-right" richColors />
     <app-confirmation />
     <ng-template #page>
       <router-outlet />

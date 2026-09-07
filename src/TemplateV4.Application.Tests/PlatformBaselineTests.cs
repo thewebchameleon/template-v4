@@ -21,13 +21,51 @@ namespace TemplateV4.Application.Tests;
 public sealed partial class SecurityAndMessagingTests
 {
     [Fact]
+    public async Task Datatable_queries_page_and_sort_every_data_column_on_the_server()
+    {
+        await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var actor = await AccessActor(sp);
+
+        var directory = sp.GetRequiredService<IUserDirectory>();
+        foreach (var sort in new[] { "displayName", "roles", "status" })
+            Assert.Equal(1, (await directory.List(new(PageSize: 1, Sort: sort, Direction: "desc"), default)).PageSize);
+
+        var access = sp.GetRequiredService<AccessManagementService>();
+        foreach (var sort in new[] { "name", "members", "builtIn" })
+            Assert.Equal(1, (await access.Catalog(1, 1, null, sort, "desc", default)).Value!.Roles.PageSize);
+
+        var audit = sp.GetRequiredService<IAuditHistory>();
+        foreach (var sort in new[] { "at", "action", "actorName", "subjectName" })
+            Assert.Equal(1, (await audit.List(new(PageSize: 1, Sort: sort, Direction: "desc"), default)).PageSize);
+
+        var invitations = sp.GetRequiredService<AccountService>();
+        foreach (var sort in new[] { "displayName", "state", "expiresAt", "sentAt" })
+            Assert.Equal(1, (await invitations.Invitations(1, 1, null, "all", sort, "desc", default)).Value!.PageSize);
+
+        var notifications = sp.GetRequiredService<NotificationService>();
+        Assert.Equal(1, (await notifications.List(actor.Id, 1, 1, false, "createdAt", "desc", default)).Value!.Page.PageSize);
+
+        var files = sp.GetRequiredService<FileService>();
+        foreach (var sort in new[] { "name", "size", "createdAt" })
+            Assert.Equal(1, (await files.List(actor.Id, 1, 1, null, sort, "desc", default)).Value!.Page.PageSize);
+
+        var privacy = sp.GetRequiredService<PrivacyService>();
+        foreach (var sort in new[] { "displayName", "requestedAt" })
+            Assert.Equal(1, (await privacy.Requests(1, 1, sort, "desc", default)).Value!.PageSize);
+
+        var operations = sp.GetRequiredService<OperationsService>();
+        foreach (var kind in new[] { "message", "job" })
+            foreach (var sort in new[] { "type", "state", "errorCode", "attempts", "availableAt" })
+                Assert.Equal(1, (await operations.List(kind, 1, 1, false, sort, "desc", default)).Value!.PageSize);
+    }
+
+    [Fact]
     public async Task Baseline_files_enforce_owner_type_quota_and_deleted_access()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         var user = await User(sp); var other = await User(sp); var files = sp.GetRequiredService<FileService>(); var db = sp.GetRequiredService<FrameworkDb>();
         using var content = new MemoryStream("private document"u8.ToArray());
         var result = await files.Upload(user.Id, "notes.txt", content, default); Assert.True(result.IsSuccess);
-        Assert.Equal(0, (await files.List(other.Id, 1, null, "name", default)).Value!.Page.Total);
+        Assert.Equal(0, (await files.List(other.Id, 1, 25, null, "name", "asc", default)).Value!.Page.Total);
         Assert.Equal(ErrorKind.NotFound, (await files.Download(other.Id, result.Value!.Id, default)).Error!.Kind);
         var download = await files.Download(user.Id, result.Value.Id, default); Assert.True(download.IsSuccess);
         using (var reader = new StreamReader(download.Value!.Content)) Assert.Equal("private document", await reader.ReadToEndAsync());
@@ -36,8 +74,8 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal(ErrorKind.NotFound, (await files.Delete(other.Id, result.Value.Id, default)).Error!.Kind);
         Assert.True((await files.Delete(user.Id, result.Value.Id, default)).IsSuccess);
         Assert.False((await files.Download(user.Id, result.Value.Id, default)).IsSuccess);
-        Assert.Equal(0, (await files.List(user.Id, 1, null, "newest", default)).Value!.Page.Total);
-        Assert.Equal(content.Length, (await files.List(user.Id, 1, null, "newest", default)).Value!.UsedBytes);
+        Assert.Equal(0, (await files.List(user.Id, 1, 25, null, "createdAt", "desc", default)).Value!.Page.Total);
+        Assert.Equal(content.Length, (await files.List(user.Id, 1, 25, null, "createdAt", "desc", default)).Value!.UsedBytes);
         db.Files.Add(new() { OwnerId = user.Id, Name = "reserved.txt", Size = 1024L * 1024 * 1024, CreatedAt = _clock.Now }); await db.SaveChangesAsync();
         using var blocked = new MemoryStream("quota"u8.ToArray());
         Assert.Equal("files.quota", (await files.Upload(user.Id, "quota.txt", blocked, default)).Error!.Code);
@@ -56,10 +94,11 @@ public sealed partial class SecurityAndMessagingTests
         db.ChangeTracker.Clear(); Assert.Empty(await db.Notifications.ToArrayAsync());
         outbox.Add(new EmailRequest(user.Id, EmailTemplate.SecurityNotification, "en-ZA")); await db.SaveChangesAsync();
         var notifications = sp.GetRequiredService<NotificationService>();
-        var page = (await notifications.List(user.Id, 1, true, default)).Value!; Assert.Equal(1, page.Unread); Assert.False(page.OptionalEmailEnabled);
-        await notifications.Read(other.Id, page.Page.Items[0].Id, default); Assert.Equal(1, (await notifications.List(user.Id, 1, true, default)).Value!.Unread);
-        await notifications.Read(user.Id, page.Page.Items[0].Id, default); Assert.Equal(0, (await notifications.List(user.Id, 1, true, default)).Value!.Unread);
-        await notifications.Preferences(user.Id, new(true), default); Assert.True((await notifications.List(user.Id, 1, false, default)).Value!.OptionalEmailEnabled);
+        var page = (await notifications.List(user.Id, 1, 25, true, "createdAt", "desc", default)).Value!; Assert.Equal(1, page.Unread); Assert.False(page.OptionalEmailEnabled);
+        await notifications.Read(other.Id, page.Page.Items[0].Id, true, default); Assert.Equal(1, (await notifications.List(user.Id, 1, 25, true, "createdAt", "desc", default)).Value!.Unread);
+        await notifications.Read(user.Id, page.Page.Items[0].Id, true, default); Assert.Equal(0, (await notifications.List(user.Id, 1, 25, true, "createdAt", "desc", default)).Value!.Unread);
+        await notifications.Read(user.Id, page.Page.Items[0].Id, false, default); Assert.Equal(1, (await notifications.List(user.Id, 1, 25, true, "createdAt", "desc", default)).Value!.Unread);
+        await notifications.Preferences(user.Id, new(true), default); Assert.True((await notifications.List(user.Id, 1, 25, false, "createdAt", "desc", default)).Value!.OptionalEmailEnabled);
     }
 
     [Fact]
@@ -140,15 +179,15 @@ public sealed partial class SecurityAndMessagingTests
         Assert.True((await manager.CreateAsync(user)).Succeeded); db.Profiles.Add(UserProfile.Create(user.Id, "Invited", "en-ZA", false)); await db.SaveChangesAsync();
         Assert.Equal("invitation.wait", (await accounts.Invitation(actor.Id, new(user.Id), default)).Error!.Code);
         db.ChangeTracker.Clear(); _clock.Now = _clock.Now.AddHours(3);
-        Assert.Equal(1, (await accounts.Invitations(1, null, "Expired", default)).Value!.Total);
+        Assert.Equal(1, (await accounts.Invitations(1, 25, null, "Expired", "sentAt", "desc", default)).Value!.Total);
         Assert.True((await accounts.Invitation(actor.Id, new(user.Id), default)).IsSuccess);
-        Assert.Equal(1, (await accounts.Invitations(1, "Invited", "Pending", default)).Value!.Total);
+        Assert.Equal(1, (await accounts.Invitations(1, 25, "Invited", "Pending", "displayName", "asc", default)).Value!.Total);
         var current = (await manager.FindByIdAsync(user.Id.ToString()))!;
         var confirmation = await manager.GenerateEmailConfirmationTokenAsync(current);
         Assert.True((await accounts.Confirm(new(user.Id, confirmation), default)).IsSuccess);
         var password = await manager.GeneratePasswordResetTokenAsync(current);
         Assert.True((await accounts.Reset(new(user.Id, password, "Test-only!Password942"), default)).IsSuccess);
-        Assert.Equal(1, (await accounts.Invitations(1, null, "Accepted", default)).Value!.Total);
+        Assert.Equal(1, (await accounts.Invitations(1, 25, null, "Accepted", "state", "asc", default)).Value!.Total);
         Assert.False((await accounts.Invitation(actor.Id, new(user.Id, true), default)).IsSuccess);
         var revoked = new AppUser { Id = Guid.NewGuid(), Email = "revoked@example.test", UserName = "revoked@example.test" };
         await manager.CreateAsync(revoked); db.Profiles.Add(UserProfile.Create(revoked.Id, "Revoked", "en-ZA", false)); await db.SaveChangesAsync();

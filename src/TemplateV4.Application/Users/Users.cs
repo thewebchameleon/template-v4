@@ -22,7 +22,7 @@ public interface IUserDirectory
 public sealed record CreateUser(string Email, string DisplayName, string Culture, string[] Roles, string? IdempotencyKey = null)
     : ICommand<UserDto>, IAuthorizedRequest, IIdempotentRequest
 { public string Permission => Permissions.Manage; }
-public sealed record ListUsers(int PageNumber = 1, int PageSize = 25, string? Search = null, string Sort = "name") : IQuery<Page<UserDto>>, IAuthorizedRequest
+public sealed record ListUsers(int PageNumber = 1, int PageSize = 25, string? Search = null, string Sort = "displayName", string Direction = "asc") : IQuery<Page<UserDto>>, IAuthorizedRequest
 { public string Permission => Permissions.Read; }
 public sealed record UpdateUser(Guid Id, Guid Version, bool Disabled, string[] Roles) : ICommand<UserDto>, IAuthorizedRequest
 { public string Permission => Permissions.Manage; }
@@ -42,7 +42,7 @@ public sealed class CreateUserValidator(CultureCatalog cultures) : IValidator<Cr
 }
 public sealed class ListUsersValidator : IValidator<ListUsers>
 {
-    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Sort is not ("name" or "email")
+    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Sort is not ("displayName" or "roles" or "status") || query.Direction is not ("asc" or "desc")
         ? new() { ["pagination"] = ["query.invalid"] } : [];
 }
 public sealed class UpdateUserValidator : IValidator<UpdateUser>

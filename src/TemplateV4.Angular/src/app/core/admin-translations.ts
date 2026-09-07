@@ -65,11 +65,17 @@ export const adminDictionary: Record<string, [string, string]> = {
     'Definieer herbruikbare toegang vir die mense wat jy bestuur.',
   ],
   builtIn: ['Built in', 'Ingebou'],
+  customRole: ['Custom', 'Pasgemaak'],
+  roleType: ['Type', 'Tipe'],
   builtInRoleHelp: [
     'Built-in roles are protected and maintained by the starter.',
     'Ingeboude rolle word beskerm en deur die beginraamwerk onderhou.',
   ],
   members: ['members', 'lede'],
+  roleMembers: ['Members', 'Lede'],
+  roleSearch: ['Search roles', 'Soek rolle'],
+  rolesEmpty: ['No roles are available.', 'Geen rolle is beskikbaar nie.'],
+  roleSearchEmpty: ['No roles match your search.', 'Geen rolle pas by jou soektog nie.'],
   description: ['Description', 'Beskrywing'],
   findPermission: ['Find a permission', 'Vind ’n toestemming'],
   delegationHelp: [

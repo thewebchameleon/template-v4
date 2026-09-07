@@ -7,30 +7,13 @@ import {
   input,
   numberAttribute,
 } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideCircleCheck,
-  lucideInfo,
-  lucideLoader2,
-  lucideOctagonX,
-  lucideTriangleAlert,
-} from '@ng-icons/lucide';
 import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
 import { hlm } from '@spartan-ng/helm/utils';
 import type { ClassValue } from 'clsx';
 
 @Component({
   selector: 'hlm-toaster',
-  imports: [BrnSonnerImports, NgIcon],
-  providers: [
-    provideIcons({
-      lucideCircleCheck,
-      lucideInfo,
-      lucideTriangleAlert,
-      lucideOctagonX,
-      lucideLoader2,
-    }),
-  ],
+  imports: [BrnSonnerImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <brn-sonner-toaster
@@ -48,24 +31,11 @@ import type { ClassValue } from 'clsx';
       [offset]="offset()"
       [style]="userStyle()"
     >
-      <ng-template #loadingIcon>
-        <ng-icon
-          name="lucideLoader2"
-          class="overflow-visible! text-base [&>svg]:motion-safe:animate-spin"
-        />
-      </ng-template>
-      <ng-template #successIcon>
-        <ng-icon name="lucideCircleCheck" class="overflow-visible! text-base" />
-      </ng-template>
-      <ng-template #errorIcon>
-        <ng-icon name="lucideOctagonX" class="overflow-visible! text-base" />
-      </ng-template>
-      <ng-template #infoIcon>
-        <ng-icon name="lucideInfo" class="overflow-visible! text-base" />
-      </ng-template>
-      <ng-template #warningIcon>
-        <ng-icon name="lucideTriangleAlert" class="overflow-visible! text-base" />
-      </ng-template>
+      <ng-template #loadingIcon />
+      <ng-template #successIcon />
+      <ng-template #errorIcon />
+      <ng-template #infoIcon />
+      <ng-template #warningIcon />
     </brn-sonner-toaster>
   `,
 })
@@ -99,7 +69,7 @@ export class HlmToaster {
       ...options,
       classes: {
         ...options?.classes,
-        toast: hlm('rounded-2xl!', options?.classes?.toast),
+        toast: hlm('rounded-2xl! [&_[data-icon]]:hidden!', options?.classes?.toast),
       },
     };
   });

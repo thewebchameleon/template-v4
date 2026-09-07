@@ -1,25 +1,66 @@
 import { Component, computed, inject } from '@angular/core';
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+
+import { lucideInfo } from '@ng-icons/lucide';
+
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 
-import { WorkspaceUi, workspaceIcons, Resource, ListQuery } from '../shared/workspace';
+import {
+  WorkspaceUi,
+  workspaceIcons,
+  Resource,
+  ListQuery,
+  DebouncedSearch,
+} from '../shared/workspace';
 
-import { DataTable, DataTableFeatures } from '../shared/data-table';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 
 import { RecordIdentity } from '../shared/workspace-cells';
 
 import { WorkspaceApi } from '../core/workspace-api';
 
-import { I18n } from '../core/i18n';
+import { I18n, Translate } from '../core/i18n';
 
 import { AuditItem, PageOfAuditItem } from '../api/models';
+
+import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
+
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 
 const column = createColumnHelper<DataTableFeatures, AuditItem>();
 
 @Component({
+  selector: 'app-related-record-header',
+
+  imports: [NgIcon, Translate, HlmButtonImports, HlmTooltipImports],
+
+  providers: [provideIcons({ lucideInfo })],
+
+  template: `
+    <span class="inline-flex items-center gap-1">
+      {{ 'relatedRecord' | t }}
+      <button
+        hlmBtn
+        variant="ghost"
+        size="icon-xs"
+        type="button"
+        [hlmTooltip]="'relatedRecordHelp' | t"
+        [attr.aria-label]="'relatedRecordInfo' | t"
+      >
+        <ng-icon name="lucideInfo" />
+      </button>
+    </span>
+  `,
+})
+class RelatedRecordHeader {}
+
+@Component({
   selector: 'app-audit',
 
-  imports: [WorkspaceUi, DataTable],
+  imports: [WorkspaceUi, DataTable, HlmDatePickerImports],
 
   providers: [workspaceIcons],
 
@@ -40,15 +81,15 @@ const column = createColumnHelper<DataTableFeatures, AuditItem>();
       </div>
 
       <div hlmCardContent>
-        <form class="workspace-toolbar" (ngSubmit)="apply()">
+        <div class="workspace-toolbar">
           <div hlmField>
             <label hlmFieldLabel for="audit-action">{{ 'activity' | t }}</label
             ><input
               hlmInput
               list="audit-actions"
               id="audit-action"
-              name="action"
-              [(ngModel)]="action"
+              [ngModel]="action.value()"
+              (ngModelChange)="action.update($event)"
               maxlength="100"
               [placeholder]="'auditSearchPlaceholder' | t"
             />
@@ -62,24 +103,36 @@ const column = createColumnHelper<DataTableFeatures, AuditItem>();
 
           <div hlmField>
             <label hlmFieldLabel for="audit-from">{{ 'fromDate' | t }}</label
-            ><input hlmInput id="audit-from" type="date" name="from" [(ngModel)]="from" />
+            ><hlm-date-picker
+              [ngModel]="from"
+              (ngModelChange)="from = $event; applyDates()"
+              [formatDate]="formatDate"
+              [maxDate]="until ?? undefined"
+              [autoCloseOnSelect]="true"
+            >
+              <hlm-date-picker-trigger class="w-full" buttonId="audit-from">
+                {{ 'fromDate' | t }}
+              </hlm-date-picker-trigger>
+            </hlm-date-picker>
           </div>
 
           <div hlmField>
             <label hlmFieldLabel for="audit-until">{{ 'untilDate' | t }}</label
-            ><input
-              hlmInput
-              id="audit-until"
-              type="date"
-              name="until"
-              [(ngModel)]="until"
-              [min]="from"
-            />
+            ><hlm-date-picker
+              [ngModel]="until"
+              (ngModelChange)="until = $event; applyDates()"
+              [formatDate]="formatDate"
+              [minDate]="from ?? undefined"
+              [autoCloseOnSelect]="true"
+            >
+              <hlm-date-picker-trigger class="w-full" buttonId="audit-until">
+                {{ 'untilDate' | t }}
+              </hlm-date-picker-trigger>
+            </hlm-date-picker>
           </div>
 
-          <button hlmBtn type="submit">{{ 'applyFilters' | t }}</button
-          ><button hlmBtn variant="ghost" type="button" (click)="clear()">{{ 'clear' | t }}</button>
-        </form>
+          <button hlmBtn variant="ghost" type="button" (click)="clear()">{{ 'clear' | t }}</button>
+        </div>
 
         @if (query.text('subjectId') || query.text('actorId')) {
           <div class="flex flex-wrap gap-2 mb-4">
@@ -106,15 +159,17 @@ const column = createColumnHelper<DataTableFeatures, AuditItem>();
           </div>
         }
 
-        <app-page-state
-          [state]="data.state()"
-          [refreshing]="data.refreshing()"
-          [refreshError]="data.refreshError()"
-          (retry)="load()"
+        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [data]="data.value()?.items ?? []"
-            [emptyText]="'auditEmpty' | t" /><app-list-pager
+            [loading]="data.state() === 'loading' || data.refreshing()"
+            [loadingText]="'loading' | t"
+            fillColumn="action"
+            [emptyText]="'auditEmpty' | t"
+            [sortColumn]="query.text('sort', 'at')"
+            [sortDirection]="query.direction('desc')"
+            (sortChange)="sort($event)" /><app-list-pager
             [total]="data.value()?.total ?? 0"
             [page]="query.page"
             (pageChange)="query.set({ page: $event })"
@@ -140,22 +195,35 @@ export class AuditPage {
     'operations.replayed',
   ];
 
-  action = '';
+  readonly action = new DebouncedSearch(this.query, 'action');
 
-  from = '';
+  from: Date | null = null;
 
-  until = '';
+  until: Date | null = null;
+
+  readonly formatDate = (date: Date) =>
+    new Intl.DateTimeFormat(this.i18n.culture(), { dateStyle: 'medium' }).format(date);
 
   readonly columns = computed(() => {
     this.i18n.culture();
 
     return column.columns([
+      column.accessor('at', {
+        header: this.i18n.text('actionDate'),
+
+        cell: (context) => this.i18n.date(context.getValue()),
+      }),
+
       column.accessor('action', {
         header: this.i18n.text('activity'),
 
         cell: ({ row }) =>
           flexRenderComponent(RecordIdentity, {
-            inputs: { label: this.summary(row.original.action) },
+            inputs: {
+              label: this.summary(row.original.action),
+
+              constrainWidth: false,
+            },
           }),
       }),
 
@@ -184,7 +252,7 @@ export class AuditPage {
       }),
 
       column.accessor('subjectName', {
-        header: this.i18n.text('relatedRecord'),
+        header: () => flexRenderComponent(RelatedRecordHeader),
 
         cell: ({ row }) =>
           flexRenderComponent(RecordIdentity, {
@@ -204,22 +272,16 @@ export class AuditPage {
             },
           }),
       }),
-
-      column.accessor('at', {
-        header: this.i18n.text('date'),
-
-        cell: (context) => this.i18n.date(context.getValue()),
-      }),
     ]);
   });
 
   constructor() {
     this.query.connect(() => {
-      this.action = this.query.text('action');
+      this.action.sync(this.query.text('action'));
 
-      this.from = this.query.text('from');
+      this.from = this.parseQueryDate(this.query.text('from'));
 
-      this.until = this.query.text('until');
+      this.until = this.parseQueryDate(this.query.text('until'));
 
       void this.load();
     });
@@ -259,7 +321,13 @@ export class AuditPage {
     const params: Record<string, string | number> = {
       pageNumber: this.query.page,
 
+      pageSize: 25,
+
       action: this.query.text('action'),
+
+      sort: this.query.text('sort', 'at'),
+
+      direction: this.query.direction('desc'),
     };
 
     for (const key of ['actorId', 'subjectId'])
@@ -282,21 +350,50 @@ export class AuditPage {
     if (loaded) this.query.clamp(this.data.value()?.total);
   }
 
-  apply() {
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+
+  applyDates() {
     if (this.from && this.until && this.from > this.until) return;
 
     void this.query.set({
-      action: this.action || null,
+      from: this.formatQueryDate(this.from),
 
-      from: this.from || null,
-
-      until: this.until || null,
+      until: this.formatQueryDate(this.until),
 
       page: 1,
     });
   }
 
+  private parseQueryDate(value: string): Date | null {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (!match) return null;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+      ? date
+      : null;
+  }
+
+  private formatQueryDate(date: Date | null): string | null {
+    if (!date) return null;
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
   clear() {
+    this.action.update('');
+
     void this.query.set({
       action: null,
 

@@ -5,10 +5,11 @@ import {
   workspaceIcons,
   Resource,
   ListQuery,
+  DebouncedSearch,
   Confirmations,
   protectUnload,
 } from '../shared/workspace';
-import { DataTable, DataTableFeatures } from '../shared/data-table';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { RecordIdentity, RowActions } from '../shared/workspace-cells';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
@@ -21,7 +22,8 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="files" description="filesIntro"
-      ><button hlmBtn (click)="showUpload()">{{ 'uploadFile' | t }}</button
+      ><button hlmBtn (click)="showUpload()">
+        <ng-icon name="lucideArrowUpFromLine" />{{ 'uploadFile' | t }}</button
       ><span hlmBadge variant="outline"
         ><ng-icon name="lucideShieldCheck" />{{ 'privateFiles' | t }}</span
       ></app-page-header
@@ -33,43 +35,32 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
           <p hlmCardDescription>{{ 'fileLibraryHelp' | t }}</p>
         </div>
         <div hlmCardContent>
-          <form
-            class="workspace-toolbar"
-            (ngSubmit)="query.set({ search: search || null, page: 1 })"
-          >
+          <div class="workspace-toolbar">
             <div hlmField>
               <label hlmFieldLabel for="file-search">{{ 'search' | t }}</label
               ><input
                 hlmInput
                 id="file-search"
-                name="search"
-                [(ngModel)]="search"
+                [ngModel]="search.value()"
+                (ngModelChange)="search.update($event)"
                 maxlength="120"
                 [placeholder]="'fileSearch' | t"
               />
             </div>
-            <button hlmBtn variant="outline">{{ 'search' | t }}</button>
-          </form>
-          <hlm-toggle-group
-            type="single"
-            variant="outline"
-            [nullable]="false"
-            [value]="query.text('sort', 'newest')"
-            (valueChange)="sort($event)"
-            [attr.aria-label]="'sort' | t"
-            class="mb-5"
-            ><button hlmToggleGroupItem value="newest">{{ 'newestFirst' | t }}</button
-            ><button hlmToggleGroupItem value="name">{{ 'name' | t }}</button></hlm-toggle-group
-          >
+          </div>
           <app-page-state
             [state]="data.state()"
-            [refreshing]="data.refreshing()"
             [refreshError]="data.refreshError()"
             (retry)="load()"
             ><app-data-table
               [columns]="columns()"
               [data]="data.value()?.page?.items ?? []"
-              [emptyText]="'filesEmpty' | t" /><app-list-pager
+              [loading]="data.state() === 'loading' || data.refreshing()"
+              [loadingText]="'loading' | t"
+              [emptyText]="'filesEmpty' | t"
+              [sortColumn]="query.text('sort', 'createdAt')"
+              [sortDirection]="query.direction('desc')"
+              (sortChange)="sort($event)" /><app-list-pager
               [total]="data.value()?.page?.total ?? 0"
               [page]="query.page"
               (pageChange)="query.set({ page: $event })"
@@ -175,7 +166,7 @@ export class FilesPage {
   readonly progress = signal(0);
   readonly selected = signal<File | null>(null);
   readonly validation = signal('');
-  search = '';
+  readonly search = new DebouncedSearch(this.query);
   readonly columns = computed(() => {
     this.i18n.culture();
     const busy = this.busy();
@@ -200,6 +191,7 @@ export class FilesPage {
       }),
       column.display({
         id: 'actions',
+        enableSorting: false,
         header: this.i18n.text('actions'),
         cell: ({ row }) =>
           flexRenderComponent(RowActions, {
@@ -220,7 +212,7 @@ export class FilesPage {
   });
   constructor() {
     this.query.connect(() => {
-      this.search = this.query.text('search');
+      this.search.sync(this.query.text('search'));
       void this.load();
     });
   }
@@ -241,16 +233,18 @@ export class FilesPage {
         'files',
         {
           pageNumber: this.query.page,
+          pageSize: 25,
           search: this.query.text('search'),
-          sort: this.query.text('sort', 'newest'),
+          sort: this.query.text('sort', 'createdAt'),
+          direction: this.query.direction('desc'),
         },
         signal,
       ),
     );
     if (loaded) this.query.clamp(this.data.value()?.page.total);
   }
-  sort(value: unknown) {
-    if (value === 'name' || value === 'newest') void this.query.set({ sort: value, page: 1 });
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
   }
   showUpload() {
     document.getElementById('upload-panel')?.scrollIntoView({ block: 'start' });

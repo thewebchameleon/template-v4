@@ -23,9 +23,9 @@ public sealed record InvitationItem(Guid Id, string DisplayName, string Email, s
 public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
-    public async Task<Result<Page<InvitationItem>>> Invitations(int pageNumber, string? search, string state, CancellationToken ct)
+    public async Task<Result<Page<InvitationItem>>> Invitations(int pageNumber, int pageSize, string? search, string state, string sort, string direction, CancellationToken ct)
     {
-        if (pageNumber is < 1 or > 10000 || search is { Length: > 120 } || state is not ("all" or "Pending" or "Expired" or "Accepted" or "Revoked")) return Result<Page<InvitationItem>>.Fail("validation.failed", ErrorKind.Validation);
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || state is not ("all" or "Pending" or "Expired" or "Accepted" or "Revoked") || sort is not ("displayName" or "state" or "expiresAt" or "sentAt") || direction is not ("asc" or "desc")) return Result<Page<InvitationItem>>.Fail("validation.failed", ErrorKind.Validation);
         var now = time.GetUtcNow();
         var source = from u in db.Users.AsNoTracking()
                      join p in db.Profiles.AsNoTracking() on u.Id equals p.Id
@@ -34,9 +34,21 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
         if (!string.IsNullOrWhiteSpace(search)) source = source.Where(x => x.p.DisplayName.Contains(search) || x.u.Email!.Contains(search));
         if (state != "all") source = source.Where(x => x.State == state);
         var total = await source.CountAsync(ct);
-        var items = await source.OrderByDescending(x => x.u.InvitationSentAt).ThenBy(x => x.u.Id).Skip((pageNumber - 1) * 25).Take(25)
+        var descending = direction == "desc";
+        var ordered = sort switch
+        {
+            "displayName" when descending => source.OrderByDescending(x => x.p.DisplayName).ThenByDescending(x => x.u.Id),
+            "displayName" => source.OrderBy(x => x.p.DisplayName).ThenBy(x => x.u.Id),
+            "state" when descending => source.OrderByDescending(x => x.State).ThenByDescending(x => x.u.Id),
+            "state" => source.OrderBy(x => x.State).ThenBy(x => x.u.Id),
+            "expiresAt" when descending => source.OrderByDescending(x => x.u.InvitationExpiresAt).ThenByDescending(x => x.u.Id),
+            "expiresAt" => source.OrderBy(x => x.u.InvitationExpiresAt).ThenBy(x => x.u.Id),
+            _ when descending => source.OrderByDescending(x => x.u.InvitationSentAt).ThenByDescending(x => x.u.Id),
+            _ => source.OrderBy(x => x.u.InvitationSentAt).ThenBy(x => x.u.Id)
+        };
+        var items = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .Select(x => new InvitationItem(x.u.Id, x.p.DisplayName, x.u.Email!, x.State, x.u.EmailConfirmed, x.u.InvitationSentAt, x.u.InvitationExpiresAt, x.u.InvitationAcceptedAt, x.u.InvitationSentAt == null ? null : x.u.InvitationSentAt.Value.AddMinutes(2))).ToArrayAsync(ct);
-        return Result<Page<InvitationItem>>.Success(new(items, total, pageNumber, 25));
+        return Result<Page<InvitationItem>>.Success(new(items, total, pageNumber, pageSize));
     }
     public async Task<Result<Unit>> Invitation(Guid actor, InvitationRequest request, CancellationToken ct)
     {

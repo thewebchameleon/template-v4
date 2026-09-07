@@ -1,25 +1,44 @@
 import { Runtime } from './runtime';
-import { Injectable, Pipe, PipeTransform, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, Pipe, PipeTransform, inject, signal } from '@angular/core';
 import { dictionary } from './translations';
+const storageKey = 'templatev4-culture';
 @Injectable({ providedIn: 'root' })
 export class I18n {
   private readonly runtime = inject(Runtime);
   readonly culture = signal(
-    this.runtime.supportedCultures.find(
-      (c) => c.toLowerCase() === navigator.language.toLowerCase(),
-    ) ?? this.runtime.defaultCulture,
+    this.runtime.supportedCultures.includes(document.documentElement.lang)
+      ? document.documentElement.lang
+      : (this.runtime.supportedCultures.find(
+          (c) => c.toLowerCase() === navigator.language.toLowerCase(),
+        ) ?? this.runtime.defaultCulture),
   );
   constructor() {
     document.documentElement.lang = this.culture();
+    const onStorageChange = (event: StorageEvent) => {
+      if (event.key !== storageKey && event.key !== null) return;
+      if (event.storageArea !== window.localStorage) return;
+      this.apply(event.newValue ?? this.runtime.defaultCulture, false);
+    };
+    window.addEventListener('storage', onStorageChange);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('storage', onStorageChange));
   }
   text(key: string): string {
     return dictionary[key]?.[this.culture() === 'af-ZA' ? 1 : 0] ?? key;
   }
   set(culture: string) {
+    this.apply(culture, true);
+  }
+  private apply(culture: string, persist: boolean) {
     this.culture.set(
       this.runtime.supportedCultures.includes(culture) ? culture : this.runtime.defaultCulture,
     );
     document.documentElement.lang = this.culture();
+    if (!persist) return;
+    try {
+      localStorage.setItem(storageKey, this.culture());
+    } catch {
+      // Keep the selected language for this page when storage is unavailable.
+    }
   }
   private readonly dates = new Map<string, Intl.DateTimeFormat>();
   private readonly numbers = new Map<string, Intl.NumberFormat>();

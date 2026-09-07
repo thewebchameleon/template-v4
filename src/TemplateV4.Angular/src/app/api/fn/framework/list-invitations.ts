@@ -11,16 +11,22 @@ import { PageOfInvitationItem } from '../../models/page-of-invitation-item';
 
 export interface ListInvitations$Params {
   pageNumber?: number;
+  pageSize?: number;
   search?: string;
   state?: string;
+  sort?: string;
+  direction?: string;
 }
 
 export function listInvitations(http: HttpClient, rootUrl: string, params?: ListInvitations$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfInvitationItem>> {
   const rb = new RequestBuilder(rootUrl, listInvitations.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
     rb.query('state', params.state, {});
+    rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

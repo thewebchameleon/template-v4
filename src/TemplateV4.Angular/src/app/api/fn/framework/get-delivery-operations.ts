@@ -14,6 +14,8 @@ export interface GetDeliveryOperations$Params {
   pageNumber?: number;
   pageSize?: number;
   failedOnly?: boolean;
+  sort?: string;
+  direction?: string;
 }
 
 export function getDeliveryOperations(http: HttpClient, rootUrl: string, params?: GetDeliveryOperations$Params, context?: HttpContext): Observable<StrictHttpResponse<DeliveryPage>> {
@@ -23,6 +25,8 @@ export function getDeliveryOperations(http: HttpClient, rootUrl: string, params?
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
     rb.query('failedOnly', params.failedOnly, {});
+    rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

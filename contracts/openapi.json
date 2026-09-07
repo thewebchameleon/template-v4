@@ -1120,6 +1120,15 @@
             }
           },
           {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
             "name": "search",
             "in": "query",
             "schema": {
@@ -1132,6 +1141,22 @@
             "schema": {
               "type": "string",
               "default": "all"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "sentAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
             }
           }
         ],
@@ -1193,6 +1218,22 @@
             "schema": {
               "type": "boolean",
               "default": false
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "availableAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
             }
           }
         ],
@@ -1317,6 +1358,22 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "at"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
           }
         ],
         "responses": {
@@ -1405,11 +1462,36 @@
             }
           },
           {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
             "name": "unreadOnly",
             "in": "query",
             "schema": {
               "type": "boolean",
               "default": false
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "createdAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
             }
           }
         ],
@@ -1445,6 +1527,14 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "read",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
             }
           },
           {
@@ -1697,6 +1787,31 @@
               "format": "int32",
               "default": 1
             }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "requestedAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
           }
         ],
         "responses": {
@@ -1774,6 +1889,15 @@
             }
           },
           {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
             "name": "search",
             "in": "query",
             "schema": {
@@ -1785,7 +1909,15 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "default": "newest"
+              "default": "createdAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
             }
           }
         ],
@@ -2021,7 +2153,15 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "default": "name"
+              "default": "displayName"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
             }
           }
         ],
@@ -2163,6 +2303,49 @@
           "Framework"
         ],
         "operationId": "GetAccessCatalog",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 25
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2308,10 +2491,7 @@
         "type": "object",
         "properties": {
           "roles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoleItem"
-            }
+            "$ref": "#/components/schemas/PageOfRoleItem"
           },
           "permissions": {
             "type": "array",
@@ -3197,6 +3377,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/NotificationItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfRoleItem": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleItem"
             }
           },
           "total": {

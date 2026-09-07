@@ -75,11 +75,33 @@ async function administration(
 test('role catalog is accessible and built-in grants cannot be edited', async ({ page }) => {
   await administration(page);
   await page.goto('/roles');
-  await page.getByRole('button', { name: /Administrator.*1 members/ }).click();
-  await expect(page.getByLabel('Role name', { exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Save role', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: /Support.*1 members/ }).click();
-  await expect(page.getByLabel('Role name', { exact: true })).toBeEnabled();
+  await expect(page.getByRole('columnheader', { name: 'Role name', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Members', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Type', exact: true })).toBeVisible();
+
+  const search = page.getByLabel('Search', { exact: true });
+  await search.fill('Support');
+  await expect(page).toHaveURL(/search=Support/);
+  await expect(page.getByRole('row', { name: /Support/ })).toBeVisible();
+  await expect(page.getByRole('row', { name: /Administrator/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(page).not.toHaveURL(/search=/);
+
+  await page
+    .getByRole('row', { name: /Administrator/ })
+    .getByRole('button', { name: 'View role', exact: true })
+    .click();
+  const drawer = page.getByRole('dialog');
+  await expect(drawer.getByRole('heading', { name: 'View role', exact: true })).toBeVisible();
+  await expect(drawer.getByLabel('Role name', { exact: true })).toBeDisabled();
+  await expect(drawer.getByRole('button', { name: 'Save role', exact: true })).toHaveCount(0);
+  await drawer.getByRole('button', { name: 'Close', exact: true }).click();
+  await page
+    .getByRole('row', { name: /Support/ })
+    .getByRole('button', { name: 'Edit role', exact: true })
+    .click();
+  await expect(drawer.getByRole('heading', { name: 'Edit role', exact: true })).toBeVisible();
+  await expect(drawer.getByLabel('Role name', { exact: true })).toBeEnabled();
   const result = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
     .analyze();
@@ -94,7 +116,7 @@ test('person access conflicts preserve the draft and effective grants remain exp
   await expect(page.getByRole('heading', { name: 'Effective permissions' })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Administrator', exact: true }).check();
   await page.getByRole('button', { name: 'Save access', exact: true }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(
     page.getByText('This record changed. Your edits are retained.', { exact: false }),
   ).toBeVisible();
@@ -111,16 +133,27 @@ test('settings-only operators can reach settings without user management permiss
   await expect(page.getByRole('link', { name: 'Users', exact: true })).toHaveCount(0);
 });
 
-test('list filtering retains keyboard focus and uses a person detail destination', async ({
+test('list filtering debounces automatically, retains focus, and uses a person detail destination', async ({
   page,
 }) => {
   await administration(page);
   await page.goto('/users');
   const search = page.getByLabel('Search', { exact: true });
   await search.fill('Example');
-  await search.press('Enter');
   await expect(page).toHaveURL(/search=Example/);
   await expect(search).toBeFocused();
   await page.getByRole('link', { name: 'Example Person', exact: true }).click();
   await expect(page).toHaveURL(/users\/person$/);
+});
+
+test('inviting a user from the directory opens a right-side drawer', async ({ page }) => {
+  await administration(page);
+  await page.goto('/users');
+  await page.getByRole('button', { name: 'Invite', exact: true }).click();
+
+  const drawer = page.getByRole('dialog', { name: 'Invite' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveAttribute('data-vaul-drawer-direction', 'right');
+  await expect(drawer.getByLabel('Name', { exact: true })).toBeVisible();
+  await expect(drawer.getByLabel('Email', { exact: true })).toBeVisible();
 });

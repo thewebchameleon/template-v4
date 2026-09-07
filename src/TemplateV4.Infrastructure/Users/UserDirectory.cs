@@ -31,8 +31,17 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
                      select new { profile, user };
         if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.profile.DisplayName.Contains(query.Search) || x.user.Email!.Contains(query.Search));
         var total = await source.CountAsync(cancellationToken);
-        source = query.Sort == "email" ? source.OrderBy(x => x.user.Email).ThenBy(x => x.user.Id) : source.OrderBy(x => x.profile.DisplayName).ThenBy(x => x.user.Id);
-        var page = await source.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(cancellationToken);
+        var descending = query.Direction == "desc";
+        var ordered = query.Sort switch
+        {
+            "roles" when descending => source.OrderByDescending(x => db.UserRoles.Where(m => m.UserId == x.user.Id).Join(db.Roles, m => m.RoleId, r => r.Id, (_, r) => r.Name).Order().FirstOrDefault()).ThenByDescending(x => x.user.Id),
+            "roles" => source.OrderBy(x => db.UserRoles.Where(m => m.UserId == x.user.Id).Join(db.Roles, m => m.RoleId, r => r.Id, (_, r) => r.Name).Order().FirstOrDefault()).ThenBy(x => x.user.Id),
+            "status" when descending => source.OrderByDescending(x => x.profile.Disabled ? 2 : !x.user.EmailConfirmed || x.user.PasswordHash == null ? 1 : 0).ThenByDescending(x => x.user.Id),
+            "status" => source.OrderBy(x => x.profile.Disabled ? 2 : !x.user.EmailConfirmed || x.user.PasswordHash == null ? 1 : 0).ThenBy(x => x.user.Id),
+            _ when descending => source.OrderByDescending(x => x.profile.DisplayName).ThenByDescending(x => x.user.Id),
+            _ => source.OrderBy(x => x.profile.DisplayName).ThenBy(x => x.user.Id)
+        };
+        var page = await ordered.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(cancellationToken);
         var ids = page.Select(x => x.user.Id).ToArray();
         var memberships = await (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id where ids.Contains(membership.UserId) select new { membership.UserId, role.Name }).ToArrayAsync(cancellationToken);
         return new(page.Select(x => new UserDto(x.user.Id, x.user.Email!, x.profile.DisplayName, x.profile.Culture, x.profile.Disabled,

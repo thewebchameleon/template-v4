@@ -3,7 +3,13 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
-import { WorkspaceUi, Resource, Confirmations, protectUnload } from '../shared/workspace';
+import {
+  WorkspaceUi,
+  workspaceIcons,
+  Resource,
+  Confirmations,
+  protectUnload,
+} from '../shared/workspace';
 import { Breadcrumbs } from '../shared/breadcrumbs';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Runtime } from '../core/runtime';
@@ -13,12 +19,15 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
 @Component({
   selector: 'app-user-detail',
   imports: [WorkspaceUi, HlmCheckboxImports],
+  providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header
       title="personDetails"
       description="personDetailsHelp"
       eyebrow="administration"
-      ><a hlmBtn variant="outline" routerLink="/users">{{ 'users' | t }}</a></app-page-header
+      ><a hlmBtn variant="outline" routerLink="/users"
+        ><ng-icon name="lucideArrowLeft" />{{ 'users' | t }}</a
+      ></app-page-header
     >
     <app-page-state
       [state]="data.state()"
@@ -37,7 +46,7 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
               <fieldset hlmFieldSet>
                 <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
                 <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
-                @for (role of catalog.value()?.roles ?? []; track role.id) {
+                @for (role of catalog.value()?.roles.items ?? []; track role.id) {
                   <div hlmField orientation="horizontal">
                     <hlm-checkbox
                       [inputId]="'role-' + role.id"
@@ -147,7 +156,7 @@ export class UserDetailPage {
   async load() {
     const [loaded] = await Promise.all([
       this.data.load((signal) => this.api.get('/users/' + this.id, {}, signal)),
-      this.catalog.load((signal) => this.api.get('/roles', {}, signal)),
+      this.catalog.load((signal) => this.api.get('/roles', { pageSize: 100 }, signal)),
     ]);
     const value = this.data.value();
     if (value && loaded) {

@@ -10,11 +10,21 @@ import { RequestBuilder } from '../../request-builder';
 import { AccessCatalog } from '../../models/access-catalog';
 
 export interface GetAccessCatalog$Params {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+  sort?: string;
+  direction?: string;
 }
 
 export function getAccessCatalog(http: HttpClient, rootUrl: string, params?: GetAccessCatalog$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessCatalog>> {
   const rb = new RequestBuilder(rootUrl, getAccessCatalog.PATH, 'get');
   if (params) {
+    rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
+    rb.query('search', params.search, {});
+    rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

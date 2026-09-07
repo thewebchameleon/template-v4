@@ -17,6 +17,8 @@ export interface ListAuditHistory$Params {
   SubjectId?: string;
   From?: string;
   Until?: string;
+  Sort?: string;
+  Direction?: string;
 }
 
 export function listAuditHistory(http: HttpClient, rootUrl: string, params?: ListAuditHistory$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfAuditItem>> {
@@ -29,6 +31,8 @@ export function listAuditHistory(http: HttpClient, rootUrl: string, params?: Lis
     rb.query('SubjectId', params.SubjectId, {});
     rb.query('From', params.From, {});
     rb.query('Until', params.Until, {});
+    rb.query('Sort', params.Sort, {});
+    rb.query('Direction', params.Direction, {});
   }
 
   return http.request(

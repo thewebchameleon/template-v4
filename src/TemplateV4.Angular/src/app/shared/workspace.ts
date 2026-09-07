@@ -3,9 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowDownToLine,
+  lucideArrowLeft,
   lucideArrowUpFromLine,
   lucideBell,
   lucideCheck,
@@ -15,6 +17,7 @@ import {
   lucideHistory,
   lucideInbox,
   lucideMail,
+  lucidePlus,
   lucideRefreshCw,
   lucideSearch,
   lucideShieldCheck,
@@ -31,13 +34,15 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { I18n, Translate } from '../core/i18n';
 
 export const workspaceIcons = provideIcons({
   lucideArrowDownToLine,
+  lucideArrowLeft,
   lucideArrowUpFromLine,
   lucideBell,
   lucideCheck,
@@ -47,6 +52,7 @@ export const workspaceIcons = provideIcons({
   lucideHistory,
   lucideInbox,
   lucideMail,
+  lucidePlus,
   lucideRefreshCw,
   lucideSearch,
   lucideShieldCheck,
@@ -108,6 +114,10 @@ export class ListQuery {
     const n = Number(this.text('page', '1'));
     return Number.isInteger(n) && n > 0 && n <= 10000 ? n : 1;
   }
+  direction(fallback: 'asc' | 'desc') {
+    const value = this.text('direction', fallback);
+    return value === 'asc' || value === 'desc' ? value : fallback;
+  }
   clamp(total: number | undefined, size = 25) {
     if (total === undefined) return;
     const page = Math.max(1, Math.ceil(total / size));
@@ -125,6 +135,38 @@ export class ListQuery {
       queryParams: values,
       queryParamsHandling: 'merge',
     });
+  }
+}
+
+export const DATA_TABLE_SEARCH_DEBOUNCE_MS = 300;
+
+export class DebouncedSearch {
+  readonly value = signal('');
+  private readonly changes = new Subject<string>();
+
+  constructor(
+    private readonly query: ListQuery,
+    private readonly key = 'search',
+  ) {
+    this.changes
+      .pipe(
+        debounceTime(DATA_TABLE_SEARCH_DEBOUNCE_MS),
+        distinctUntilChanged(),
+        takeUntilDestroyed(),
+      )
+      .subscribe((value) => {
+        if (this.query.text(this.key) !== value)
+          void this.query.set({ [this.key]: value || null, page: 1 });
+      });
+  }
+
+  update(value: string) {
+    this.value.set(value);
+    this.changes.next(value);
+  }
+
+  sync(value: string) {
+    this.update(value);
   }
 }
 
@@ -257,7 +299,8 @@ export const WorkspaceUi = [
   HlmInputImports,
   HlmEmptyImports,
   HlmAlertImports,
+  HlmCheckboxImports,
   HlmSpinnerImports,
-  HlmToggleGroupImports,
+  HlmTabsImports,
   HlmSwitchImports,
 ] as const;

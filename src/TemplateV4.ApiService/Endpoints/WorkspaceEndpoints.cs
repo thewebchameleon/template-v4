@@ -15,15 +15,15 @@ public static class WorkspaceEndpoints
     {
         group.MapGet("/audit", async ([AsParameters] AuditQuery query, Dispatcher<AuditQuery, Page<AuditItem>> dispatcher, CancellationToken ct) => (await dispatcher.Send(query, ct)).ToHttp())
             .RequireAuthorization(Permissions.Settings).WithName("ListAuditHistory").Produces<Page<AuditItem>>();
-        group.MapGet("/invitations", async (AccountService service, CancellationToken ct, int pageNumber = 1, string? search = null, string state = "all") => (await service.Invitations(pageNumber, search, state, ct)).ToHttp())
+        group.MapGet("/invitations", async (AccountService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string state = "all", string sort = "sentAt", string direction = "desc") => (await service.Invitations(pageNumber, pageSize, search, state, sort, direction, ct)).ToHttp())
             .RequireAuthorization(Permissions.Manage).WithName("ListInvitations").Produces<Page<InvitationItem>>();
         group.MapGet("/operations/overview", async (OperationsService service, CancellationToken ct) => Results.Ok(await service.Overview(ct)))
             .RequireAuthorization(Permissions.Settings).WithName("GetOperationsOverview").Produces<OperationsOverview>();
         group.MapGet("/notifications/summary", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => Results.Ok(await service.Summary(EndpointSecurity.Actor(principal), ct)))
             .RequireAuthorization().WithName("GetNotificationSummary").Produces<NotificationSummary>();
-        group.MapGet("/notifications", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, bool unreadOnly = false) => (await service.List(EndpointSecurity.Actor(principal), pageNumber, unreadOnly, ct)).ToHttp())
+        group.MapGet("/notifications", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, int pageSize = 25, bool unreadOnly = false, string sort = "createdAt", string direction = "desc") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, pageSize, unreadOnly, sort, direction, ct)).ToHttp())
             .RequireAuthorization().WithName("ListNotifications").Produces<NotificationPage>();
-        group.MapPost("/notifications/read", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, Guid? id = null) => (await service.Read(EndpointSecurity.Actor(principal), id, ct)).ToHttp())
+        group.MapPost("/notifications/read", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, Guid? id = null, bool read = true) => (await service.Read(EndpointSecurity.Actor(principal), id, read, ct)).ToHttp())
             .RequireAuthorization().WithName("ReadNotifications");
         group.MapPost("/notifications/preferences", async (NotificationPreference request, NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Preferences(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("SaveNotificationPreferences");
@@ -33,7 +33,7 @@ public static class WorkspaceEndpoints
             var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
             return flags.Enabled("files", actor) ? await next(invocation) : Results.NotFound();
         });
-        files.MapGet("", async (FileService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, string? search = null, string sort = "newest") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, search, sort, ct)).ToHttp())
+        files.MapGet("", async (FileService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string sort = "createdAt", string direction = "desc") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, pageSize, search, sort, direction, ct)).ToHttp())
             .RequireAuthorization().WithName("ListFiles").Produces<FilePage>();
         files.MapPost("/upload", async (string name, HttpContext context, FileService service, CancellationToken ct) =>
         {
@@ -61,7 +61,7 @@ public static class WorkspaceEndpoints
             .RequireAuthorization().WithName("RequestAccountDeletion");
         group.MapPost("/privacy/withdraw", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.Withdraw(EndpointSecurity.Actor(principal), ct)).ToHttp())
             .RequireAuthorization().WithName("WithdrawAccountDeletion");
-        group.MapGet("/privacy/requests", async (PrivacyService service, CancellationToken ct, int pageNumber = 1) => (await service.Requests(pageNumber, ct)).ToHttp())
+        group.MapGet("/privacy/requests", async (PrivacyService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string sort = "requestedAt", string direction = "asc") => (await service.Requests(pageNumber, pageSize, sort, direction, ct)).ToHttp())
             .RequireAuthorization(Permissions.Settings).WithName("ListDeletionRequests").Produces<Page<DeletionItem>>();
         group.MapPost("/privacy/review", async (ReviewDeletionRequest request, ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.Review(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization(Permissions.Settings).WithName("ReviewAccountDeletion");

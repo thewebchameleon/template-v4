@@ -13,7 +13,7 @@ import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
-import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { Auth } from '../core/auth';
 import { Passkeys } from '../core/passkeys';
 import { Runtime } from '../core/runtime';
@@ -45,7 +45,7 @@ type MfaProfile = ProfileResponse & {
     HlmBadgeImports,
     HlmSpinnerImports,
     HlmSeparatorImports,
-    HlmToggleGroupImports,
+    HlmTabsImports,
     Translate,
   ],
   template: `<h1 class="page-title">{{ 'security' | t }}</h1>
@@ -83,20 +83,19 @@ type MfaProfile = ProfileResponse & {
             <fieldset hlmFieldSet>
               <legend hlmFieldLegend>{{ 'preferredMfaMethod' | t }}</legend>
               <p hlmFieldDescription>{{ 'preferredMfaHelp' | t }}</p>
-              <hlm-toggle-group
-                type="single"
+              <hlm-tabs
                 orientation="vertical"
-                variant="outline"
-                [spacing]="2"
-                [value]="preferredMethod"
-                (valueChange)="selectPreferred($event)"
+                [tab]="preferredMethod"
+                (tabActivated)="selectPreferred($event)"
               >
-                @for (method of user.mfaMethods; track method) {
-                  <button hlmToggleGroupItem type="button" [value]="method" class="w-full">
-                    {{ methodLabel(method) | t }}
-                  </button>
-                }
-              </hlm-toggle-group>
+                <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'preferredMfaMethod' | t">
+                  @for (method of user.mfaMethods; track method) {
+                    <button [hlmTabsTrigger]="method" class="w-full">
+                      {{ methodLabel(method) | t }}
+                    </button>
+                  }
+                </hlm-tabs-list>
+              </hlm-tabs>
               <button
                 hlmBtn
                 variant="outline"

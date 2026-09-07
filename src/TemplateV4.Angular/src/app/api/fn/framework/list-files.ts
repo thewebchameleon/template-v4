@@ -11,16 +11,20 @@ import { FilePage } from '../../models/file-page';
 
 export interface ListFiles$Params {
   pageNumber?: number;
+  pageSize?: number;
   search?: string;
   sort?: string;
+  direction?: string;
 }
 
 export function listFiles(http: HttpClient, rootUrl: string, params?: ListFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
   const rb = new RequestBuilder(rootUrl, listFiles.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
     rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

@@ -94,8 +94,8 @@ test('a selected upload is protected and filters survive reload', async ({ page 
     .getByLabel('Choose a file', { exact: true })
     .setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('Draft') });
   await page.getByRole('link', { name: 'Privacy & data', exact: true }).first().click();
-  await expect(page.getByRole('dialog')).toContainText('Leave without saving?');
-  await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('alertdialog')).toContainText('Leave without saving?');
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page).toHaveURL(/files\?search=report&sort=name/);
   await page.getByLabel('Choose a file', { exact: true }).setInputFiles([]);
   await page.reload();

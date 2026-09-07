@@ -10,6 +10,7 @@ import { RequestBuilder } from '../../request-builder';
 
 export interface ReadNotifications$Params {
   id?: string;
+  read?: boolean;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -21,6 +22,7 @@ export function readNotifications(http: HttpClient, rootUrl: string, params: Rea
   const rb = new RequestBuilder(rootUrl, readNotifications.PATH, 'post');
   if (params) {
     rb.query('id', params.id, {});
+    rb.query('read', params.read, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 

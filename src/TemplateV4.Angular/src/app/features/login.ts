@@ -9,7 +9,7 @@ import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { AuthLayout } from './auth-layout';
 import { Registration } from '../core/registration';
 import { Auth } from '../core/auth';
@@ -29,7 +29,7 @@ import { Notifications } from '../core/notifications';
     HlmCheckboxImports,
     HlmSpinnerImports,
     HlmDialogImports,
-    HlmToggleGroupImports,
+    HlmTabsImports,
     AuthLayout,
     RouterLink,
     Translate,
@@ -45,21 +45,20 @@ import { Notifications } from '../core/notifications';
       @if (auth.challenge() && challengeStep() === 'choose') {
         <fieldset hlmFieldSet>
           <legend hlmFieldLegend>{{ 'authenticationMethod' | t }}</legend>
-          <hlm-toggle-group
-            type="single"
+          <hlm-tabs
             orientation="vertical"
-            variant="outline"
-            [spacing]="2"
-            [value]="selectedMethod()"
-            (valueChange)="selectMethod($event)"
+            [tab]="selectedMethod()"
+            (tabActivated)="selectMethod($event)"
             class="w-full"
           >
-            @for (method of auth.mfaMethods(); track method) {
-              <button hlmToggleGroupItem type="button" [value]="method" class="w-full">
-                {{ methodLabel(method) | t }}
-              </button>
-            }
-          </hlm-toggle-group>
+            <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'authenticationMethod' | t">
+              @for (method of auth.mfaMethods(); track method) {
+                <button [hlmTabsTrigger]="method" class="w-full">
+                  {{ methodLabel(method) | t }}
+                </button>
+              }
+            </hlm-tabs-list>
+          </hlm-tabs>
         </fieldset>
       }
       <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">

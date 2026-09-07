@@ -26,9 +26,9 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
         return new(pending, failed, jobs, failedJobs, oldest is null ? 0 : Math.Max(0, (time.GetUtcNow() - oldest.Value).TotalSeconds), maintenance,
             config["Deployment:Version"] ?? typeof(OperationsService).Assembly.GetName().Version?.ToString() ?? "unknown", time.GetUtcNow(), Math.Clamp(config.GetValue("Operations:BacklogWarningSeconds", 300), 60, 86400));
     }
-    public async Task<Result<DeliveryPage>> List(string kind, int pageNumber, int pageSize, bool failedOnly, CancellationToken ct)
+    public async Task<Result<DeliveryPage>> List(string kind, int pageNumber, int pageSize, bool failedOnly, string sort, string direction, CancellationToken ct)
     {
-        if (kind is not ("message" or "job") || pageNumber < 1 || pageSize is < 1 or > 100 || pageNumber > int.MaxValue / pageSize)
+        if (kind is not ("message" or "job") || pageNumber < 1 || pageSize is < 1 or > 100 || pageNumber > int.MaxValue / pageSize || sort is not ("type" or "state" or "errorCode" or "attempts" or "availableAt") || direction is not ("asc" or "desc"))
             return Result<DeliveryPage>.Fail("validation.failed", ErrorKind.Validation);
 
         if (kind == "message")
@@ -36,8 +36,21 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
             var query = db.Outbox.AsNoTracking().Where(x => x.CompletedAt == null);
             if (failedOnly) query = query.Where(x => x.PoisonedAt != null);
             var total = await query.CountAsync(ct);
-            var items = await query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id)
-                .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            var descending = direction == "desc";
+            var ordered = sort switch
+            {
+                "type" when descending => query.OrderByDescending(x => x.Type).ThenByDescending(x => x.Id),
+                "type" => query.OrderBy(x => x.Type).ThenBy(x => x.Id),
+                "state" when descending => query.OrderByDescending(x => x.PoisonedAt != null ? "Failed" : x.LeaseId != null ? "Running" : "Pending").ThenByDescending(x => x.Id),
+                "state" => query.OrderBy(x => x.PoisonedAt != null ? "Failed" : x.LeaseId != null ? "Running" : "Pending").ThenBy(x => x.Id),
+                "errorCode" when descending => query.OrderByDescending(x => x.LastErrorCode).ThenByDescending(x => x.Id),
+                "errorCode" => query.OrderBy(x => x.LastErrorCode).ThenBy(x => x.Id),
+                "attempts" when descending => query.OrderByDescending(x => x.Attempts).ThenByDescending(x => x.Id),
+                "attempts" => query.OrderBy(x => x.Attempts).ThenBy(x => x.Id),
+                _ when descending => query.OrderByDescending(x => x.AvailableAt).ThenByDescending(x => x.Id),
+                _ => query.OrderBy(x => x.AvailableAt).ThenBy(x => x.Id)
+            };
+            var items = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize)
                 .Select(x => new DeliverySummary(x.Id, x.Type, x.PoisonedAt != null ? "Failed" : x.LeaseId != null ? "Running" : "Pending", x.Attempts, x.AvailableAt, x.LastErrorCode)).ToArrayAsync(ct);
             return Result<DeliveryPage>.Success(new(items, total, pageNumber, pageSize, kind));
         }
@@ -45,8 +58,21 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
         var jobs = db.JobRuns.AsNoTracking().Where(x => x.State != "Completed");
         if (failedOnly) jobs = jobs.Where(x => x.State == "Failed");
         var jobTotal = await jobs.CountAsync(ct);
-        var jobItems = await jobs.OrderBy(x => x.AvailableAt).ThenBy(x => x.Id)
-            .Skip((pageNumber - 1) * pageSize).Take(pageSize)
+        var jobDescending = direction == "desc";
+        var orderedJobs = sort switch
+        {
+            "state" when jobDescending => jobs.OrderByDescending(x => x.State).ThenByDescending(x => x.Id),
+            "state" => jobs.OrderBy(x => x.State).ThenBy(x => x.Id),
+            "errorCode" when jobDescending => jobs.OrderByDescending(x => x.ErrorCode).ThenByDescending(x => x.Id),
+            "errorCode" => jobs.OrderBy(x => x.ErrorCode).ThenBy(x => x.Id),
+            "attempts" when jobDescending => jobs.OrderByDescending(x => x.Attempts).ThenByDescending(x => x.Id),
+            "attempts" => jobs.OrderBy(x => x.Attempts).ThenBy(x => x.Id),
+            "availableAt" when jobDescending => jobs.OrderByDescending(x => x.AvailableAt).ThenByDescending(x => x.Id),
+            "availableAt" => jobs.OrderBy(x => x.AvailableAt).ThenBy(x => x.Id),
+            _ when jobDescending => jobs.OrderByDescending(x => x.Id),
+            _ => jobs.OrderBy(x => x.Id)
+        };
+        var jobItems = await orderedJobs.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .Select(x => new DeliverySummary(x.Id, "job", x.State, x.Attempts, x.AvailableAt, x.ErrorCode)).ToArrayAsync(ct);
         return Result<DeliveryPage>.Success(new(jobItems, jobTotal, pageNumber, pageSize, kind));
     }

@@ -7,7 +7,7 @@ public static class AccessEndpoints
 {
     public static RouteGroupBuilder MapAccessEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/roles", async (AccessManagementService service, CancellationToken ct) => Results.Ok(await service.Catalog(ct)))
+        group.MapGet("/roles", async (AccessManagementService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string sort = "name", string direction = "asc") => (await service.Catalog(pageNumber, pageSize, search, sort, direction, ct)).ToHttp())
             .RequireAuthorization(policy => policy.RequireAssertion(c => c.User.HasClaim("permission", Permissions.Read) || c.User.HasClaim("permission", Permissions.Roles)))
             .WithName("GetAccessCatalog").Produces<AccessCatalog>();
         group.MapPost("/roles", async (SaveRoleRequest request, AccessManagementService service, CancellationToken ct) => (await service.Save(null, request, ct)).ToHttp())

@@ -13,16 +13,25 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, IConfigura
     public const long MaxUploadBytes = 20 * 1024 * 1024;
     public static readonly string[] AllowedExtensions = [".pdf", ".png", ".jpg", ".jpeg", ".txt", ".csv"];
     private long Quota => Math.Clamp(config.GetValue<long>("Storage:QuotaBytes", 1024L * 1024 * 1024), MaxUploadBytes, 100L * 1024 * 1024 * 1024);
-    public async Task<Result<FilePage>> List(Guid actor, int pageNumber, string? search, string sort, CancellationToken ct)
+    public async Task<Result<FilePage>> List(Guid actor, int pageNumber, int pageSize, string? search, string sort, string direction, CancellationToken ct)
     {
-        if (pageNumber is < 1 or > 10000 || search is { Length: > 120 } || sort is not ("newest" or "name")) return Result<FilePage>.Fail("validation.failed", ErrorKind.Validation);
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || sort is not ("name" or "size" or "createdAt") || direction is not ("asc" or "desc")) return Result<FilePage>.Fail("validation.failed", ErrorKind.Validation);
         var all = db.Files.AsNoTracking().Where(x => x.OwnerId == actor && x.Ready && x.DeletedAt == null);
         var used = await db.Files.Where(x => x.OwnerId == actor && x.PurgedAt == null).SumAsync(x => x.Size, ct);
         if (!string.IsNullOrWhiteSpace(search)) all = all.Where(x => x.Name.Contains(search));
         var total = await all.CountAsync(ct);
-        var sorted = sort == "name" ? all.OrderBy(x => x.Name).ThenBy(x => x.Id) : all.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id);
-        var items = await sorted.Skip((pageNumber - 1) * 25).Take(25).Select(x => new FileItem(x.Id, x.Name, x.ContentType, x.Size, x.CreatedAt)).ToArrayAsync(ct);
-        return Result<FilePage>.Success(new(new(items, total, pageNumber, 25), used, Quota, MaxUploadBytes, AllowedExtensions));
+        var descending = direction == "desc";
+        var ordered = sort switch
+        {
+            "name" when descending => all.OrderByDescending(x => x.Name).ThenByDescending(x => x.Id),
+            "name" => all.OrderBy(x => x.Name).ThenBy(x => x.Id),
+            "size" when descending => all.OrderByDescending(x => x.Size).ThenByDescending(x => x.Id),
+            "size" => all.OrderBy(x => x.Size).ThenBy(x => x.Id),
+            _ when descending => all.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id),
+            _ => all.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id)
+        };
+        var items = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(x => new FileItem(x.Id, x.Name, x.ContentType, x.Size, x.CreatedAt)).ToArrayAsync(ct);
+        return Result<FilePage>.Success(new(new(items, total, pageNumber, pageSize), used, Quota, MaxUploadBytes, AllowedExtensions));
     }
     public async Task<Result<FileItem>> Upload(Guid actor, string name, Stream input, CancellationToken ct)
     {

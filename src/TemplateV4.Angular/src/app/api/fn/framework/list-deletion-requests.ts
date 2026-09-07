@@ -11,12 +11,18 @@ import { PageOfDeletionItem } from '../../models/page-of-deletion-item';
 
 export interface ListDeletionRequests$Params {
   pageNumber?: number;
+  pageSize?: number;
+  sort?: string;
+  direction?: string;
 }
 
 export function listDeletionRequests(http: HttpClient, rootUrl: string, params?: ListDeletionRequests$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfDeletionItem>> {
   const rb = new RequestBuilder(rootUrl, listDeletionRequests.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
+    rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

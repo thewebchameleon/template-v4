@@ -581,13 +581,14 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         var db = sp.GetRequiredService<FrameworkDb>();
-        for (var index = 0; index < 30; index++) db.Outbox.Add(new() { Type = "test", CreatedAt = _clock.Now.AddSeconds(index), AvailableAt = _clock.Now, PoisonedAt = index % 2 == 0 ? _clock.Now : null });
+        for (var index = 0; index < 30; index++) db.Outbox.Add(new() { Type = "test", Attempts = index, CreatedAt = _clock.Now.AddSeconds(index), AvailableAt = _clock.Now, PoisonedAt = index % 2 == 0 ? _clock.Now : null });
         await db.SaveChangesAsync();
         var operations = sp.GetRequiredService<OperationsService>();
-        var first = await operations.List("message", 1, 10, true, default);
-        var second = await operations.List("message", 2, 10, true, default);
+        var first = await operations.List("message", 1, 10, true, "attempts", "desc", default);
+        var second = await operations.List("message", 2, 10, true, "attempts", "desc", default);
         Assert.Equal(15, first.Value!.Total); Assert.Equal(10, first.Value.Items.Count); Assert.Equal(5, second.Value!.Items.Count);
         Assert.All(first.Value.Items.Concat(second.Value.Items), item => Assert.Equal("Failed", item.State));
+        Assert.True(first.Value.Items.Zip(first.Value.Items.Skip(1)).All(pair => pair.First.Attempts > pair.Second.Attempts));
     }
 
     [Fact]
@@ -670,6 +671,11 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         var profileGet = parsed.RootElement.GetProperty("paths").GetProperty("/api/v1/auth/profile").GetProperty("get");
         Assert.True(profileGet.TryGetProperty("security", out var profileSecurity));
         Assert.NotEmpty(profileSecurity.EnumerateArray());
+        foreach (var path in new[] { "/api/v1/users", "/api/v1/roles", "/api/v1/auth/audit", "/api/v1/auth/invitations", "/api/v1/auth/notifications", "/api/v1/auth/files", "/api/v1/auth/privacy/requests", "/api/v1/auth/operations" })
+        {
+            var parameters = parsed.RootElement.GetProperty("paths").GetProperty(path).GetProperty("get").GetProperty("parameters").EnumerateArray().Select(x => x.GetProperty("name").GetString()!.ToLowerInvariant()).ToArray();
+            Assert.Contains("pagenumber", parameters); Assert.Contains("pagesize", parameters); Assert.Contains("sort", parameters); Assert.Contains("direction", parameters);
+        }
         if (Environment.GetEnvironmentVariable("TEMPLATEV4_EXPORT_OPENAPI") is { Length: > 0 } output)
         { Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); await File.WriteAllTextAsync(output, contract.Replace("\r\n", "\n") + "\n"); }
     }

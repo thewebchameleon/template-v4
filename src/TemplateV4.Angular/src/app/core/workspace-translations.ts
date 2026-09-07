@@ -29,8 +29,14 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Wys aktiwiteit vir die gekose persoon of rekord. Maak filters skoon om alles te sien.',
   ],
   auditEmpty: ['No activity matches these filters', 'Geen aktiwiteit pas by hierdie filters nie'],
+  actionDate: ['Action Date', 'Aksiedatum'],
   performedBy: ['Performed by', 'Uitgevoer deur'],
   relatedRecord: ['Related record', 'Verwante rekord'],
+  relatedRecordInfo: ['About related records', 'Oor verwante rekords'],
+  relatedRecordHelp: [
+    'The account, role, file, delivery, request or other item affected by the activity.',
+    'Die rekening, rol, lêer, aflewering, versoek of ander item wat deur die aktiwiteit geraak word.',
+  ],
   deletedAccount: ['Deleted account', 'Verwyderde rekening'],
   systemActor: ['System', 'Stelsel'],
   systemRecord: ['System record', 'Stelselrekord'],
@@ -119,6 +125,10 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   messages: ['Messages', 'Boodskappe'],
   jobs: ['Jobs', 'Take'],
   failedOnly: ['Failed only', 'Slegs misluk'],
+  failedOnlyHelp: [
+    'Show only failed messages or jobs in the delivery queue.',
+    'Wys slegs mislukte boodskappe of take in die afleweringswaglys.',
+  ],
   queueEmpty: ['Nothing waiting in this view', 'Niks wag in hierdie aansig nie'],
   systemDetails: ['System details', 'Stelselbesonderhede'],
   systemDetailsHelp: ['A snapshot of this deployment.', '’n Oorsig van hierdie ontplooiing.'],
@@ -174,6 +184,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Jou werkruimte in ’n oogopslag. Bly op hoogte van veranderinge en voltooide werk.',
   ],
   markAllRead: ['Mark all as read', 'Merk alles as gelees'],
+  viewAllNotifications: ['View all notifications', 'Bekyk alle kennisgewings'],
   yourInbox: ['Your inbox', 'Jou inkassie'],
   unread: ['Unread', 'Ongelees'],
   yourInboxHelp: [
@@ -183,6 +194,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   notificationFilter: ['Filter notifications', 'Filtreer kennisgewings'],
   viewDetails: ['View details', 'Bekyk besonderhede'],
   markRead: ['Mark as read', 'Merk as gelees'],
+  markUnread: ['Mark as unread', 'Merk as ongelees'],
+  inbox: ['Inbox', 'Inkassie'],
   inboxEmpty: ['You’re all caught up', 'Jy is op hoogte'],
   inboxEmptyHelp: [
     'New account activity and completed work will appear here.',
@@ -403,6 +416,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'You have changes or a selected upload that have not been saved. Leaving this page will discard them.',
     'Jy het veranderinge of ’n gekose oplaai wat nie gestoor is nie. Dit gaan verlore wanneer jy die bladsy verlaat.',
   ],
+  discardChanges: ['Discard changes', 'Gooi veranderinge weg'],
   emailInvalid: ['Enter a valid email address.', 'Voer ’n geldige e-posadres in.'],
   emailChanged: [
     'Your email address has been updated. Sign in with your new address.',

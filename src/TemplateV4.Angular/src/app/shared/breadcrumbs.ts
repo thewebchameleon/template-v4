@@ -154,7 +154,7 @@ export class Breadcrumbs {
   imports: [HlmBreadcrumbImports, HlmButtonImports, NgIcon, Translate],
   providers: [provideIcons({ lucideArrowLeft })],
   template: `
-    <div class="flex min-w-0 items-center justify-between gap-4">
+    <div class="flex min-w-0 items-center justify-start gap-4">
       <nav hlmBreadcrumb [attr.aria-label]="'breadcrumb' | t" class="min-w-0">
         <ol hlmBreadcrumbList class="hidden sm:flex">
           @for (item of breadcrumbs.items(); track $index; let last = $last) {

@@ -7,10 +7,11 @@ import {
   workspaceIcons,
   Resource,
   ListQuery,
+  DebouncedSearch,
   Confirmations,
 } from '../shared/workspace';
 
-import { DataTable, DataTableFeatures } from '../shared/data-table';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 
 import { RecordIdentity, RecordStatus, RowActions } from '../shared/workspace-cells';
 
@@ -24,12 +25,16 @@ import { Notifications } from '../core/notifications';
 
 import { InvitationItem, PageOfInvitationItem } from '../api/models';
 
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+
+import { InvitationEditor } from './invite-user';
+
 const column = createColumnHelper<DataTableFeatures, InvitationItem>();
 
 @Component({
   selector: 'app-invitations',
 
-  imports: [WorkspaceUi, DataTable, PeopleNav],
+  imports: [WorkspaceUi, DataTable, PeopleNav, HlmDialogImports, InvitationEditor],
 
   providers: [workspaceIcons],
 
@@ -37,10 +42,22 @@ const column = createColumnHelper<DataTableFeatures, InvitationItem>();
       eyebrow="administration"
       title="invitations"
       description="invitationsIntro"
-      ><a hlmBtn routerLink="/users/invite"
-        ><ng-icon name="lucideMail" />{{ 'invite' | t }}</a
-      ></app-page-header
-    >
+      ><hlm-dialog
+        [state]="inviteOpen() ? 'open' : 'closed'"
+        [disableClose]="true"
+        (stateChanged)="inviteOpen.set($event === 'open')"
+        ><button hlmDialogTrigger hlmBtn><ng-icon name="lucideMail" />{{ 'invite' | t }}</button
+        ><hlm-dialog-content
+          *hlmDialogPortal
+          [showCloseButton]="false"
+          class="max-h-[90vh] overflow-y-auto sm:max-w-xl"
+          ><hlm-dialog-header
+            ><h2 hlmDialogTitle>{{ 'invite' | t }}</h2>
+            <p hlmDialogDescription>{{ 'inviteHelp' | t }}</p></hlm-dialog-header
+          ><app-invitation-editor
+            (invited)="invited()"
+            (cancelled)="inviteOpen.set(false)" /></hlm-dialog-content></hlm-dialog
+    ></app-page-header>
 
     <app-people-nav />
     <div>
@@ -52,48 +69,41 @@ const column = createColumnHelper<DataTableFeatures, InvitationItem>();
         </div>
 
         <div hlmCardContent>
-          <form
-            class="workspace-toolbar"
-            (ngSubmit)="query.set({ search: search || null, page: 1 })"
-          >
+          <div class="workspace-toolbar">
             <div hlmField>
               <label hlmFieldLabel for="invitation-search">{{ 'search' | t }}</label
               ><input
                 hlmInput
                 id="invitation-search"
-                name="search"
-                [(ngModel)]="search"
+                [ngModel]="search.value()"
+                (ngModelChange)="search.update($event)"
                 maxlength="120"
                 [placeholder]="'peopleSearch' | t"
               />
             </div>
+          </div>
 
-            <button hlmBtn variant="outline">{{ 'search' | t }}</button>
-          </form>
-
-          <hlm-toggle-group
-            type="single"
-            variant="outline"
-            [nullable]="false"
-            [value]="query.text('state', 'all')"
-            (valueChange)="filter($event)"
-            [attr.aria-label]="'status' | t"
-            class="mb-5 flex-wrap"
-          >
-            @for (state of states; track state) {
-              <button hlmToggleGroupItem [value]="state">{{ state | t }}</button>
-            }
-          </hlm-toggle-group>
+          <hlm-tabs [tab]="query.text('state', 'all')" (tabActivated)="filter($event)" class="mb-5">
+            <hlm-tabs-list [attr.aria-label]="'status' | t" class="flex-wrap">
+              @for (state of states; track state) {
+                <button [hlmTabsTrigger]="state">{{ state | t }}</button>
+              }
+            </hlm-tabs-list>
+          </hlm-tabs>
 
           <app-page-state
             [state]="data.state()"
-            [refreshing]="data.refreshing()"
             [refreshError]="data.refreshError()"
             (retry)="load()"
             ><app-data-table
               [columns]="columns()"
               [data]="data.value()?.items ?? []"
-              [emptyText]="'invitationsEmpty' | t" /><app-list-pager
+              [loading]="data.state() === 'loading' || data.refreshing()"
+              [loadingText]="'loading' | t"
+              [emptyText]="'invitationsEmpty' | t"
+              [sortColumn]="query.text('sort', 'sentAt')"
+              [sortDirection]="query.direction('desc')"
+              (sortChange)="sort($event)" /><app-list-pager
               [total]="data.value()?.total ?? 0"
               [page]="query.page"
               (pageChange)="query.set({ page: $event })"
@@ -117,9 +127,11 @@ export class InvitationsPage {
 
   readonly busy = signal(false);
 
+  readonly inviteOpen = signal(false);
+
   readonly now = signal(Date.now());
 
-  search = '';
+  readonly search = new DebouncedSearch(this.query);
 
   readonly states = ['all', 'Pending', 'Expired', 'Accepted', 'Revoked'];
 
@@ -171,6 +183,8 @@ export class InvitationsPage {
       column.display({
         id: 'actions',
 
+        enableSorting: false,
+
         header: this.i18n.text('actions'),
 
         cell: ({ row }) =>
@@ -210,7 +224,7 @@ export class InvitationsPage {
 
   constructor() {
     this.query.connect(() => {
-      this.search = this.query.text('search');
+      this.search.sync(this.query.text('search'));
 
       void this.load();
     });
@@ -235,9 +249,15 @@ export class InvitationsPage {
         {
           pageNumber: this.query.page,
 
+          pageSize: 25,
+
           search: this.query.text('search'),
 
           state: this.query.text('state', 'all'),
+
+          sort: this.query.text('sort', 'sentAt'),
+
+          direction: this.query.direction('desc'),
         },
         signal,
       ),
@@ -249,6 +269,15 @@ export class InvitationsPage {
   filter(value: unknown) {
     if (typeof value === 'string' && this.states.includes(value))
       void this.query.set({ state: value, page: 1 });
+  }
+
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+
+  invited() {
+    this.inviteOpen.set(false);
+    void this.load();
   }
 
   async act(item: InvitationItem, cancel: boolean) {

@@ -10,7 +10,7 @@ import {
   Confirmations,
 } from '../shared/workspace';
 
-import { DataTable, DataTableFeatures } from '../shared/data-table';
+import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 
 import { RecordStatus, RowActions } from '../shared/workspace-cells';
 
@@ -57,7 +57,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
       </button>
       @if (auth.has('jobs.trigger') && features.enabled('maintenance')) {
         <button hlmBtn variant="outline" [disabled]="busy()" (click)="maintenance()">
-          {{ 'maintenance' | t }}
+          <ng-icon name="lucideActivity" />{{ 'maintenance' | t }}
         </button>
       }
     </app-page-header>
@@ -74,7 +74,10 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
             @for (stat of stats(); track stat.label) {
               <section hlmCard>
                 <div hlmCardHeader>
-                  <p hlmCardDescription>{{ stat.label | t }}</p>
+                  <p hlmCardDescription class="flex items-center gap-2">
+                    <ng-icon [name]="stat.icon" [class]="stat.iconClass" aria-hidden="true" />
+                    <span>{{ stat.label | t }}</span>
+                  </p>
                 </div>
 
                 <div hlmCardContent>
@@ -130,37 +133,41 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
 
           <div hlmCardContent>
             <div class="workspace-toolbar">
-              <hlm-toggle-group
-                type="single"
-                variant="outline"
-                [nullable]="false"
-                [value]="query.text('kind', 'message')"
-                (valueChange)="kind($event)"
-                [attr.aria-label]="'deliveryType' | t"
-                ><button hlmToggleGroupItem value="message">{{ 'messages' | t }}</button
-                ><button hlmToggleGroupItem value="job">
-                  {{ 'jobs' | t }}
-                </button></hlm-toggle-group
-              >
+              <hlm-tabs [tab]="query.text('kind', 'message')" (tabActivated)="kind($event)">
+                <hlm-tabs-list [attr.aria-label]="'deliveryType' | t">
+                  <button hlmTabsTrigger="message">{{ 'messages' | t }}</button>
+                  <button hlmTabsTrigger="job">{{ 'jobs' | t }}</button>
+                </hlm-tabs-list>
+              </hlm-tabs>
 
-              <div hlmField orientation="horizontal">
-                <hlm-switch
-                  inputId="failed-only"
-                  [checked]="query.text('failed') === 'true'"
-                  (checkedChange)="query.set({ failed: $event ? 'true' : null, page: 1 })"
-                /><label hlmFieldLabel for="failed-only">{{ 'failedOnly' | t }}</label>
-              </div>
+              <label hlmFieldLabel for="failed-only" class="cursor-pointer">
+                <div hlmField orientation="horizontal">
+                  <hlm-checkbox
+                    inputId="failed-only"
+                    [checked]="query.text('failed') === 'true'"
+                    (checkedChange)="query.set({ failed: $event ? 'true' : null, page: 1 })"
+                  />
+                  <div hlmFieldContent>
+                    <span hlmFieldTitle>{{ 'failedOnly' | t }}</span>
+                    <p hlmFieldDescription>{{ 'failedOnlyHelp' | t }}</p>
+                  </div>
+                </div>
+              </label>
             </div>
 
             <app-page-state
               [state]="data.state()"
-              [refreshing]="data.refreshing()"
               [refreshError]="data.refreshError()"
               (retry)="load()"
               ><app-data-table
                 [columns]="columns()"
                 [data]="data.value()?.items ?? []"
-                [emptyText]="'queueEmpty' | t" /><app-list-pager
+                [loading]="data.state() === 'loading' || data.refreshing()"
+                [loadingText]="'loading' | t"
+                [emptyText]="'queueEmpty' | t"
+                [sortColumn]="query.text('sort', 'availableAt')"
+                [sortDirection]="query.direction('asc')"
+                (sortChange)="sort($event)" /><app-list-pager
                 [total]="data.value()?.total ?? 0"
                 [page]="query.page"
                 (pageChange)="query.set({ page: $event })"
@@ -267,6 +274,10 @@ export class OperationsPage {
       {
         label: 'pendingMessages',
 
+        icon: 'lucideMail',
+
+        iconClass: 'text-chart-1',
+
         value: this.i18n.number(v?.pendingMessages ?? 0),
 
         note: 'pendingMessagesHelp',
@@ -275,15 +286,33 @@ export class OperationsPage {
       {
         label: 'failedDeliveries',
 
+        icon: 'lucideTriangleAlert',
+
+        iconClass: 'text-chart-5',
+
         value: this.i18n.number((v?.failedMessages ?? 0) + (v?.failedJobs ?? 0)),
 
         note: 'failedDeliveriesHelp',
       },
 
-      { label: 'activeJobs', value: this.i18n.number(v?.activeJobs ?? 0), note: 'activeJobsHelp' },
+      {
+        label: 'activeJobs',
+
+        icon: 'lucideActivity',
+
+        iconClass: 'text-chart-2',
+
+        value: this.i18n.number(v?.activeJobs ?? 0),
+
+        note: 'activeJobsHelp',
+      },
 
       {
         label: 'oldestPending',
+
+        icon: 'lucideClock3',
+
+        iconClass: 'text-chart-3',
 
         value:
           this.i18n.number(Math.ceil((v?.oldestMessageSeconds ?? 0) / 60)) +
@@ -323,8 +352,7 @@ export class OperationsPage {
           }),
       }),
 
-      column.display({
-        id: 'recovery',
+      column.accessor('errorCode', {
         header: this.i18n.text('failureReason'),
         cell: ({ row }) =>
           row.original.state === 'Failed' ? this.failureHelp(row.original.errorCode) : '—',
@@ -340,6 +368,8 @@ export class OperationsPage {
 
       column.display({
         id: 'actions',
+
+        enableSorting: false,
 
         header: this.i18n.text('actions'),
 
@@ -380,13 +410,23 @@ export class OperationsPage {
 
           pageNumber: this.query.page,
 
+          pageSize: 25,
+
           failedOnly: this.query.text('failed') === 'true',
+
+          sort: this.query.text('sort', 'availableAt'),
+
+          direction: this.query.direction('asc'),
         },
         signal,
       ),
     );
 
     if (loaded) this.query.clamp(this.data.value()?.total);
+  }
+
+  sort(value: ServerSort) {
+    void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
   }
 
   failureHelp(code: string | null) {

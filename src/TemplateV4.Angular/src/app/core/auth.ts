@@ -14,6 +14,7 @@ type ChallengeAccess = Access & {
 @Injectable({ providedIn: 'root' })
 export class Auth {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private readonly runtime = inject(Runtime);
   private readonly i18n = inject(I18n);
   readonly access = signal<Access | null>(null);
@@ -29,7 +30,7 @@ export class Auth {
     this.channel?.addEventListener('message', () => {
       this.generation++;
       this.access.set(null);
-      location.assign('/login');
+      void this.router.navigateByUrl('/login');
     });
   }
   private async serial<T>(work: () => Promise<T>): Promise<T> {

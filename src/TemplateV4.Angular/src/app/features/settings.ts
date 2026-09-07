@@ -5,7 +5,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
@@ -15,6 +15,7 @@ import { Runtime } from '../core/runtime';
 import { I18n, Translate } from '../core/i18n';
 import { SecuritySettings } from '../api/models/security-settings';
 import { Notifications } from '../core/notifications';
+import { PageHeader } from '../shared/workspace';
 @Component({
   selector: 'app-settings',
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
@@ -22,16 +23,21 @@ import { Notifications } from '../core/notifications';
     FormsModule,
     HlmButtonImports,
     HlmFieldImports,
-    HlmToggleGroupImports,
+    HlmTabsImports,
     HlmSwitchImports,
     HlmCardImports,
     HlmAlertImports,
     HlmSpinnerImports,
     Translate,
+    PageHeader,
   ],
   template: `
-    <h1 class="page-title">{{ 'adminSettings' | t }}</h1>
-    <section hlmCard class="mt-6 max-w-(--form-content-width)">
+    <app-page-header
+      eyebrow="administration"
+      title="adminSettings"
+      description="adminSettingsIntro"
+    />
+    <section hlmCard class="max-w-(--form-content-width)">
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'security' | t }}</h2>
         <p hlmCardDescription>{{ 'policyHelp' | t }}</p>
@@ -44,36 +50,43 @@ import { Notifications } from '../core/notifications';
       >
         <fieldset hlmFieldSet>
           <legend hlmFieldLegend>{{ 'mfaPolicy' | t }}</legend>
-          <hlm-toggle-group
-            type="single"
-            variant="outline"
-            [nullable]="false"
-            [disabled]="busy() || settingsState() !== 'ready'"
-            name="policy"
-            [(ngModel)]="policy"
-            [attr.aria-label]="'mfaPolicy' | t"
-            class="flex-wrap"
-          >
-            <button hlmToggleGroupItem value="Optional">{{ 'policyOptional' | t }}</button>
-            <button hlmToggleGroupItem value="Administrators">
-              {{ 'policyAdministrators' | t }}
-            </button>
-            <button hlmToggleGroupItem value="Everyone">{{ 'policyEveryone' | t }}</button>
-          </hlm-toggle-group>
+          <hlm-tabs [tab]="policy" (tabActivated)="policy = $event">
+            <hlm-tabs-list [attr.aria-label]="'mfaPolicy' | t" class="flex-wrap">
+              <button hlmTabsTrigger="Optional" [disabled]="busy() || settingsState() !== 'ready'">
+                {{ 'policyOptional' | t }}
+              </button>
+              <button
+                hlmTabsTrigger="Administrators"
+                [disabled]="busy() || settingsState() !== 'ready'"
+              >
+                {{ 'policyAdministrators' | t }}
+              </button>
+              <button hlmTabsTrigger="Everyone" [disabled]="busy() || settingsState() !== 'ready'">
+                {{ 'policyEveryone' | t }}
+              </button>
+            </hlm-tabs-list>
+          </hlm-tabs>
         </fieldset>
-        <div hlmField orientation="horizontal">
-          <hlm-switch
-            inputId="registration-enabled"
-            name="registrationEnabled"
-            [(ngModel)]="registrationEnabled"
-            aria-describedby="registration-help"
-            [disabled]="busy() || !settings()"
-          />
-          <div hlmFieldContent>
-            <label hlmFieldLabel for="registration-enabled">{{ 'registrationEnabled' | t }}</label>
-            <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
+        <label
+          hlmFieldLabel
+          for="registration-enabled"
+          class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
+        >
+          <div hlmField orientation="horizontal">
+            <hlm-switch
+              inputId="registration-enabled"
+              name="registrationEnabled"
+              [(ngModel)]="registrationEnabled"
+              aria-describedby="registration-help"
+              [disabled]="busy() || !settings()"
+              class="self-center"
+            />
+            <div hlmFieldContent>
+              <span hlmFieldTitle>{{ 'registrationEnabled' | t }}</span>
+              <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
+            </div>
           </div>
-        </div>
+        </label>
         <button hlmBtn [disabled]="busy() || form.invalid || !settings() || !hasUnsavedChanges()">
           @if (busy()) {
             <hlm-spinner />

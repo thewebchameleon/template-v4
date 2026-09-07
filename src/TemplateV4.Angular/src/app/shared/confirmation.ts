@@ -1,7 +1,6 @@
 import { Component, Injectable, inject, signal } from '@angular/core';
 import { CanDeactivateFn } from '@angular/router';
-import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { Translate } from '../core/i18n';
 @Injectable({ providedIn: 'root' })
 export class Confirmations {
@@ -10,47 +9,54 @@ export class Confirmations {
     description: string;
     detail: string;
     destructive: boolean;
+    actionLabel: string;
   } | null>(null);
   private resolve: ((value: boolean) => void) | null = null;
-  ask(title: string, description: string, detail = '', destructive = false) {
+  ask(
+    title: string,
+    description: string,
+    detail = '',
+    destructive = false,
+    actionLabel = 'confirm',
+  ) {
     this.finish(false);
-    this.current.set({ title, description, detail, destructive });
+    this.current.set({ title, description, detail, destructive, actionLabel });
     return new Promise<boolean>((resolve) => (this.resolve = resolve));
   }
   finish(value: boolean) {
-    this.resolve?.(value);
+    const resolve = this.resolve;
     this.resolve = null;
     this.current.set(null);
+    resolve?.(value);
   }
 }
 @Component({
   selector: 'app-confirmation',
-  imports: [HlmDialogImports, HlmButtonImports, Translate],
-  template: ` <hlm-dialog
+  imports: [HlmAlertDialogImports, Translate],
+  template: ` <hlm-alert-dialog
     [state]="confirm.current() ? 'open' : 'closed'"
     (stateChanged)="$event === 'closed' && confirm.finish(false)"
   >
-    <hlm-dialog-content *hlmDialogPortal [showCloseButton]="false"
-      ><hlm-dialog-header
-        ><h2 hlmDialogTitle>{{ confirm.current()?.title ?? '' | t }}</h2>
-        <p hlmDialogDescription>
+    <hlm-alert-dialog-content *hlmAlertDialogPortal
+      ><hlm-alert-dialog-header
+        ><h2 hlmAlertDialogTitle>{{ confirm.current()?.title ?? '' | t }}</h2>
+        <p hlmAlertDialogDescription>
           {{ confirm.current()?.description ?? '' | t }}
-        </p></hlm-dialog-header
-      >
-      @if (confirm.current()?.detail) {
-        <p class="break-words font-medium">{{ confirm.current()?.detail }}</p>
-      }
-      <hlm-dialog-footer
-        ><button hlmBtn variant="outline" (click)="confirm.finish(false)">{{ 'cancel' | t }}</button
+          @if (confirm.current()?.detail) {
+            <span class="block break-words">{{ confirm.current()?.detail }}</span>
+          }
+        </p></hlm-alert-dialog-header
+      ><hlm-alert-dialog-footer
+        ><button hlmAlertDialogCancel (click)="confirm.finish(false)">{{ 'cancel' | t }}</button
         ><button
-          hlmBtn
+          hlmAlertDialogAction
           [variant]="confirm.current()?.destructive ? 'destructive' : 'default'"
           (click)="confirm.finish(true)"
         >
-          {{ 'confirm' | t }}
-        </button></hlm-dialog-footer
+          {{ confirm.current()?.actionLabel ?? 'confirm' | t }}
+        </button></hlm-alert-dialog-footer
       >
-    </hlm-dialog-content></hlm-dialog
+    </hlm-alert-dialog-content></hlm-alert-dialog
   >`,
 })
 export class Confirmation {
@@ -60,7 +66,8 @@ export interface UnsavedPage {
   hasUnsavedChanges(): boolean;
 }
 export const unsavedGuard: CanDeactivateFn<UnsavedPage> = (component) =>
-  !component.hasUnsavedChanges() || inject(Confirmations).ask('unsavedTitle', 'unsavedHelp');
+  !component.hasUnsavedChanges() ||
+  inject(Confirmations).ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges');
 export function protectUnload(event: BeforeUnloadEvent, dirty: boolean) {
   if (dirty) {
     event.preventDefault();

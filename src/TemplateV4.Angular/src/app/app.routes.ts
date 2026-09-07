@@ -54,6 +54,7 @@ export const routes: Routes = [
     path: 'users',
     data: { breadcrumb: 'users', permission: 'users.read' },
     canActivate: [authGuard, permissionGuard],
+    canDeactivate: [unsavedGuard],
     loadComponent: () => import('./features/users').then((m) => m.UsersPage),
   },
   {
@@ -80,7 +81,22 @@ export const routes: Routes = [
     path: 'notifications',
     data: { breadcrumb: 'notificationCentre' },
     canActivate: [authGuard],
-    loadComponent: () => import('./features/inbox').then((m) => m.InboxPage),
+    loadComponent: () =>
+      import('./features/notification-centre').then((m) => m.NotificationCentrePage),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        data: { breadcrumb: 'inbox' },
+        loadComponent: () => import('./features/inbox').then((m) => m.InboxPage),
+      },
+      {
+        path: 'preferences',
+        data: { breadcrumb: 'notificationPreferences' },
+        loadComponent: () =>
+          import('./features/notification-preferences').then((m) => m.NotificationPreferencesPage),
+      },
+    ],
   },
   {
     path: 'files',

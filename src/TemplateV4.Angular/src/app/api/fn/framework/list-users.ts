@@ -14,6 +14,7 @@ export interface ListUsers$Params {
   pageSize?: number;
   search?: string;
   sort?: string;
+  direction?: string;
 }
 
 export function listUsers(http: HttpClient, rootUrl: string, params?: ListUsers$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfUserDto>> {
@@ -23,6 +24,7 @@ export function listUsers(http: HttpClient, rootUrl: string, params?: ListUsers$
     rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
     rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

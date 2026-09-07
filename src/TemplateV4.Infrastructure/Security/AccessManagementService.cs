@@ -8,7 +8,7 @@ namespace TemplateV4.Infrastructure.Security;
 
 public sealed record PermissionItem(string Key, string Group);
 public sealed record RoleItem(Guid Id, string Name, string Description, string Version, bool BuiltIn, int Members, string[] Permissions);
-public sealed record AccessCatalog(RoleItem[] Roles, PermissionItem[] Permissions);
+public sealed record AccessCatalog(Page<RoleItem> Roles, PermissionItem[] Permissions);
 public sealed record SaveRoleRequest(string Name, string Description, string[] Permissions, string? Version = null);
 public sealed record UserAccessDetail(UserDto User, string[] EffectivePermissions, RoleItem[] Roles);
 
@@ -16,14 +16,27 @@ public sealed record UserAccessDetail(UserDto User, string[] EffectivePermission
 public sealed class AccessManagementService(FrameworkDb db, IExecutionContext context, TimeProvider time)
 {
     public static bool BuiltIn(string name) => name is "Administrator" or "Reader";
-    public async Task<AccessCatalog> Catalog(CancellationToken ct)
+    public async Task<Result<AccessCatalog>> Catalog(int pageNumber, int pageSize, string? search, string sort, string direction, CancellationToken ct)
     {
-        var roles = await db.Roles.AsNoTracking().OrderBy(x => x.Name).ToArrayAsync(ct);
-        var claims = await db.RoleClaims.AsNoTracking().ToArrayAsync(ct);
-        var counts = await db.UserRoles.GroupBy(x => x.RoleId).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
-        return new(roles.Select(r => new RoleItem(r.Id, r.Name!, claims.FirstOrDefault(c => c.RoleId == r.Id && c.ClaimType == "description")?.ClaimValue ?? "",
-            r.ConcurrencyStamp!, BuiltIn(r.Name!), counts.GetValueOrDefault(r.Id), claims.Where(c => c.RoleId == r.Id && c.ClaimType == "permission").Select(c => c.ClaimValue!).Order().ToArray())).ToArray(),
-            Permissions.All.Select(p => new PermissionItem(p, p.Split('.')[0])).ToArray());
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || sort is not ("name" or "members" or "builtIn") || direction is not ("asc" or "desc"))
+            return Result<AccessCatalog>.Fail("validation.failed", ErrorKind.Validation);
+        var source = db.Roles.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+            source = source.Where(x => x.Name!.Contains(search) || db.RoleClaims.Any(c => c.RoleId == x.Id && c.ClaimType == "description" && c.ClaimValue!.Contains(search)));
+        var total = await source.CountAsync(ct);
+        var descending = direction == "desc";
+        var ordered = sort switch
+        {
+            "members" when descending => source.OrderByDescending(x => db.UserRoles.Count(m => m.RoleId == x.Id)).ThenByDescending(x => x.Id),
+            "members" => source.OrderBy(x => db.UserRoles.Count(m => m.RoleId == x.Id)).ThenBy(x => x.Id),
+            "builtIn" when descending => source.OrderByDescending(x => x.Name == "Administrator" || x.Name == "Reader").ThenByDescending(x => x.Id),
+            "builtIn" => source.OrderBy(x => x.Name == "Administrator" || x.Name == "Reader").ThenBy(x => x.Id),
+            _ when descending => source.OrderByDescending(x => x.Name).ThenByDescending(x => x.Id),
+            _ => source.OrderBy(x => x.Name).ThenBy(x => x.Id)
+        };
+        var roles = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
+        var items = await RoleItems(roles, ct);
+        return Result<AccessCatalog>.Success(new(new(items, total, pageNumber, pageSize), Permissions.All.Select(p => new PermissionItem(p, p.Split('.')[0])).ToArray()));
     }
 
     public async Task<Result<UserAccessDetail>> User(Guid id, CancellationToken ct)
@@ -31,7 +44,7 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         var entry = await (from p in db.Profiles.AsNoTracking() join u in db.Users.AsNoTracking() on p.Id equals u.Id where p.Id == id select new { p, u }).SingleOrDefaultAsync(ct);
         if (entry is null) return Result<UserAccessDetail>.Fail("user.not_found", ErrorKind.NotFound);
         var ids = await db.UserRoles.Where(x => x.UserId == id).Select(x => x.RoleId).ToArrayAsync(ct);
-        var roles = (await Catalog(ct)).Roles.Where(r => ids.Contains(r.Id)).ToArray();
+        var roles = await RoleItems(await db.Roles.AsNoTracking().Where(x => ids.Contains(x.Id)).OrderBy(x => x.Name).ToArrayAsync(ct), ct);
         return Result<UserAccessDetail>.Success(new(new(id, entry.u.Email!, entry.p.DisplayName, entry.p.Culture, entry.p.Disabled, roles.Select(r => r.Name).ToArray(), entry.p.Version,
             entry.p.Disabled ? "Disabled" : !entry.u.EmailConfirmed || entry.u.PasswordHash == null ? "Invited" : "Active"), roles.SelectMany(r => r.Permissions).Distinct().Order().ToArray(), roles));
     }
@@ -77,4 +90,13 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
     }
 
     public async Task<string[]> ActorPermissions(CancellationToken ct) => await (from m in db.UserRoles join c in db.RoleClaims on m.RoleId equals c.RoleId where m.UserId == context.ActorId && c.ClaimType == "permission" select c.ClaimValue!).Distinct().ToArrayAsync(ct);
+
+    private async Task<RoleItem[]> RoleItems(IdentityRole<Guid>[] roles, CancellationToken ct)
+    {
+        var ids = roles.Select(x => x.Id).ToArray();
+        var claims = await db.RoleClaims.AsNoTracking().Where(x => ids.Contains(x.RoleId)).ToArrayAsync(ct);
+        var counts = await db.UserRoles.Where(x => ids.Contains(x.RoleId)).GroupBy(x => x.RoleId).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
+        return roles.Select(r => new RoleItem(r.Id, r.Name!, claims.FirstOrDefault(c => c.RoleId == r.Id && c.ClaimType == "description")?.ClaimValue ?? "",
+            r.ConcurrencyStamp!, BuiltIn(r.Name!), counts.GetValueOrDefault(r.Id), claims.Where(c => c.RoleId == r.Id && c.ClaimType == "permission").Select(c => c.ClaimValue!).Order().ToArray())).ToArray();
+    }
 }

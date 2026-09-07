@@ -105,14 +105,22 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.deletion_withdrawn", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
-    public async Task<Result<Page<DeletionItem>>> Requests(int pageNumber, CancellationToken ct)
+    public async Task<Result<Page<DeletionItem>>> Requests(int pageNumber, int pageSize, string sort, string direction, CancellationToken ct)
     {
-        if (pageNumber is < 1 or > 10000) return Result<Page<DeletionItem>>.Fail("validation.failed", ErrorKind.Validation);
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || sort is not ("displayName" or "requestedAt") || direction is not ("asc" or "desc")) return Result<Page<DeletionItem>>.Fail("validation.failed", ErrorKind.Validation);
         var source = db.DeletionRequests.AsNoTracking().Where(x => x.State == "Pending");
         var total = await source.CountAsync(ct);
-        var items = await source.OrderBy(x => x.RequestedAt).ThenBy(x => x.Id).Skip((pageNumber - 1) * 25).Take(25)
+        var descending = direction == "desc";
+        var ordered = sort switch
+        {
+            "displayName" when descending => source.OrderByDescending(x => db.Profiles.Where(p => p.Id == x.UserId).Select(p => p.DisplayName).FirstOrDefault()).ThenByDescending(x => x.Id),
+            "displayName" => source.OrderBy(x => db.Profiles.Where(p => p.Id == x.UserId).Select(p => p.DisplayName).FirstOrDefault()).ThenBy(x => x.Id),
+            _ when descending => source.OrderByDescending(x => x.RequestedAt).ThenByDescending(x => x.Id),
+            _ => source.OrderBy(x => x.RequestedAt).ThenBy(x => x.Id)
+        };
+        var items = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .Select(x => new DeletionItem(x.Id, x.UserId, db.Profiles.Where(p => p.Id == x.UserId).Select(p => p.DisplayName).FirstOrDefault(), x.State, x.RequestedAt, x.ReviewedAt)).ToArrayAsync(ct);
-        return Result<Page<DeletionItem>>.Success(new(items, total, pageNumber, 25));
+        return Result<Page<DeletionItem>>.Success(new(items, total, pageNumber, pageSize));
     }
     public async Task<Result<Unit>> Review(Guid actor, ReviewDeletionRequest command, CancellationToken ct)
     {

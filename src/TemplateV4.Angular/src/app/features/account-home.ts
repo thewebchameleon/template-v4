@@ -1,15 +1,18 @@
 import { Component, inject, signal } from '@angular/core';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
-import { WorkspaceUi, Resource, protectUnload } from '../shared/workspace';
+import { WorkspaceUi, workspaceIcons, Resource, protectUnload } from '../shared/workspace';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Notifications } from '../core/notifications';
 import { ProfileResponse } from '../api/models';
 @Component({
   selector: 'app-account-home',
   imports: [WorkspaceUi, HlmCheckboxImports],
+  providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="account" description="accountIntro"
-      ><a hlmBtn variant="outline" routerLink="/security">{{ 'security' | t }}</a></app-page-header
+      ><a hlmBtn variant="outline" routerLink="/security"
+        ><ng-icon name="lucideShieldCheck" />{{ 'security' | t }}</a
+      ></app-page-header
     >
     <app-page-state [state]="data.state()" (retry)="load()"
       ><div class="max-w-(--form-content-width) grid gap-6">

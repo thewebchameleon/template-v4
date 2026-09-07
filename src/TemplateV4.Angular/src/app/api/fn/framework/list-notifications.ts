@@ -11,14 +11,20 @@ import { NotificationPage } from '../../models/notification-page';
 
 export interface ListNotifications$Params {
   pageNumber?: number;
+  pageSize?: number;
   unreadOnly?: boolean;
+  sort?: string;
+  direction?: string;
 }
 
 export function listNotifications(http: HttpClient, rootUrl: string, params?: ListNotifications$Params, context?: HttpContext): Observable<StrictHttpResponse<NotificationPage>> {
   const rb = new RequestBuilder(rootUrl, listNotifications.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
+    rb.query('pageSize', params.pageSize, {});
     rb.query('unreadOnly', params.unreadOnly, {});
+    rb.query('sort', params.sort, {});
+    rb.query('direction', params.direction, {});
   }
 
   return http.request(

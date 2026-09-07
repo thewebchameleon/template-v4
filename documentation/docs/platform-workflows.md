@@ -2,7 +2,7 @@
 
 ## Personal workspace
 
-- **Notifications** offers an unread view, mark-read actions, deep links and an optional-email preference. The header refreshes its unread count every minute while visible. Essential security email is unaffected by preferences.
+- **Notifications** opens from the header bell as a right-side inbox drawer with recent items, mark-read actions and deep links. The full notification centre separates the `/notifications` inbox from `/notifications/preferences` delivery preferences with route-backed tabs. Inbox items expose their details and read/unread action on the right; preferences are not shown in the drawer. The header refreshes its unread count every minute while visible. Essential security email is unaffected by preferences.
 - **Account** owns personal identity and verified email changes; **Security** owns factors and active sessions.
 - **Files**, when enabled, offers name search, URL-persisted sort/pagination, upload progress, download and confirmed deletion. Files are private to their owner, including against administrators. Limits are 20 MiB per upload and a configurable total quota. Deleted and incomplete objects count until purged.
 - **Privacy & data** offers a JSON export with explicit safe fields, deletion requests and withdrawal. The export includes file metadata; users download content separately from Files. It never serializes Identity entities, password hashes, authenticators, refresh tokens, challenges or outbox payloads.
@@ -16,13 +16,13 @@
 
 ## Retention defaults
 
-| Setting | Default | Bounds |
-| --- | --- | --- |
-| `Privacy:DeletedFileRetentionDays` | 30 days | 1–365 days |
-| `Privacy:NotificationRetentionDays` | 90 days | 7–365 days |
-| `Storage:QuotaBytes` | 1 GiB | 20 MiB–100 GiB |
-| `Operations:BacklogWarningSeconds` | 300 seconds | 60–86400 seconds |
-| `Deployment:Version` | Assembly version (Compose: 0.1.0) | Set to release identifier |
+| Setting                             | Default                           | Bounds                    |
+| ----------------------------------- | --------------------------------- | ------------------------- |
+| `Privacy:DeletedFileRetentionDays`  | 30 days                           | 1–365 days                |
+| `Privacy:NotificationRetentionDays` | 90 days                           | 7–365 days                |
+| `Storage:QuotaBytes`                | 1 GiB                             | 20 MiB–100 GiB            |
+| `Operations:BacklogWarningSeconds`  | 300 seconds                       | 60–86400 seconds          |
+| `Deployment:Version`                | Assembly version (Compose: 0.1.0) | Set to release identifier |
 
 Storage cleanup runs every ten minutes, independently of optional maintenance scheduling, with a 30-second timeout and at most twenty objects per pass. A shared lock prevents concurrent cleanup. Monitor cleanup failures in Worker logs. Purged metadata loses its original filename. Backup copies follow the deployment owner's policy; a database deletion does not alter historical backups. Audit identifiers are intentionally preserved and remain access controlled.
 
@@ -30,7 +30,7 @@ Approval also scrubs encrypted email payloads for the account and fences pending
 
 ## Extending the UI
 
-`shared/workspace.ts` exports `PageHeader`, `PageState`, `ListPager`, `Resource<T>` and `ListQuery`. Use these with generated contract types and `shared/data-table.ts`. Resource loads cancel superseded requests and fence stale responses, retaining content during refresh and recoverable failures. Keep form filters outside the loading region so a retry never loses their values. Use stable secondary sorting in the backend. `shared/confirmation.ts` owns the root confirmation dialog and unsaved-change guard; a guarded page implements `hasUnsavedChanges()` and calls `protectUnload` from its unload handler.
+`shared/workspace.ts` exports `PageHeader`, `PageState`, `ListPager`, `Resource<T>` and `ListQuery`. Use these with generated contract types and `shared/data-table.ts`. Resource loads cancel superseded requests and fence stale responses, retaining content during refresh and recoverable failures. Keep form filters outside the loading region so a retry never loses their values. Every table query sends page, sort column and direction to the server; expose all data-bearing columns through the API sort allowlist and use stable identifier ordering as the tie-breaker. `shared/confirmation.ts` owns the root confirmation dialog and unsaved-change guard; a guarded page implements `hasUnsavedChanges()` and calls `protectUnload` from its unload handler.
 
 Notifications use known keys in `workspace-translations.ts`, translated at read time, and known internal routes. Add both cultures and a valid route when adding a new notification. Generic `EmailTemplate.Notification` supports optional email; security notifications must use `EmailTemplate.SecurityNotification`. Keep generation inside the same database transaction as the change.
 

@@ -26,9 +26,9 @@ public sealed partial class SecurityAndMessagingTests
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         await AccessActor(sp); var access = sp.GetRequiredService<AccessManagementService>();
-        var catalog = await access.Catalog(default);
+        var catalog = (await access.Catalog(1, 25, null, "name", "asc", default)).Value!;
         Assert.Contains(catalog.Permissions, p => p.Key == Permissions.Roles);
-        var admin = Assert.Single(catalog.Roles, r => r.Name == "Administrator");
+        var admin = Assert.Single(catalog.Roles.Items, r => r.Name == "Administrator");
         Assert.Equal("role.protected", (await access.Save(admin.Id, new("Administrator", "", [], admin.Version), default)).Error!.Code);
         Assert.Equal("role.invalid", (await access.Save(null, new("Invalid", "", [Permissions.Manage]), default)).Error!.Code);
         var created = await access.Save(null, new("Support", "Support operators", [Permissions.Read]), default);
@@ -37,6 +37,8 @@ public sealed partial class SecurityAndMessagingTests
         Assert.True(changed.IsSuccess); Assert.NotEqual(created.Value.Version, changed.Value!.Version);
         Assert.Equal("concurrency.conflict", (await access.Save(created.Value.Id, new("Support", "Stale", [], created.Value.Version), default)).Error!.Code);
         Assert.Equal("role.exists", (await access.Save(null, new("support", "", []), default)).Error!.Code);
+        var paged = (await access.Catalog(1, 1, null, "members", "desc", default)).Value!.Roles;
+        Assert.Single(paged.Items); Assert.True(paged.Total >= 3); Assert.Equal(1, paged.PageSize);
         var db = sp.GetRequiredService<FrameworkDb>();
         Assert.Contains(await db.Audit.ToArrayAsync(), e => e.SubjectId == created.Value.Id && e.Action == "role.granted:users.manage");
     }
@@ -119,6 +121,6 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal(1001, first.Total); Assert.Equal(25, first.Items.Count); Assert.Empty(first.Items.Select(x => x.Id).Intersect(second.Items.Select(x => x.Id)));
         Assert.Equal(1, (await directory.List(new(Search: "person0999"), default)).Total);
         var notifications = sp.GetRequiredService<NotificationService>(); Assert.Equal(1, (await notifications.Summary(actor.Id, default)).Unread); Assert.Equal(0, (await notifications.Summary(Guid.NewGuid(), default)).Unread);
-        await notifications.Read(actor.Id, null, default); Assert.Equal(0, (await notifications.Summary(actor.Id, default)).Unread);
+        await notifications.Read(actor.Id, null, true, default); Assert.Equal(0, (await notifications.Summary(actor.Id, default)).Unread);
     }
 }

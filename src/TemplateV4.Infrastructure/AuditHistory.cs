@@ -16,11 +16,27 @@ public sealed class AuditHistory(FrameworkDb db) : IAuditHistory
         if (query.From is not null) source = source.Where(x => x.At >= query.From);
         if (query.Until is not null) source = source.Where(x => x.At <= query.Until);
         var total = await source.CountAsync(ct);
-        var entries = await source.OrderByDescending(x => x.At).ThenByDescending(x => x.Id).Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(ct);
-        var ids = entries.SelectMany(x => new[] { x.ActorId, x.SubjectId }).Where(x => x != null).Select(x => x!.Value).Distinct().ToArray();
-        var names = await db.Profiles.AsNoTracking().Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.DisplayName, ct);
-        var roleNames = await db.Roles.AsNoTracking().Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.Name!, ct);
-        foreach (var role in roleNames) names.TryAdd(role.Key, role.Value);
-        return new(entries.Select(x => new AuditItem(x.Id, x.ActorId, x.ActorId is { } a ? names.GetValueOrDefault(a) : null, x.SubjectId, x.SubjectId is { } s ? names.GetValueOrDefault(s) : null, x.Action, x.At)).ToArray(), total, query.PageNumber, query.PageSize);
+        var descending = query.Direction == "desc";
+        var ordered = query.Sort switch
+        {
+            "action" when descending => source.OrderByDescending(x => x.Action).ThenByDescending(x => x.Id),
+            "action" => source.OrderBy(x => x.Action).ThenBy(x => x.Id),
+            "actorName" when descending => source.OrderByDescending(x => db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault()).ThenByDescending(x => x.Id),
+            "actorName" => source.OrderBy(x => db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault()).ThenBy(x => x.Id),
+            "subjectName" when descending => source.OrderByDescending(x => db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault()).ThenByDescending(x => x.Id),
+            "subjectName" => source.OrderBy(x => db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault()).ThenBy(x => x.Id),
+            _ when descending => source.OrderByDescending(x => x.At).ThenByDescending(x => x.Id),
+            _ => source.OrderBy(x => x.At).ThenBy(x => x.Id)
+        };
+        var entries = await ordered.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize)
+            .Select(x => new AuditItem(
+                x.Id,
+                x.ActorId,
+                x.ActorId == null ? null : db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault(),
+                x.SubjectId,
+                x.SubjectId == null ? null : db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault(),
+                x.Action,
+                x.At)).ToArrayAsync(ct);
+        return new(entries, total, query.PageNumber, query.PageSize);
     }
 }

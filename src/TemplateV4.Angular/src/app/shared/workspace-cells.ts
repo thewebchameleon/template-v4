@@ -33,7 +33,10 @@ export class RowActions {
 @Component({
   selector: 'app-record-identity',
   imports: [RouterLink],
-  template: `<div class="max-w-72 whitespace-normal break-words font-medium">
+  template: `<div
+      class="whitespace-normal break-words font-medium"
+      [class.max-w-72]="constrainWidth()"
+    >
       @if (link()) {
         <a
           class="workspace-link"
@@ -47,12 +50,15 @@ export class RowActions {
       }
     </div>
     @if (description()) {
-      <div class="workspace-meta max-w-72 whitespace-normal break-words">{{ description() }}</div>
+      <div class="workspace-meta whitespace-normal break-words" [class.max-w-72]="constrainWidth()">
+        {{ description() }}
+      </div>
     }`,
 })
 export class RecordIdentity {
   readonly label = input.required<string>();
   readonly description = input('');
+  readonly constrainWidth = input(true);
   readonly link = input<string | null>(null);
   readonly params = input<Record<string, string>>({});
   readonly merge = input(false);

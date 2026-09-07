@@ -57,6 +57,8 @@
   --accent: var(--brand-primary-50);
   --accent-foreground: var(--brand-primary-900);
   --destructive: oklch(0.577 0.245 27.325);
+  --notification-badge: oklch(0.577 0.245 27.325);
+  --notification-badge-foreground: oklch(1 0 0);
   --border: var(--brand-neutral-200);
   --input: var(--brand-neutral-200);
   --ring: var(--brand-primary-500);

@@ -41,7 +41,14 @@
       "@spartan-ng/helm/sonner": ["./libs/ui/sonner/src/index.ts"],
       "@spartan-ng/helm/select": ["./libs/ui/select/src/index.ts"],
       "@spartan-ng/helm/input-otp": ["./libs/ui/input-otp/src/index.ts"],
-      "@spartan-ng/helm/drawer": ["./libs/ui/drawer/src/index.ts"]
+      "@spartan-ng/helm/drawer": ["./libs/ui/drawer/src/index.ts"],
+      "@spartan-ng/helm/date-picker": ["./libs/ui/date-picker/src/index.ts"],
+      "@spartan-ng/helm/calendar": ["./libs/ui/calendar/src/index.ts"],
+      "@spartan-ng/helm/popover": ["./libs/ui/popover/src/index.ts"],
+      "@spartan-ng/helm/input-group": ["./libs/ui/input-group/src/index.ts"],
+      "@spartan-ng/helm/textarea": ["./libs/ui/textarea/src/index.ts"],
+      "@spartan-ng/helm/alert-dialog": ["./libs/ui/alert-dialog/src/index.ts"],
+      "@spartan-ng/helm/tabs": ["./libs/ui/tabs/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

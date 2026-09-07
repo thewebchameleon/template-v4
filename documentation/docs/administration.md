@@ -6,7 +6,7 @@ Changes to a person's access sign them out of existing sessions. Failed saves re
 
 ## Roles and permissions
 
-**Roles & permissions** lets an operator with `roles.manage` create and edit custom roles. Select a role to view its description, membership count and grouped permissions. The built-in **Administrator** and **Reader** roles are read-only; the database migrator maintains their definitions.
+**Roles & permissions** lets an operator with `roles.manage` create and edit custom roles. Select a role to open its description, membership count and grouped permissions in a right-side drawer. The built-in **Administrator** and **Reader** roles are read-only; the database migrator maintains their definitions.
 
 Custom role names are 2–80 ASCII letters, digits, spaces or hyphens. Descriptions are limited to 240 characters. **Manage users** includes **View users**. An operator can grant only permissions they currently hold and cannot alter a role containing stronger permissions or a role assigned to themselves. Ask another appropriately privileged administrator to make such a change. Role changes sign members out so their next session uses current permissions.
 
@@ -14,13 +14,13 @@ User details show persisted effective permissions with their source roles. Unsav
 
 The baseline permission catalog is:
 
-| Permission | Capability |
-| --- | --- |
-| `users.read` | User directory and access details |
-| `users.manage` | Invitations, role assignment and account status |
-| `roles.manage` | Custom role definitions and permission assignments |
+| Permission        | Capability                                                   |
+| ----------------- | ------------------------------------------------------------ |
+| `users.read`      | User directory and access details                            |
+| `users.manage`    | Invitations, role assignment and account status              |
+| `roles.manage`    | Custom role definitions and permission assignments           |
 | `settings.manage` | Security policy, audit, delivery recovery and privacy review |
-| `jobs.trigger` | Request feature-enabled maintenance |
+| `jobs.trigger`    | Request feature-enabled maintenance                          |
 
 Adding granular operator/reviewer permissions is an extension: change the catalog, endpoint and handler policies, UI navigation and descriptions together. The current catalog intentionally preserves the existing `settings.manage` grouping.
 
@@ -34,7 +34,7 @@ Personal files are optional. Set `Features:files:Enabled=true` in the API config
 
 ## Performance and verification
 
-List requests are canceled when superseded or when the component is destroyed. Refreshes retain loaded content and display a separate update/error state. Notification badge polling uses a count-only endpoint once per minute in visible tabs, with backoff on failures. Notification navigation does not reload the inbox before leaving.
+List requests are canceled when superseded or when the component is destroyed. Refreshes retain loaded content and display a separate update/error state. Notification badge polling uses a count-only endpoint once per minute in visible tabs, with backoff on failures. The header bell loads recent notifications into a right-side drawer; delivery preferences remain on `/notifications`. Notification navigation does not reload the inbox before leaving.
 
 The initial performance baseline is 1,000+ accounts, not a claim of 1,000 concurrent users. Validate realistic traffic and query plans before adding indexes, caching, push delivery or background export jobs. Authenticated responses remain uncached. Production Nginx compresses static text and gives hashed JS/CSS a long cache lifetime; index/runtime configuration must stay fresh.
 
