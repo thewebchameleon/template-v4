@@ -37,7 +37,11 @@ const column = createColumnHelper<DataTableFeatures, DeletionItem>();
         <p hlmCardDescription>{{ 'pendingRequestsHelp' | t }}</p>
       </div>
       <div hlmCardContent>
-        <app-page-state [state]="data.state()" (retry)="load()"
+        <app-page-state
+          [state]="data.state()"
+          [refreshing]="data.refreshing()"
+          [refreshError]="data.refreshError()"
+          (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [data]="data.value()?.items ?? []"
@@ -104,8 +108,11 @@ export class PrivacyRequestsPage {
   constructor() {
     this.query.connect(() => void this.load());
   }
-  load() {
-    return this.data.load(() => this.api.get('privacy/requests', { pageNumber: this.query.page }));
+  async load() {
+    const loaded = await this.data.load((signal) =>
+      this.api.get('privacy/requests', { pageNumber: this.query.page }, signal),
+    );
+    if (loaded) this.query.clamp(this.data.value()?.total);
   }
   async review(item: DeletionItem, approve: boolean) {
     if (

@@ -61,14 +61,15 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByLabel('Username', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Account security' })).toBeVisible();
   await expect(page.getByText('Your account requires MFA.', { exact: false })).toBeVisible();
   await expect(page.getByRole('region', { name: /Notifications/ })).not.toContainText(
     'Complete factor setup',
   );
-  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByLabel('Passkey name').fill('Browser test key');
   await page.getByRole('button', { name: 'Add passkey', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Add passkey', exact: true }).last().click();
   await expect(page.getByText('Browser test key', { exact: true })).toBeVisible();
   await expect(page.getByText('Your account requires MFA.', { exact: false })).toHaveCount(0);
   await page.getByRole('button', { name: 'Account Manage your account' }).click();
@@ -77,28 +78,21 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Passkey', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
-  await page.getByRole('link', { name: 'User management', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Invite user', exact: true }).click();
   await page.getByLabel('Full name', { exact: true }).fill('Browser invite');
   await page.getByLabel('Email', { exact: true }).fill('invited-browser@example.test');
-  await page.locator('#role').getByRole('button', { name: 'Administrator', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Administrator', exact: true }).check();
   await page.getByRole('button', { name: 'Invite user', exact: true }).click();
   await expect(page.getByText('Browser invite', { exact: true })).toBeVisible();
   const row = page.getByRole('row').filter({ hasText: 'Browser invite' });
-  await expect(row).toContainText('Invitation pending');
-  await expect(row.getByRole('button', { name: 'Reader', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
-  await expect(row.getByRole('button', { name: 'Administrator', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(row).toContainText('Pending');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     .toBe(true);
   await accessible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
   await accessible();
   await expect(
@@ -113,7 +107,8 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign in with a passkey', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
+  await page.goto('/security');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
@@ -128,8 +123,9 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
       description: x.description,
     })),
   ).toEqual([]);
-  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Set up authenticator', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Set up authenticator', exact: true }).last().click();
   const setupKey = await page.locator('code').first().innerText();
   await page.getByLabel('Authenticator or recovery code', { exact: true }).fill(totp(setupKey));
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
@@ -143,14 +139,14 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('button', { name: 'Authenticator app', exact: true }).click();
-  await page.getByLabel('Authenticator or recovery code', { exact: true }).fill(recovery);
   await page.getByLabel('Use a recovery code', { exact: true }).check();
+  await page.getByLabel('Authenticator or recovery code', { exact: true }).fill(recovery);
   await page.getByRole('button', { name: 'Verify', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'My profile' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Account Manage your account' }).click();
   await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.reload();
   await page.goto('/profile');
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
 });

@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 async function mockApp(
   page: Page,
-  permissions = ['users.manage', 'settings.manage'],
+  permissions = ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
   mfaConfigured = true,
 ) {
   const access = {
@@ -17,6 +17,7 @@ async function mockApp(
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
     const responses: Record<string, unknown> = {
+      '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': access,
       '/api/v1/bootstrap/status': { available: false },
@@ -29,6 +30,9 @@ async function mockApp(
         culture: 'en-ZA',
         mfaEnabled: false,
         mfaRequired: false,
+        mfaMethods: [],
+        preferredMfaMethod: 'Email',
+        emailMfaEnabled: false,
         passkeys: [],
         recoveryCodes: 0,
         roles: ['Administrator'],
@@ -39,6 +43,7 @@ async function mockApp(
           device: 'Browser test device',
           createdAt: '2026-09-05T10:00:00Z',
           current: true,
+          expiresAt: '2026-10-05T10:00:00Z',
         },
       ],
       '/api/v1/auth/settings/security': {
@@ -104,7 +109,7 @@ test('forgot password captures the recovery email in a dialog', async ({ page })
 
   await expect(dialog).toBeHidden();
   await expect(
-    page.getByText('Check your email for the next step.', { exact: true }),
+    page.getByText('Check your email for the next step.', { exact: true }).first(),
   ).toBeVisible();
   expect(recoveryEmail).toBe('recover@example.test');
 });
@@ -114,7 +119,7 @@ test('desktop sidebar exposes permission links, collapses, and signs out from ac
 }) => {
   await mockApp(page);
   await page.goto('/profile');
-  await expect(page.getByRole('link', { name: 'User management', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Users', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Admin settings', exact: true })).toBeVisible();
   const sidebar = page.locator('hlm-sidebar');
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
@@ -123,9 +128,9 @@ test('desktop sidebar exposes permission links, collapses, and signs out from ac
   await page.getByRole('button', { name: 'Toggle navigation', exact: true }).click();
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
   await page.getByRole('button', { name: /Manage your account/ }).click();
-  await expect(page.getByRole('menuitem', { name: 'My profile', exact: true })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Account', exact: true })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Your sessions', exact: true }).click();
-  await expect(page).toHaveURL(/\/sessions$/);
+  await expect(page).toHaveURL(/\/security\/sessions$/);
   await page.getByRole('button', { name: /Manage your account/ }).click();
   await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
@@ -146,15 +151,15 @@ test('breadcrumbs name the current page and return through browser history', asy
   await page.goto('/profile');
 
   const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
-  await expect(breadcrumb.getByText('My profile', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Back to My profile' })).toHaveCount(0);
+  await expect(breadcrumb.getByText('Account security', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Back to Account security' })).toHaveCount(0);
 
   await page.getByRole('link', { name: 'Your sessions', exact: true }).click();
   await expect(breadcrumb.getByText('Your sessions', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Back to My profile' }).click();
+  await page.getByRole('button', { name: 'Back to Account security' }).click();
 
-  await expect(page).toHaveURL(/\/profile$/);
-  await expect(breadcrumb.getByText('My profile', { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/security$/);
+  await expect(breadcrumb.getByText('Account security', { exact: true })).toBeVisible();
 });
 
 test('reader sidebar hides administration and mobile navigation closes after selection and Escape', async ({
@@ -169,11 +174,11 @@ test('reader sidebar hides administration and mobile navigation closes after sel
     .getByRole('dialog', { name: 'Toggle navigation' })
     .locator('hlm-sheet-content');
   await expect(navigation).toBeVisible();
-  await expect(page.getByRole('link', { name: 'User management', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Users', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Admin settings', exact: true })).toHaveCount(0);
   await accessible(page);
-  await navigation.getByRole('link', { name: 'Your sessions', exact: true }).click();
-  await expect(page).toHaveURL(/\/sessions$/);
+  await navigation.getByRole('link', { name: 'Account', exact: true }).click();
+  await expect(page).toHaveURL(/\/me$/);
   await expect(navigation).toBeHidden();
   await trigger.click();
   await expect(navigation).toBeVisible();

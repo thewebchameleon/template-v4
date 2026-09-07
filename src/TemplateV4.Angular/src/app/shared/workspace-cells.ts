@@ -35,7 +35,13 @@ export class RowActions {
   imports: [RouterLink],
   template: `<div class="max-w-72 whitespace-normal break-words font-medium">
       @if (link()) {
-        <a class="workspace-link" [routerLink]="link()" [queryParams]="params()">{{ label() }}</a>
+        <a
+          class="workspace-link"
+          [routerLink]="link()"
+          [queryParams]="params()"
+          [queryParamsHandling]="merge() ? 'merge' : 'replace'"
+          >{{ label() }}</a
+        >
       } @else {
         {{ label() }}
       }
@@ -49,6 +55,7 @@ export class RecordIdentity {
   readonly description = input('');
   readonly link = input<string | null>(null);
   readonly params = input<Record<string, string>>({});
+  readonly merge = input(false);
 }
 @Component({
   selector: 'app-record-status',

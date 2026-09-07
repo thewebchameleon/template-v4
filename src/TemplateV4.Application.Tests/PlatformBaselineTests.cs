@@ -135,12 +135,13 @@ public sealed partial class SecurityAndMessagingTests
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var db = sp.GetRequiredService<FrameworkDb>();
         var manager = sp.GetRequiredService<UserManager<AppUser>>(); var accounts = sp.GetRequiredService<AccountService>();
+        var actor = await AccessActor(sp);
         var user = new AppUser { Id = Guid.NewGuid(), Email = "invited@example.test", UserName = "invited@example.test", InvitationSentAt = _clock.Now, InvitationExpiresAt = _clock.Now.AddHours(2) };
         Assert.True((await manager.CreateAsync(user)).Succeeded); db.Profiles.Add(UserProfile.Create(user.Id, "Invited", "en-ZA", false)); await db.SaveChangesAsync();
-        Assert.Equal("invitation.wait", (await accounts.Invitation(Guid.NewGuid(), new(user.Id), default)).Error!.Code);
+        Assert.Equal("invitation.wait", (await accounts.Invitation(actor.Id, new(user.Id), default)).Error!.Code);
         db.ChangeTracker.Clear(); _clock.Now = _clock.Now.AddHours(3);
         Assert.Equal(1, (await accounts.Invitations(1, null, "Expired", default)).Value!.Total);
-        Assert.True((await accounts.Invitation(Guid.NewGuid(), new(user.Id), default)).IsSuccess);
+        Assert.True((await accounts.Invitation(actor.Id, new(user.Id), default)).IsSuccess);
         Assert.Equal(1, (await accounts.Invitations(1, "Invited", "Pending", default)).Value!.Total);
         var current = (await manager.FindByIdAsync(user.Id.ToString()))!;
         var confirmation = await manager.GenerateEmailConfirmationTokenAsync(current);
@@ -148,11 +149,11 @@ public sealed partial class SecurityAndMessagingTests
         var password = await manager.GeneratePasswordResetTokenAsync(current);
         Assert.True((await accounts.Reset(new(user.Id, password, "Test-only!Password942"), default)).IsSuccess);
         Assert.Equal(1, (await accounts.Invitations(1, null, "Accepted", default)).Value!.Total);
-        Assert.False((await accounts.Invitation(Guid.NewGuid(), new(user.Id, true), default)).IsSuccess);
+        Assert.False((await accounts.Invitation(actor.Id, new(user.Id, true), default)).IsSuccess);
         var revoked = new AppUser { Id = Guid.NewGuid(), Email = "revoked@example.test", UserName = "revoked@example.test" };
         await manager.CreateAsync(revoked); db.Profiles.Add(UserProfile.Create(revoked.Id, "Revoked", "en-ZA", false)); await db.SaveChangesAsync();
         var oldToken = await manager.GenerateEmailConfirmationTokenAsync(revoked);
-        Assert.True((await accounts.Invitation(Guid.NewGuid(), new(revoked.Id, true), default)).IsSuccess);
+        Assert.True((await accounts.Invitation(actor.Id, new(revoked.Id, true), default)).IsSuccess);
         Assert.False((await accounts.Confirm(new(revoked.Id, oldToken), default)).IsSuccess);
     }
 
@@ -186,7 +187,9 @@ public sealed partial class SecurityAndMessagingTests
         var login = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, "Test-only!Password942", "baseline-test")); Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         client.DefaultRequestHeaders.Authorization = new("Bearer", (await login.Content.ReadFromJsonAsync<AccessResponse>())!.AccessToken);
         foreach (var path in new[] { "audit", "invitations", "operations/overview", "privacy/requests" }) Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
-        foreach (var path in new[] { "notifications", "files", "privacy" }) Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
+        foreach (var path in new[] { "notifications", "notifications/summary", "privacy" }) Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/auth/files")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/roles")).StatusCode);
         client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/privacy/deletion", new { })).StatusCode);
     }

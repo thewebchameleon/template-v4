@@ -55,7 +55,7 @@ public static class Registration
         services.AddSingleton<AdminBootstrapToken>();
         services.AddScoped<AdminBootstrapService>();
         services.AddScoped<RegistrationService>();
-        services.AddScoped<AuthService>(); services.AddScoped<AccountService>();
+        services.AddScoped<AuthService>(); services.AddScoped<AccountService>(); services.AddScoped<AccessManagementService>();
         services.AddScoped<SecurityService>(); services.AddScoped<PasskeyService>();
         services.AddScoped<SharedRateLimiter>();
         services.AddScoped<OperationsService>();

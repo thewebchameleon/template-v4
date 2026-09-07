@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkspaceUi, workspaceIcons, Resource, ListQuery } from '../shared/workspace';
+import { Auth } from '../core/auth';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
 import { Notifications } from '../core/notifications';
@@ -20,7 +21,7 @@ import { UnreadNotifications } from '../core/unread-notifications';
         <ng-icon name="lucideCheck" />{{ 'markAllRead' | t }}
       </button></app-page-header
     >
-    <div class="workspace-columns">
+    <div class="grid gap-5">
       <section hlmCard>
         <div hlmCardHeader>
           <h2 hlmCardTitle>
@@ -42,7 +43,11 @@ import { UnreadNotifications } from '../core/unread-notifications';
             ><button hlmToggleGroupItem value="all">{{ 'all' | t }}</button
             ><button hlmToggleGroupItem value="unread">{{ 'unread' | t }}</button></hlm-toggle-group
           >
-          <app-page-state [state]="data.state()" (retry)="load()"
+          <app-page-state
+            [state]="data.state()"
+            [refreshing]="data.refreshing()"
+            [refreshError]="data.refreshError()"
+            (retry)="load()"
             ><ul aria-live="polite">
               @for (item of data.value()?.page?.items ?? []; track item.id) {
                 <li class="workspace-notice" [class.unread]="!item.readAt">
@@ -59,7 +64,7 @@ import { UnreadNotifications } from '../core/unread-notifications';
                         <span class="workspace-unread-dot" [attr.aria-label]="'unread' | t"></span>
                       }
                     </p>
-                    <p class="workspace-meta mt-1">{{ item.kind + 'Help' | t }}</p>
+
                     <p class="workspace-meta mt-2">{{ i18n.date(item.createdAt) }}</p>
                     <div class="mt-3 flex flex-wrap gap-2">
                       <button
@@ -102,7 +107,10 @@ import { UnreadNotifications } from '../core/unread-notifications';
           /></app-page-state>
         </div>
       </section>
-      <aside hlmCard>
+      <details hlmCard>
+        <summary class="cursor-pointer px-6 py-4 font-medium">
+          {{ 'notificationPreferences' | t }}
+        </summary>
         <div hlmCardHeader>
           <h2 hlmCardTitle>{{ 'notificationPreferences' | t }}</h2>
           <p hlmCardDescription>{{ 'notificationPreferencesHelp' | t }}</p>
@@ -121,10 +129,11 @@ import { UnreadNotifications } from '../core/unread-notifications';
         <div hlmCardFooter>
           <p class="workspace-meta">{{ 'securityEmailRequired' | t }}</p>
         </div>
-      </aside>
+      </details>
     </div>`,
 })
 export class InboxPage {
+  readonly auth = inject(Auth);
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
@@ -137,46 +146,100 @@ export class InboxPage {
     this.query.connect(() => void this.load());
   }
   async load() {
-    await this.data.load(() =>
-      this.api.get('notifications', {
-        pageNumber: this.query.page,
-        unreadOnly: this.query.text('filter') === 'unread',
-      }),
+    const loaded = await this.data.load((signal) =>
+      this.api.get(
+        'notifications',
+        {
+          pageNumber: this.query.page,
+          unreadOnly: this.query.text('filter') === 'unread',
+        },
+        signal,
+      ),
     );
-    if (this.data.state() === 'ready') this.unread.count.set(this.data.value()!.unread);
+    if (loaded) this.unread.set(this.data.value()!.unread);
+    if (loaded) this.query.clamp(this.data.value()?.page.total);
   }
   filter(value: unknown) {
     if (value === 'all' || value === 'unread') void this.query.set({ filter: value, page: 1 });
   }
-  async execute(action: () => Promise<unknown>) {
-    if (this.busy()) return;
+  private applyRead(id?: string) {
+    this.data.value.update((value) => {
+      if (!value) return value;
+      const changed = id
+        ? value.page.items.filter((i) => i.id === id && !i.readAt).length
+        : value.unread;
+      let items = value.page.items.map((item) =>
+        !id || item.id === id ? { ...item, readAt: item.readAt ?? new Date().toISOString() } : item,
+      );
+      const filtered = this.query.text('filter') === 'unread';
+      if (filtered) items = items.filter((i) => !i.readAt);
+      const unread = Math.max(0, value.unread - changed);
+      this.unread.set(unread);
+      return {
+        ...value,
+        unread,
+        page: {
+          ...value.page,
+          items,
+          total: filtered ? Math.max(0, value.page.total - changed) : value.page.total,
+        },
+      };
+    });
+  }
+  async read(item: NotificationItem) {
+    if (this.busy() || item.readAt) return;
     this.busy.set(true);
     try {
-      await action();
-      await this.load();
+      await this.api.post('notifications/read?id=' + encodeURIComponent(item.id));
+      this.applyRead(item.id);
+      if (this.query.text('filter') === 'unread') await this.load();
     } catch {
-      /* Central error feedback. */
+      /* central feedback */
     } finally {
       this.busy.set(false);
     }
   }
-  read(item: NotificationItem) {
-    return this.execute(() =>
-      this.api.post('notifications/read?id=' + encodeURIComponent(item.id)),
-    );
-  }
-  readAll() {
-    return this.execute(() => this.api.post('notifications/read'));
+  async readAll() {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.api.post('notifications/read');
+      this.applyRead();
+      this.query.clamp(this.data.value()?.page.total);
+    } catch {
+      /* central feedback */
+    } finally {
+      this.busy.set(false);
+    }
   }
   async open(item: NotificationItem) {
-    await this.read(item);
-    if (['/profile', '/privacy', '/operations'].includes(item.link))
-      await this.router.navigateByUrl(item.link);
+    if (!['/profile', '/security', '/privacy', '/operations', '/me'].includes(item.link)) return;
+    const actor = this.auth.access()?.userId;
+    if (!item.readAt) {
+      void this.api
+        .post('notifications/read?id=' + encodeURIComponent(item.id))
+        .then(() => {
+          if (actor === this.auth.access()?.userId) this.applyRead(item.id);
+        })
+        .catch(() => {
+          /* Request errors are already reported centrally. */
+        });
+    }
+    await this.router.navigateByUrl(item.link === '/profile' ? '/security' : item.link);
   }
-  preference(enabled: boolean) {
-    return this.execute(async () => {
+  async preference(enabled: boolean) {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
       await this.api.post('notifications/preferences', { optionalEmailEnabled: enabled });
+      this.data.value.update((value) =>
+        value ? { ...value, optionalEmailEnabled: enabled } : value,
+      );
       this.toast.success('preferencesSaved');
-    });
+    } catch {
+      /* central feedback */
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

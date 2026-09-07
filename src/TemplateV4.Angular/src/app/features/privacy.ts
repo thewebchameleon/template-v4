@@ -1,11 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import {
-  WorkspaceUi,
-  workspaceIcons,
-  Resource,
-  Confirmations,
-  protectUnload,
-} from '../shared/workspace';
+import { WorkspaceUi, workspaceIcons, Resource, Confirmations } from '../shared/workspace';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
 import { Notifications } from '../core/notifications';
@@ -14,84 +8,14 @@ import { PrivacyStatus } from '../api/models';
   selector: 'app-privacy',
   imports: [WorkspaceUi],
   providers: [workspaceIcons],
-  host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="privacyAndData" description="privacyIntro" />
-    <app-page-state [state]="data.state()" (retry)="load()"
+    <app-page-state
+      [state]="data.state()"
+      [refreshing]="data.refreshing()"
+      [refreshError]="data.refreshError()"
+      (retry)="load()"
       ><div class="workspace-columns">
         <div class="workspace-stack">
-          <section hlmCard>
-            <div hlmCardHeader>
-              <h2 hlmCardTitle>{{ 'changeEmail' | t }}</h2>
-              <p hlmCardDescription>{{ 'changeEmailHelp' | t }}</p>
-            </div>
-            <form
-              hlmCardContent
-              class="grid gap-5"
-              #emailForm="ngForm"
-              (ngSubmit)="emailForm.valid && changeEmail()"
-            >
-              <div hlmField>
-                <label hlmFieldLabel for="new-email">{{ 'newEmail' | t }}</label
-                ><input
-                  hlmInput
-                  id="new-email"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  email
-                  required
-                  maxlength="254"
-                  [(ngModel)]="email"
-                  #emailControl="ngModel"
-                />
-                @if (emailControl.invalid && emailControl.touched) {
-                  <hlm-field-error forceShow>{{ 'emailInvalid' | t }}</hlm-field-error>
-                }
-              </div>
-              <div class="grid gap-5 sm:grid-cols-2">
-                <div hlmField>
-                  <label hlmFieldLabel for="email-password">{{ 'currentPassword' | t }}</label
-                  ><input
-                    hlmInput
-                    id="email-password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                    maxlength="1024"
-                    [(ngModel)]="password"
-                  />
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="email-code">{{ 'authenticatorCodeOptional' | t }}</label
-                  ><input
-                    hlmInput
-                    id="email-code"
-                    name="code"
-                    autocomplete="one-time-code"
-                    inputmode="numeric"
-                    maxlength="64"
-                    [(ngModel)]="code"
-                  />
-                </div>
-              </div>
-              <p class="workspace-meta">{{ 'emailProofHelp' | t }}</p>
-              <div>
-                <button hlmBtn [disabled]="busy() || emailForm.invalid">
-                  @if (busy()) {
-                    <hlm-spinner />
-                  }
-                  {{ 'sendVerification' | t }}
-                </button>
-              </div>
-              @if (emailSent()) {
-                <div hlmAlert role="status">
-                  <h3 hlmAlertTitle>{{ 'emailChangeSent' | t }}</h3>
-                  <p hlmAlertDescription>{{ 'emailChangeSentHelp' | t }}</p>
-                </div>
-              }
-            </form>
-          </section>
           <section hlmCard>
             <div hlmCardHeader>
               <h2 hlmCardTitle>{{ 'exportData' | t }}</h2>
@@ -166,8 +90,8 @@ import { PrivacyStatus } from '../api/models';
             <p class="workspace-meta mt-5">{{ 'retentionExplanation' | t }}</p>
           </div>
           <div hlmCardFooter>
-            <a routerLink="/files" hlmBtn variant="outline"
-              >{{ 'manageFiles' | t }}<ng-icon name="lucideArrowUpRight"
+            <a routerLink="/me" hlmBtn variant="outline"
+              >{{ 'account' | t }}<ng-icon name="lucideArrowUpRight"
             /></a>
           </div>
         </aside></div
@@ -180,40 +104,11 @@ export class PrivacyPage {
   readonly confirm = inject(Confirmations);
   readonly data = new Resource<PrivacyStatus>();
   readonly busy = signal(false);
-  readonly emailSent = signal(false);
-  email = '';
-  password = '';
-  code = '';
   constructor() {
     void this.load();
   }
-  hasUnsavedChanges() {
-    return !!(this.email || this.password || this.code);
-  }
-  beforeUnload(event: BeforeUnloadEvent) {
-    protectUnload(event, this.hasUnsavedChanges());
-  }
   load() {
-    return this.data.load(() => this.api.get('privacy'));
-  }
-  async changeEmail() {
-    if (this.busy()) return;
-    this.busy.set(true);
-    try {
-      await this.api.post('privacy/email', {
-        email: this.email,
-        proof: { password: this.password, code: this.code },
-      });
-      this.email = '';
-      this.password = '';
-      this.code = '';
-      this.emailSent.set(true);
-      this.toast.success('emailChangeSent');
-    } catch {
-      /* Keep form input for correction. */
-    } finally {
-      this.busy.set(false);
-    }
+    return this.data.load((signal) => this.api.get('privacy', {}, signal));
   }
   async export() {
     this.busy.set(true);

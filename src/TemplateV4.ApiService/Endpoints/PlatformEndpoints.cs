@@ -13,7 +13,7 @@ public static class PlatformEndpoints
                     : (await dispatcher.Send(new(context.Request.Headers["Idempotency-Key"].FirstOrDefault()), ct)).ToHttp())
             .RequireAuthorization(Permissions.Jobs).WithName("TriggerMaintenance");
         group.MapGet("/features", (IFeatureFlags flags, IExecutionContext context) =>
-                Results.Ok(new { maintenance = flags.Enabled("maintenance", context) }))
+                Results.Ok(new { maintenance = flags.Enabled("maintenance", context), files = flags.Enabled("files", context) }))
             .WithName("GetFeatures");
 
         return group;

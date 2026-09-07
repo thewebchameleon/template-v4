@@ -232,6 +232,9 @@ import { Notifications } from '../core/notifications';
           </hlm-dialog-content>
         </hlm-dialog>
       </div>
+      @if (recoverySent()) {
+        <p role="status" class="text-sm text-muted-foreground">{{ 'sent' | t }}</p>
+      }
       @if (!auth.challenge() && registrationEnabled()) {
         <p hlmFieldDescription class="text-center">
           {{ 'noAccount' | t }} <a routerLink="/signup">{{ 'signUp' | t }}</a>
@@ -256,6 +259,7 @@ export class LoginPage implements OnInit, OnDestroy {
   recovery = false;
   username = '';
   recoveryEmail = '';
+  readonly recoverySent = signal(false);
   readonly forgotDialogState = signal<'closed' | 'open'>('closed');
   password = '';
   readonly busy = signal(false);
@@ -302,7 +306,9 @@ export class LoginPage implements OnInit, OnDestroy {
         this.password = '';
         if (this.auth.challenge()) {
           this.selectedMethod.set(this.auth.preferredMfaMethod());
-          this.challengeStep.set('choose');
+          this.challengeStep.set(
+            this.auth.preferredMfaMethod() === 'Passkey' ? 'choose' : 'factor',
+          );
           this.startCountdown();
         }
       }
@@ -347,6 +353,7 @@ export class LoginPage implements OnInit, OnDestroy {
     this.code = '';
     this.recovery = false;
     this.resendSeconds.set(0);
+    if (this.countdown) clearInterval(this.countdown);
   }
   chooseAnotherMethod() {
     this.challengeStep.set('choose');
@@ -362,15 +369,19 @@ export class LoginPage implements OnInit, OnDestroy {
       );
     };
     update();
-    this.countdown = setInterval(update, 1000);
+    if (this.resendSeconds() > 0)
+      this.countdown = setInterval(() => {
+        update();
+        if (this.resendSeconds() === 0 && this.countdown) clearInterval(this.countdown);
+      }, 1000);
   }
   private async navigateAfterAuthentication() {
     const requested = this.route.snapshot.queryParamMap.get('returnUrl');
     const safe =
       requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/login')
         ? requested
-        : '/profile';
-    await this.router.navigateByUrl(this.auth.access()?.setupRequired ? '/profile' : safe);
+        : this.auth.landing();
+    await this.router.navigateByUrl(this.auth.access()?.setupRequired ? '/security' : safe);
   }
   async forgot() {
     if (!this.recoveryEmail) return;
@@ -378,6 +389,7 @@ export class LoginPage implements OnInit, OnDestroy {
     try {
       await this.auth.action('forgot-password', { email: this.recoveryEmail });
       this.notifications.success('sent');
+      this.recoverySent.set(true);
       this.recoveryEmail = '';
       this.forgotDialogState.set('closed');
     } catch {

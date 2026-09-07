@@ -10,6 +10,7 @@ import { BaseService } from '../base-service';
 import { ApiConfiguration } from '../api-configuration';
 import { StrictHttpResponse } from '../strict-http-response';
 
+import { AccessCatalog } from '../models/access-catalog';
 import { AccessResponse } from '../models/access-response';
 import { AdminBootstrapStatus } from '../models/admin-bootstrap-status';
 import { beginMfaEnrollment } from '../fn/framework/begin-mfa-enrollment';
@@ -26,6 +27,8 @@ import { confirmMfaEnrollment } from '../fn/framework/confirm-mfa-enrollment';
 import { ConfirmMfaEnrollment$Params } from '../fn/framework/confirm-mfa-enrollment';
 import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-administrator';
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
+import { createRole } from '../fn/framework/create-role';
+import { CreateRole$Params } from '../fn/framework/create-role';
 import { createUser } from '../fn/framework/create-user';
 import { CreateUser$Params } from '../fn/framework/create-user';
 import { deleteFile } from '../fn/framework/delete-file';
@@ -42,6 +45,8 @@ import { FileItem } from '../models/file-item';
 import { FilePage } from '../models/file-page';
 import { forgotPassword } from '../fn/framework/forgot-password';
 import { ForgotPassword$Params } from '../fn/framework/forgot-password';
+import { getAccessCatalog } from '../fn/framework/get-access-catalog';
+import { GetAccessCatalog$Params } from '../fn/framework/get-access-catalog';
 import { getAdminBootstrapStatus } from '../fn/framework/get-admin-bootstrap-status';
 import { GetAdminBootstrapStatus$Params } from '../fn/framework/get-admin-bootstrap-status';
 import { getCsrfToken } from '../fn/framework/get-csrf-token';
@@ -50,6 +55,8 @@ import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
 import { getFeatures } from '../fn/framework/get-features';
 import { GetFeatures$Params } from '../fn/framework/get-features';
+import { getNotificationSummary } from '../fn/framework/get-notification-summary';
+import { GetNotificationSummary$Params } from '../fn/framework/get-notification-summary';
 import { getOperationsOverview } from '../fn/framework/get-operations-overview';
 import { GetOperationsOverview$Params } from '../fn/framework/get-operations-overview';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
@@ -60,6 +67,8 @@ import { getRegistrationSettings } from '../fn/framework/get-registration-settin
 import { GetRegistrationSettings$Params } from '../fn/framework/get-registration-settings';
 import { getSecuritySettings } from '../fn/framework/get-security-settings';
 import { GetSecuritySettings$Params } from '../fn/framework/get-security-settings';
+import { getUserAccess } from '../fn/framework/get-user-access';
+import { GetUserAccess$Params } from '../fn/framework/get-user-access';
 import { listAuditHistory } from '../fn/framework/list-audit-history';
 import { ListAuditHistory$Params } from '../fn/framework/list-audit-history';
 import { listDeletionRequests } from '../fn/framework/list-deletion-requests';
@@ -82,6 +91,7 @@ import { manageInvitation } from '../fn/framework/manage-invitation';
 import { ManageInvitation$Params } from '../fn/framework/manage-invitation';
 import { MfaEnrollment } from '../models/mfa-enrollment';
 import { NotificationPage } from '../models/notification-page';
+import { NotificationSummary } from '../models/notification-summary';
 import { OperationsOverview } from '../models/operations-overview';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
@@ -121,6 +131,7 @@ import { reviewAccountDeletion } from '../fn/framework/review-account-deletion';
 import { ReviewAccountDeletion$Params } from '../fn/framework/review-account-deletion';
 import { revokeSession } from '../fn/framework/revoke-session';
 import { RevokeSession$Params } from '../fn/framework/revoke-session';
+import { RoleItem } from '../models/role-item';
 import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
 import { saveNotificationPreferences } from '../fn/framework/save-notification-preferences';
@@ -137,10 +148,13 @@ import { setSecuritySettings } from '../fn/framework/set-security-settings';
 import { SetSecuritySettings$Params } from '../fn/framework/set-security-settings';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
+import { updateRole } from '../fn/framework/update-role';
+import { UpdateRole$Params } from '../fn/framework/update-role';
 import { updateUser } from '../fn/framework/update-user';
 import { UpdateUser$Params } from '../fn/framework/update-user';
 import { uploadFile } from '../fn/framework/upload-file';
 import { UploadFile$Params } from '../fn/framework/upload-file';
+import { UserAccessDetail } from '../models/user-access-detail';
 import { UserDto } from '../models/user-dto';
 import { withdrawAccountDeletion } from '../fn/framework/withdraw-account-deletion';
 import { WithdrawAccountDeletion$Params } from '../fn/framework/withdraw-account-deletion';
@@ -1096,6 +1110,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getNotificationSummary()` */
+  static readonly GetNotificationSummaryPath = '/api/v1/auth/notifications/summary';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getNotificationSummary()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getNotificationSummary$Response(params?: GetNotificationSummary$Params, context?: HttpContext): Observable<StrictHttpResponse<NotificationSummary>> {
+    const obs = getNotificationSummary(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getNotificationSummary$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getNotificationSummary(params?: GetNotificationSummary$Params, context?: HttpContext): Observable<NotificationSummary> {
+    const resp = this.getNotificationSummary$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<NotificationSummary>): NotificationSummary => r.body)
+    );
+  }
+
   /** Path part for operation `listNotifications()` */
   static readonly ListNotificationsPath = '/api/v1/auth/notifications';
 
@@ -1172,114 +1213,6 @@ export class FrameworkService extends BaseService {
    */
   saveNotificationPreferences(params: SaveNotificationPreferences$Params, context?: HttpContext): Observable<void> {
     const resp = this.saveNotificationPreferences$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `listFiles()` */
-  static readonly ListFilesPath = '/api/v1/auth/files';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listFiles()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listFiles$Response(params?: ListFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
-    const obs = listFiles(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listFiles$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listFiles(params?: ListFiles$Params, context?: HttpContext): Observable<FilePage> {
-    const resp = this.listFiles$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<FilePage>): FilePage => r.body)
-    );
-  }
-
-  /** Path part for operation `uploadFile()` */
-  static readonly UploadFilePath = '/api/v1/auth/files/upload';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `uploadFile()` instead.
-   *
-   * This method sends `application/octet-stream` and handles request body of type `application/octet-stream`.
-   */
-  uploadFile$Response(params: UploadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
-    const obs = uploadFile(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `uploadFile$Response()` instead.
-   *
-   * This method sends `application/octet-stream` and handles request body of type `application/octet-stream`.
-   */
-  uploadFile(params: UploadFile$Params, context?: HttpContext): Observable<FileItem> {
-    const resp = this.uploadFile$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<FileItem>): FileItem => r.body)
-    );
-  }
-
-  /** Path part for operation `downloadFile()` */
-  static readonly DownloadFilePath = '/api/v1/auth/files/{id}/download';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `downloadFile()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadFile$Response(params: DownloadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = downloadFile(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `downloadFile$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadFile(params: DownloadFile$Params, context?: HttpContext): Observable<void> {
-    const resp = this.downloadFile$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `deleteFile()` */
-  static readonly DeleteFilePath = '/api/v1/auth/files/{id}/delete';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `deleteFile()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  deleteFile$Response(params: DeleteFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = deleteFile(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `deleteFile$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  deleteFile(params: DeleteFile$Params, context?: HttpContext): Observable<void> {
-    const resp = this.deleteFile$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -1501,6 +1434,114 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `listFiles()` */
+  static readonly ListFilesPath = '/api/v1/auth/files';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listFiles()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listFiles$Response(params?: ListFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
+    const obs = listFiles(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listFiles$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listFiles(params?: ListFiles$Params, context?: HttpContext): Observable<FilePage> {
+    const resp = this.listFiles$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FilePage>): FilePage => r.body)
+    );
+  }
+
+  /** Path part for operation `uploadFile()` */
+  static readonly UploadFilePath = '/api/v1/auth/files/upload';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `uploadFile()` instead.
+   *
+   * This method sends `application/octet-stream` and handles request body of type `application/octet-stream`.
+   */
+  uploadFile$Response(params: UploadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+    const obs = uploadFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `uploadFile$Response()` instead.
+   *
+   * This method sends `application/octet-stream` and handles request body of type `application/octet-stream`.
+   */
+  uploadFile(params: UploadFile$Params, context?: HttpContext): Observable<FileItem> {
+    const resp = this.uploadFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FileItem>): FileItem => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadFile()` */
+  static readonly DownloadFilePath = '/api/v1/auth/files/{id}/download';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadFile()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadFile$Response(params: DownloadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadFile$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadFile(params: DownloadFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `deleteFile()` */
+  static readonly DeleteFilePath = '/api/v1/auth/files/{id}/delete';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `deleteFile()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  deleteFile$Response(params: DeleteFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = deleteFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `deleteFile$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  deleteFile(params: DeleteFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.deleteFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
   /** Path part for operation `getAdminBootstrapStatus()` */
   static readonly GetAdminBootstrapStatusPath = '/api/v1/bootstrap/status';
 
@@ -1609,6 +1650,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getUserAccess()` */
+  static readonly GetUserAccessPath = '/api/v1/users/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getUserAccess()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getUserAccess$Response(params: GetUserAccess$Params, context?: HttpContext): Observable<StrictHttpResponse<UserAccessDetail>> {
+    const obs = getUserAccess(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getUserAccess$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getUserAccess(params: GetUserAccess$Params, context?: HttpContext): Observable<UserAccessDetail> {
+    const resp = this.getUserAccess$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<UserAccessDetail>): UserAccessDetail => r.body)
+    );
+  }
+
   /** Path part for operation `updateUser()` */
   static readonly UpdateUserPath = '/api/v1/users/{id}';
 
@@ -1633,6 +1701,87 @@ export class FrameworkService extends BaseService {
     const resp = this.updateUser$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<UserDto>): UserDto => r.body)
+    );
+  }
+
+  /** Path part for operation `getAccessCatalog()` */
+  static readonly GetAccessCatalogPath = '/api/v1/roles';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getAccessCatalog()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getAccessCatalog$Response(params?: GetAccessCatalog$Params, context?: HttpContext): Observable<StrictHttpResponse<AccessCatalog>> {
+    const obs = getAccessCatalog(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getAccessCatalog$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getAccessCatalog(params?: GetAccessCatalog$Params, context?: HttpContext): Observable<AccessCatalog> {
+    const resp = this.getAccessCatalog$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<AccessCatalog>): AccessCatalog => r.body)
+    );
+  }
+
+  /** Path part for operation `createRole()` */
+  static readonly CreateRolePath = '/api/v1/roles';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createRole()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createRole$Response(params: CreateRole$Params, context?: HttpContext): Observable<StrictHttpResponse<RoleItem>> {
+    const obs = createRole(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createRole$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createRole(params: CreateRole$Params, context?: HttpContext): Observable<RoleItem> {
+    const resp = this.createRole$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<RoleItem>): RoleItem => r.body)
+    );
+  }
+
+  /** Path part for operation `updateRole()` */
+  static readonly UpdateRolePath = '/api/v1/roles/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `updateRole()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateRole$Response(params: UpdateRole$Params, context?: HttpContext): Observable<StrictHttpResponse<RoleItem>> {
+    const obs = updateRole(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `updateRole$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateRole(params: UpdateRole$Params, context?: HttpContext): Observable<RoleItem> {
+    const resp = this.updateRole$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<RoleItem>): RoleItem => r.body)
     );
   }
 

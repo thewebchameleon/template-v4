@@ -19,6 +19,8 @@ public sealed class AuditHistory(FrameworkDb db) : IAuditHistory
         var entries = await source.OrderByDescending(x => x.At).ThenByDescending(x => x.Id).Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(ct);
         var ids = entries.SelectMany(x => new[] { x.ActorId, x.SubjectId }).Where(x => x != null).Select(x => x!.Value).Distinct().ToArray();
         var names = await db.Profiles.AsNoTracking().Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.DisplayName, ct);
+        var roleNames = await db.Roles.AsNoTracking().Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.Name!, ct);
+        foreach (var role in roleNames) names.TryAdd(role.Key, role.Value);
         return new(entries.Select(x => new AuditItem(x.Id, x.ActorId, x.ActorId is { } a ? names.GetValueOrDefault(a) : null, x.SubjectId, x.SubjectId is { } s ? names.GetValueOrDefault(s) : null, x.Action, x.At)).ToArray(), total, query.PageNumber, query.PageSize);
     }
 }

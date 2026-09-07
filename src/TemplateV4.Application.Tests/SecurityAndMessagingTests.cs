@@ -445,7 +445,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         {
             await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
             var execution = sp.GetRequiredService<BackgroundExecutionContext>();
-            execution.ActorId = Guid.NewGuid(); execution.Permissions = new HashSet<string> { Permissions.Manage };
+            execution.ActorId = id == firstId ? secondId : firstId; execution.Permissions = Permissions.All.ToHashSet();
             return await sp.GetRequiredService<Dispatcher<UpdateUser, UserDto>>().Send(new(id, version, false, ["Reader"]));
         }
         var results = await Task.WhenAll(Demote(firstId, firstVersion), Demote(secondId, secondVersion));

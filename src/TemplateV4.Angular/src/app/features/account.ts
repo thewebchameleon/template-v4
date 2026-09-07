@@ -27,53 +27,74 @@ import { Translate } from '../core/i18n';
   template: `<app-auth-layout
     ><div hlmFieldGroup>
       <div class="auth-heading">
-        <h1 class="auth-title">{{ 'account' | t }}</h1>
+        <h1 class="auth-title">
+          {{
+            (kind === 'Verification'
+              ? 'verifyEmailTitle'
+              : kind === 'EmailChange'
+                ? 'changeEmail'
+                : 'newPassword'
+            ) | t
+          }}
+        </h1>
       </div>
-      <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">
-        @if (kind !== 'Verification' && kind !== 'EmailChange') {
-          <div hlmField>
-            <label hlmFieldLabel for="password">{{ 'password' | t }}</label
-            ><input
-              hlmInput
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              minlength="8"
-              aria-describedby="password-help password-errors"
-              [(ngModel)]="password"
-              required
-            />
-            <p hlmFieldDescription id="password-help">{{ 'passwordHelp' | t }}</p>
-            @if (passwordErrors().length) {
-              <hlm-field-error forceShow id="password-errors">{{
-                passwordErrors().join(' ')
-              }}</hlm-field-error>
-            }
-          </div>
-        }
-        <button hlmBtn [disabled]="busy() || form.invalid || done()">
-          @if (busy()) {
-            <hlm-spinner />
+      @if (invalid()) {
+        <div hlmAlert role="alert">
+          <h2 hlmAlertTitle>{{ 'invalidLink' | t }}</h2>
+          <p hlmAlertDescription>{{ 'invalidLinkHelp' | t }}</p>
+          <a hlmBtn variant="outline" routerLink="/login">{{ 'signIn' | t }}</a>
+        </div>
+      } @else {
+        <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">
+          @if (!done() && kind !== 'Verification' && kind !== 'EmailChange') {
+            <div hlmField>
+              <label hlmFieldLabel for="password">{{ 'password' | t }}</label
+              ><input
+                hlmInput
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                aria-describedby="password-help password-errors"
+                [(ngModel)]="password"
+                required
+              />
+              <p hlmFieldDescription id="password-help">{{ 'passwordHelp' | t }}</p>
+              @if (passwordErrors().length) {
+                <hlm-field-error forceShow id="password-errors">{{
+                  passwordErrors().join(' ')
+                }}</hlm-field-error>
+              }
+            </div>
           }
-          {{ (kind === 'Verification' || kind === 'EmailChange' ? 'confirm' : 'newPassword') | t }}
-        </button>
-        @if (done()) {
-          <div hlmAlert role="status">
-            <p hlmAlertDescription>
+          @if (!done()) {
+            <button hlmBtn [disabled]="busy() || form.invalid">
+              @if (busy()) {
+                <hlm-spinner />
+              }
               {{
-                (kind === 'EmailChange'
-                  ? 'emailChanged'
-                  : kind === 'Verification'
-                    ? 'emailVerified'
-                    : 'passwordSaved'
-                ) | t
+                (kind === 'Verification' || kind === 'EmailChange' ? 'confirm' : 'newPassword') | t
               }}
-            </p>
-          </div>
-          <a hlmBtn routerLink="/login">{{ 'signIn' | t }}</a>
-        }
-      </form>
+            </button>
+          }
+          @if (done()) {
+            <div hlmAlert role="status">
+              <p hlmAlertDescription>
+                {{
+                  (kind === 'EmailChange'
+                    ? 'emailChanged'
+                    : kind === 'Verification'
+                      ? 'emailVerified'
+                      : 'passwordSaved'
+                  ) | t
+                }}
+              </p>
+            </div>
+            <a hlmBtn routerLink="/login">{{ 'signIn' | t }}</a>
+          }
+        </form>
+      }
     </div></app-auth-layout
   >`,
 })
@@ -89,12 +110,22 @@ export class AccountPage {
     }
   }
   readonly kind = this.parts[0];
+  readonly invalid = signal(
+    !(
+      (['Verification', 'PasswordReset'].includes(this.kind) &&
+        this.parts.length === 3 &&
+        !!this.parts[1] &&
+        !!this.parts[2]) ||
+      (this.kind === 'EmailChange' && this.parts.length === 2 && !!this.parts[1])
+    ),
+  );
   password = '';
   readonly busy = signal(false);
   readonly done = signal(false);
   readonly passwordErrors = signal<string[]>([]);
 
   async submit() {
+    if (this.busy() || this.invalid() || this.done()) return;
     this.busy.set(true);
     this.passwordErrors.set([]);
     try {
@@ -112,6 +143,11 @@ export class AccountPage {
       this.password = '';
       this.done.set(true);
     } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        ['auth.action_invalid', 'auth.challenge_expired'].includes(error.error?.code)
+      )
+        this.invalid.set(true);
       if (error instanceof HttpErrorResponse)
         this.passwordErrors.set(error.error?.errors?.password ?? []);
       document.getElementById('password')?.focus();

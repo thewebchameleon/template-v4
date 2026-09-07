@@ -17,10 +17,14 @@ test('administrator changes registration with the current settings version', asy
         userId: 'administrator',
         accessToken: 'test-access',
         culture: 'en-ZA',
-        permissions: ['users.manage', 'settings.manage'],
+        permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
         setupRequired: false,
       },
     }),
+  );
+  await page.route('**/api/v1/features', (route) => route.fulfill({ json: { files: false } }));
+  await page.route('**/api/v1/auth/notifications/summary', (route) =>
+    route.fulfill({ json: { unread: 0 } }),
   );
   await page.route('**/api/v1/auth/operations', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/v1/auth/settings/security', async (route) => {
@@ -35,7 +39,7 @@ test('administrator changes registration with the current settings version', asy
   await page.goto('/settings');
   const registration = page.getByRole('switch');
   await expect(registration).not.toBeChecked();
-  await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
   await registration.click();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(

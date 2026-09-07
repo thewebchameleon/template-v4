@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -20,6 +20,7 @@ import { Runtime } from '../core/runtime';
 import { Translate } from '../core/i18n';
 import { ProfileResponse } from '../api/models/profile-response';
 import { MfaEnrollment } from '../api/models/mfa-enrollment';
+import { protectUnload } from '../shared/confirmation';
 import { Notifications } from '../core/notifications';
 
 type MfaProfile = ProfileResponse & {
@@ -30,8 +31,10 @@ type MfaProfile = ProfileResponse & {
 
 @Component({
   selector: 'app-profile',
+  host: { '(window:beforeunload)': 'beforeUnload($event)' },
   imports: [
     FormsModule,
+    RouterLink,
     HlmButtonImports,
     HlmFieldImports,
     HlmInputImports,
@@ -45,7 +48,13 @@ type MfaProfile = ProfileResponse & {
     HlmToggleGroupImports,
     Translate,
   ],
-  template: `<h1 class="page-title">{{ 'profile' | t }}</h1>
+  template: `<h1 class="page-title">{{ 'security' | t }}</h1>
+    <nav class="my-4 flex gap-3">
+      <a hlmBtn variant="outline" routerLink="/me">{{ 'account' | t }}</a>
+      @if (!auth.access()?.setupRequired) {
+        <a hlmBtn variant="outline" routerLink="/security/sessions">{{ 'sessions' | t }}</a>
+      }
+    </nav>
     @if (profile(); as user) {
       <p class="mt-3 break-words">{{ user.displayName }} · {{ user.email }}</p>
       @if (auth.access()?.setupRequired) {
@@ -98,42 +107,17 @@ type MfaProfile = ProfileResponse & {
               </button>
             </fieldset>
           }
-          <div hlmField>
-            <label hlmFieldLabel for="proof-password">{{ 'password' | t }}</label
-            ><input
-              hlmInput
-              id="proof-password"
-              type="password"
-              autocomplete="current-password"
-              [(ngModel)]="password"
-            />
-          </div>
-          @if (user.mfaEnabled) {
-            <div hlmField>
-              <label hlmFieldLabel for="proof-code">{{ 'factorCode' | t }}</label
-              ><input
-                hlmInput
-                id="proof-code"
-                autocomplete="one-time-code"
-                [(ngModel)]="proofCode"
-              />
-              <div hlmField orientation="horizontal">
-                <hlm-checkbox inputId="proof-recovery" [(ngModel)]="recovery" />
-                <label hlmFieldLabel for="proof-recovery">{{ 'useRecovery' | t }}</label>
-              </div>
-            </div>
-          }
           <div class="flex flex-wrap gap-3">
             @if (!user.mfaEnabled) {
-              <button hlmBtn [disabled]="busy() || !password" (click)="enroll()">
+              <button hlmBtn [disabled]="busy()" (click)="chooseAction('enroll')">
                 {{ 'enrollAuthenticator' | t }}
               </button>
             } @else {
               <button
                 hlmBtn
                 variant="outline"
-                [disabled]="busy() || !password || !proofCode"
-                (click)="manage(false)"
+                [disabled]="busy()"
+                (click)="chooseAction('recovery')"
               >
                 {{ 'rotateRecovery' | t }}
               </button>
@@ -141,8 +125,8 @@ type MfaProfile = ProfileResponse & {
                 <button
                   hlmBtn
                   variant="destructive"
-                  [disabled]="busy() || !password || !proofCode"
-                  (click)="manage(true)"
+                  [disabled]="busy()"
+                  (click)="chooseAction('disable')"
                 >
                   {{ 'disableMfa' | t }}
                 </button>
@@ -186,7 +170,9 @@ type MfaProfile = ProfileResponse & {
                   </li>
                 }
               </ul>
-              <button hlmBtn variant="outline" class="mt-3" (click)="codes.set([])">
+              <button hlmBtn variant="outline" class="mt-3 mr-2" (click)="copyCodes()">
+                {{ 'copyRecoveryCodes' | t }}</button
+              ><button hlmBtn variant="outline" class="mt-3" (click)="codes.set([])">
                 {{ 'savedRecovery' | t }}
               </button>
             </div>
@@ -201,8 +187,9 @@ type MfaProfile = ProfileResponse & {
                 ><button
                   hlmBtn
                   variant="outline"
-                  [disabled]="busy() || !password"
-                  (click)="remove(key.id)"
+                  [disabled]="busy()"
+                  [attr.aria-label]="('remove' | t) + ': ' + key.name"
+                  (click)="chooseAction('remove', key.id)"
                 >
                   {{ 'remove' | t }}
                 </button>
@@ -225,8 +212,8 @@ type MfaProfile = ProfileResponse & {
             <button
               hlmBtn
               variant="outline"
-              [disabled]="busy() || !password || !keyName"
-              (click)="register()"
+              [disabled]="busy() || !keyName"
+              (click)="chooseAction('register')"
             >
               {{ 'addPasskey' | t }}
             </button>
@@ -234,6 +221,48 @@ type MfaProfile = ProfileResponse & {
             <div hlmAlert>
               <p hlmAlertDescription>{{ 'passkeysUnsupported' | t }}</p>
             </div>
+          }
+          @if (action()) {
+            <section class="grid gap-4 rounded-md border p-4" aria-labelledby="proof-title">
+              <h3 id="proof-title" class="font-semibold">{{ actionLabel() | t }}</h3>
+              <p class="text-sm text-muted-foreground">{{ 'emailProofHelp' | t }}</p>
+              <div hlmField>
+                <label hlmFieldLabel for="proof-password">{{ 'password' | t }}</label
+                ><input
+                  hlmInput
+                  id="proof-password"
+                  type="password"
+                  autocomplete="current-password"
+                  [(ngModel)]="password"
+                />
+              </div>
+              @if (user.mfaEnabled) {
+                <div hlmField>
+                  <label hlmFieldLabel for="proof-code">{{ 'factorCode' | t }}</label
+                  ><input
+                    hlmInput
+                    id="proof-code"
+                    autocomplete="one-time-code"
+                    [(ngModel)]="proofCode"
+                  />
+                  <div hlmField orientation="horizontal">
+                    <hlm-checkbox inputId="proof-recovery" [(ngModel)]="recovery" />
+                    <label hlmFieldLabel for="proof-recovery">{{ 'useRecovery' | t }}</label>
+                  </div>
+                </div>
+              }
+              <div class="flex gap-2">
+                <button
+                  hlmBtn
+                  [disabled]="busy() || !password || (user.mfaEnabled && !proofCode)"
+                  (click)="executeAction()"
+                >
+                  {{ actionLabel() | t }}</button
+                ><button hlmBtn variant="outline" (click)="cancelAction()">
+                  {{ 'cancel' | t }}
+                </button>
+              </div>
+            </section>
           }
         </div>
       </section>
@@ -260,6 +289,50 @@ type MfaProfile = ProfileResponse & {
     }`,
 })
 export class ProfilePage {
+  readonly action = signal('');
+  private actionId = '';
+  chooseAction(action: string, id = '') {
+    this.cancelAction();
+    this.action.set(action);
+    this.actionId = id;
+    setTimeout(() => document.getElementById('proof-password')?.focus());
+  }
+  actionLabel() {
+    return (
+      (
+        {
+          enroll: 'enrollAuthenticator',
+          recovery: 'rotateRecovery',
+          disable: 'disableMfa',
+          register: 'addPasskey',
+          remove: 'remove',
+        } as Record<string, string>
+      )[this.action()] ?? 'confirm'
+    );
+  }
+  cancelAction() {
+    this.action.set('');
+    this.password = '';
+    this.proofCode = '';
+    this.recovery = false;
+  }
+  async executeAction() {
+    const action = this.action();
+    if (action === 'enroll') await this.enroll();
+    else if (action === 'recovery' || action === 'disable') await this.manage(action === 'disable');
+    else if (action === 'register') await this.register();
+    else if (action === 'remove') await this.remove(this.actionId);
+  }
+  hasUnsavedChanges() {
+    return this.codes().length > 0 || !!this.enrollment() || !!this.password || !!this.proofCode;
+  }
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
+  async copyCodes() {
+    await navigator.clipboard.writeText(this.codes().join('\n'));
+  }
+
   readonly auth = inject(Auth);
   readonly passkeys = inject(Passkeys);
   private readonly http = inject(HttpClient);
@@ -314,6 +387,7 @@ export class ProfilePage {
     }
   }
   private async changed() {
+    this.action.set('');
     this.password = '';
     this.proofCode = '';
     await this.auth.refresh();
@@ -323,7 +397,7 @@ export class ProfilePage {
   enroll() {
     return this.run(async () => {
       this.enrollment.set(await this.auth.action<MfaEnrollment>('mfa/enroll', this.proof()));
-      this.password = '';
+      this.cancelAction();
     });
   }
   confirm() {
@@ -377,7 +451,7 @@ export class ProfilePage {
   }
   async signInAgain() {
     await this.auth.logout();
-    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/profile' } });
+    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/security' } });
   }
   retry() {
     return this.run(() => this.load());

@@ -22,7 +22,13 @@ import { Preferences } from '../core/preferences';
         <footer class="auth-preferences"><app-preferences /></footer>
       </div>
       <div class="auth-artwork" aria-hidden="true">
-        <img class="auth-artwork-image" src="/auth-background.jpg" alt="" />
+        <picture
+          ><source media="(min-width: 64rem)" srcset="/auth-background.jpg" />
+          <img
+            class="auth-artwork-image"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt=""
+        /></picture>
       </div>
     </div>
   `,

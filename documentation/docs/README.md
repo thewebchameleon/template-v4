@@ -15,7 +15,7 @@ The framework manifest is the inventory and version contract. CLI and CI load it
 | Angular          | Independent Angular/npm workspace                                 | Generated API contracts, Spartan |
 | Documentation    | Independent DocMD/npm workspace                                   | Markdown under `docs`            |
 
-Start with [user management](user-management.md), then [security](security.md), [operations](operations.md), and [upgrades](upgrades.md). Decisions live in [adr](adr).
+Start with [administration and delegated access](administration.md), then [user management](user-management.md), then [security](security.md), [operations](operations.md), and [upgrades](upgrades.md). Decisions live in [adr](adr).
 
 The baseline also includes [platform workflows](platform-workflows.md), [S3 object storage](object-storage.md), and [monitoring and restore drills](monitoring.md). Their ownership, privacy and transaction conventions are recorded in [ADR 0015](adr/0015-platform-baseline-workflows.md).
 
@@ -41,11 +41,11 @@ Supported examples are en-ZA and af-ZA. User preference precedes Accept-Language
 
 Spartan Brain supplies behavior; copied Helm components in `src/TemplateV4.Angular/libs/ui` supply customizable styling. Use semantic theme colors, fields with labels/errors, accessible dialogs with titles, and native form semantics. `components.json` records ownership and paths. Use `npx ng g @spartan-ng/cli:info --json` before adding components.
 
-Display tabular application data through `src/TemplateV4.Angular/src/app/shared/data-table.ts`, the shared implementation of [Spartan's Data Table guide](https://www.spartan.ng/components/data-table). Feature pages own typed TanStack column definitions and server-side query state; render rich or interactive cells as Angular components with `flexRenderComponent`. Extend the shared composition for cross-cutting table behavior, and do not add page-local table implementations or competing grid libraries.
+Display tabular application data through `src/TemplateV4.Angular/src/app/shared/data-table.ts`, the shared implementation of [Spartan's Data Table guide](https://www.spartan.ng/components/data-table). Feature pages own typed TanStack column definitions and server-side query state; use `Resource.load(signal => api.get(path, params, signal))`, bind refreshing/error feedback, and clamp pagination only after a successful load. Render rich or interactive cells as Angular components with `flexRenderComponent`. Extend the shared composition for cross-cutting table behavior, and do not add page-local table implementations or competing grid libraries.
 
 Authenticated page navigation uses `src/TemplateV4.Angular/src/app/shared/breadcrumbs.ts` in the root header. Add `data: { breadcrumb: 'translationKey' }` to route levels for explicit localized labels; levels without data are derived from their URL segment. A page that needs runtime labels, such as an entity name, can inject `Breadcrumbs` and call `set([{ label: 'users', link: '/users' }, { label: user.displayName }])`. The override lasts until the next navigation starts, and `clear()` restores route-derived values. The current level is text, ancestor levels are links, middle levels collapse on mobile, and the back action follows browser history when a previous in-app page is known.
 
-The root derives the document title from the current localized breadcrumb and moves focus to the main landmark after route navigation. Keep every page's first heading descriptive and keep the main landmark programmatically focusable so keyboard and assistive-technology users receive clear navigation feedback.
+The root derives the document title from the current localized breadcrumb and moves focus to the main landmark after page navigation (query-only list changes retain focus). Keep every page's first heading descriptive and keep the main landmark programmatically focusable so keyboard and assistive-technology users receive clear navigation feedback.
 
 User feedback follows Spartan's distinction between persistent and transient content: keep `hlmAlert` in the page for state, warnings, and actions that must remain visible, and publish operation results through the single root `hlm-toaster`. Toast copy is localized at publication time; HTTP Problem Details show only their human-readable title. Error codes and trace identifiers remain diagnostic data and must not appear in user notifications. Expected setup-only access failures do not produce a toast because the profile's persistent MFA setup alert provides the required guidance.
 
@@ -57,7 +57,7 @@ The header appearance control offers Light, Dark and System (default), including
 
 ## Production and security settings
 
-See [production deployment](production.md), [MFA and passkey policy](adr/0005-configurable-mfa-and-passkeys.md), [interactive administrator bootstrap](adr/0007-interactive-administrator-bootstrap.md), [delivery recovery](adr/0006-delivery-leases-and-reconciliation.md), and [package reuse](packages.md). Users land on their own profile; the directory and security settings require administrative permissions. The bootstrap administrator completes factor setup before managing users.
+See [production deployment](production.md), [MFA and passkey policy](adr/0005-configurable-mfa-and-passkeys.md), [interactive administrator bootstrap](adr/0007-interactive-administrator-bootstrap.md), [delivery recovery](adr/0006-delivery-leases-and-reconciliation.md), and [package reuse](packages.md). Administrators land on Users; other users land on their account. Navigation and route guards use the same permission catalog. See [ADR 0016](adr/0016-administration-and-delegated-access.md). The bootstrap administrator completes factor setup before managing users.
 
 ## UI customization
 

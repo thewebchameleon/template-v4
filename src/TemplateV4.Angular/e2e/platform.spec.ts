@@ -6,12 +6,14 @@ async function platform(page: Page, failFiles = false) {
     const path = new URL(route.request().url()).pathname;
     const empty = { items: [], total: 0, pageNumber: 1, pageSize: 25 };
     const responses: Record<string, unknown> = {
+      '/api/v1/features': { files: true, maintenance: false },
+      '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': {
         userId: 'test-admin',
         accessToken: 'test-access',
         culture: 'en-ZA',
-        permissions: ['users.manage', 'settings.manage'],
+        permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
         setupRequired: false,
       },
       '/api/v1/auth/notifications': { page: empty, unread: 0, optionalEmailEnabled: false },

@@ -90,6 +90,8 @@ export class DataTable<TData extends RowData> {
     features: dataTableFeatures,
     columns: this.columns(),
     data: this.data(),
-    getRowId: this.getRowId(),
+    getRowId:
+      this.getRowId() ??
+      ((row: TData, index: number) => String((row as { id?: string }).id ?? index)),
   }));
 }

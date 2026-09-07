@@ -1,4 +1,3 @@
-import { RouterLink } from '@angular/router';
 import { protectUnload } from '../shared/confirmation';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +19,6 @@ import { Notifications } from '../core/notifications';
   selector: 'app-settings',
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   imports: [
-    RouterLink,
     FormsModule,
     HlmButtonImports,
     HlmFieldImports,
@@ -31,7 +29,8 @@ import { Notifications } from '../core/notifications';
     HlmSpinnerImports,
     Translate,
   ],
-  template: ` <h1 class="page-title">{{ 'adminSettings' | t }}</h1>
+  template: `
+    <h1 class="page-title">{{ 'adminSettings' | t }}</h1>
     <section hlmCard class="mt-6 max-w-(--form-content-width)">
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'security' | t }}</h2>
@@ -49,6 +48,7 @@ import { Notifications } from '../core/notifications';
             type="single"
             variant="outline"
             [nullable]="false"
+            [disabled]="busy() || settingsState() !== 'ready'"
             name="policy"
             [(ngModel)]="policy"
             [attr.aria-label]="'mfaPolicy' | t"
@@ -74,7 +74,7 @@ import { Notifications } from '../core/notifications';
             <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
           </div>
         </div>
-        <button hlmBtn [disabled]="busy() || form.invalid || !settings()">
+        <button hlmBtn [disabled]="busy() || form.invalid || !settings() || !hasUnsavedChanges()">
           @if (busy()) {
             <hlm-spinner />
           }
@@ -98,15 +98,7 @@ import { Notifications } from '../core/notifications';
         }
       </form>
     </section>
-    <section hlmCard class="mt-6 max-w-(--form-content-width)">
-      <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'operations' | t }}</h2>
-        <p hlmCardDescription>{{ 'operationsIntro' | t }}</p>
-      </div>
-      <div hlmCardFooter>
-        <a hlmBtn variant="outline" routerLink="/operations">{{ 'operations' | t }}</a>
-      </div>
-    </section>`,
+  `,
 })
 export class SettingsPage {
   beforeUnload(event: BeforeUnloadEvent) {

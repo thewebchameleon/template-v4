@@ -8,7 +8,8 @@ public static class Permissions
     public const string Manage = "users.manage";
     public const string Jobs = "jobs.trigger";
     public const string Settings = "settings.manage";
-    public static readonly string[] All = [Read, Manage, Jobs, Settings];
+    public const string Roles = "roles.manage";
+    public static readonly string[] All = [Read, Manage, Roles, Jobs, Settings];
 }
 public sealed record UserDto(Guid Id, string Email, string DisplayName, string Culture, bool Disabled, string[] Roles, Guid Version, string Status = "Active");
 public sealed record Page<T>(IReadOnlyList<T> Items, int Total, int PageNumber, int PageSize);
@@ -34,7 +35,7 @@ public sealed class CreateUserValidator(CultureCatalog cultures) : IValidator<Cr
             errors["email"] = ["email.invalid"];
         if (string.IsNullOrWhiteSpace(command.DisplayName) || command.DisplayName.Trim().Length > 120) errors["displayName"] = ["name.invalid"];
         if (!cultures.Supported.Contains(command.Culture)) errors["culture"] = ["culture.unsupported"];
-        if (command.Roles is null || command.Roles.Length > 2 || command.Roles.Distinct().Count() != command.Roles.Length || command.Roles.Any(role => role is not ("Administrator" or "Reader"))) errors["role"] = ["role.invalid"];
+        if (command.Roles is null || command.Roles.Length > 20 || command.Roles.Distinct().Count() != command.Roles.Length || command.Roles.Any(role => string.IsNullOrWhiteSpace(role) || role.Length > 80)) errors["role"] = ["role.invalid"];
         if (command.IdempotencyKey is { Length: > 100 } or "") errors["idempotencyKey"] = ["idempotency.invalid"];
         return errors;
     }
@@ -46,7 +47,7 @@ public sealed class ListUsersValidator : IValidator<ListUsers>
 }
 public sealed class UpdateUserValidator : IValidator<UpdateUser>
 {
-    public Dictionary<string, string[]> Validate(UpdateUser command) => command.Id == Guid.Empty || command.Version == Guid.Empty || command.Roles is null || command.Roles.Length > 2 || command.Roles.Distinct().Count() != command.Roles.Length || command.Roles.Any(role => role is not ("Administrator" or "Reader"))
+    public Dictionary<string, string[]> Validate(UpdateUser command) => command.Id == Guid.Empty || command.Version == Guid.Empty || command.Roles is null || command.Roles.Length > 20 || command.Roles.Distinct().Count() != command.Roles.Length || command.Roles.Any(role => string.IsNullOrWhiteSpace(role) || role.Length > 80)
         ? new() { ["user"] = ["user.invalid"] } : [];
 }
 public sealed class CreateUserHandler(IUserDirectory directory) : IHandler<CreateUser, UserDto>

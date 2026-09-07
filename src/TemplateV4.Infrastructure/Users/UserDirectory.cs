@@ -4,13 +4,16 @@ using TemplateV4.Application;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure.Persistence;
+using TemplateV4.Infrastructure.Security;
 
 namespace TemplateV4.Infrastructure.Users;
 
-public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IExecutionContext context, TimeProvider time, IEventOutbox outbox) : IUserDirectory
+public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IExecutionContext context, TimeProvider time, IEventOutbox outbox, AccessManagementService access) : IUserDirectory
 {
     public async Task<Result<UserDto>> Create(CreateUser command, CancellationToken cancellationToken)
     {
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", cancellationToken);
+        if (!await CanAssign(command.Roles, cancellationToken)) return Result<UserDto>.Fail("role.delegation_denied", ErrorKind.Forbidden);
         var identity = new AppUser { Id = Guid.NewGuid(), UserName = command.Email, Email = command.Email, InvitationSentAt = time.GetUtcNow(), InvitationExpiresAt = time.GetUtcNow().AddHours(2) };
         var created = await users.CreateAsync(identity);
         if (!created.Succeeded) return Result<UserDto>.Fail("user.exists", ErrorKind.Conflict);
@@ -55,15 +58,27 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
             if (await db.Profiles.CountAsync(x => ids.Contains(x.Id) && !x.Disabled, cancellationToken) <= 1)
                 return Result<UserDto>.Fail("user.last_administrator", ErrorKind.Conflict);
         }
-        var previousDisabled = profile.Disabled;
+        if (!await CanAssign(command.Roles.Concat(oldRoles).Distinct().ToArray(), cancellationToken)) return Result<UserDto>.Fail("role.delegation_denied", ErrorKind.Forbidden);
+        var wasDisabled = profile.Disabled;
         profile.SetDisabled(command.Disabled);
         if (!(await users.RemoveFromRolesAsync(identity, oldRoles.Except(command.Roles))).Succeeded || !(await users.AddToRolesAsync(identity, command.Roles.Except(oldRoles))).Succeeded)
             throw new InvalidOperationException("Role update failed.");
         if (!(await users.UpdateSecurityStampAsync(identity)).Succeeded) throw new InvalidOperationException("Security stamp update failed.");
         await db.Sessions.Where(x => x.UserId == command.Id && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), cancellationToken);
-        Audit($"user.security_changed:d:{previousDisabled}>{profile.Disabled}:r:{string.Join(',', oldRoles.Order())}>{string.Join(',', command.Roles.Order())}", command.Id);
+        foreach (var roleName in command.Roles.Except(oldRoles)) Audit("user.role_granted:" + roleName, command.Id);
+        foreach (var roleName in oldRoles.Except(command.Roles)) Audit("user.role_removed:" + roleName, command.Id);
+        if (wasDisabled != command.Disabled) Audit(command.Disabled ? "user.disabled" : "user.enabled", command.Id);
+        Audit("user.access_changed", command.Id);
         outbox.Add(new EmailRequest(command.Id, EmailTemplate.SecurityNotification, profile.Culture));
         return Result<UserDto>.Success(new(identity.Id, identity.Email!, profile.DisplayName, profile.Culture, profile.Disabled, command.Roles, profile.Version));
+    }
+    private async Task<bool> CanAssign(string[] names, CancellationToken ct)
+    {
+        var allowed = await access.ActorPermissions(ct);
+        if (!allowed.Contains(Permissions.Manage)) return false;
+        var roles = await db.Roles.Where(r => names.Contains(r.Name!)).Select(r => r.Id).ToArrayAsync(ct);
+        if (roles.Length != names.Length) return false;
+        return !await db.RoleClaims.AnyAsync(c => roles.Contains(c.RoleId) && c.ClaimType == "permission" && !allowed.Contains(c.ClaimValue!), ct);
     }
     private void Audit(string action, Guid subject) => db.Audit.Add(new() { Action = action, SubjectId = subject, ActorId = context.ActorId, At = time.GetUtcNow(), TraceParent = context.TraceParent });
 }

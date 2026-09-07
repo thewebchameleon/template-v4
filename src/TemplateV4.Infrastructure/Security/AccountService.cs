@@ -20,7 +20,7 @@ public sealed record ForgotPasswordRequest(string Email);
 public sealed record CultureRequest(string Culture);
 public sealed record InvitationRequest(Guid UserId, bool Cancel = false);
 public sealed record InvitationItem(Guid Id, string DisplayName, string Email, string State, bool EmailConfirmed, DateTimeOffset? SentAt, DateTimeOffset? ExpiresAt, DateTimeOffset? AcceptedAt, DateTimeOffset? ResendAt);
-public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures)
+public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
     public async Task<Result<Page<InvitationItem>>> Invitations(int pageNumber, string? search, string state, CancellationToken ct)
@@ -41,6 +41,11 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
     public async Task<Result<Unit>> Invitation(Guid actor, InvitationRequest request, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
+        var allowed = await access.ActorPermissions(ct);
+        if (!allowed.Contains(Permissions.Manage)) return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);
+        if (await (from m in db.UserRoles join c in db.RoleClaims on m.RoleId equals c.RoleId where m.UserId == request.UserId && c.ClaimType == "permission" && !allowed.Contains(c.ClaimValue!) select c.Id).AnyAsync(ct))
+            return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({request.UserId.ToString()}, 0))", ct);
         var user = await users.FindByIdAsync(request.UserId.ToString());
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == request.UserId, ct);

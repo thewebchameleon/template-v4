@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
+using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
@@ -31,7 +32,11 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
     public async Task<bool> GloballyRequired(AppUser user, CancellationToken ct)
     {
         var policy = (await Settings(ct)).MfaPolicy;
-        return policy == "Everyone" || (policy == "Administrators" && await users.IsInRoleAsync(user, "Administrator"));
+        return policy == "Everyone" || (policy == "Administrators" &&
+            (await users.IsInRoleAsync(user, "Administrator") || await (from m in db.UserRoles
+                                                                        join c in db.RoleClaims on m.RoleId equals c.RoleId
+                                                                        where m.UserId == user.Id && c.ClaimType == "permission" && (c.ClaimValue == Permissions.Manage || c.ClaimValue == Permissions.Roles || c.ClaimValue == Permissions.Settings || c.ClaimValue == Permissions.Jobs)
+                                                                        select c.Id).AnyAsync(ct)));
     }
     public async Task<string[]> ConfiguredMethods(AppUser user)
     {

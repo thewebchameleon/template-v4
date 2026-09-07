@@ -39,6 +39,11 @@ import { Errors } from '../core/interceptors';
               <hlm-spinner />{{ 'checkingBootstrap' | t }}
             </p>
           </div>
+        } @else if (checkFailed()) {
+          <div hlmAlert role="alert">
+            <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
+            <button hlmBtn variant="outline" (click)="ngOnInit()">{{ 'retry' | t }}</button>
+          </div>
         } @else if (available()) {
           <form
             hlmFieldGroup
@@ -145,6 +150,7 @@ export class BootstrapPage implements OnInit {
   private readonly router = inject(Router);
 
   readonly checking = signal(true);
+  readonly checkFailed = signal(false);
   readonly available = signal(false);
   readonly busy = signal(false);
   readonly rejected = signal(false);
@@ -154,12 +160,14 @@ export class BootstrapPage implements OnInit {
   token = '';
 
   async ngOnInit() {
+    this.checking.set(true);
+    this.checkFailed.set(false);
     try {
       this.available.set((await this.bootstrap.available()).available);
       if (!this.available()) await this.router.navigateByUrl('/login');
     } catch {
       this.errors.problem.set(null);
-      await this.router.navigateByUrl('/login');
+      this.checkFailed.set(true);
     } finally {
       this.checking.set(false);
     }

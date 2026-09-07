@@ -37,6 +37,19 @@ export class Auth {
   }
   private csrf = '';
   private pending: Promise<boolean> | null = null;
+  landing() {
+    return this.access()?.setupRequired
+      ? '/security'
+      : this.has('users.read')
+        ? '/users'
+        : this.has('roles.manage')
+          ? '/roles'
+          : this.has('settings.manage')
+            ? '/settings'
+            : this.has('jobs.trigger')
+              ? '/operations'
+              : '/me';
+  }
   has(permission: string) {
     return this.access()?.permissions.includes(permission) ?? false;
   }
@@ -164,8 +177,8 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   const router = inject(Router);
   if (!auth.access() && !(await auth.refresh()))
     return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
-  if (auth.access()?.setupRequired && state.url !== '/profile')
-    return router.createUrlTree(['/profile']);
+  if (auth.access()?.setupRequired && state.url.split('?')[0] !== '/security')
+    return router.createUrlTree(['/security']);
   return true;
 };
 
@@ -173,10 +186,15 @@ export const adminGuard: CanActivateFn = async () => {
   const auth = inject(Auth);
   const router = inject(Router);
   if (!auth.access()) await auth.refresh();
-  return auth.has('users.manage') ? true : router.createUrlTree(['/profile']);
+  return auth.has('users.manage') ? true : router.createUrlTree(['/security']);
 };
-export const permissionGuard: CanActivateFn = (route) => {
+export const permissionGuard: CanActivateFn = async (route) => {
   const auth = inject(Auth);
   const router = inject(Router);
-  return auth.has(route.data['permission']) || router.createUrlTree(['/forbidden']);
+  if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
+  return (
+    (route.data['permissions'] as string[] | undefined)?.some((p) => auth.has(p)) ||
+    auth.has(route.data['permission']) ||
+    router.createUrlTree(['/forbidden'])
+  );
 };

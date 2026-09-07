@@ -21,6 +21,7 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="files" description="filesIntro"
+      ><button hlmBtn (click)="showUpload()">{{ 'uploadFile' | t }}</button
       ><span hlmBadge variant="outline"
         ><ng-icon name="lucideShieldCheck" />{{ 'privateFiles' | t }}</span
       ></app-page-header
@@ -60,7 +61,11 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
             ><button hlmToggleGroupItem value="newest">{{ 'newestFirst' | t }}</button
             ><button hlmToggleGroupItem value="name">{{ 'name' | t }}</button></hlm-toggle-group
           >
-          <app-page-state [state]="data.state()" (retry)="load()"
+          <app-page-state
+            [state]="data.state()"
+            [refreshing]="data.refreshing()"
+            [refreshError]="data.refreshError()"
+            (retry)="load()"
             ><app-data-table
               [columns]="columns()"
               [data]="data.value()?.page?.items ?? []"
@@ -72,7 +77,7 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
         </div>
       </section>
       <aside class="workspace-stack">
-        <section hlmCard>
+        <section hlmCard id="upload-panel">
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ 'uploadFile' | t }}</h2>
             <p hlmCardDescription>{{ 'uploadFileHelp' | t }}</p>
@@ -115,6 +120,9 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
                       : ('uploading' | t) + ' ' + progress() + '%'
                   }}
                 </p>
+              }
+              @if (selected() && !uploading()) {
+                <button hlmBtn variant="ghost" (click)="clearSelection()">{{ 'clear' | t }}</button>
               }
               <button
                 hlmBtn
@@ -227,17 +235,32 @@ export class FilesPage {
     if (value < 1048576) return this.i18n.number(Math.round(value / 1024)) + ' KB';
     return this.i18n.number(Math.round((value / 1048576) * 10) / 10) + ' MB';
   }
-  load() {
-    return this.data.load(() =>
-      this.api.get('files', {
-        pageNumber: this.query.page,
-        search: this.query.text('search'),
-        sort: this.query.text('sort', 'newest'),
-      }),
+  async load() {
+    const loaded = await this.data.load((signal) =>
+      this.api.get(
+        'files',
+        {
+          pageNumber: this.query.page,
+          search: this.query.text('search'),
+          sort: this.query.text('sort', 'newest'),
+        },
+        signal,
+      ),
     );
+    if (loaded) this.query.clamp(this.data.value()?.page.total);
   }
   sort(value: unknown) {
     if (value === 'name' || value === 'newest') void this.query.set({ sort: value, page: 1 });
+  }
+  showUpload() {
+    document.getElementById('upload-panel')?.scrollIntoView({ block: 'start' });
+    document.getElementById('file-upload')?.focus();
+  }
+  clearSelection() {
+    this.selected.set(null);
+    this.validation.set('');
+    const input = document.getElementById('file-upload') as HTMLInputElement | null;
+    if (input) input.value = '';
   }
   choose(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;

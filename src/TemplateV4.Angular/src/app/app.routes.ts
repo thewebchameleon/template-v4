@@ -1,5 +1,6 @@
+import { filesGuard } from './core/features';
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, permissionGuard } from './core/auth';
+import { authGuard, permissionGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
@@ -25,30 +26,54 @@ export const routes: Routes = [
     data: { breadcrumb: 'account' },
     loadComponent: () => import('./features/account').then((m) => m.AccountPage),
   },
+  { path: 'profile', redirectTo: 'security', pathMatch: 'full' },
+  { path: 'sessions', redirectTo: 'security/sessions', pathMatch: 'full' },
+  { path: 'invitations', redirectTo: 'users/invitations', pathMatch: 'full' },
+  {
+    path: 'me',
+    data: { breadcrumb: 'account' },
+    canActivate: [authGuard],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/account-home').then((m) => m.AccountHomePage),
+  },
+  {
+    path: 'roles',
+    data: { breadcrumb: 'rolesPermissions', permission: 'roles.manage' },
+    canActivate: [authGuard, permissionGuard],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/roles').then((m) => m.RolesPage),
+  },
+  {
+    path: 'users/invite',
+    data: { breadcrumb: 'invite', permission: 'users.manage' },
+    canActivate: [authGuard, permissionGuard],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/invite-user').then((m) => m.InviteUserPage),
+  },
   {
     path: 'users',
-    canDeactivate: [unsavedGuard],
-    data: { breadcrumb: 'users' },
-    canActivate: [authGuard, adminGuard],
+    data: { breadcrumb: 'users', permission: 'users.read' },
+    canActivate: [authGuard, permissionGuard],
     loadComponent: () => import('./features/users').then((m) => m.UsersPage),
   },
   {
-    path: 'sessions',
+    path: 'security/sessions',
     data: { breadcrumb: 'sessions' },
     canActivate: [authGuard],
     loadComponent: () => import('./features/sessions').then((m) => m.SessionsPage),
   },
   {
-    path: 'profile',
-    data: { breadcrumb: 'profile' },
+    path: 'security',
+    data: { breadcrumb: 'security' },
+    canDeactivate: [unsavedGuard],
     canActivate: [authGuard],
     loadComponent: () => import('./features/profile').then((m) => m.ProfilePage),
   },
   {
     path: 'settings',
     canDeactivate: [unsavedGuard],
-    data: { breadcrumb: 'adminSettings' },
-    canActivate: [authGuard, adminGuard],
+    data: { breadcrumb: 'adminSettings', permission: 'settings.manage' },
+    canActivate: [authGuard, permissionGuard],
     loadComponent: () => import('./features/settings').then((m) => m.SettingsPage),
   },
   {
@@ -60,7 +85,7 @@ export const routes: Routes = [
   {
     path: 'files',
     data: { breadcrumb: 'files' },
-    canActivate: [authGuard],
+    canActivate: [authGuard, filesGuard],
     canDeactivate: [unsavedGuard],
     loadComponent: () => import('./features/files').then((m) => m.FilesPage),
   },
@@ -68,14 +93,20 @@ export const routes: Routes = [
     path: 'privacy',
     data: { breadcrumb: 'privacyAndData' },
     canActivate: [authGuard],
-    canDeactivate: [unsavedGuard],
     loadComponent: () => import('./features/privacy').then((m) => m.PrivacyPage),
   },
   {
-    path: 'invitations',
+    path: 'users/invitations',
     data: { breadcrumb: 'invitations', permission: 'users.manage' },
     canActivate: [authGuard, permissionGuard],
     loadComponent: () => import('./features/invitations').then((m) => m.InvitationsPage),
+  },
+  {
+    path: 'users/:id',
+    data: { breadcrumb: 'personDetails', permission: 'users.read' },
+    canActivate: [authGuard, permissionGuard],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/user-detail').then((m) => m.UserDetailPage),
   },
   {
     path: 'audit',
@@ -85,7 +116,7 @@ export const routes: Routes = [
   },
   {
     path: 'operations',
-    data: { breadcrumb: 'operations', permission: 'settings.manage' },
+    data: { breadcrumb: 'operations', permissions: ['settings.manage', 'jobs.trigger'] },
     canActivate: [authGuard, permissionGuard],
     loadComponent: () => import('./features/operations').then((m) => m.OperationsPage),
   },

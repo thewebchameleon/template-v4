@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -59,22 +59,39 @@ export type LoadState = 'loading' | 'ready' | 'error' | 'forbidden';
 export class Resource<T> {
   readonly value = signal<T | null>(null);
   readonly state = signal<LoadState>('loading');
-  private sequence = 0;
-  async load(fetch: () => Promise<T>) {
-    const sequence = ++this.sequence;
-    this.state.set('loading');
+  readonly refreshing = signal(false);
+  readonly refreshError = signal(false);
+  private controller?: AbortController;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.controller?.abort());
+  }
+  async load(fetch: (signal: AbortSignal) => Promise<T>) {
+    this.controller?.abort();
+    const controller = (this.controller = new AbortController());
+    this.refreshError.set(false);
+    this.refreshing.set(this.value() !== null);
+    if (this.value() === null) this.state.set('loading');
     try {
-      const value = await fetch();
-      if (sequence === this.sequence) {
+      const value = await fetch(controller.signal);
+      if (!controller.signal.aborted) {
         this.value.set(value);
         this.state.set('ready');
+        return true;
       }
     } catch (error) {
-      if (sequence === this.sequence)
-        this.state.set(
-          error instanceof HttpErrorResponse && error.status === 403 ? 'forbidden' : 'error',
-        );
+      if (!controller.signal.aborted) {
+        if (error instanceof HttpErrorResponse && error.status === 403) {
+          this.value.set(null);
+          this.state.set('forbidden');
+        } else if (this.value() !== null) {
+          this.refreshError.set(true);
+          this.state.set('ready');
+        } else this.state.set('error');
+      }
+    } finally {
+      if (!controller.signal.aborted) this.refreshing.set(false);
     }
+    return false;
   }
 }
 export class ListQuery {
@@ -90,6 +107,17 @@ export class ListQuery {
   get page() {
     const n = Number(this.text('page', '1'));
     return Number.isInteger(n) && n > 0 && n <= 10000 ? n : 1;
+  }
+  clamp(total: number | undefined, size = 25) {
+    if (total === undefined) return;
+    const page = Math.max(1, Math.ceil(total / size));
+    if (this.page > page)
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
   }
   set(values: Record<string, string | number | null>) {
     return this.router.navigate([], {
@@ -141,7 +169,7 @@ export class PageHeader {
           <h2 hlmEmptyTitle>{{ 'accessRestricted' | t }}</h2>
           <p hlmEmptyDescription>{{ 'accessRestrictedHelp' | t }}</p>
         </div>
-        <a hlmBtn variant="outline" routerLink="/profile">{{ 'profile' | t }}</a>
+        <a hlmBtn variant="outline" routerLink="/me">{{ 'account' | t }}</a>
       </div>
     } @else if (state() === 'error') {
       <div hlmAlert variant="destructive">
@@ -152,10 +180,21 @@ export class PageHeader {
         </button>
       </div>
     } @else {
+      @if (refreshing()) {
+        <p class="workspace-meta mb-3" role="status">{{ 'refreshing' | t }}</p>
+      }
+      @if (refreshError()) {
+        <div hlmAlert role="alert" class="mb-4">
+          <p hlmAlertDescription>{{ 'refreshFailed' | t }}</p>
+          <button hlmBtn variant="outline" (click)="retry.emit()">{{ 'retry' | t }}</button>
+        </div>
+      }
       <ng-content />
     }`,
 })
 export class PageState {
+  readonly refreshing = input(false);
+  readonly refreshError = input(false);
   readonly state = input.required<LoadState>();
   readonly retry = output<void>();
 }

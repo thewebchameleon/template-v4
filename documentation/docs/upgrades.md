@@ -21,3 +21,7 @@ Requested jobs now use JobRun state plus reconciliation. Before upgrading an exi
 Application references SharedKernel. Keep the project when copying the repository, or use its matching NuGet package. Add custom domain-event handlers and integration-contract registration explicitly. Generated email/localisation scaffolds are runtime-connected. CLI doctor checks Node/.NET versions; upgrade remains an explicit informational command, not an automatic migration engine.
 
 Run the PostgreSQL suite, independent package consumer and isolated browser harness before releasing. Browser traces/videos/screenshots are disabled because enrollment screens contain recovery material. Production TLS/SMTP and a timed off-host restore remain environment-specific acceptance checks.
+
+## Delegated access upgrade
+
+Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:files:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).

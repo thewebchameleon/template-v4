@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { NavigationEnd, RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
@@ -32,6 +32,7 @@ import { Theme } from './core/theme';
 import { Preferences } from './core/preferences';
 import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 import { Confirmation } from './shared/confirmation';
+import { Features } from './core/features';
 import { UnreadNotifications } from './core/unread-notifications';
 @Component({
   selector: 'app-root',
@@ -87,7 +88,12 @@ import { UnreadNotifications } from './core/unread-notifications';
           <div hlmSidebarHeader>
             <ul hlmSidebarMenu>
               <li hlmSidebarMenuItem>
-                <a hlmSidebarMenuButton size="lg" routerLink="/profile" closeMobileSidebarOnClick>
+                <a
+                  hlmSidebarMenuButton
+                  size="lg"
+                  [routerLink]="auth.landing()"
+                  closeMobileSidebarOnClick
+                >
                   <span class="brand-mark"><ng-icon name="lucideCommand" /></span>
                   <span class="brand-copy"
                     ><span>{{ 'appBrand' | t }}</span
@@ -118,12 +124,20 @@ import { UnreadNotifications } from './core/unread-notifications';
                 }
               </ul>
             </nav>
-            @if (auth.has('users.manage') || auth.has('settings.manage')) {
+            @if (
+              auth.has('users.read') ||
+              auth.has('roles.manage') ||
+              auth.has('settings.manage') ||
+              auth.has('jobs.trigger')
+            ) {
               <nav hlmSidebarGroup [attr.aria-label]="'administration' | t">
                 <div hlmSidebarGroupLabel>{{ 'administration' | t }}</div>
                 <ul hlmSidebarMenu>
                   @for (item of adminLinks; track item.path) {
-                    @if (auth.has(item.permission)) {
+                    @if (
+                      auth.has(item.permission) ||
+                      (item.path === '/operations' && auth.has('jobs.trigger'))
+                    ) {
                       <li hlmSidebarMenuItem>
                         <a
                           hlmSidebarMenuButton
@@ -181,7 +195,9 @@ import { UnreadNotifications } from './core/unread-notifications';
                 hlmBtn
                 variant="ghost"
                 routerLink="/notifications"
-                [attr.aria-label]="'notificationCentre' | t"
+                [attr.aria-label]="
+                  ('notificationCentre' | t) + ': ' + unread.count() + ' ' + ('unread' | t)
+                "
                 ><ng-icon name="lucideBell" />
                 @if (unread.count()) {
                   <span class="text-xs font-semibold">{{
@@ -228,11 +244,14 @@ import { UnreadNotifications } from './core/unread-notifications';
     <ng-template #accountMenu>
       <hlm-dropdown-menu>
         <hlm-dropdown-menu-group>
-          <a hlmDropdownMenuItem routerLink="/profile" (click)="sidebar.setOpenMobile(false)"
-            ><ng-icon name="lucideUserRound" />{{ 'profile' | t }}</a
+          <a hlmDropdownMenuItem routerLink="/me" (click)="sidebar.setOpenMobile(false)"
+            ><ng-icon name="lucideUserRound" />{{ 'account' | t }}</a
           >
           @if (!auth.access()?.setupRequired) {
-            <a hlmDropdownMenuItem routerLink="/sessions" (click)="sidebar.setOpenMobile(false)"
+            <a
+              hlmDropdownMenuItem
+              routerLink="/security/sessions"
+              (click)="sidebar.setOpenMobile(false)"
               ><ng-icon name="lucideMonitor" />{{ 'sessions' | t }}</a
             >
           }
@@ -246,6 +265,7 @@ import { UnreadNotifications } from './core/unread-notifications';
   `,
 })
 export class App {
+  readonly features = inject(Features);
   readonly unread = inject(UnreadNotifications);
   readonly auth = inject(Auth);
   readonly theme = inject(Theme);
@@ -254,18 +274,27 @@ export class App {
   private readonly breadcrumbs = inject(Breadcrumbs);
   private readonly i18n = inject(I18n);
   private readonly allAccountLinks = [
-    { path: '/profile', label: 'profile', icon: 'lucideUserRound' },
-    { path: '/sessions', label: 'sessions', icon: 'lucideMonitor', requiresMfa: true },
+    { path: '/me', label: 'account', icon: 'lucideUserRound', requiresMfa: true },
+    { path: '/security', label: 'security', icon: 'lucideShieldCheck' },
     { path: '/notifications', label: 'notificationCentre', icon: 'lucideBell', requiresMfa: true },
     { path: '/files', label: 'files', icon: 'lucideFolderOpen', requiresMfa: true },
     { path: '/privacy', label: 'privacyAndData', icon: 'lucideShieldCheck', requiresMfa: true },
   ];
   readonly accountLinks = computed(() =>
-    this.allAccountLinks.filter((item) => !item.requiresMfa || !this.auth.access()?.setupRequired),
+    this.allAccountLinks.filter(
+      (item) =>
+        (!item.requiresMfa || !this.auth.access()?.setupRequired) &&
+        (item.path !== '/files' || this.features.enabled('files')),
+    ),
   );
   readonly adminLinks = [
-    { path: '/users', label: 'users', icon: 'lucideUsersRound', permission: 'users.manage' },
-    { path: '/invitations', label: 'invitations', icon: 'lucideMail', permission: 'users.manage' },
+    { path: '/users', label: 'users', icon: 'lucideUsersRound', permission: 'users.read' },
+    {
+      path: '/roles',
+      label: 'rolesPermissions',
+      icon: 'lucideShieldCheck',
+      permission: 'roles.manage',
+    },
     { path: '/audit', label: 'auditHistory', icon: 'lucideHistory', permission: 'settings.manage' },
     {
       path: '/operations',
@@ -286,7 +315,14 @@ export class App {
       permission: 'settings.manage',
     },
   ];
+  private previousPath = '';
   constructor() {
+    const actor = computed(() =>
+      this.auth.access()?.setupRequired ? null : this.auth.access()?.userId,
+    );
+    effect(() => {
+      if (actor()) untracked(() => void this.features.load());
+    });
     effect(() => {
       const current = this.breadcrumbs.items().at(-1);
       document.title = current
@@ -295,7 +331,9 @@ export class App {
     });
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        setTimeout(() => document.getElementById('main')?.focus());
+        const path = event.urlAfterRedirects.split(/[?#]/)[0];
+        if (path !== this.previousPath) setTimeout(() => document.getElementById('main')?.focus());
+        this.previousPath = path;
       }
     });
   }

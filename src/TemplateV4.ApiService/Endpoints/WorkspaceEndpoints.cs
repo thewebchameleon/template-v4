@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
+using TemplateV4.Application;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure;
@@ -18,27 +19,35 @@ public static class WorkspaceEndpoints
             .RequireAuthorization(Permissions.Manage).WithName("ListInvitations").Produces<Page<InvitationItem>>();
         group.MapGet("/operations/overview", async (OperationsService service, CancellationToken ct) => Results.Ok(await service.Overview(ct)))
             .RequireAuthorization(Permissions.Settings).WithName("GetOperationsOverview").Produces<OperationsOverview>();
+        group.MapGet("/notifications/summary", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => Results.Ok(await service.Summary(EndpointSecurity.Actor(principal), ct)))
+            .RequireAuthorization().WithName("GetNotificationSummary").Produces<NotificationSummary>();
         group.MapGet("/notifications", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, bool unreadOnly = false) => (await service.List(EndpointSecurity.Actor(principal), pageNumber, unreadOnly, ct)).ToHttp())
             .RequireAuthorization().WithName("ListNotifications").Produces<NotificationPage>();
         group.MapPost("/notifications/read", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, Guid? id = null) => (await service.Read(EndpointSecurity.Actor(principal), id, ct)).ToHttp())
             .RequireAuthorization().WithName("ReadNotifications");
         group.MapPost("/notifications/preferences", async (NotificationPreference request, NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Preferences(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("SaveNotificationPreferences");
-        group.MapGet("/files", async (FileService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, string? search = null, string sort = "newest") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, search, sort, ct)).ToHttp())
+        var files = group.MapGroup("/files").AddEndpointFilter(async (invocation, next) =>
+        {
+            var flags = invocation.HttpContext.RequestServices.GetRequiredService<IFeatureFlags>();
+            var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
+            return flags.Enabled("files", actor) ? await next(invocation) : Results.NotFound();
+        });
+        files.MapGet("", async (FileService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, string? search = null, string sort = "newest") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, search, sort, ct)).ToHttp())
             .RequireAuthorization().WithName("ListFiles").Produces<FilePage>();
-        group.MapPost("/files/upload", async (string name, HttpContext context, FileService service, CancellationToken ct) =>
+        files.MapPost("/upload", async (string name, HttpContext context, FileService service, CancellationToken ct) =>
         {
             var limit = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
             if (limit is { IsReadOnly: false }) limit.MaxRequestBodySize = FileService.MaxUploadBytes;
             if (context.Request.ContentLength > FileService.MaxUploadBytes) return Results.StatusCode(413);
             return (await service.Upload(EndpointSecurity.Actor(context.User), name, context.Request.Body, ct)).ToHttp();
         }).RequireAuthorization().WithName("UploadFile").Accepts<byte[]>("application/octet-stream").Produces<FileItem>();
-        group.MapGet("/files/{id:guid}/download", async (Guid id, ClaimsPrincipal principal, FileService service, CancellationToken ct) =>
+        files.MapGet("/{id:guid}/download", async (Guid id, ClaimsPrincipal principal, FileService service, CancellationToken ct) =>
         {
             var result = await service.Download(EndpointSecurity.Actor(principal), id, ct);
             return result.IsSuccess ? Results.File(result.Value!.Content, "application/octet-stream", result.Value.Name, enableRangeProcessing: false) : ApiResults.Failure(result.Error!);
         }).RequireAuthorization().WithName("DownloadFile").Produces(200, contentType: "application/octet-stream");
-        group.MapPost("/files/{id:guid}/delete", async (Guid id, ClaimsPrincipal principal, FileService service, CancellationToken ct) => (await service.Delete(EndpointSecurity.Actor(principal), id, ct)).ToHttp())
+        files.MapPost("/{id:guid}/delete", async (Guid id, ClaimsPrincipal principal, FileService service, CancellationToken ct) => (await service.Delete(EndpointSecurity.Actor(principal), id, ct)).ToHttp())
             .RequireAuthorization().WithName("DeleteFile");
         group.MapGet("/privacy", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.Ok(await service.Status(EndpointSecurity.Actor(principal), ct)))
             .RequireAuthorization().WithName("GetPrivacyStatus").Produces<PrivacyStatus>();

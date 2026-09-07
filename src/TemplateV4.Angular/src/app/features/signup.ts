@@ -35,6 +35,11 @@ import { AuthLayout } from './auth-layout';
           <div role="status" class="flex items-center gap-2">
             <hlm-spinner />{{ 'loading' | t }}
           </div>
+        } @else if (checkFailed()) {
+          <div hlmAlert role="alert">
+            <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
+            <button hlmBtn variant="outline" (click)="ngOnInit()">{{ 'retry' | t }}</button>
+          </div>
         } @else if (!enabled()) {
           <div hlmAlert role="status">
             <h2 hlmAlertTitle>{{ 'registrationUnavailable' | t }}</h2>
@@ -150,6 +155,7 @@ export class SignupPage implements OnInit {
   private readonly registration = inject(Registration);
   private readonly i18n = inject(I18n);
   readonly checking = signal(true);
+  readonly checkFailed = signal(false);
   readonly enabled = signal(false);
   readonly busy = signal(false);
   readonly done = signal(false);
@@ -160,10 +166,12 @@ export class SignupPage implements OnInit {
   confirmation = '';
 
   async ngOnInit() {
+    this.checking.set(true);
+    this.checkFailed.set(false);
     try {
       this.enabled.set((await this.registration.status()).enabled);
     } catch {
-      /* Central Problem Details UI; availability fails closed. */
+      this.checkFailed.set(true);
     } finally {
       this.checking.set(false);
     }

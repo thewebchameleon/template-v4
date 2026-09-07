@@ -1,6 +1,8 @@
+import { adminDictionary } from './admin-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
   ...workspaceDictionary,
+  ...adminDictionary,
   accountNavigation: ['Account', 'Rekening'],
   appBrand: ['templatev4', 'templatev4'],
   signupTitle: ['Create an account', 'Skep ’n rekening'],
@@ -232,7 +234,7 @@ export const dictionary: Record<string, [string, string]> = {
   currentSession: ['This session', 'Hierdie sessie'],
   noSessions: ['No active sessions', 'Geen aktiewe sessies nie'],
 
-  users: ['User management', 'Gebruikersbestuur'],
+  users: ['Users', 'Gebruikers'],
   signIn: ['Sign in', 'Meld aan'],
   signOut: ['Sign out', 'Meld af'],
   email: ['Email', 'E-pos'],
@@ -288,7 +290,7 @@ export const dictionary: Record<string, [string, string]> = {
   sent: ['Check your email for the next step.', 'Gaan jou e-pos na vir die volgende stap.'],
   sessions: ['Your sessions', 'Jou sessies'],
   revoke: ['Revoke', 'Herroep'],
-  account: ['Complete your account', 'Voltooi jou rekening'],
+  account: ['Account', 'Rekening'],
   confirm: ['Verify email', 'Bevestig e-pos'],
   newPassword: ['Set password', 'Stel wagwoord'],
   required: ['Please complete all required fields.', 'Voltooi asseblief alle vereiste velde.'],

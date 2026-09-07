@@ -21,14 +21,21 @@ export class I18n {
     );
     document.documentElement.lang = this.culture();
   }
+  private readonly dates = new Map<string, Intl.DateTimeFormat>();
+  private readonly numbers = new Map<string, Intl.NumberFormat>();
   date(value: string) {
-    return new Intl.DateTimeFormat(this.culture(), {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
+    const culture = this.culture();
+    if (!this.dates.has(culture))
+      this.dates.set(
+        culture,
+        new Intl.DateTimeFormat(culture, { dateStyle: 'medium', timeStyle: 'short' }),
+      );
+    return this.dates.get(culture)!.format(new Date(value));
   }
   number(value: number) {
-    return new Intl.NumberFormat(this.culture()).format(value);
+    const culture = this.culture();
+    if (!this.numbers.has(culture)) this.numbers.set(culture, new Intl.NumberFormat(culture));
+    return this.numbers.get(culture)!.format(value);
   }
   currency(value: number, currency = 'ZAR') {
     return new Intl.NumberFormat(this.culture(), { style: 'currency', currency }).format(value);

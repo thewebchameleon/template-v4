@@ -127,7 +127,18 @@ export class Breadcrumbs {
       this.historyIndex = this.history.length - 1;
     }
 
-    this.previous.set(this.history[this.historyIndex - 1]?.page ?? null);
+    const previous = this.history[this.historyIndex - 1]?.page;
+    this.previous.set(
+      previous
+        ? {
+            ...previous,
+            label:
+              previous.link?.split(/[?#]/)[0] === event.urlAfterRedirects.split(/[?#]/)[0]
+                ? 'previousView'
+                : previous.label,
+          }
+        : null,
+    );
     this.pendingNavigation = null;
   }
 

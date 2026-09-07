@@ -31,7 +31,8 @@
     "invitations",
     "notifications",
     "privacy",
-    "s3-storage"
+    "s3-storage",
+    "role-management"
   ],
   "projects": {
     "Domain": "src/TemplateV4.Domain",
@@ -69,7 +70,9 @@
     "featureFlags": "configuration",
     "apiClient": "ng-openapi-gen",
     "documentation": "DocMD",
-    "ui": "Spartan NG"
+    "ui": "Spartan NG",
+    "access": "Identity roles with protected built-ins and delegated permissions",
+    "personalFiles": "Optional; Features:files:Enabled defaults to false"
   },
   "cultures": {
     "default": "en-ZA",
