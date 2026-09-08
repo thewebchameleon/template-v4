@@ -11,7 +11,7 @@ public static class Permissions
     public const string Roles = "roles.manage";
     public static readonly string[] All = [Read, Manage, Roles, Jobs, Settings];
 }
-public sealed record UserDto(Guid Id, string Email, string DisplayName, string Culture, bool Disabled, string[] Roles, Guid Version, string Status = "Active");
+public sealed record UserDto(Guid Id, string Email, string DisplayName, string Culture, bool Disabled, string[] Roles, Guid Version, string Status = "Active", string Username = "");
 public sealed record Page<T>(IReadOnlyList<T> Items, int Total, int PageNumber, int PageSize);
 public interface IUserDirectory
 {
@@ -42,7 +42,7 @@ public sealed class CreateUserValidator(CultureCatalog cultures) : IValidator<Cr
 }
 public sealed class ListUsersValidator : IValidator<ListUsers>
 {
-    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Sort is not ("displayName" or "roles" or "status") || query.Direction is not ("asc" or "desc")
+    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Sort is not ("username" or "displayName" or "email" or "roles" or "status") || query.Direction is not ("asc" or "desc")
         ? new() { ["pagination"] = ["query.invalid"] } : [];
 }
 public sealed class UpdateUserValidator : IValidator<UpdateUser>

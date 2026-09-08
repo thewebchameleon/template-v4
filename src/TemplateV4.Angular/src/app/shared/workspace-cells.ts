@@ -13,11 +13,11 @@ export interface RowAction {
 @Component({
   selector: 'app-row-actions',
   imports: [HlmButtonImports, Translate],
-  template: `<div class="flex flex-wrap gap-1">
+  template: `<div class="flex flex-wrap justify-end gap-1">
     @for (action of actions(); track action.label) {
       <button
         hlmBtn
-        [variant]="action.destructive ? 'outline' : 'ghost'"
+        [variant]="action.destructive ? 'destructive' : 'secondary'"
         size="sm"
         [disabled]="action.disabled"
         (click)="action.run()"

@@ -13,6 +13,47 @@ namespace TemplateV4.Application.Tests;
 
 public sealed partial class SecurityAndMessagingTests
 {
+    [Fact]
+    public async Task Directory_exposes_separate_usernames_and_sorts_and_searches_identity_columns()
+    {
+        await using var scope = _services.CreateAsyncScope();
+        var sp = scope.ServiceProvider;
+        await AccessActor(sp);
+        var users = sp.GetRequiredService<UserManager<AppUser>>();
+        var db = sp.GetRequiredService<FrameworkDb>();
+        var entries = new List<AppUser>();
+        foreach (var (username, email) in new[] { ("directory-check-z", "a@example.test"), ("directory-check-a", "z@example.test"), ("directory-check-m", "m@example.test") })
+        {
+            var user = new AppUser { Id = Guid.NewGuid(), UserName = username, Email = email };
+            Assert.True((await users.CreateAsync(user)).Succeeded);
+            db.Profiles.Add(UserProfile.Create(user.Id, "Shared display name", "en-ZA"));
+            entries.Add(user);
+        }
+        await db.SaveChangesAsync();
+        var directory = sp.GetRequiredService<IUserDirectory>();
+        foreach (var column in new[] { "username", "email" })
+        {
+            foreach (var direction in new[] { "asc", "desc" })
+            {
+                var query = new ListUsers(PageSize: 2, Search: "directory-check", Sort: column, Direction: direction);
+                Assert.Empty(new ListUsersValidator().Validate(query));
+                var first = await directory.List(query, default);
+                var second = await directory.List(query with { PageNumber = 2 }, default);
+                var expected = entries.OrderBy(u => column == "username" ? u.UserName : u.Email).Select(u => u.Id);
+                if (direction == "desc") expected = expected.Reverse();
+                Assert.Equal(3, first.Total);
+                Assert.Equal(expected, first.Items.Concat(second.Items).Select(u => u.Id));
+                Assert.All(first.Items, u => Assert.NotEqual(u.Email, u.Username));
+            }
+        }
+        var match = Assert.Single((await directory.List(new(Search: "directory-check-z"), default)).Items);
+        Assert.Equal("directory-check-z", match.Username);
+        Assert.Equal("a@example.test", match.Email);
+        var detail = await sp.GetRequiredService<AccessManagementService>().User(match.Id, default);
+        Assert.True(detail.IsSuccess);
+        Assert.Equal(match.Username, detail.Value!.User.Username);
+    }
+
     private async Task<AppUser> AccessActor(IServiceProvider sp)
     {
         var actor = await User(sp);

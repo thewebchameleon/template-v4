@@ -21,7 +21,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         if (!role.Succeeded) throw new InvalidOperationException("Seeded role assignment failed.");
         var profile = UserProfile.Create(identity.Id, command.DisplayName, command.Culture);
         db.Profiles.Add(profile); Audit("user.created", identity.Id);
-        return Result<UserDto>.Success(new(identity.Id, command.Email, profile.DisplayName, profile.Culture, false, command.Roles, profile.Version));
+        return Result<UserDto>.Success(new(identity.Id, command.Email, profile.DisplayName, profile.Culture, false, command.Roles, profile.Version, Username: identity.UserName!));
     }
 
     public async Task<Page<UserDto>> List(ListUsers query, CancellationToken cancellationToken)
@@ -29,11 +29,15 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         var source = from profile in db.Profiles.AsNoTracking()
                      join user in db.Users on profile.Id equals user.Id
                      select new { profile, user };
-        if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.profile.DisplayName.Contains(query.Search) || x.user.Email!.Contains(query.Search));
+        if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.profile.DisplayName.Contains(query.Search) || x.user.Email!.Contains(query.Search) || x.user.UserName!.Contains(query.Search));
         var total = await source.CountAsync(cancellationToken);
         var descending = query.Direction == "desc";
         var ordered = query.Sort switch
         {
+            "username" when descending => source.OrderByDescending(x => x.user.UserName).ThenByDescending(x => x.user.Id),
+            "username" => source.OrderBy(x => x.user.UserName).ThenBy(x => x.user.Id),
+            "email" when descending => source.OrderByDescending(x => x.user.Email).ThenByDescending(x => x.user.Id),
+            "email" => source.OrderBy(x => x.user.Email).ThenBy(x => x.user.Id),
             "roles" when descending => source.OrderByDescending(x => db.UserRoles.Where(m => m.UserId == x.user.Id).Join(db.Roles, m => m.RoleId, r => r.Id, (_, r) => r.Name).Order().FirstOrDefault()).ThenByDescending(x => x.user.Id),
             "roles" => source.OrderBy(x => db.UserRoles.Where(m => m.UserId == x.user.Id).Join(db.Roles, m => m.RoleId, r => r.Id, (_, r) => r.Name).Order().FirstOrDefault()).ThenBy(x => x.user.Id),
             "status" when descending => source.OrderByDescending(x => x.profile.Disabled ? 2 : !x.user.EmailConfirmed || x.user.PasswordHash == null ? 1 : 0).ThenByDescending(x => x.user.Id),
@@ -46,7 +50,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         var memberships = await (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id where ids.Contains(membership.UserId) select new { membership.UserId, role.Name }).ToArrayAsync(cancellationToken);
         return new(page.Select(x => new UserDto(x.user.Id, x.user.Email!, x.profile.DisplayName, x.profile.Culture, x.profile.Disabled,
             memberships.Where(m => m.UserId == x.user.Id).Select(m => m.Name!).Order().ToArray(), x.profile.Version,
-            x.profile.Disabled ? "Disabled" : !x.user.EmailConfirmed || x.user.PasswordHash == null ? "Invited" : "Active")).ToArray(), total, query.PageNumber, query.PageSize);
+            x.profile.Disabled ? "Disabled" : !x.user.EmailConfirmed || x.user.PasswordHash == null ? "Invited" : "Active", x.user.UserName!)).ToArray(), total, query.PageNumber, query.PageSize);
     }
 
     public async Task<Result<UserDto>> Update(UpdateUser command, CancellationToken cancellationToken)
@@ -79,7 +83,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         if (wasDisabled != command.Disabled) Audit(command.Disabled ? "user.disabled" : "user.enabled", command.Id);
         Audit("user.access_changed", command.Id);
         outbox.Add(new EmailRequest(command.Id, EmailTemplate.SecurityNotification, profile.Culture));
-        return Result<UserDto>.Success(new(identity.Id, identity.Email!, profile.DisplayName, profile.Culture, profile.Disabled, command.Roles, profile.Version));
+        return Result<UserDto>.Success(new(identity.Id, identity.Email!, profile.DisplayName, profile.Culture, profile.Disabled, command.Roles, profile.Version, Username: identity.UserName!));
     }
     private async Task<bool> CanAssign(string[] names, CancellationToken ct)
     {

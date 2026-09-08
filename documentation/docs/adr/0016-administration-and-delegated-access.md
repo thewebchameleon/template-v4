@@ -20,6 +20,10 @@ The reusable starter needs useful administration rather than a security-settings
 
 ## Consequences and extension points
 
+The user directory exposes Identity username separately from email and supports server-side sorting and search for both. User rows open the existing details editor in a right drawer without changing the directory URL; direct detail routes remain supported. Embedded details do not override page breadcrumbs. Save events refresh the directory, and drawer closure/navigation retain draft protection.
+
+Optional shared data-table row actions retain native table semantics and expose a named button in the first column for keyboard users. Row clicks ignore nested controls and text selection; focus moves to the row's button before opening the dialog so it can return on close. Consumers opt in with `rowActionLabel` and `rowAction`, and must keep the first column free of nested interactive cell controls when opting in.
+
 Run the migrator on upgrade to add the Administrator's new `roles.manage` claim; existing sessions are revoked when seeded claims change. Custom roles are not overwritten by seeding. Add permissions to `Permissions.All`, declare their endpoint/handler policies and provide descriptions in both UI cultures. Update the generated OpenAPI contract through the exporter and generator, never by hand.
 
 When adding a new privileged capability, review the administrator MFA policy and delegation rules. Do not infer authorization from navigation visibility. Role-management code and assignment code must retain the same lock ordering. Add real PostgreSQL coverage for delegation, conflicts, protected roles and session invalidation.

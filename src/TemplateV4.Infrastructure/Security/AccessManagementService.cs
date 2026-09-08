@@ -46,7 +46,7 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         var ids = await db.UserRoles.Where(x => x.UserId == id).Select(x => x.RoleId).ToArrayAsync(ct);
         var roles = await RoleItems(await db.Roles.AsNoTracking().Where(x => ids.Contains(x.Id)).OrderBy(x => x.Name).ToArrayAsync(ct), ct);
         return Result<UserAccessDetail>.Success(new(new(id, entry.u.Email!, entry.p.DisplayName, entry.p.Culture, entry.p.Disabled, roles.Select(r => r.Name).ToArray(), entry.p.Version,
-            entry.p.Disabled ? "Disabled" : !entry.u.EmailConfirmed || entry.u.PasswordHash == null ? "Invited" : "Active"), roles.SelectMany(r => r.Permissions).Distinct().Order().ToArray(), roles));
+            entry.p.Disabled ? "Disabled" : !entry.u.EmailConfirmed || entry.u.PasswordHash == null ? "Invited" : "Active", entry.u.UserName!), roles.SelectMany(r => r.Permissions).Distinct().Order().ToArray(), roles));
     }
 
     public async Task<Result<RoleItem>> Save(Guid? id, SaveRoleRequest request, CancellationToken ct)

@@ -9,5 +9,6 @@ export interface UserDto {
   id: string;
   roles: Array<string>;
   status?: string;
+  username?: string;
   version: string;
 }

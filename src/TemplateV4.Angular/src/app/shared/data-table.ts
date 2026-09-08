@@ -1,4 +1,5 @@
 import { Component, input, output } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
@@ -22,10 +23,17 @@ export interface ServerSort {
 
 @Component({
   selector: 'app-data-table',
-  imports: [FlexRender, HlmButtonImports, HlmEmptyImports, HlmSpinnerImports, HlmTableImports],
+  imports: [
+    FlexRender,
+    NgTemplateOutlet,
+    HlmButtonImports,
+    HlmEmptyImports,
+    HlmSpinnerImports,
+    HlmTableImports,
+  ],
   template: `
     <div
-      class="relative -mx-(--card-spacing) min-h-24 w-[calc(100%+var(--card-spacing)+var(--card-spacing))] overflow-hidden border-y"
+      class="relative -mx-(--card-spacing) w-[calc(100%+var(--card-spacing)+var(--card-spacing))] overflow-hidden rounded-t-[var(--data-table-top-radius,0px)] border-y"
       [class.h-24]="loading()"
     >
       <div hlmTableContainer [class.blur-sm]="loading()" [attr.inert]="loading() ? '' : null">
@@ -49,6 +57,7 @@ export interface ServerSort {
                             type="button"
                             variant="ghost"
                             size="sm"
+                            class="-ms-[calc(var(--spacing)*2.5+1px)]"
                             (click)="toggleSort(header.column.id)"
                           >
                             <ng-container
@@ -70,7 +79,9 @@ export interface ServerSort {
                               let headerContent
                             "
                           >
-                            {{ headerContent }}
+                            <span [class.sr-only]="header.column.id === 'actions'">
+                              {{ headerContent }}
+                            </span>
                           </ng-container>
                         }
                       }
@@ -82,22 +93,46 @@ export interface ServerSort {
           }
           <tbody hlmTBody>
             @for (row of table.getRowModel().rows; track row.id) {
-              <tr hlmTr>
-                @for (cell of row.getAllCells(); track cell.id) {
+              <tr
+                hlmTr
+                [class.cursor-pointer]="!!rowActionLabel()"
+                (click)="activateRow($event, row.original)"
+                (keydown)="rowKeydown($event, row.original)"
+              >
+                @for (cell of row.getAllCells(); track cell.id; let first = $first) {
                   <td
                     hlmTd
                     class="first:ps-(--card-spacing) last:pe-(--card-spacing)"
                     [class.w-full]="cell.column.id === fillColumn()"
+                    [class.text-end]="cell.column.id === 'actions'"
                   >
-                    <ng-container
-                      *flexRender="
-                        cell.column.columnDef.cell;
-                        props: cell.getContext();
-                        let cellContent
-                      "
+                    <ng-template #renderedCell
+                      ><ng-container
+                        *flexRender="
+                          cell.column.columnDef.cell;
+                          props: cell.getContext();
+                          let cellContent
+                        "
+                      >
+                        {{ cellContent }}
+                      </ng-container></ng-template
                     >
-                      {{ cellContent }}
-                    </ng-container>
+                    @if (rowActionLabel() && first) {
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="link"
+                        class="h-auto whitespace-normal p-0 text-start"
+                        data-row-action
+                        aria-haspopup="dialog"
+                        [attr.aria-label]="rowActionLabel()?.(row.original)"
+                        (click)="rowAction.emit(row.original)"
+                      >
+                        <ng-container [ngTemplateOutlet]="renderedCell" />
+                      </button>
+                    } @else {
+                      <ng-container [ngTemplateOutlet]="renderedCell" />
+                    }
                   </td>
                 }
               </tr>
@@ -140,6 +175,40 @@ export class DataTable<TData extends RowData> {
   readonly sortColumn = input.required<string>();
   readonly sortDirection = input.required<SortDirection>();
   readonly sortChange = output<ServerSort>();
+  readonly rowActionLabel = input<(row: TData) => string>();
+  readonly rowAction = output<TData>();
+
+  protected activateRow(event: MouseEvent, row: TData) {
+    if (
+      !this.rowActionLabel() ||
+      this.loading() ||
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey ||
+      window.getSelection()?.toString()
+    )
+      return;
+    const target = event.target;
+    if (
+      !(target instanceof Element) ||
+      target.closest('button, a, input, select, textarea, [role="button"], [role="checkbox"]')
+    )
+      return;
+    (event.currentTarget as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-row-action]')
+      ?.focus();
+    this.rowAction.emit(row);
+  }
+
+  protected rowKeydown(event: KeyboardEvent, row: TData) {
+    if (event.target !== event.currentTarget || !this.rowActionLabel() || this.loading()) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.rowAction.emit(row);
+    }
+  }
 
   protected readonly table = injectTable(() => ({
     features: dataTableFeatures,

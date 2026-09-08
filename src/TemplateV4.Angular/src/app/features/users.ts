@@ -8,9 +8,11 @@ import {
   ListQuery,
   DebouncedSearch,
   protectUnload,
+  Confirmations,
 } from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
-import { RecordIdentity, RecordStatus } from '../shared/workspace-cells';
+import { RecordStatus } from '../shared/workspace-cells';
+import { UserDetailPage } from './user-detail';
 import { PeopleNav } from '../shared/people-nav';
 import { InvitationEditor } from './invite-user';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -20,7 +22,7 @@ import { UserDto, PageOfUserDto } from '../api/models';
 const column = createColumnHelper<DataTableFeatures, UserDto>();
 @Component({
   selector: 'app-users',
-  imports: [WorkspaceUi, DataTable, PeopleNav, HlmDrawerImports, InvitationEditor],
+  imports: [WorkspaceUi, DataTable, PeopleNav, HlmDrawerImports, InvitationEditor, UserDetailPage],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="users" description="peopleIntro" eyebrow="administration">
@@ -50,31 +52,36 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     </app-page-header>
     <app-people-nav />
     <section hlmCard>
-      <div hlmCardHeader>
+      <div
+        hlmCardHeader
+        class="workspace-card-search-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <h2 hlmCardTitle>{{ 'directory' | t }}</h2>
-      </div>
-      <div hlmCardContent>
-        <div class="workspace-toolbar">
-          <div hlmField>
-            <label hlmFieldLabel for="search">{{ 'search' | t }}</label
-            ><input
+        <div class="flex w-full items-end gap-2 sm:w-auto">
+          @if (search.value()) {
+            <button hlmBtn type="button" (click)="search.update('')">
+              {{ 'clear' | t }}
+            </button>
+          }
+          <div hlmField class="min-w-0 flex-1 sm:w-72">
+            <input
               hlmInput
               id="search"
+              [attr.aria-label]="'search' | t"
               [ngModel]="search.value()"
               (ngModelChange)="search.update($event)"
               maxlength="120"
               [placeholder]="'peopleSearch' | t"
             />
           </div>
-          @if (search.value()) {
-            <button hlmBtn type="button" variant="ghost" (click)="search.update('')">
-              {{ 'clear' | t }}
-            </button>
-          }
         </div>
+      </div>
+      <div hlmCardContent>
         <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
           ><app-data-table
             [columns]="columns()"
+            [rowActionLabel]="detailsLabel"
+            (rowAction)="openDetails($event)"
             [data]="data.value()?.items ?? []"
             [loading]="data.state() === 'loading' || data.refreshing()"
             [loadingText]="'loading' | t"
@@ -88,7 +95,39 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
             (pageChange)="query.set({ page: $event })"
         /></app-page-state>
       </div>
-    </section>`,
+    </section>
+    <hlm-drawer
+      direction="right"
+      [state]="selectedUser() ? 'open' : 'closed'"
+      [disableClose]="detailsBusy() || (detailEditor()?.hasUnsavedChanges() ?? false)"
+      (stateChanged)="$event === 'closed' && closeDetails()"
+    >
+      <hlm-drawer-content
+        *hlmDrawerPortal
+        class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-2xl"
+      >
+        <hlm-drawer-header>
+          <h2 hlmDrawerTitle>{{ 'personDetails' | t }}</h2>
+          <p hlmDrawerDescription>{{ 'personDetailsHelp' | t }}</p>
+        </hlm-drawer-header>
+        <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+          @if (selectedUser(); as user) {
+            <app-user-detail [userId]="user.id" [embedded]="true" (saved)="load()" />
+          }
+        </div>
+        <hlm-drawer-footer>
+          <button
+            hlmBtn
+            type="button"
+            variant="outline"
+            [disabled]="detailsBusy()"
+            (click)="closeDetails()"
+          >
+            {{ 'close' | t }}
+          </button>
+        </hlm-drawer-footer>
+      </hlm-drawer-content>
+    </hlm-drawer>`,
 })
 export class UsersPage {
   readonly auth = inject(Auth);
@@ -98,21 +137,19 @@ export class UsersPage {
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly inviteOpen = signal(false);
+  readonly selectedUser = signal<UserDto | null>(null);
+  readonly detailEditor = viewChild(UserDetailPage);
+  readonly detailsBusy = computed(() => this.detailEditor()?.busy() ?? false);
+  private readonly confirm = inject(Confirmations);
+  readonly detailsLabel = (user: UserDto) =>
+    `${this.i18n.text('personDetails')}: ${user.username || user.displayName}`;
   private readonly editor = viewChild(InvitationEditor);
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
-      column.accessor('displayName', {
-        header: this.i18n.text('person'),
-        cell: ({ row }) =>
-          flexRenderComponent(RecordIdentity, {
-            inputs: {
-              label: row.original.displayName,
-              description: row.original.email,
-              link: '/users/' + row.original.id,
-            },
-          }),
-      }),
+      column.accessor('username', { header: this.i18n.text('username') }),
+      column.accessor('displayName', { header: this.i18n.text('displayName') }),
+      column.accessor('email', { header: this.i18n.text('email') }),
       column.accessor('roles', {
         header: this.i18n.text('roles'),
         cell: (c) => c.getValue().join(', ') || '—',
@@ -152,7 +189,23 @@ export class UsersPage {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
   }
   hasUnsavedChanges() {
-    return this.inviteOpen() && (this.editor()?.hasUnsavedChanges() ?? false);
+    return (
+      (this.inviteOpen() && (this.editor()?.hasUnsavedChanges() ?? false)) ||
+      (this.detailEditor()?.hasUnsavedChanges() ?? false) ||
+      this.detailsBusy()
+    );
+  }
+  openDetails(user: UserDto) {
+    this.selectedUser.set(user);
+  }
+  async closeDetails() {
+    if (this.detailsBusy()) return;
+    if (
+      this.detailEditor()?.hasUnsavedChanges() &&
+      !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
+    )
+      return;
+    this.selectedUser.set(null);
   }
   beforeUnload(event: BeforeUnloadEvent) {
     protectUnload(event, this.hasUnsavedChanges());

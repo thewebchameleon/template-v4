@@ -3993,6 +3993,10 @@
           "status": {
             "type": "string",
             "default": "Active"
+          },
+          "username": {
+            "type": "string",
+            "default": ""
           }
         }
       }

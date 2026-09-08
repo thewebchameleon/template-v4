@@ -10,6 +10,8 @@ Treat accessibility as an acceptance criterion for every UI change. Preserve sem
 
 Data-table search inputs must apply automatically after a 300 ms debounce, persist the search in URL query state, and reset pagination to page 1. Do not add a manual search or submit button beside a data-table search input.
 
+Data-table panels must use the shared `hlmCard`/`hlmCardHeader`/`hlmCardContent`, `app-data-table`, and `app-list-pager` composition. Align panel headings, filters, outer table columns, and pager content using `--card-spacing` (four spacing units, 16px at the default scale); do not add page-local horizontal offsets. Place the pager immediately after the table with no intervening layout gap, as the last content in the panel. Keep its shared full-width subtle background, rounded bottom corners, equal compact vertical padding, results on the left, and pagination on the right (stacked on mobile). Maintain these rules in shared styles for every new panel, including compact density and both themes.
+
 Boolean filters on data-table pages must use the copied Spartan Helm `hlm-checkbox` inside an `hlmField`, with an `hlmFieldLabel` and `hlmFieldDescription`. Do not use a switch or toggle button for these filters.
 
 Leave all tests until the absolute last validation stage, after implementation, documentation, format/lint, manifest validation, and applicable builds are complete. Then run focused tests for behavior changes; use real PostgreSQL integration tests for persistence, sessions, or messaging changes. Before running any end-to-end (E2E) tests, ask the user for explicit permission and stop to await their response. Do not run E2E tests without that permission. Significant conventions need an ADR and extension-point documentation.

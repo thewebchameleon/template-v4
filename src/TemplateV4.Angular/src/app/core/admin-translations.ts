@@ -22,6 +22,7 @@ export const adminDictionary: Record<string, [string, string]> = {
   roles: ['Roles', 'Rolle'],
   peopleIntro: ['Find people and manage their access.', 'Vind mense en bestuur hul toegang.'],
   directory: ['User directory', 'Gebruikersgids'],
+  displayName: ['Display name', 'Vertoonnaam'],
   peopleEmpty: [
     'No users match. Clear your search or invite a user.',
     'Geen gebruikers pas nie. Maak jou soektog skoon of nooi iemand.',

@@ -39,7 +39,7 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ 'roles' | t }}</h2>
           </div>
-          <div hlmCardContent class="grid gap-4">
+          <div hlmCardContent>
             <div class="workspace-toolbar">
               <div hlmField>
                 <label hlmFieldLabel for="role-search">{{ 'search' | t }}</label

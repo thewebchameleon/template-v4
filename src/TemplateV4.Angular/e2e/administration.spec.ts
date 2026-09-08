@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 async function administration(
   page: Page,
   permissions = ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
+  saveSucceeds = false,
 ) {
   const roles = [
     {
@@ -27,6 +28,7 @@ async function administration(
   ];
   const user = {
     id: 'person',
+    username: 'example.person',
     email: 'person@example.test',
     displayName: 'Example Person',
     culture: 'en-ZA',
@@ -49,7 +51,7 @@ async function administration(
       '/api/v1/features': { files: false, maintenance: false },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/roles': {
-        roles,
+        roles: { items: roles, total: roles.length, pageNumber: 1, pageSize: 100 },
         permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'].map(
           (key) => ({ key, group: key.split('.')[0] }),
         ),
@@ -62,11 +64,16 @@ async function administration(
         version: 'v1',
       },
     };
-    if (route.request().method() === 'PUT' && path === '/api/v1/users/person')
+    if (route.request().method() === 'PUT' && path === '/api/v1/users/person') {
+      if (saveSucceeds) {
+        Object.assign(user, route.request().postDataJSON(), { version: 'v2' });
+        return route.fulfill({ json: user });
+      }
       return route.fulfill({
         status: 409,
         json: { title: 'The record changed. Reload it.', code: 'concurrency.conflict' },
       });
+    }
     if (path in responses) return route.fulfill({ json: responses[path] });
     return route.fulfill({ status: 404, json: { title: 'Unexpected request' } });
   });
@@ -133,7 +140,7 @@ test('settings-only operators can reach settings without user management permiss
   await expect(page.getByRole('link', { name: 'Users', exact: true })).toHaveCount(0);
 });
 
-test('list filtering debounces automatically, retains focus, and uses a person detail destination', async ({
+test('user rows open details without changing directory query state and restore keyboard focus', async ({
   page,
 }) => {
   await administration(page);
@@ -142,8 +149,100 @@ test('list filtering debounces automatically, retains focus, and uses a person d
   await search.fill('Example');
   await expect(page).toHaveURL(/search=Example/);
   await expect(search).toBeFocused();
-  await page.getByRole('link', { name: 'Example Person', exact: true }).click();
-  await expect(page).toHaveURL(/users\/person$/);
+  for (const name of ['Username', 'Display name', 'Email', 'Roles', 'Status']) {
+    await expect(page.getByRole('columnheader', { name: new RegExp(`^${name}`) })).toBeVisible();
+  }
+  const directoryUrl = page.url();
+  const row = page.getByRole('row', { name: /example.person/ });
+  const action = row.getByRole('button', { name: 'User details: example.person', exact: true });
+  await row.getByRole('cell', { name: 'person@example.test', exact: true }).click();
+  const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveAttribute('data-vaul-drawer-direction', 'right');
+  await expect(drawer.getByRole('heading', { name: 'Effective permissions' })).toBeVisible();
+  await expect(page).toHaveURL(directoryUrl);
+  await drawer.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(drawer).toBeHidden();
+  await expect(action).toBeFocused();
+  await action.press('Enter');
+  await expect(drawer).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(drawer).toBeHidden();
+  await expect(action).toBeFocused();
+  await action.press('Space');
+  await expect(drawer).toBeVisible();
+  await expect(page).toHaveURL(directoryUrl);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(
+      (dark) => document.documentElement.classList.toggle('dark', dark),
+      theme === 'dark',
+    );
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+    expect(result.violations.map((v) => v.id)).toEqual([]);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const bounds = await drawer.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.width).toBeLessThanOrEqual(390);
+  await expect(drawer.getByRole('button', { name: 'Close', exact: true })).toBeInViewport();
+});
+
+test('user drawer preserves conflicted drafts and confirms discard', async ({ page }) => {
+  await administration(page);
+  await page.goto('/users');
+  await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
+  const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
+  const admin = drawer.getByRole('checkbox', { name: 'Administrator', exact: true });
+  await admin.check();
+  await drawer.getByRole('button', { name: 'Save access', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await expect(
+    drawer.getByText('This record changed. Your edits are retained.', { exact: false }),
+  ).toBeVisible();
+  await expect(admin).toBeChecked();
+  await drawer.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(drawer).toBeVisible();
+  await expect(admin).toBeChecked();
+  await drawer.getByRole('button', { name: 'Close', exact: true }).click();
+  await page
+    .getByRole('alertdialog')
+    .getByRole('button', { name: 'Discard changes', exact: true })
+    .click();
+  await expect(drawer).toBeHidden();
+  await expect(page).toHaveURL(/\/users$/);
+});
+
+test('saving user drawer access refreshes the directory without navigation', async ({ page }) => {
+  await administration(page, undefined, true);
+  await page.goto('/users');
+  await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
+  const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
+  await drawer.getByRole('checkbox', { name: 'Administrator', exact: true }).check();
+  await drawer.getByRole('button', { name: 'Save access', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await expect(drawer.getByRole('button', { name: 'Save access', exact: true })).toBeDisabled();
+  await expect(
+    page
+      .getByRole('row', { name: /example.person/ })
+      .getByRole('cell', { name: /Support, Administrator/ }),
+  ).toHaveCount(1);
+  await drawer.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(drawer).toBeHidden();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/users$/);
+});
+
+test('read-only directory operators can inspect the complete user drawer', async ({ page }) => {
+  await administration(page, ['users.read']);
+  await page.goto('/users');
+  await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
+  const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
+  await expect(drawer.getByRole('heading', { name: 'Effective permissions' })).toBeVisible();
+  await expect(drawer.getByRole('checkbox', { name: 'Administrator', exact: true })).toBeDisabled();
+  await expect(drawer.getByRole('button', { name: 'Save access', exact: true })).toBeDisabled();
 });
 
 test('inviting a user from the directory opens a right-side drawer', async ({ page }) => {

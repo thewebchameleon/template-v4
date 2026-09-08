@@ -73,6 +73,50 @@
   h6 {
     font-family: var(--font-heading);
   }
+
+  /* Semantic actions share a cursor; utilities can retain specialized cursors. */
+  :where(
+      a[href],
+      button,
+      select,
+      summary,
+      input:is(
+        [type='button'],
+        [type='submit'],
+        [type='reset'],
+        [type='checkbox'],
+        [type='radio'],
+        [type='file']
+      ),
+      [role='button'],
+      [role='link'],
+      [role='checkbox'],
+      [role='radio'],
+      [role='switch'],
+      [role='tab'],
+      [role='menuitem'],
+      [role='menuitemcheckbox'],
+      [role='menuitemradio'],
+      [role='option'],
+      [role='combobox']:not(input),
+      label:has(
+        :is(
+          input[type='checkbox'],
+          input[type='radio'],
+          [role='checkbox'],
+          [role='radio'],
+          [role='switch']
+        )
+      )
+    ):not(:disabled, [aria-disabled='true'], [data-disabled]:not([data-disabled='false'])):not(
+      :is([inert], [aria-disabled='true'], [data-disabled]:not([data-disabled='false'])) *
+    ):not(:has(:disabled, [aria-disabled='true'], [data-disabled]:not([data-disabled='false']))) {
+    cursor: pointer;
+  }
+
+  input[type='file']:not(:disabled)::file-selector-button {
+    cursor: pointer;
+  }
 }
 
 @import './design-tokens.css';

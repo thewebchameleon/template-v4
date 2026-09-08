@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -21,14 +21,16 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
   imports: [WorkspaceUi, HlmCheckboxImports],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-header
-      title="personDetails"
-      description="personDetailsHelp"
-      eyebrow="administration"
-      ><a hlmBtn variant="outline" routerLink="/users"
-        ><ng-icon name="lucideArrowLeft" />{{ 'users' | t }}</a
-      ></app-page-header
-    >
+  template: ` @if (!embedded()) {
+      <app-page-header
+        title="personDetails"
+        description="personDetailsHelp"
+        eyebrow="administration"
+        ><a hlmBtn variant="outline" routerLink="/users"
+          ><ng-icon name="lucideArrowLeft" />{{ 'users' | t }}</a
+        ></app-page-header
+      >
+    }
     <app-page-state
       [state]="data.state()"
       [refreshing]="data.refreshing()"
@@ -36,11 +38,11 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
       (retry)="load()"
     >
       @if (data.value(); as detail) {
-        <div class="workspace-columns">
+        <div [class]="embedded() ? 'grid min-w-0 grid-cols-1 gap-4' : 'workspace-columns'">
           <section hlmCard>
             <div hlmCardHeader>
-              <h2 hlmCardTitle>{{ detail.user.displayName }}</h2>
-              <p hlmCardDescription>{{ detail.user.email }}</p>
+              <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
+              <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
             </div>
             <form hlmCardContent class="grid gap-5" (ngSubmit)="save()">
               <fieldset hlmFieldSet>
@@ -128,7 +130,10 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
       }
     </app-page-state>`,
 })
-export class UserDetailPage {
+export class UserDetailPage implements OnInit {
+  readonly userId = input<string>();
+  readonly embedded = input(false);
+  readonly saved = output<void>();
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
   readonly data = new Resource<UserAccessDetail>();
@@ -137,7 +142,8 @@ export class UserDetailPage {
   readonly disabled = signal(false);
   readonly busy = signal(false);
   readonly conflict = signal(false);
-  private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  private readonly route = inject(ActivatedRoute);
+  private readonly id = computed(() => this.userId() ?? this.route.snapshot.paramMap.get('id')!);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
   private readonly toast = inject(Notifications);
@@ -146,16 +152,16 @@ export class UserDetailPage {
   readonly editable = computed(
     () =>
       this.auth.has('users.manage') &&
-      this.auth.access()?.userId !== this.id &&
+      this.auth.access()?.userId !== this.id() &&
       this.catalog.state() === 'ready' &&
       (this.data.value()?.effectivePermissions.every((p) => this.auth.has(p)) ?? false),
   );
-  constructor() {
+  ngOnInit() {
     void this.load();
   }
   async load() {
     const [loaded] = await Promise.all([
-      this.data.load((signal) => this.api.get('/users/' + this.id, {}, signal)),
+      this.data.load((signal) => this.api.get('/users/' + this.id(), {}, signal)),
       this.catalog.load((signal) => this.api.get('/roles', { pageSize: 100 }, signal)),
     ]);
     const value = this.data.value();
@@ -163,7 +169,11 @@ export class UserDetailPage {
       this.roles.set([...value.user.roles]);
       this.disabled.set(value.user.disabled);
       this.conflict.set(false);
-      this.breadcrumbs.set([{ label: 'users', link: '/users' }, { label: value.user.displayName }]);
+      if (!this.embedded())
+        this.breadcrumbs.set([
+          { label: 'users', link: '/users' },
+          { label: value.user.displayName },
+        ]);
     }
   }
   sources(permission: string) {
@@ -210,8 +220,8 @@ export class UserDetailPage {
     this.busy.set(true);
     try {
       await firstValueFrom(
-        this.http.put(this.runtime.apiUrl + '/api/v1/users/' + this.id, {
-          id: this.id,
+        this.http.put(this.runtime.apiUrl + '/api/v1/users/' + this.id(), {
+          id: this.id(),
           version: user.version,
           roles: this.roles(),
           disabled: this.disabled(),
@@ -219,6 +229,7 @@ export class UserDetailPage {
       );
       this.toast.success('rolesSaved');
       await this.load();
+      this.saved.emit();
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 409) this.conflict.set(true);
     } finally {

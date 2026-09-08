@@ -16,4 +16,8 @@ The registration service owns a transaction containing Identity membership, prof
 
 ## Administration workspace
 
+The Users directory shows Identity username, display name, email, roles and status as separate server-sortable columns. Search matches username, display name or email. Identity username is returned independently of email; existing email-based accounts may have the same value in both columns.
+
+Click a user row, or activate its username button with the keyboard, to open the complete user-details editor in a right drawer. The directory URL and query state remain unchanged. The drawer reuses the routed details component, retains permission and concurrency checks, confirms discarding unsaved changes, and refreshes the directory after a save. Direct `/users/{id}` links continue to show the standalone page.
+
 See [administration and delegated access](administration.md) for the Users/Invitations workspace, custom roles, permission assignment and upgrade requirements. Built-in roles are protected; custom roles are managed through the access service.

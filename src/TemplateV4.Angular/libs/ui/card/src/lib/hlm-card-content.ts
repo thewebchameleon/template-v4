@@ -9,7 +9,7 @@ export class HlmCardContent {
   constructor() {
     classes(
       () =>
-        'rounded-(--panel-content-radius) bg-card px-(--card-spacing) py-(--card-spacing) shadow-xs ring-1 ring-foreground/10 [&:has(+_[data-slot=card-footer])]:rounded-b-none',
+        'rounded-(--panel-content-radius) bg-card px-(--card-spacing) pt-[var(--panel-content-padding-top,var(--card-spacing))] pb-(--card-spacing) shadow-xs ring-1 ring-foreground/10 [&:has(+_[data-slot=card-footer])]:rounded-b-none',
     );
   }
 }

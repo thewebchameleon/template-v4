@@ -51,7 +51,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Track progress, resend expired invitations and revoke access when plans change.',
     'Volg vordering, herstuur vervalde uitnodigings en herroep toegang.',
   ],
-  peopleSearch: ['Search by name or email', 'Soek volgens naam of e-pos'],
+  peopleSearch: ['Search by username, name or email', 'Soek volgens gebruikersnaam, naam of e-pos'],
   all: ['All', 'Alles'],
   Pending: ['Pending', 'Hangende'],
   Expired: ['Expired', 'Verval'],

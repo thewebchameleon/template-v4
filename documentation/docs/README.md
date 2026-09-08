@@ -61,7 +61,13 @@ See [production deployment](production.md), [MFA and passkey policy](adr/0005-co
 
 ## UI customization
 
+When a data table is the first content in a card (directly or through `app-page-state`), shared styles remove the top content padding and round the table's top corners to the inner card radius. Column headers then meet the card border without a blank strip. Cards with filters or status messages above the table retain their content spacing.
+
+For every data-table panel, compose `hlmCard`, `hlmCardHeader`, and `hlmCardContent` with the shared `app-data-table` followed immediately by `app-list-pager` as the final content. Do not put a grid/flex gap between the table and pager. Shared `workspace.css` aligns the panel heading, filters, outer columns and footer content using `--card-spacing` with a shared four-spacing-unit inset (16px at the default scale). The footer has a full-width card background matching the table rows, rounded bottom corners and equal compact vertical padding; results stay left and pagination right, stacking on mobile. Extend these shared styles instead of adding page-local offsets. Review alignment, focus visibility, reflow and both themes when changing this composition; see [ADR 0010](adr/0010-spartan-design-tokens.md).
+
 The template follows [Spartan Sidebar 2](https://spartan.ng/blocks/sidebar#sidebar-2), [Login 2](https://spartan.ng/blocks/login#login-2), and [Signup 2](https://spartan.ng/blocks/signup#signup-2). See [ADR 0010](adr/0010-spartan-design-tokens.md).
+
+Enabled actions use a pointer cursor through the semantic control selectors in `src/TemplateV4.Angular/src/styles.css`, including buttons, links, selection controls, menu items, tabs, and wrapping choice labels. Use native controls or the appropriate accessible role for new actions, and expose disabled state through native `disabled`, `aria-disabled`, or Spartan `data-disabled`. Keep text-entry and resize cursors intact; copied Helm styles must not override actionable controls with `cursor-default`.
 
 - `src/TemplateV4.Angular/src/brand.css`: the project brand guide. Configure the complete primary and neutral shade palettes, light/dark semantic color mappings, chart palette, and separate heading/body font stacks here. The default primary is blue; components continue to consume semantic tokens rather than palette shades directly.
 - `src/TemplateV4.Angular/src/styles.css`: global Tailwind/Spartan setup, color-scheme behavior, radius, and base element styles. Tailwind's `--spacing`, `--text-*`, and font-weight theme variables are the shared scales; override them with `@theme` to customize every copied component consistently.
