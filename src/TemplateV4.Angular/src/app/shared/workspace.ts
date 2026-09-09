@@ -38,6 +38,7 @@ import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { I18n, Translate } from '../core/i18n';
 
 export const workspaceIcons = provideIcons({
@@ -243,24 +244,60 @@ export class PageState {
 
 @Component({
   selector: 'app-list-pager',
-  imports: [Translate, HlmButtonImports],
+  imports: [Translate, HlmButtonImports, HlmSelectImports],
   template: ` <nav class="workspace-pager" [attr.aria-label]="'pagination' | t">
-    <span
-      >{{ i18n.number(total()) }} {{ 'results' | t }} · {{ 'page' | t }} {{ i18n.number(page()) }} /
-      {{ i18n.number(pages()) }}</span
-    >
-    <div class="flex gap-2">
+    <div class="workspace-pager-summary">
+      @if (showSizePicker()) {
+        <label class="flex items-center gap-2" for="rows-per-page">
+          <span>{{ 'rowsPerPage' | t }}</span>
+          <hlm-select
+            [value]="size()"
+            [itemToString]="sizeLabel"
+            (valueChange)="changeSize($event)"
+          >
+            <hlm-select-trigger buttonId="rows-per-page" size="sm" class="w-20">
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal [ariaLabel]="'rowsPerPage' | t">
+              @for (option of sizeOptions(); track option) {
+                <hlm-select-item [value]="option">{{ i18n.number(option) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </label>
+      }
+      <span
+        >{{ i18n.number(firstResult()) }}–{{ i18n.number(lastResult()) }} {{ 'of' | t }}
+        {{ i18n.number(total()) }}</span
+      >
+    </div>
+    <div class="workspace-pager-pages">
       <button
         hlmBtn
-        variant="outline"
+        variant="ghost"
         size="sm"
         [disabled]="page() <= 1 || busy()"
         (click)="pageChange.emit(page() - 1)"
       >
-        {{ 'previous' | t }}</button
-      ><button
+        {{ 'previous' | t }}
+      </button>
+      @for (value of visiblePages(); track value) {
+        <button
+          hlmBtn
+          type="button"
+          [variant]="value === page() ? 'secondary' : 'ghost'"
+          size="icon-sm"
+          [disabled]="busy()"
+          [attr.aria-current]="value === page() ? 'page' : null"
+          [attr.aria-label]="pageLabel(value)"
+          (click)="pageChange.emit(value)"
+        >
+          {{ i18n.number(value) }}
+        </button>
+      }
+      <button
         hlmBtn
-        variant="outline"
+        variant="ghost"
         size="sm"
         [disabled]="page() >= pages() || busy()"
         (click)="pageChange.emit(page() + 1)"
@@ -275,10 +312,35 @@ export class ListPager {
   readonly total = input(0);
   readonly page = input(1);
   readonly size = input(25);
+  readonly showSizePicker = input(false);
+  readonly sizeOptions = input([5, 10, 25, 50]);
   readonly busy = input(false);
   readonly pageChange = output<number>();
+  readonly sizeChange = output<number>();
+  readonly sizeLabel = (size: number) => this.i18n.number(size);
   pages() {
     return Math.max(1, Math.ceil(this.total() / this.size()));
+  }
+  firstResult() {
+    return this.total() === 0 ? 0 : (this.page() - 1) * this.size() + 1;
+  }
+  lastResult() {
+    return Math.min(this.total(), this.page() * this.size());
+  }
+  visiblePages() {
+    const count = Math.min(5, this.pages());
+    const start = Math.max(
+      1,
+      Math.min(this.page() - Math.floor(count / 2), this.pages() - count + 1),
+    );
+    return Array.from({ length: count }, (_, index) => start + index);
+  }
+  pageLabel(page: number) {
+    return `${this.i18n.text('page')} ${this.i18n.number(page)}`;
+  }
+  changeSize(value: number | null | undefined) {
+    const size = Number(value);
+    if (this.sizeOptions().includes(size) && size !== this.size()) this.sizeChange.emit(size);
   }
 }
 

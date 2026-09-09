@@ -24,12 +24,23 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         return Result<UserDto>.Success(new(identity.Id, command.Email, profile.DisplayName, profile.Culture, false, command.Roles, profile.Version, Username: identity.UserName!));
     }
 
-    public async Task<Page<UserDto>> List(ListUsers query, CancellationToken cancellationToken)
+    public async Task<UserDirectoryPage> List(ListUsers query, CancellationToken cancellationToken)
     {
         var source = from profile in db.Profiles.AsNoTracking()
                      join user in db.Users on profile.Id equals user.Id
                      select new { profile, user };
         if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.profile.DisplayName.Contains(query.Search) || x.user.Email!.Contains(query.Search) || x.user.UserName!.Contains(query.Search));
+        if (query.Role is not null) source = source.Where(x => db.UserRoles.Where(m => m.UserId == x.user.Id).Join(db.Roles, m => m.RoleId, r => r.Id, (_, r) => r.Name).Any(name => name == query.Role));
+        var active = await source.CountAsync(x => !x.profile.Disabled && x.user.EmailConfirmed && x.user.PasswordHash != null, cancellationToken);
+        var invited = await source.CountAsync(x => !x.profile.Disabled && (!x.user.EmailConfirmed || x.user.PasswordHash == null), cancellationToken);
+        var disabled = await source.CountAsync(x => x.profile.Disabled, cancellationToken);
+        source = query.Status switch
+        {
+            "Active" => source.Where(x => !x.profile.Disabled && x.user.EmailConfirmed && x.user.PasswordHash != null),
+            "Invited" => source.Where(x => !x.profile.Disabled && (!x.user.EmailConfirmed || x.user.PasswordHash == null)),
+            "Disabled" => source.Where(x => x.profile.Disabled),
+            _ => source
+        };
         var total = await source.CountAsync(cancellationToken);
         var descending = query.Direction == "desc";
         var ordered = query.Sort switch
@@ -48,9 +59,10 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         var page = await ordered.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(cancellationToken);
         var ids = page.Select(x => x.user.Id).ToArray();
         var memberships = await (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id where ids.Contains(membership.UserId) select new { membership.UserId, role.Name }).ToArrayAsync(cancellationToken);
+        var roles = await db.Roles.AsNoTracking().Where(role => role.Name != null).Select(role => role.Name!).Order().ToArrayAsync(cancellationToken);
         return new(page.Select(x => new UserDto(x.user.Id, x.user.Email!, x.profile.DisplayName, x.profile.Culture, x.profile.Disabled,
             memberships.Where(m => m.UserId == x.user.Id).Select(m => m.Name!).Order().ToArray(), x.profile.Version,
-            x.profile.Disabled ? "Disabled" : !x.user.EmailConfirmed || x.user.PasswordHash == null ? "Invited" : "Active", x.user.UserName!)).ToArray(), total, query.PageNumber, query.PageSize);
+            x.profile.Disabled ? "Disabled" : !x.user.EmailConfirmed || x.user.PasswordHash == null ? "Invited" : "Active", x.user.UserName!)).ToArray(), total, query.PageNumber, query.PageSize, active, invited, disabled, roles);
     }
 
     public async Task<Result<UserDto>> Update(UpdateUser command, CancellationToken cancellationToken)

@@ -6,7 +6,7 @@ Only after commit can a Worker claim the outbox row with FOR UPDATE SKIP LOCKED.
 
 User list requests are bounded and stably sorted. Updates require the profile concurrency version, prevent self-lockout and last-administrator removal, and revoke active sessions. Reader accounts can access their own Account, Security, sessions, Notifications and Privacy pages; directory endpoints require administrative permissions. UI permission helpers hide actions; backend policies enforce them.
 
-The sample demonstrates administration of account invitations and activation status. Its directory is rendered through the shared Spartan/TanStack `app-data-table` composition while search and pagination remain server-side. Read Authentication and Authorization tests before changing token or role behavior. Add new role permissions to seeded metadata and ensure existing sessions are invalidated during permission migrations.
+The sample demonstrates administration of account invitations and activation status. Its directory is rendered through the shared Spartan/TanStack `app-data-table` composition while search, status and role filtering, sorting, page size and pagination remain server-side. Read Authentication and Authorization tests before changing token or role behavior. Add new role permissions to seeded metadata and ensure existing sessions are invalidated during permission migrations.
 
 ## Public registration
 
@@ -16,7 +16,7 @@ The registration service owns a transaction containing Identity membership, prof
 
 ## Administration workspace
 
-The Users directory shows Identity username, display name, email, roles and status as separate server-sortable columns. Search matches username, display name or email. Identity username is returned independently of email; existing email-based accounts may have the same value in both columns.
+The Users directory combines Identity username and display name in a compact identity cell, with email, roles and status in separate server-sortable columns. Search matches username, display name or email. Identity username is returned independently of email; existing email-based accounts may have the same value in both fields. Status tabs expose Active, Invited and Disabled counts for the current search and role scope. Role and status filters, page size, sorting and search persist in URL query state; changing any filter resets pagination to page 1.
 
 Click a user row, or activate its username button with the keyboard, to open the complete user-details editor in a right drawer. The directory URL and query state remain unchanged. The drawer reuses the routed details component, retains permission and concurrency checks, confirms discarding unsaved changes, and refreshes the directory after a save. Direct `/users/{id}` links continue to show the standalone page.
 

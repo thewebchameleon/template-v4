@@ -7,22 +7,26 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { PageOfUserDto } from '../../models/page-of-user-dto';
+import { UserDirectoryPage } from '../../models/user-directory-page';
 
 export interface ListUsers$Params {
   pageNumber?: number;
   pageSize?: number;
   search?: string;
+  status?: string;
+  role?: string;
   sort?: string;
   direction?: string;
 }
 
-export function listUsers(http: HttpClient, rootUrl: string, params?: ListUsers$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfUserDto>> {
+export function listUsers(http: HttpClient, rootUrl: string, params?: ListUsers$Params, context?: HttpContext): Observable<StrictHttpResponse<UserDirectoryPage>> {
   const rb = new RequestBuilder(rootUrl, listUsers.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
+    rb.query('status', params.status, {});
+    rb.query('role', params.role, {});
     rb.query('sort', params.sort, {});
     rb.query('direction', params.direction, {});
   }
@@ -32,7 +36,7 @@ export function listUsers(http: HttpClient, rootUrl: string, params?: ListUsers$
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<PageOfUserDto>;
+      return r as StrictHttpResponse<UserDirectoryPage>;
     })
   );
 }

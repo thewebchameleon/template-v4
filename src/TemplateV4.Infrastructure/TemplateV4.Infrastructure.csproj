@@ -2,6 +2,7 @@
   <ItemGroup>
     <Content Include="EmailTemplates/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="Persistence/Migrations/quartz-3.20.1.sql" />
+    <EmbeddedResource Include="Persistence/Migrations/quartz-4.0.1-upgrade.sql" />
 
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />

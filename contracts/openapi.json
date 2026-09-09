@@ -2149,6 +2149,21 @@
             }
           },
           {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "schema": {
@@ -2171,7 +2186,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageOfUserDto"
+                  "$ref": "#/components/schemas/UserDirectoryPage"
                 }
               }
             }
@@ -3422,35 +3437,6 @@
           }
         }
       },
-      "PageOfUserDto": {
-        "required": [
-          "items",
-          "total",
-          "pageNumber",
-          "pageSize"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserDto"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "PasskeyChallengeRequest": {
         "required": [
           "challengeId"
@@ -3948,6 +3934,57 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RoleItem"
+            }
+          }
+        }
+      },
+      "UserDirectoryPage": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize",
+          "active",
+          "invited",
+          "disabled",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "active": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invited": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "disabled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }

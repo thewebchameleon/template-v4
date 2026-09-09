@@ -20,7 +20,7 @@ The reusable starter needs useful administration rather than a security-settings
 
 ## Consequences and extension points
 
-The user directory exposes Identity username separately from email and supports server-side sorting and search for both. User rows open the existing details editor in a right drawer without changing the directory URL; direct detail routes remain supported. Embedded details do not override page breadcrumbs. Save events refresh the directory, and drawer closure/navigation retain draft protection.
+The user directory exposes Identity username separately from email and supports server-side sorting and search for both. Its status summary and tabs are calculated server-side for the current search and role scope; status, role and page-size choices are URL-backed and reset the page when changed. User rows open the existing details editor in a right drawer without changing the directory URL; direct detail routes remain supported. Embedded details do not override page breadcrumbs. Save events refresh the directory, and drawer closure/navigation retain draft protection.
 
 Optional shared data-table row actions retain native table semantics and expose a named button in the first column for keyboard users. Row clicks ignore nested controls and text selection; focus moves to the row's button before opening the dialog so it can return on close. Consumers opt in with `rowActionLabel` and `rowAction`, and must keep the first column free of nested interactive cell controls when opting in.
 

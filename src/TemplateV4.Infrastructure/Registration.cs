@@ -76,7 +76,7 @@ public static class Registration
         services.AddSingleton(new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1"));
         services.AddScoped(typeof(Dispatcher<,>));
         services.AddScoped<IHandler<CreateUser, UserDto>, CreateUserHandler>();
-        services.AddScoped<IHandler<ListUsers, Page<UserDto>>, ListUsersHandler>();
+        services.AddScoped<IHandler<ListUsers, UserDirectoryPage>, ListUsersHandler>();
         services.AddScoped<IHandler<UpdateUser, UserDto>, UpdateUserHandler>();
         services.AddScoped<IHandler<TriggerMaintenance, Guid>, TriggerMaintenanceHandler>();
         services.AddSingleton<IValidator<CreateUser>, CreateUserValidator>();

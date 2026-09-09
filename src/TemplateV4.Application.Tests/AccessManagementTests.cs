@@ -27,8 +27,12 @@ public sealed partial class SecurityAndMessagingTests
             var user = new AppUser { Id = Guid.NewGuid(), UserName = username, Email = email };
             Assert.True((await users.CreateAsync(user)).Succeeded);
             db.Profiles.Add(UserProfile.Create(user.Id, "Shared display name", "en-ZA"));
+            Assert.True((await users.AddToRoleAsync(user, "Reader")).Succeeded);
             entries.Add(user);
         }
+        entries[0].EmailConfirmed = true;
+        Assert.True((await users.AddPasswordAsync(entries[0], "Test-only!Password942")).Succeeded);
+        db.Profiles.Local.Single(profile => profile.Id == entries[1].Id).SetDisabled(true);
         await db.SaveChangesAsync();
         var directory = sp.GetRequiredService<IUserDirectory>();
         foreach (var column in new[] { "username", "email" })
@@ -49,6 +53,15 @@ public sealed partial class SecurityAndMessagingTests
         var match = Assert.Single((await directory.List(new(Search: "directory-check-z"), default)).Items);
         Assert.Equal("directory-check-z", match.Username);
         Assert.Equal("a@example.test", match.Email);
+        var summary = await directory.List(new(Search: "directory-check"), default);
+        Assert.Equal(1, summary.Active);
+        Assert.Equal(1, summary.Invited);
+        Assert.Equal(1, summary.Disabled);
+        Assert.Contains("Reader", summary.Roles);
+        Assert.Equal(entries[2].Id, Assert.Single((await directory.List(new(Search: "directory-check", Status: "Invited"), default)).Items).Id);
+        Assert.Equal(3, (await directory.List(new(Search: "directory-check", Role: "Reader"), default)).Total);
+        Assert.NotEmpty(new ListUsersValidator().Validate(new(Status: "Unknown")));
+        Assert.NotEmpty(new ListUsersValidator().Validate(new(Role: new string('x', 81))));
         var detail = await sp.GetRequiredService<AccessManagementService>().User(match.Id, default);
         Assert.True(detail.IsSuccess);
         Assert.Equal(match.Username, detail.Value!.User.Username);

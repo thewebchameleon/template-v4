@@ -2,7 +2,7 @@
 
 ## Persistence
 
-Only DatabaseMigrator invokes migrations. It holds a PostgreSQL advisory lock across EF migrations and seeds. API/Worker never mutate schema at startup. Run the migrator as a controlled deployment job before rolling workloads; use expand/contract migrations for compatibility. Back up and test recovery before irreversible changes. Infrastructure contains the EF migration snapshot and a versioned Quartz 3.20.1 schema derived from upstream (Apache-2.0); rollback of Quartz requires an explicit data plan.
+Only DatabaseMigrator invokes migrations. It holds a PostgreSQL advisory lock across EF migrations and seeds. API/Worker never mutate schema at startup. Run the migrator as a controlled deployment job before rolling workloads; use expand/contract migrations for compatibility. Back up and test recovery before irreversible changes. Infrastructure contains the EF migration snapshot, the Quartz 3.20.1 baseline schema, and an additive Quartz 4.0.1 compatibility migration derived from upstream (Apache-2.0); rollback of Quartz requires an explicit data plan.
 
 Schemas separate app, identity, messaging, audit, and quartz. Table names are explicit; EF column names stay PascalCase. Profile GUID versions enforce optimistic concurrency. Soft deletion is available explicitly on profiles and is excluded from normal queries. Transactions are command-scoped; no generic repository exists.
 

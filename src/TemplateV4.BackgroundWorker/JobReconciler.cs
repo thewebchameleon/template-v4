@@ -24,12 +24,13 @@ public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory
         foreach (var run in runs)
         {
             var key = new JobKey(run.Id.ToString("N"), "requests");
-            var trigger = TriggerBuilder.Create().WithIdentity($"{run.Id:N}-{run.Attempts}", "requests").ForJob(key).StartNow().WithSimpleSchedule(x => x.WithMisfireHandlingInstructionFireNow()).Build();
+            var trigger = TriggerBuilder.Create().WithIdentity($"{run.Id:N}-{run.Attempts}", "requests").ForJob(key).StartNow().WithSimpleSchedule(x => x.WithMisfireInstruction(SimpleTriggerMisfireInstruction.FireNow)).Build();
             try
             {
-                if (!await scheduler.CheckExists(key, ct))
-                    await scheduler.ScheduleJob(JobBuilder.Create<MaintenanceJob>().WithIdentity(key).StoreDurably().RequestRecovery().UsingJobData("culture", run.Culture).UsingJobData("traceparent", run.TraceParent ?? "").Build(), trigger, ct);
-                else if ((await scheduler.GetTriggersOfJob(key, ct)).Count == 0) await scheduler.ScheduleJob(trigger, ct);
+                if (!await scheduler.Exists(key, ct))
+                    await scheduler.ScheduleJob(JobBuilder.Create<MaintenanceJob>().WithIdentity(key).StoreDurably().RequestRecovery().UsingJobData("culture", run.Culture).UsingJobData("traceparent", run.TraceParent ?? "").Build(), trigger, new ScheduleJobOptions(), ct);
+                else if ((await scheduler.QueryTriggers(new TriggerQuery { Job = key, Take = 1 }, ct)).Items.Count == 0)
+                    await scheduler.ScheduleJob(trigger, new ScheduleJobOptions(), ct);
             }
             catch (ObjectAlreadyExistsException) { /* Another replica reconciled the same request. */ }
         }

@@ -6,10 +6,10 @@
   "scaffoldingVersion": "0.1.0",
   "name": "templatev4",
   "toolchains": {
-    "dotnet": "10.0.400",
-    "node": "24.18.0",
-    "npm": "11.6.4",
-    "docmd": "0.9.4",
+    "dotnet": "10.0.401",
+    "node": "24.19.0",
+    "npm": "11.19.1",
+    "docmd": "0.9.5",
     "angular": "22.1.5",
     "spartan": "1.4.1"
   },

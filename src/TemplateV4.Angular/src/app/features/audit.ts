@@ -29,6 +29,7 @@ import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
 
 const column = createColumnHelper<DataTableFeatures, AuditItem>();
 
@@ -60,7 +61,7 @@ class RelatedRecordHeader {}
 @Component({
   selector: 'app-audit',
 
-  imports: [WorkspaceUi, DataTable, HlmDatePickerImports],
+  imports: [WorkspaceUi, DataTable, HlmDatePickerImports, HlmSelectImports],
 
   providers: [workspaceIcons],
 
@@ -84,22 +85,23 @@ class RelatedRecordHeader {}
         <div class="workspace-toolbar">
           <div hlmField>
             <label hlmFieldLabel for="audit-action">{{ 'activity' | t }}</label
-            ><input
-              hlmInput
-              list="audit-actions"
-              id="audit-action"
-              [ngModel]="action.value()"
-              (ngModelChange)="action.update($event)"
-              maxlength="100"
-              [placeholder]="'auditSearchPlaceholder' | t"
-            />
+            ><hlm-select
+              class="w-full"
+              [value]="action.value() || 'all'"
+              [itemToString]="activityLabel"
+              (valueChange)="setActivity($event)"
+            >
+              <hlm-select-trigger buttonId="audit-action" class="w-full">
+                <hlm-select-value />
+              </hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal [ariaLabel]="'activity' | t">
+                <hlm-select-item value="all">{{ 'allActivity' | t }}</hlm-select-item>
+                @for (activity of activities; track activity) {
+                  <hlm-select-item [value]="activity">{{ summary(activity) }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
           </div>
-
-          <datalist id="audit-actions">
-            @for (activity of activities; track activity) {
-              <option [value]="activity">{{ 'audit.' + activity | t }}</option>
-            }
-          </datalist>
 
           <div hlmField>
             <label hlmFieldLabel for="audit-from">{{ 'fromDate' | t }}</label
@@ -196,6 +198,9 @@ export class AuditPage {
   ];
 
   readonly action = new DebouncedSearch(this.query, 'action');
+
+  readonly activityLabel = (activity: string) =>
+    activity === 'all' ? this.i18n.text('allActivity') : this.summary(activity);
 
   from: Date | null = null;
 
@@ -352,6 +357,10 @@ export class AuditPage {
 
   sort(value: ServerSort) {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+
+  setActivity(activity: string | null | undefined) {
+    this.action.update(!activity || activity === 'all' ? '' : activity);
   }
 
   applyDates() {

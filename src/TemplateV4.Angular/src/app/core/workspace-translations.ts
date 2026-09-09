@@ -16,6 +16,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Verken rekening-, sekuriteits- en bedryfsaktiwiteit. Filtreer volgens datum of persoon.',
   ],
   activity: ['Activity', 'Aktiwiteit'],
+  allActivity: ['All activity', 'Alle aktiwiteit'],
   auditSearchPlaceholder: [
     'e.g. invitation, privacy, security',
     'bv. invitation, privacy, security',
@@ -411,6 +412,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   pagination: ['Pagination', 'Bladsynavigasie'],
   results: ['results', 'resultate'],
   page: ['Page', 'Bladsy'],
+  rowsPerPage: ['Rows per page', 'Rye per bladsy'],
+  of: ['of', 'van'],
   unsavedTitle: ['Leave without saving?', 'Verlaat sonder om te stoor?'],
   unsavedHelp: [
     'You have changes or a selected upload that have not been saved. Leaving this page will discard them.',

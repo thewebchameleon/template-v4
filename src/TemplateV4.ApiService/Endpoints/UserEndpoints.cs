@@ -7,9 +7,9 @@ public static class UserEndpoints
 {
     public static RouteGroupBuilder MapUserEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/users", async (Dispatcher<ListUsers, Page<UserDto>> dispatcher, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string sort = "displayName", string direction = "asc") =>
-                (await dispatcher.Send(new(pageNumber, pageSize, search, sort, direction), ct)).ToHttp())
-            .RequireAuthorization(Permissions.Read).WithName("ListUsers").Produces<Page<UserDto>>();
+        group.MapGet("/users", async (Dispatcher<ListUsers, UserDirectoryPage> dispatcher, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string status = "all", string? role = null, string sort = "displayName", string direction = "asc") =>
+                (await dispatcher.Send(new(pageNumber, pageSize, search, status, role, sort, direction), ct)).ToHttp())
+            .RequireAuthorization(Permissions.Read).WithName("ListUsers").Produces<UserDirectoryPage>();
         group.MapPost("/users", async (CreateUser request, Dispatcher<CreateUser, UserDto> dispatcher, HttpContext context, CancellationToken ct) =>
                 (await dispatcher.Send(request with { IdempotencyKey = context.Request.Headers["Idempotency-Key"].FirstOrDefault() }, ct)).ToHttp())
             .RequireAuthorization(Permissions.Manage).WithName("CreateUser").Produces<UserDto>();

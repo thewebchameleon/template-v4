@@ -22,10 +22,22 @@ export const adminDictionary: Record<string, [string, string]> = {
   roles: ['Roles', 'Rolle'],
   peopleIntro: ['Find people and manage their access.', 'Vind mense en bestuur hul toegang.'],
   directory: ['User directory', 'Gebruikersgids'],
+  user: ['User', 'Gebruiker'],
+  userStatusFilter: ['Filter users by status', 'Filtreer gebruikers volgens status'],
+  filters: ['Filters', 'Filters'],
+  allRoles: ['All roles', 'Alle rolle'],
+  roleFilterHelp: [
+    'Show users assigned to a specific role.',
+    'Wys gebruikers wat aan ’n spesifieke rol toegewys is.',
+  ],
   displayName: ['Display name', 'Vertoonnaam'],
   peopleEmpty: [
-    'No users match. Clear your search or invite a user.',
-    'Geen gebruikers pas nie. Maak jou soektog skoon of nooi iemand.',
+    'No users are in this directory yet. Invite someone to get started.',
+    'Daar is nog geen gebruikers in hierdie gids nie. Nooi iemand om te begin.',
+  ],
+  peopleFilteredEmpty: [
+    'No users match these filters. Clear the filters or try another search.',
+    'Geen gebruikers pas by hierdie filters nie. Maak die filters skoon of probeer ’n ander soektog.',
   ],
   assignmentHelp: [
     'Roles determine access. You can assign only permissions you hold.',

@@ -12,7 +12,7 @@ namespace TemplateV4.BackgroundWorker;
 public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<MaintenanceJob> logger, BackgroundExecutionContext execution, CultureCatalog cultures, IConfiguration configuration) : IJob
 {
     private static readonly ActivitySource Source = new("TemplateV4.Jobs");
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
     {
         ActivityContext.TryParse(ReadString(context.MergedJobDataMap, "traceparent"), null, out var parent);
         using var activity = Source.StartActivity("maintenance", ActivityKind.Internal, parent);
@@ -21,7 +21,7 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
         var originalCulture = CultureInfo.CurrentCulture;
         var originalUiCulture = CultureInfo.CurrentUICulture;
         CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = new CultureInfo(execution.Culture);
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken); timeout.CancelAfter(TimeSpan.FromSeconds(30));
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); timeout.CancelAfter(TimeSpan.FromSeconds(30));
         var ct = timeout.Token;
         var now = time.GetUtcNow();
         var attempt = int.TryParse(ReadString(context.MergedJobDataMap, "attempt"), out var parsedAttempt) ? parsedAttempt : 0;
@@ -58,7 +58,7 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
             await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);
             context.Result = new JobOutcome(true, "maintenance.completed", attempt, now, time.GetUtcNow());
         }
-        catch (Exception exception) when (!context.CancellationToken.IsCancellationRequested)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
             logger.LogError("Maintenance failed: {ErrorType}", exception.GetType().Name);
             context.Result = new JobOutcome(false, exception.GetType().Name, attempt, now, time.GetUtcNow());

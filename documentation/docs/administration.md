@@ -1,6 +1,6 @@
 # Administration and access
 
-Administrators land on **Users** after completing required security setup. The directory contains compact identity, role and status columns. Open a person's name to inspect their access, assign roles or change their account status. **Invitations** is a neighboring view; **Invite user** opens the shared invitation form from either view.
+Administrators land on **Users** after completing required security setup. The directory contains a summary, status tabs, debounced search, role filtering, compact identity, role and status columns, and server-backed page-size controls. Filters remain in the URL so a directory view can be revisited or shared. Open a person's name to inspect their access, assign roles or change their account status. **Invitations** is a neighboring view; **Invite user** opens the shared invitation form from either view.
 
 Changes to a person's access sign them out of existing sessions. Failed saves retain edits. When another administrator changes the record, reload the latest version explicitly before reapplying a draft. Users cannot change their own access here, and the last active Administrator cannot be disabled or demoted.
 

@@ -17,6 +17,6 @@ public sealed class WorkerReadiness(IServiceScopeFactory scopes, ISchedulerFacto
         if (await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.Outbox.Where(x => x.PoisonedAt != null || x.CompletedAt == null && x.CreatedAt < cutoff), cancellationToken)
             || await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(db.JobRuns.Where(x => x.State == "Failed" || x.State != "Completed" && x.AvailableAt < cutoff && (x.State != "Running" || x.LeaseUntil < now)), cancellationToken))
             return HealthCheckResult.Degraded("Delivery requires operator attention.");
-        return scheduler.IsStarted && !scheduler.IsShutdown && !scheduler.InStandbyMode ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy("Scheduler unavailable.");
+        return scheduler.Status == SchedulerStatus.Running ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy("Scheduler unavailable.");
     }
 }

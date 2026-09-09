@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { Translate } from '../core/i18n';
 
@@ -62,6 +63,31 @@ export class RecordIdentity {
   readonly link = input<string | null>(null);
   readonly params = input<Record<string, string>>({});
   readonly merge = input(false);
+}
+@Component({
+  selector: 'app-record-user-identity',
+  imports: [HlmAvatarImports],
+  template: `<div class="flex min-w-48 items-center gap-3">
+    <hlm-avatar>
+      <span hlmAvatarFallback>{{ initials() }}</span>
+    </hlm-avatar>
+    <div class="min-w-0">
+      <div class="truncate font-medium">{{ username() }}</div>
+      <div class="workspace-meta truncate">{{ displayName() }}</div>
+    </div>
+  </div>`,
+})
+export class RecordUserIdentity {
+  readonly username = input.required<string>();
+  readonly displayName = input.required<string>();
+  protected initials() {
+    return this.displayName()
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('');
+  }
 }
 @Component({
   selector: 'app-record-status',

@@ -17,15 +17,21 @@ builder.Services.AddHostedService<StorageRetention>();
 builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddQuartz(options =>
 {
-    options.SchedulerId = "AUTO";
-    options.SchedulerName = "templatev4-worker";
+    options.ConfigureScheduler(scheduler =>
+    {
+        scheduler.InstanceId = "AUTO";
+        scheduler.InstanceName = "templatev4-worker";
+    });
     options.UsePersistentStore(store =>
     {
-        store.UseProperties = true;
+        store.ConfigureStore(jobStore =>
+        {
+            jobStore.StoreJobDataAsStrings = true;
+            jobStore.TablePrefix = "quartz.qrtz_";
+        });
         store.UsePostgres(postgres =>
         {
             postgres.ConnectionString = builder.Configuration.GetConnectionString("app")!;
-            postgres.TablePrefix = "quartz.qrtz_";
         });
         store.UseSystemTextJsonSerializer();
         store.UseClustering();
@@ -33,7 +39,7 @@ builder.Services.AddQuartz(options =>
     options.AddJob<CronDispatchJob>(job => job.WithIdentity("maintenance").StoreDurably().RequestRecovery());
     if (builder.Configuration.GetValue("Maintenance:Enabled", true))
         options.AddTrigger(trigger => trigger.WithIdentity("maintenance-daily").ForJob("maintenance")
-            .WithCronSchedule(builder.Configuration["Maintenance:Cron"] ?? "0 0 2 * * ?", cron => cron.WithMisfireHandlingInstructionDoNothing()));
+            .WithCronSchedule(builder.Configuration["Maintenance:Cron"] ?? "0 0 2 * * ?", cron => cron.WithMisfireInstruction(CronTriggerMisfireInstruction.DoNothing)));
 });
 builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 builder.Services.AddHealthChecks().AddCheck<WorkerReadiness>("worker", tags: ["ready"]);

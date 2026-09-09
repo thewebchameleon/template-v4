@@ -13,16 +13,17 @@ public static class Permissions
 }
 public sealed record UserDto(Guid Id, string Email, string DisplayName, string Culture, bool Disabled, string[] Roles, Guid Version, string Status = "Active", string Username = "");
 public sealed record Page<T>(IReadOnlyList<T> Items, int Total, int PageNumber, int PageSize);
+public sealed record UserDirectoryPage(IReadOnlyList<UserDto> Items, int Total, int PageNumber, int PageSize, int Active, int Invited, int Disabled, string[] Roles);
 public interface IUserDirectory
 {
     Task<Result<UserDto>> Create(CreateUser command, CancellationToken cancellationToken);
-    Task<Page<UserDto>> List(ListUsers query, CancellationToken cancellationToken);
+    Task<UserDirectoryPage> List(ListUsers query, CancellationToken cancellationToken);
     Task<Result<UserDto>> Update(UpdateUser command, CancellationToken cancellationToken);
 }
 public sealed record CreateUser(string Email, string DisplayName, string Culture, string[] Roles, string? IdempotencyKey = null)
     : ICommand<UserDto>, IAuthorizedRequest, IIdempotentRequest
 { public string Permission => Permissions.Manage; }
-public sealed record ListUsers(int PageNumber = 1, int PageSize = 25, string? Search = null, string Sort = "displayName", string Direction = "asc") : IQuery<Page<UserDto>>, IAuthorizedRequest
+public sealed record ListUsers(int PageNumber = 1, int PageSize = 25, string? Search = null, string Status = "all", string? Role = null, string Sort = "displayName", string Direction = "asc") : IQuery<UserDirectoryPage>, IAuthorizedRequest
 { public string Permission => Permissions.Read; }
 public sealed record UpdateUser(Guid Id, Guid Version, bool Disabled, string[] Roles) : ICommand<UserDto>, IAuthorizedRequest
 { public string Permission => Permissions.Manage; }
@@ -42,7 +43,7 @@ public sealed class CreateUserValidator(CultureCatalog cultures) : IValidator<Cr
 }
 public sealed class ListUsersValidator : IValidator<ListUsers>
 {
-    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Sort is not ("username" or "displayName" or "email" or "roles" or "status") || query.Direction is not ("asc" or "desc")
+    public Dictionary<string, string[]> Validate(ListUsers query) => query.PageNumber < 1 || query.PageNumber > 10000 || query.PageSize is < 1 or > 100 || query.Search is { Length: > 120 } || query.Status is not ("all" or "Active" or "Invited" or "Disabled") || query.Role is { Length: > 80 } or "" || query.Sort is not ("username" or "displayName" or "email" or "roles" or "status") || query.Direction is not ("asc" or "desc")
         ? new() { ["pagination"] = ["query.invalid"] } : [];
 }
 public sealed class UpdateUserValidator : IValidator<UpdateUser>
@@ -52,8 +53,8 @@ public sealed class UpdateUserValidator : IValidator<UpdateUser>
 }
 public sealed class CreateUserHandler(IUserDirectory directory) : IHandler<CreateUser, UserDto>
 { public Task<Result<UserDto>> Handle(CreateUser request, CancellationToken cancellationToken) => directory.Create(request, cancellationToken); }
-public sealed class ListUsersHandler(IUserDirectory directory) : IHandler<ListUsers, Page<UserDto>>
-{ public async Task<Result<Page<UserDto>>> Handle(ListUsers request, CancellationToken cancellationToken) => Result<Page<UserDto>>.Success(await directory.List(request, cancellationToken)); }
+public sealed class ListUsersHandler(IUserDirectory directory) : IHandler<ListUsers, UserDirectoryPage>
+{ public async Task<Result<UserDirectoryPage>> Handle(ListUsers request, CancellationToken cancellationToken) => Result<UserDirectoryPage>.Success(await directory.List(request, cancellationToken)); }
 public sealed class UpdateUserHandler(IUserDirectory directory) : IHandler<UpdateUser, UserDto>
 { public Task<Result<UserDto>> Handle(UpdateUser request, CancellationToken cancellationToken) => directory.Update(request, cancellationToken); }
 public sealed record TriggerMaintenance(string? IdempotencyKey) : ICommand<Guid>, IAuthorizedRequest, IIdempotentRequest

@@ -96,7 +96,6 @@ import { OperationsOverview } from '../models/operations-overview';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
 import { PageOfInvitationItem } from '../models/page-of-invitation-item';
-import { PageOfUserDto } from '../models/page-of-user-dto';
 import { passkeyLogin } from '../fn/framework/passkey-login';
 import { PasskeyLogin$Params } from '../fn/framework/passkey-login';
 import { passkeyLoginOptions } from '../fn/framework/passkey-login-options';
@@ -155,6 +154,7 @@ import { UpdateUser$Params } from '../fn/framework/update-user';
 import { uploadFile } from '../fn/framework/upload-file';
 import { UploadFile$Params } from '../fn/framework/upload-file';
 import { UserAccessDetail } from '../models/user-access-detail';
+import { UserDirectoryPage } from '../models/user-directory-page';
 import { UserDto } from '../models/user-dto';
 import { withdrawAccountDeletion } from '../fn/framework/withdraw-account-deletion';
 import { WithdrawAccountDeletion$Params } from '../fn/framework/withdraw-account-deletion';
@@ -1605,7 +1605,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listUsers$Response(params?: ListUsers$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfUserDto>> {
+  listUsers$Response(params?: ListUsers$Params, context?: HttpContext): Observable<StrictHttpResponse<UserDirectoryPage>> {
     const obs = listUsers(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -1616,10 +1616,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listUsers(params?: ListUsers$Params, context?: HttpContext): Observable<PageOfUserDto> {
+  listUsers(params?: ListUsers$Params, context?: HttpContext): Observable<UserDirectoryPage> {
     const resp = this.listUsers$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<PageOfUserDto>): PageOfUserDto => r.body)
+      map((r: StrictHttpResponse<UserDirectoryPage>): UserDirectoryPage => r.body)
     );
   }
 

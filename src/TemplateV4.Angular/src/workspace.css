@@ -93,6 +93,38 @@
     color: var(--muted-foreground);
     font-size: 0.8rem;
   }
+  .workspace-pager-summary,
+  .workspace-pager-pages {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .workspace-pager-summary {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+  .workspace-directory-tabs {
+    display: block;
+    margin-inline: calc(-1 * var(--card-spacing));
+    padding-inline: var(--card-spacing);
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .workspace-directory-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline: calc(-1 * var(--card-spacing));
+    padding: 0.75rem var(--card-spacing);
+    border-bottom: 1px solid var(--border);
+  }
+  .workspace-directory-filters {
+    margin-inline: calc(-1 * var(--card-spacing));
+    padding: 0.75rem var(--card-spacing);
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--muted) 45%, var(--card));
+  }
   .workspace-skeleton {
     display: grid;
     gap: 1rem;
@@ -195,6 +227,10 @@
     .workspace-pager {
       align-items: flex-start;
       flex-direction: column;
+    }
+    .workspace-pager-pages {
+      width: 100%;
+      justify-content: space-between;
     }
     .workspace-toolbar {
       align-items: stretch;

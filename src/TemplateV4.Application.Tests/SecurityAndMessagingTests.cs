@@ -13,8 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Quartz;
+using Quartz.Extensibility;
 using Quartz.Impl;
-using Quartz.Spi;
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
 using TemplateV4.BackgroundWorker;
@@ -140,7 +140,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
     [Fact]
     public async Task Reconciler_restores_a_stranded_request_trigger_and_terminal_failure_is_replayable()
     {
-        var factory = new StdSchedulerFactory(new NameValueCollection { ["quartz.scheduler.instanceName"] = "reconcile-" + Guid.NewGuid().ToString("N") });
+        var factory = QuartzSchedulerBuilder.Create(options => options.ConfigureScheduler(scheduler => scheduler.InstanceName = "reconcile-" + Guid.NewGuid().ToString("N"))).Build();
         var scheduler = await factory.GetScheduler(); var id = Guid.NewGuid();
         try
         {
@@ -151,17 +151,17 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
                 await db.SaveChangesAsync();
             }
             var key = new JobKey(id.ToString("N"), "requests");
-            await scheduler.AddJob(JobBuilder.Create<MaintenanceJob>().WithIdentity(key).StoreDurably().RequestRecovery().Build(), false);
+            await scheduler.AddJob(JobBuilder.Create<MaintenanceJob>().WithIdentity(key).StoreDurably().RequestRecovery().Build(), new AddJobOptions());
             var reconciler = new JobReconciler(_services.GetRequiredService<IServiceScopeFactory>(), factory, NullLogger<JobReconciler>.Instance);
             await reconciler.Reconcile(default); await reconciler.Reconcile(default);
-            Assert.Single(await scheduler.GetTriggersOfJob(key));
+            Assert.Single((await scheduler.QueryTriggers(new TriggerQuery { Job = key })).Items);
             await using var scope2 = _services.CreateAsyncScope(); var services = scope2.ServiceProvider;
             var db2 = services.GetRequiredService<FrameworkDb>(); var run = await db2.JobRuns.SingleAsync(x => x.Id == id); run.State = "Failed"; await db2.SaveChangesAsync();
             Assert.True((await services.GetRequiredService<OperationsService>().Replay(Guid.NewGuid(), new(id, "job"), default)).IsSuccess);
             Assert.Equal("Retry", (await db2.JobRuns.SingleAsync()).State);
             Assert.Single(await db2.Audit.Where(x => x.Action == "operations.replayed").ToArrayAsync());
         }
-        finally { await scheduler.Shutdown(); }
+        finally { await scheduler.Shutdown(false); }
     }
     [Fact]
     public async Task Expired_delivery_lease_can_be_claimed_and_active_lease_is_not_stolen()
@@ -216,7 +216,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         var login = await auth.Login(new(user.Email!, "Test-only!Password942", "test"), default);
         Assert.False(login.Value!.Access.MfaConfigured); Assert.True(login.Value.Access.SetupRequired); Assert.Empty(login.Value.Access.Permissions);
         var context = sp.GetRequiredService<BackgroundExecutionContext>(); context.ActorId = user.Id; context.Permissions = new HashSet<string>();
-        Assert.Equal("authorization.denied", (await sp.GetRequiredService<Dispatcher<ListUsers, Page<UserDto>>>().Send(new())).Error!.Code);
+        Assert.Equal("authorization.denied", (await sp.GetRequiredService<Dispatcher<ListUsers, UserDirectoryPage>>().Send(new())).Error!.Code);
     }
     [Fact]
     public async Task Password_login_offers_a_configured_passkey()
@@ -471,15 +471,19 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
     [Fact]
     public async Task Quartz_executes_maintenance_without_optional_metadata()
     {
-        var factory = new StdSchedulerFactory(new NameValueCollection { ["quartz.scheduler.instanceName"] = "execute-" + Guid.NewGuid().ToString("N") });
-        var scheduler = await factory.GetScheduler();
         await using var scope = _services.CreateAsyncScope(); var services = scope.ServiceProvider;
-        scheduler.JobFactory = new TestJobFactory(new MaintenanceJob(services.GetRequiredService<FrameworkDb>(), _clock,
+        var testJob = new MaintenanceJob(services.GetRequiredService<FrameworkDb>(), _clock,
             NullLogger<MaintenanceJob>.Instance, services.GetRequiredService<BackgroundExecutionContext>(), CultureCatalog.Examples,
-            new ConfigurationBuilder().Build()));
+            new ConfigurationBuilder().Build());
+        var factory = QuartzSchedulerBuilder.Create(options =>
+        {
+            options.ConfigureScheduler(scheduler => scheduler.InstanceName = "execute-" + Guid.NewGuid().ToString("N"));
+            options.UseJobFactory(new TestJobFactory(testJob));
+        }).Build();
+        var scheduler = await factory.GetScheduler();
         try
         {
-            await scheduler.ScheduleJob(JobBuilder.Create<MaintenanceJob>().WithIdentity("maintenance-test").Build(), TriggerBuilder.Create().StartNow().Build());
+            await scheduler.ScheduleJob(JobBuilder.Create<MaintenanceJob>().WithIdentity("maintenance-test").Build(), TriggerBuilder.Create().StartNow().Build(), new ScheduleJobOptions());
             await scheduler.Start();
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await using var check = _services.CreateAsyncScope(); var db = check.ServiceProvider.GetRequiredService<FrameworkDb>();
@@ -503,7 +507,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
             ["quartz.dataSource.app.connectionString"] = _postgres.GetConnectionString(),
             ["quartz.serializer.type"] = "stj"
         };
-        var factory = new StdSchedulerFactory(properties); var scheduler = await factory.GetScheduler();
+        var factory = QuartzSchedulerBuilder.Create(_ => { }).UseProperties(properties).Build(); var scheduler = await factory.GetScheduler();
         var request = new JobRequested(Guid.NewGuid(), "af-ZA");
         var envelope = new MessageEnvelope(Guid.NewGuid(), "maintenance.requested.v1", JsonSerializer.Serialize(request), "af-ZA", null, null);
         try
@@ -516,11 +520,11 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
             await transport.Publish(envelope, default); await transaction.CommitAsync();
             Assert.Single(await db.Inbox.ToArrayAsync());
             await new JobReconciler(_services.GetRequiredService<IServiceScopeFactory>(), factory, NullLogger<JobReconciler>.Instance).Reconcile(default);
-            Assert.True(await scheduler.CheckExists(new JobKey(request.RequestId.ToString("N"), "requests")));
+            Assert.True(await scheduler.Exists(new JobKey(request.RequestId.ToString("N"), "requests")));
         }
         finally { await scheduler.Shutdown(); }
-        var restarted = await new StdSchedulerFactory(properties).GetScheduler();
-        try { Assert.True(await restarted.CheckExists(new JobKey(request.RequestId.ToString("N"), "requests"))); }
+        var restarted = await QuartzSchedulerBuilder.Create(_ => { }).UseProperties(properties).BuildScheduler();
+        try { Assert.True(await restarted.Exists(new JobKey(request.RequestId.ToString("N"), "requests"))); }
         finally { await restarted.Shutdown(); }
     }
     [Fact]
@@ -744,7 +748,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
     }
     private sealed class TestJobFactory(IJob job) : IJobFactory
     {
-        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler) => job;
-        public void ReturnJob(IJob completed) { }
+        public ValueTask<JobScope> CreateJob(TriggerFiredBundle bundle, IScheduler scheduler, CancellationToken cancellationToken) => ValueTask.FromResult(new JobScope(job, null));
+        public ValueTask ReturnJob(JobScope scope, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
 }
