@@ -1,4 +1,5 @@
 import { HlmDrawer } from './lib/hlm-drawer';
+import { HlmDrawerBody } from './lib/hlm-drawer-body';
 import { HlmDrawerClose } from './lib/hlm-drawer-close';
 import { HlmDrawerContent } from './lib/hlm-drawer-content';
 import { HlmDrawerDescription } from './lib/hlm-drawer-description';
@@ -10,6 +11,7 @@ import { HlmDrawerTitle } from './lib/hlm-drawer-title';
 import { HlmDrawerTrigger } from './lib/hlm-drawer-trigger';
 
 export * from './lib/hlm-drawer';
+export * from './lib/hlm-drawer-body';
 export * from './lib/hlm-drawer-close';
 export * from './lib/hlm-drawer-content';
 export * from './lib/hlm-drawer-description';
@@ -22,6 +24,7 @@ export * from './lib/hlm-drawer-trigger';
 
 export const HlmDrawerImports = [
   HlmDrawer,
+  HlmDrawerBody,
   HlmDrawerClose,
   HlmDrawerContent,
   HlmDrawerDescription,

@@ -7,13 +7,30 @@ import {
   input,
   numberAttribute,
 } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideCheck,
+  lucideInfo,
+  lucideLoaderCircle,
+  lucideTriangleAlert,
+  lucideX,
+} from '@ng-icons/lucide';
 import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
 import { hlm } from '@spartan-ng/helm/utils';
 import type { ClassValue } from 'clsx';
 
 @Component({
   selector: 'hlm-toaster',
-  imports: [BrnSonnerImports],
+  imports: [BrnSonnerImports, NgIcon],
+  providers: [
+    provideIcons({
+      lucideCheck,
+      lucideInfo,
+      lucideLoaderCircle,
+      lucideTriangleAlert,
+      lucideX,
+    }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <brn-sonner-toaster
@@ -31,11 +48,26 @@ import type { ClassValue } from 'clsx';
       [offset]="offset()"
       [style]="userStyle()"
     >
-      <ng-template #loadingIcon />
-      <ng-template #successIcon />
-      <ng-template #errorIcon />
-      <ng-template #infoIcon />
-      <ng-template #warningIcon />
+      <ng-template #loadingIcon>
+        <ng-icon
+          class="motion-safe:animate-spin"
+          name="lucideLoaderCircle"
+          size="20"
+          aria-hidden="true"
+        />
+      </ng-template>
+      <ng-template #successIcon>
+        <ng-icon name="lucideCheck" size="20" aria-hidden="true" />
+      </ng-template>
+      <ng-template #errorIcon>
+        <ng-icon name="lucideX" size="20" aria-hidden="true" />
+      </ng-template>
+      <ng-template #infoIcon>
+        <ng-icon name="lucideInfo" size="20" aria-hidden="true" />
+      </ng-template>
+      <ng-template #warningIcon>
+        <ng-icon name="lucideTriangleAlert" size="20" aria-hidden="true" />
+      </ng-template>
     </brn-sonner-toaster>
   `,
 })
@@ -69,7 +101,10 @@ export class HlmToaster {
       ...options,
       classes: {
         ...options?.classes,
-        toast: hlm('rounded-2xl! [&_[data-icon]]:hidden!', options?.classes?.toast),
+        toast: hlm(
+          'rounded-2xl! [&_[data-icon]]:m-0! [&_[data-icon]]:size-10! [&_[data-icon]]:items-center! [&_[data-icon]]:justify-center! [&_[data-icon]]:rounded-full [&_[data-icon]]:text-[var(--toast-icon-foreground)] [&_[data-icon]_ng-icon]:flex [&_[data-icon]_ng-icon]:items-center [&_[data-icon]_ng-icon]:justify-center [&_[data-icon]_svg]:m-0! [&_[data-icon]_svg]:[--ng-icon__stroke-width:3] [&[data-type=loading]_[data-icon]]:bg-[var(--toast-loading-icon)] [&[data-type=success]_[data-icon]]:bg-[var(--toast-success-icon)] [&[data-type=error]_[data-icon]]:bg-[var(--toast-error-icon)] [&[data-type=info]_[data-icon]]:bg-[var(--toast-info-icon)] [&[data-type=warning]_[data-icon]]:bg-[var(--toast-warning-icon)]',
+          options?.classes?.toast,
+        ),
       },
     };
   });

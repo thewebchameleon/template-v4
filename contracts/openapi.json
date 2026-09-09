@@ -1166,7 +1166,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageOfInvitationItem"
+                  "$ref": "#/components/schemas/InvitationPage"
                 }
               }
             }
@@ -3037,6 +3037,55 @@
           }
         }
       },
+      "InvitationPage": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize",
+          "pending",
+          "expired",
+          "accepted",
+          "revoked"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pending": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accepted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "revoked": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "InvitationRequest": {
         "required": [
           "userId"
@@ -3334,35 +3383,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/FileItem"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "PageOfInvitationItem": {
-        "required": [
-          "items",
-          "total",
-          "pageNumber",
-          "pageSize"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InvitationItem"
             }
           },
           "total": {

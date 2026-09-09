@@ -1,33 +1,28 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { Component, inject, input, output } from '@angular/core';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { Auth } from '../core/auth';
 import { Translate } from '../core/i18n';
 @Component({
   selector: 'app-people-nav',
-  imports: [RouterLink, RouterLinkActive, HlmButtonImports, Translate],
-  template: `<nav class="mb-6 flex flex-wrap gap-2" [attr.aria-label]="'people' | t">
-    <a
-      hlmBtn
-      variant="ghost"
-      routerLink="/users"
-      routerLinkActive="bg-muted"
-      [routerLinkActiveOptions]="{ exact: true }"
-      ariaCurrentWhenActive="page"
-      >{{ 'users' | t }}</a
-    >
-    @if (auth.has('users.manage')) {
-      <a
-        hlmBtn
-        variant="ghost"
-        routerLink="/users/invitations"
-        routerLinkActive="bg-muted"
-        ariaCurrentWhenActive="page"
-        >{{ 'invitations' | t }}</a
-      >
-    }
+  imports: [HlmTabsImports, Translate],
+  template: `<nav class="mb-6" [attr.aria-label]="'people' | t">
+    <hlm-tabs [tab]="section()" (tabActivated)="sectionChange.emit($event)">
+      <hlm-tabs-list>
+        @if (auth.has('users.read')) {
+          <button hlmTabsTrigger="users">{{ 'users' | t }}</button>
+        }
+        @if (auth.has('users.manage')) {
+          <button hlmTabsTrigger="invitations">{{ 'invitations' | t }}</button>
+        }
+        @if (auth.has('roles.manage')) {
+          <button hlmTabsTrigger="roles">{{ 'roles' | t }}</button>
+        }
+      </hlm-tabs-list>
+    </hlm-tabs>
   </nav>`,
 })
 export class PeopleNav {
   readonly auth = inject(Auth);
+  readonly section = input.required<string>();
+  readonly sectionChange = output<string>();
 }

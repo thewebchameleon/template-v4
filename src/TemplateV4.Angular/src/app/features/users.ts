@@ -10,12 +10,16 @@ import {
   DebouncedSearch,
   protectUnload,
   Confirmations,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
 } from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { RecordStatus, RecordUserIdentity } from '../shared/workspace-cells';
 import { UserDetailPage } from './user-detail';
 import { PeopleNav } from '../shared/people-nav';
-import { InvitationEditor } from './invite-user';
+import { InvitationDrawer } from './invite-user';
+import { InvitationsPanel } from './invitations';
+import { RolesPanel } from './roles';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { I18n } from '../core/i18n';
@@ -29,186 +33,203 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     PeopleNav,
     HlmDrawerImports,
     HlmSelectImports,
-    InvitationEditor,
+    InvitationDrawer,
+    InvitationsPanel,
+    RolesPanel,
     UserDetailPage,
   ],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="users" description="peopleIntro" eyebrow="administration" />
-    <app-people-nav />
-    <section hlmCard class="workspace-directory-panel">
-      <div hlmCardHeader class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 hlmCardTitle>{{ 'directory' | t }}</h2>
-          <p hlmCardDescription aria-live="polite">
-            {{ i18n.number(directoryTotal()) }} {{ 'users' | t }} ·
-            {{ i18n.number(data.value()?.active ?? 0) }} {{ 'active' | t }} ·
-            {{ i18n.number(data.value()?.invited ?? 0) }} {{ 'invited' | t }} ·
-            {{ i18n.number(data.value()?.disabled ?? 0) }} {{ 'disabled' | t }}
-          </p>
-        </div>
-        @if (auth.has('users.manage')) {
-          <hlm-drawer
-            direction="right"
-            [state]="inviteOpen() ? 'open' : 'closed'"
-            [disableClose]="true"
-            (stateChanged)="inviteOpen.set($event === 'open')"
-          >
-            <button hlmBtn hlmDrawerTrigger><ng-icon name="lucidePlus" />{{ 'invite' | t }}</button>
-            <hlm-drawer-content
-              *hlmDrawerPortal
-              class="overflow-hidden sm:max-w-lg"
-              [attr.aria-label]="'invite' | t"
-            >
-              <hlm-drawer-header>
-                <h2 hlmDrawerTitle>{{ 'invite' | t }}</h2>
-                <p hlmDrawerDescription>{{ 'inviteHelp' | t }}</p>
-              </hlm-drawer-header>
-              <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-                <app-invitation-editor (invited)="invited()" (cancelled)="inviteOpen.set(false)" />
-              </div>
-            </hlm-drawer-content>
-          </hlm-drawer>
-        }
-      </div>
-      <div hlmCardContent>
-        <hlm-tabs
-          [tab]="statusFilter()"
-          (tabActivated)="setStatus($event)"
-          class="workspace-directory-tabs"
+    <app-people-nav [section]="section()" (sectionChange)="setSection($event)" />
+    @if (section() === 'users') {
+      <section hlmCard class="workspace-directory-panel">
+        <div
+          hlmCardHeader
+          class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
         >
-          <hlm-tabs-list [attr.aria-label]="'userStatusFilter' | t" class="flex-wrap">
-            <button hlmTabsTrigger="all">
-              {{ 'all' | t }}
-              <span hlmBadge variant="secondary">{{ i18n.number(directoryTotal()) }}</span>
-            </button>
-            <button hlmTabsTrigger="Active">
-              {{ 'active' | t }}
-              <span hlmBadge variant="secondary">{{ i18n.number(data.value()?.active ?? 0) }}</span>
-            </button>
-            <button hlmTabsTrigger="Invited">
-              {{ 'invited' | t }}
-              <span hlmBadge variant="secondary">{{
-                i18n.number(data.value()?.invited ?? 0)
-              }}</span>
-            </button>
-            <button hlmTabsTrigger="Disabled">
-              {{ 'disabled' | t }}
-              <span hlmBadge variant="secondary">{{
-                i18n.number(data.value()?.disabled ?? 0)
-              }}</span>
-            </button>
-          </hlm-tabs-list>
-        </hlm-tabs>
-        <div class="workspace-directory-toolbar">
-          <div hlmField class="min-w-0 flex-1 sm:max-w-sm">
-            <label hlmFieldLabel class="sr-only" for="user-search">{{ 'search' | t }}</label>
-            <input
-              hlmInput
-              id="user-search"
-              [ngModel]="search.value()"
-              (ngModelChange)="search.update($event)"
-              maxlength="120"
-              [placeholder]="'peopleSearch' | t"
-            />
+          <div>
+            <h2 hlmCardTitle>{{ 'directory' | t }}</h2>
+            <p hlmCardDescription aria-live="polite">
+              {{ i18n.number(directoryTotal()) }} {{ 'users' | t }} ·
+              {{ i18n.number(data.value()?.active ?? 0) }} {{ 'active' | t }} ·
+              {{ i18n.number(data.value()?.invited ?? 0) }} {{ 'invited' | t }} ·
+              {{ i18n.number(data.value()?.disabled ?? 0) }} {{ 'disabled' | t }}
+            </p>
           </div>
-          <button
-            hlmBtn
-            type="button"
-            variant="outline"
-            aria-controls="user-directory-filters"
-            [attr.aria-expanded]="filtersOpen()"
-            (click)="filtersOpen.update((open) => !open)"
-          >
-            {{ 'filters' | t }}
-            @if (roleFilter()) {
-              <span hlmBadge variant="secondary">1</span>
-            }
-          </button>
-          @if (hasFilters()) {
-            <button hlmBtn type="button" variant="ghost" (click)="clearFilters()">
-              {{ 'clear' | t }}
-            </button>
+          @if (auth.has('users.manage')) {
+            <app-invitation-drawer (invited)="load()" />
           }
         </div>
-        @if (filtersOpen()) {
-          <div id="user-directory-filters" class="workspace-directory-filters">
-            <div hlmField class="w-full sm:max-w-xs">
-              <label hlmFieldLabel for="user-role-filter">{{ 'role' | t }}</label>
-              <hlm-select
-                class="w-full"
-                [value]="roleFilter() || 'all'"
-                [itemToString]="roleLabel"
-                (valueChange)="setRole($event)"
+        <div hlmCardContent>
+          <div class="workspace-directory-controls">
+            <hlm-tabs
+              [tab]="statusFilter()"
+              (tabActivated)="setStatus($event)"
+              class="workspace-directory-tabs"
+            >
+              <hlm-tabs-list [attr.aria-label]="'userStatusFilter' | t" class="flex-wrap">
+                <button hlmTabsTrigger="all">
+                  {{ 'all' | t }}
+                  <span hlmBadge variant="secondary">{{ i18n.number(directoryTotal()) }}</span>
+                </button>
+                <button hlmTabsTrigger="Active">
+                  {{ 'active' | t }}
+                  <span hlmBadge variant="secondary">{{
+                    i18n.number(data.value()?.active ?? 0)
+                  }}</span>
+                </button>
+                <button hlmTabsTrigger="Invited">
+                  {{ 'invited' | t }}
+                  <span hlmBadge variant="secondary">{{
+                    i18n.number(data.value()?.invited ?? 0)
+                  }}</span>
+                </button>
+                <button hlmTabsTrigger="Disabled">
+                  {{ 'disabled' | t }}
+                  <span hlmBadge variant="secondary">{{
+                    i18n.number(data.value()?.disabled ?? 0)
+                  }}</span>
+                </button>
+              </hlm-tabs-list>
+            </hlm-tabs>
+            <div class="workspace-directory-toolbar">
+              <div hlmField class="min-w-0 flex-1 sm:max-w-sm">
+                <label hlmFieldLabel class="sr-only" for="user-search">{{ 'search' | t }}</label>
+                <input
+                  hlmInput
+                  id="user-search"
+                  [ngModel]="search.value()"
+                  (ngModelChange)="search.update($event)"
+                  maxlength="120"
+                  [placeholder]="'peopleSearch' | t"
+                />
+              </div>
+              <hlm-drawer
+                direction="right"
+                [state]="filtersOpen() ? 'open' : 'closed'"
+                (stateChanged)="setFiltersOpen($event === 'open')"
               >
-                <hlm-select-trigger buttonId="user-role-filter" class="w-full">
-                  <hlm-select-value />
-                </hlm-select-trigger>
-                <hlm-select-content *hlmSelectPortal [ariaLabel]="'role' | t">
-                  <hlm-select-item value="all">{{ 'allRoles' | t }}</hlm-select-item>
-                  @for (role of data.value()?.roles ?? []; track role) {
-                    <hlm-select-item [value]="role">{{ role }}</hlm-select-item>
+                <button hlmBtn hlmDrawerTrigger type="button" variant="outline">
+                  <ng-icon name="lucideFunnel" aria-hidden="true" />
+                  {{ 'filters' | t }}
+                  @if (roleFilter()) {
+                    <span hlmBadge variant="counter">1</span>
                   }
-                </hlm-select-content>
-              </hlm-select>
-              <p hlmFieldDescription>{{ 'roleFilterHelp' | t }}</p>
+                </button>
+                <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
+                  <hlm-drawer-header>
+                    <h2 hlmDrawerTitle>{{ 'filters' | t }}</h2>
+                    <p hlmDrawerDescription>{{ 'roleFilterHelp' | t }}</p>
+                  </hlm-drawer-header>
+                  <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                    <div hlmField class="w-full">
+                      <label hlmFieldLabel for="user-role-filter">{{ 'role' | t }}</label>
+                      <hlm-select
+                        class="w-full"
+                        [value]="roleDraft()"
+                        [itemToString]="roleLabel"
+                        (valueChange)="roleDraft.set($event ?? 'all')"
+                      >
+                        <hlm-select-trigger buttonId="user-role-filter" class="w-full">
+                          <hlm-select-value />
+                        </hlm-select-trigger>
+                        <hlm-select-content *hlmSelectPortal [ariaLabel]="'role' | t">
+                          <hlm-select-item value="all">{{ 'allRoles' | t }}</hlm-select-item>
+                          @for (role of data.value()?.roles ?? []; track role) {
+                            <hlm-select-item [value]="role">{{ role }}</hlm-select-item>
+                          }
+                        </hlm-select-content>
+                      </hlm-select>
+                      <p hlmFieldDescription>{{ 'roleFilterHelp' | t }}</p>
+                    </div>
+                  </div>
+                  <hlm-drawer-footer>
+                    <button
+                      hlmBtn
+                      type="button"
+                      [disabled]="!filtersChanged()"
+                      (click)="applyFilters()"
+                    >
+                      {{ 'applyFilters' | t }}
+                    </button>
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="outline"
+                      [disabled]="!hasFilters()"
+                      (click)="clearFilters()"
+                    >
+                      <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                      {{ 'clearFilters' | t }}
+                    </button>
+                  </hlm-drawer-footer>
+                </hlm-drawer-content>
+              </hlm-drawer>
             </div>
           </div>
-        }
-        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
-          ><app-data-table
-            [columns]="columns()"
-            [rowActionLabel]="detailsLabel"
-            (rowAction)="openDetails($event)"
-            [data]="data.value()?.items ?? []"
-            [loading]="data.state() === 'loading' || data.refreshing()"
-            [loadingText]="'loading' | t"
-            [emptyText]="emptyText()"
-            [sortColumn]="query.text('sort', 'username')"
-            [sortDirection]="query.direction('asc')"
-            (sortChange)="sort($event)" /><app-list-pager
-            [page]="query.page"
-            [total]="data.value()?.total ?? 0"
-            [size]="pageSize()"
-            [showSizePicker]="true"
-            [busy]="data.refreshing()"
-            (pageChange)="query.set({ page: $event })"
-            (sizeChange)="setPageSize($event)"
-        /></app-page-state>
-      </div>
-    </section>
-    <hlm-drawer
-      direction="right"
-      [state]="selectedUser() ? 'open' : 'closed'"
-      [disableClose]="detailsBusy() || (detailEditor()?.hasUnsavedChanges() ?? false)"
-      (stateChanged)="$event === 'closed' && closeDetails()"
-    >
-      <hlm-drawer-content
-        *hlmDrawerPortal
-        class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-2xl"
-      >
-        <hlm-drawer-header>
-          <h2 hlmDrawerTitle>{{ 'personDetails' | t }}</h2>
-          <p hlmDrawerDescription>{{ 'personDetailsHelp' | t }}</p>
-        </hlm-drawer-header>
-        <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          @if (selectedUser(); as user) {
-            <app-user-detail [userId]="user.id" [embedded]="true" (saved)="load()" />
-          }
+          <app-page-state
+            [state]="data.state()"
+            [refreshError]="data.refreshError()"
+            (retry)="load()"
+            ><app-data-table
+              [columns]="columns()"
+              [rowActionLabel]="detailsLabel"
+              (rowAction)="openDetails($event)"
+              [data]="data.value()?.items ?? []"
+              [loading]="data.state() === 'loading' || data.refreshing()"
+              [loadingText]="'loading' | t"
+              [emptyText]="emptyText()"
+              [sortColumn]="query.text('sort', 'username')"
+              [sortDirection]="query.direction('asc')"
+              (sortChange)="sort($event)" /><app-list-pager
+              [page]="query.page"
+              [total]="data.value()?.total ?? 0"
+              [size]="pageSize()"
+              [showSizePicker]="true"
+              [busy]="data.refreshing()"
+              (pageChange)="query.set({ page: $event })"
+              (sizeChange)="setPageSize($event)"
+          /></app-page-state>
         </div>
-        <hlm-drawer-footer>
-          <button
-            hlmBtn
-            type="button"
-            variant="outline"
-            [disabled]="detailsBusy()"
-            (click)="closeDetails()"
-          >
-            {{ 'close' | t }}
-          </button>
-        </hlm-drawer-footer>
-      </hlm-drawer-content>
-    </hlm-drawer>`,
+      </section>
+      <hlm-drawer
+        direction="right"
+        [state]="selectedUser() ? 'open' : 'closed'"
+        [disableClose]="detailsBusy() || (detailEditor()?.hasUnsavedChanges() ?? false)"
+        (stateChanged)="$event === 'closed' && closeDetails()"
+      >
+        <hlm-drawer-content
+          *hlmDrawerPortal
+          class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-2xl"
+        >
+          <hlm-drawer-header>
+            <h2 hlmDrawerTitle>{{ 'personDetails' | t }}</h2>
+            <p hlmDrawerDescription>{{ 'personDetailsHelp' | t }}</p>
+          </hlm-drawer-header>
+          <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+            @if (selectedUser(); as user) {
+              <app-user-detail [userId]="user.id" [embedded]="true" (saved)="load()" />
+            }
+          </div>
+          <hlm-drawer-footer>
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              [disabled]="detailsBusy()"
+              (click)="closeDetails()"
+            >
+              {{ 'close' | t }}
+            </button>
+          </hlm-drawer-footer>
+        </hlm-drawer-content>
+      </hlm-drawer>
+    } @else if (section() === 'invitations') {
+      <app-invitations-panel />
+    } @else {
+      <app-roles-panel />
+    }`,
 })
 export class UsersPage {
   readonly auth = inject(Auth);
@@ -217,8 +238,8 @@ export class UsersPage {
   readonly data = new Resource<UserDirectoryPage>();
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
-  readonly inviteOpen = signal(false);
   readonly filtersOpen = signal(false);
+  readonly roleDraft = signal('all');
   readonly selectedUser = signal<UserDto | null>(null);
   readonly detailEditor = viewChild(UserDetailPage);
   readonly detailsBusy = computed(() => this.detailEditor()?.busy() ?? false);
@@ -229,7 +250,9 @@ export class UsersPage {
   readonly emptyText = computed(() =>
     this.hasFilters() ? this.i18n.text('peopleFilteredEmpty') : this.i18n.text('peopleEmpty'),
   );
-  private readonly editor = viewChild(InvitationEditor);
+  private readonly invitationDrawer = viewChild(InvitationDrawer);
+  private readonly invitationsPanel = viewChild(InvitationsPanel);
+  private readonly rolesPanel = viewChild(RolesPanel);
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
@@ -260,25 +283,38 @@ export class UsersPage {
   constructor() {
     this.query.connect(() => {
       this.search.sync(this.query.text('search'));
-      void this.load();
-    });
+      if (this.section() === 'users') void this.load();
+    }, ['section', 'search', 'page', 'size', 'status', 'role', 'sort', 'direction']);
+  }
+  section() {
+    const requested = this.query.text('section');
+    if (requested === 'invitations' && this.auth.has('users.manage')) return 'invitations';
+    if (requested === 'roles' && this.auth.has('roles.manage')) return 'roles';
+    if (this.auth.has('users.read')) return 'users';
+    return 'roles';
+  }
+  async setSection(section: string) {
+    if (!['users', 'invitations', 'roles'].includes(section) || section === this.section()) return;
+    if (
+      this.hasUnsavedChanges() &&
+      !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
+    )
+      return;
+    this.selectedUser.set(null);
+    await this.query.set({ section });
   }
   async load() {
-    const loaded = await this.data.load((signal) =>
-      this.api.get(
-        '/users',
-        {
-          pageNumber: this.query.page,
-          pageSize: this.pageSize(),
-          search: this.query.text('search'),
-          status: this.statusFilter(),
-          role: this.roleFilter(),
-          sort: this.query.text('sort', 'username'),
-          direction: this.query.direction('asc'),
-        },
-        signal,
-      ),
-    );
+    const params: Record<string, string | number> = {
+      pageNumber: this.query.page,
+      pageSize: this.pageSize(),
+      search: this.query.text('search'),
+      status: this.statusFilter(),
+      sort: this.query.text('sort', 'username'),
+      direction: this.query.direction('asc'),
+    };
+    const role = this.roleFilter();
+    if (role) params['role'] = role;
+    const loaded = await this.data.load((signal) => this.api.get('/users', params, signal));
     if (loaded) this.query.clamp(this.data.value()?.total, this.pageSize());
   }
   sort(value: ServerSort) {
@@ -296,8 +332,8 @@ export class UsersPage {
     return this.query.text('role');
   }
   pageSize() {
-    const size = Number(this.query.text('size', '10'));
-    return [5, 10, 25, 50].includes(size) ? size : 10;
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
   hasFilters() {
     return !!this.search.value() || this.statusFilter() !== 'all' || !!this.roleFilter();
@@ -308,18 +344,32 @@ export class UsersPage {
   setRole(role: string | null | undefined) {
     void this.query.set({ role: !role || role === 'all' ? null : role, page: 1 });
   }
+  setFiltersOpen(open: boolean) {
+    if (open) this.roleDraft.set(this.roleFilter() || 'all');
+    this.filtersOpen.set(open);
+  }
+  filtersChanged() {
+    return this.roleDraft() !== (this.roleFilter() || 'all');
+  }
+  applyFilters() {
+    this.filtersOpen.set(false);
+    this.setRole(this.roleDraft());
+  }
   setPageSize(size: number) {
     void this.query.set({ size, page: 1 });
   }
   clearFilters() {
+    this.roleDraft.set('all');
     this.search.update('');
     void this.query.set({ search: null, status: null, role: null, page: 1 });
   }
   hasUnsavedChanges() {
     return (
-      (this.inviteOpen() && (this.editor()?.hasUnsavedChanges() ?? false)) ||
+      (this.invitationDrawer()?.hasUnsavedChanges() ?? false) ||
       (this.detailEditor()?.hasUnsavedChanges() ?? false) ||
-      this.detailsBusy()
+      this.detailsBusy() ||
+      (this.invitationsPanel()?.hasUnsavedChanges() ?? false) ||
+      (this.rolesPanel()?.hasUnsavedChanges() ?? false)
     );
   }
   openDetails(user: UserDto) {
@@ -336,9 +386,5 @@ export class UsersPage {
   }
   beforeUnload(event: BeforeUnloadEvent) {
     protectUnload(event, this.hasUnsavedChanges());
-  }
-  invited() {
-    this.inviteOpen.set(false);
-    void this.load();
   }
 }

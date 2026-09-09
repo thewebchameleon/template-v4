@@ -1,5 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideChevronDown, lucideChevronsUpDown, lucideChevronUp } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
@@ -26,15 +28,17 @@ export interface ServerSort {
   imports: [
     FlexRender,
     NgTemplateOutlet,
+    NgIcon,
     HlmButtonImports,
     HlmEmptyImports,
     HlmSpinnerImports,
     HlmTableImports,
   ],
+  providers: [provideIcons({ lucideChevronDown, lucideChevronsUpDown, lucideChevronUp })],
   template: `
     <div
       class="relative -mx-(--card-spacing) w-[calc(100%+var(--card-spacing)+var(--card-spacing))] overflow-hidden rounded-t-[var(--data-table-top-radius,0px)] border-y"
-      [class.h-24]="loading()"
+      [class.min-h-24]="loading()"
     >
       <div hlmTableContainer [class.blur-sm]="loading()" [attr.inert]="loading() ? '' : null">
         <table hlmTable [attr.aria-busy]="loading()" [attr.aria-label]="ariaLabel() || null">
@@ -69,7 +73,7 @@ export interface ServerSort {
                             >
                               {{ headerContent }}
                             </ng-container>
-                            <span aria-hidden="true">{{ sortIndicator(header.column.id) }}</span>
+                            <ng-icon [name]="sortIcon(header.column.id)" aria-hidden="true" />
                           </button>
                         } @else {
                           <ng-container
@@ -143,9 +147,9 @@ export interface ServerSort {
                   class="h-14 ps-(--card-spacing) pe-(--card-spacing) text-center"
                   [attr.colspan]="columns().length"
                 >
-                  <div hlmEmpty role="status">
-                    <div hlmEmptyHeader>
-                      <p hlmEmptyTitle>{{ emptyText() }}</p>
+                  <div hlmEmpty variant="compact" role="status">
+                    <div hlmEmptyHeader variant="compact">
+                      <p hlmEmptyTitle variant="compact">{{ emptyText() }}</p>
                     </div>
                   </div>
                 </td>
@@ -228,9 +232,9 @@ export class DataTable<TData extends RowData> {
       : null;
   }
 
-  protected sortIndicator(column: string) {
-    if (column !== this.sortColumn()) return '↕';
-    return this.sortDirection() === 'asc' ? '↑' : '↓';
+  protected sortIcon(column: string) {
+    if (column !== this.sortColumn()) return 'lucideChevronsUpDown';
+    return this.sortDirection() === 'asc' ? 'lucideChevronUp' : 'lucideChevronDown';
   }
 
   protected toggleSort(column: string) {

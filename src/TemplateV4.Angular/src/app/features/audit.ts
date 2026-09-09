@@ -12,6 +12,7 @@ import {
   Resource,
   ListQuery,
   DebouncedSearch,
+  DEFAULT_PAGE_SIZE,
 } from '../shared/workspace';
 
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
@@ -326,7 +327,7 @@ export class AuditPage {
     const params: Record<string, string | number> = {
       pageNumber: this.query.page,
 
-      pageSize: 25,
+      pageSize: DEFAULT_PAGE_SIZE,
 
       action: this.query.text('action'),
 

@@ -1,10 +1,10 @@
 import { Component, inject, output, signal, viewChild } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Router } from '@angular/router';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
-import { WorkspaceUi, Resource, protectUnload } from '../shared/workspace';
-import { PeopleNav } from '../shared/people-nav';
+import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { WorkspaceUi, Resource, protectUnload, workspaceIcons } from '../shared/workspace';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
@@ -15,63 +15,95 @@ import { createUser } from '../api/fn/framework/create-user';
 import { AccessCatalog } from '../api/models';
 @Component({
   selector: 'app-invitation-editor',
-  imports: [WorkspaceUi, HlmCheckboxImports],
-  template: ` <app-page-state [state]="catalog.state()" (retry)="load()">
-    <form class="grid gap-5" #form="ngForm" (ngSubmit)="form.valid && invite()">
-      <div hlmField>
-        <label hlmFieldLabel for="invite-name">{{ 'name' | t }}</label
-        ><input hlmInput id="invite-name" name="name" [(ngModel)]="name" required maxlength="120" />
-      </div>
-      <div hlmField>
-        <label hlmFieldLabel for="invite-email">{{ 'email' | t }}</label
-        ><input
-          hlmInput
-          id="invite-email"
-          name="email"
-          type="email"
-          email
-          [(ngModel)]="email"
-          required
-          maxlength="254"
-        />
-      </div>
-      <fieldset hlmFieldSet>
-        <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
-        <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
-        @for (role of catalog.value()?.roles.items ?? []; track role.id) {
-          <div hlmField orientation="horizontal">
-            <hlm-checkbox
-              [inputId]="'invite-role-' + role.id"
-              [checked]="roles.includes(role.name)"
-              [disabled]="!canAssign(role.permissions) || busy()"
-              (checkedChange)="toggle(role.name, $event)"
-            /><label hlmFieldLabel [for]="'invite-role-' + role.id">{{ role.name }}</label>
+  imports: [WorkspaceUi, HlmCheckboxImports, HlmDrawerImports, HlmSelectImports],
+  template: `
+    <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && invite()">
+      <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+        <app-page-state [state]="catalog.state()" (retry)="load()">
+          <div class="grid gap-5">
+            <div hlmField>
+              <label hlmFieldLabel for="invite-name">{{ 'name' | t }}</label
+              ><input
+                hlmInput
+                id="invite-name"
+                name="name"
+                [(ngModel)]="name"
+                [placeholder]="'name' | t"
+                required
+                maxlength="120"
+              />
+            </div>
+            <div hlmField>
+              <label hlmFieldLabel for="invite-email">{{ 'email' | t }}</label
+              ><input
+                hlmInput
+                id="invite-email"
+                name="email"
+                type="email"
+                email
+                [(ngModel)]="email"
+                [placeholder]="'email' | t"
+                required
+                maxlength="254"
+              />
+            </div>
+            <fieldset hlmFieldSet>
+              <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
+              <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
+              <div hlmFieldGroup data-slot="checkbox-group">
+                @for (role of catalog.value()?.roles.items ?? []; track role.id) {
+                  <label hlmFieldLabel [for]="'invite-role-' + role.id">
+                    <div hlmField orientation="horizontal" style="align-items: center">
+                      <hlm-checkbox
+                        class="disabled:cursor-default"
+                        style="margin-top: 0"
+                        [inputId]="'invite-role-' + role.id"
+                        [checked]="roles.includes(role.name)"
+                        [disabled]="!canAssign(role.permissions) || busy()"
+                        (checkedChange)="toggle(role.name, $event)"
+                      />
+                      <div hlmFieldContent>
+                        <span hlmFieldTitle>{{ role.name }}</span>
+                        <p hlmFieldDescription>{{ role.description }}</p>
+                      </div>
+                    </div>
+                  </label>
+                }
+              </div>
+            </fieldset>
+            <div hlmField>
+              <label hlmFieldLabel for="invite-language">{{ 'culture' | t }}</label>
+              <hlm-select
+                name="culture"
+                [value]="culture"
+                [itemToString]="cultureLabel"
+                (valueChange)="culture = $event ?? culture"
+              >
+                <hlm-select-trigger buttonId="invite-language" class="w-full">
+                  <hlm-select-value />
+                </hlm-select-trigger>
+                <hlm-select-content *hlmSelectPortal [ariaLabel]="'culture' | t">
+                  @for (supportedCulture of runtime.supportedCultures; track supportedCulture) {
+                    <hlm-select-item [value]="supportedCulture">
+                      {{ cultureLabel(supportedCulture) }}
+                    </hlm-select-item>
+                  }
+                </hlm-select-content>
+              </hlm-select>
+            </div>
           </div>
-        }
-      </fieldset>
-      <fieldset hlmFieldSet>
-        <legend hlmFieldLegend>{{ 'culture' | t }}</legend>
-        <hlm-tabs [tab]="culture" (tabActivated)="culture = $event">
-          <hlm-tabs-list [attr.aria-label]="'culture' | t">
-            <button hlmTabsTrigger="en-ZA">English</button>
-            <button hlmTabsTrigger="af-ZA">Afrikaans</button>
-          </hlm-tabs-list>
-        </hlm-tabs>
-      </fieldset>
-      <div class="flex gap-3">
-        <button hlmBtn [disabled]="busy() || form.invalid">{{ 'invite' | t }}</button
-        ><button
-          hlmBtn
-          type="button"
-          variant="outline"
-          [disabled]="busy()"
-          (click)="cancelled.emit()"
-        >
-          {{ 'cancel' | t }}
-        </button>
+        </app-page-state>
       </div>
-    </form></app-page-state
-  >`,
+      <hlm-drawer-footer>
+        <button hlmBtn [disabled]="busy() || form.invalid || catalog.state() !== 'ready'">
+          @if (busy()) {
+            <hlm-spinner />
+          }
+          {{ 'invite' | t }}
+        </button>
+      </hlm-drawer-footer>
+    </form>
+  `,
 })
 export class InvitationEditor {
   readonly api = inject(WorkspaceApi);
@@ -79,9 +111,8 @@ export class InvitationEditor {
   readonly catalog = new Resource<AccessCatalog>();
   readonly busy = signal(false);
   readonly invited = output<void>();
-  readonly cancelled = output<void>();
+  readonly runtime = inject(Runtime);
   private readonly http = inject(HttpClient);
-  private readonly runtime = inject(Runtime);
   private readonly toast = inject(Notifications);
   name = '';
   email = '';
@@ -89,6 +120,7 @@ export class InvitationEditor {
   culture = inject(I18n).culture();
   private key = crypto.randomUUID();
   private fingerprint = '';
+  readonly cultureLabel = (culture: string) => (culture === 'af-ZA' ? 'Afrikaans' : 'English');
   constructor() {
     void this.load();
   }
@@ -142,39 +174,46 @@ export class InvitationEditor {
 }
 
 @Component({
-  selector: 'app-invite-user',
-  imports: [WorkspaceUi, PeopleNav, InvitationEditor],
+  selector: 'app-invitation-drawer',
+  imports: [WorkspaceUi, HlmDrawerImports, InvitationEditor],
+  providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-header
-      title="invite"
-      description="inviteHelp"
-      eyebrow="administration"
-    /><app-people-nav />
-    <section hlmCard class="max-w-(--form-content-width)">
-      <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'person' | t }}</h2>
-      </div>
-      <div hlmCardContent>
-        <app-invitation-editor
-          (invited)="returnToInvitations()"
-          (cancelled)="returnToInvitations()"
-        />
-      </div>
-    </section>`,
+  template: `
+    <hlm-drawer
+      direction="right"
+      [state]="open() ? 'open' : 'closed'"
+      (stateChanged)="open.set($event === 'open')"
+    >
+      <button hlmBtn hlmDrawerTrigger><ng-icon name="lucidePlus" />{{ 'invite' | t }}</button>
+      <hlm-drawer-content
+        *hlmDrawerPortal
+        class="overflow-hidden sm:max-w-lg"
+        [attr.aria-label]="'invite' | t"
+      >
+        <hlm-drawer-header>
+          <h2 hlmDrawerTitle>{{ 'invite' | t }}</h2>
+          <p hlmDrawerDescription>{{ 'inviteHelp' | t }}</p>
+        </hlm-drawer-header>
+        <app-invitation-editor class="flex min-h-0 flex-1 flex-col" (invited)="complete()" />
+      </hlm-drawer-content>
+    </hlm-drawer>
+  `,
 })
-export class InviteUserPage {
-  private readonly router = inject(Router);
+export class InvitationDrawer {
+  readonly invited = output<void>();
+  readonly open = signal(false);
   private readonly editor = viewChild(InvitationEditor);
 
   hasUnsavedChanges() {
-    return this.editor()?.hasUnsavedChanges() ?? false;
+    return this.open() && (this.editor()?.hasUnsavedChanges() ?? false);
   }
 
   beforeUnload(event: BeforeUnloadEvent) {
     protectUnload(event, this.hasUnsavedChanges());
   }
 
-  returnToInvitations() {
-    return this.router.navigateByUrl('/users/invitations');
+  complete() {
+    this.open.set(false);
+    this.invited.emit();
   }
 }

@@ -14,6 +14,8 @@ import {
   lucideClock3,
   lucideFile,
   lucideFolderOpen,
+  lucideFunnel,
+  lucideFunnelX,
   lucideHistory,
   lucideInbox,
   lucideMail,
@@ -50,6 +52,8 @@ export const workspaceIcons = provideIcons({
   lucideClock3,
   lucideFile,
   lucideFolderOpen,
+  lucideFunnel,
+  lucideFunnelX,
   lucideHistory,
   lucideInbox,
   lucideMail,
@@ -101,15 +105,32 @@ export class Resource<T> {
     return false;
   }
 }
+export const DEFAULT_PAGE_SIZE = 10;
+export const PAGE_SIZE_OPTIONS: readonly number[] = [5, 10, 25, 50];
+
 export class ListQuery {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly changes = this.route.queryParamMap.pipe(takeUntilDestroyed());
-  connect(load: () => void) {
-    this.changes.subscribe(load);
+  constructor(private readonly namespace = '') {}
+  private key(key: string) {
+    return this.namespace ? this.namespace + key.charAt(0).toUpperCase() + key.slice(1) : key;
+  }
+  connect(load: () => void, keys?: string[]) {
+    let previous: string | undefined;
+    this.changes.subscribe((params) => {
+      if (!keys?.length) {
+        load();
+        return;
+      }
+      const current = JSON.stringify(keys.map((key) => params.get(this.key(key))));
+      if (current === previous) return;
+      previous = current;
+      load();
+    });
   }
   text(key: string, fallback = '') {
-    return this.route.snapshot.queryParamMap.get(key) ?? fallback;
+    return this.route.snapshot.queryParamMap.get(this.key(key)) ?? fallback;
   }
   get page() {
     const n = Number(this.text('page', '1'));
@@ -119,21 +140,24 @@ export class ListQuery {
     const value = this.text('direction', fallback);
     return value === 'asc' || value === 'desc' ? value : fallback;
   }
-  clamp(total: number | undefined, size = 25) {
+  clamp(total: number | undefined, size = DEFAULT_PAGE_SIZE) {
     if (total === undefined) return;
     const page = Math.max(1, Math.ceil(total / size));
     if (this.page > page)
       void this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { page },
+        queryParams: { [this.key('page')]: page },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       });
   }
   set(values: Record<string, string | number | null>) {
+    const queryParams = Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [this.key(key), value]),
+    );
     return this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: values,
+      queryParams,
       queryParamsHandling: 'merge',
     });
   }
@@ -199,7 +223,7 @@ export class PageHeader {
     HlmEmptyImports,
     HlmAlertImports,
   ],
-  template: ` @if (state() === 'loading') {
+  template: ` @if (state() === 'loading' && showInitialSkeleton()) {
       <div class="workspace-skeleton" role="status" aria-live="polite">
         <span class="sr-only">{{ 'loading' | t }}</span>
         <div hlmSkeleton class="h-12 w-2/3"></div>
@@ -238,6 +262,7 @@ export class PageHeader {
 export class PageState {
   readonly refreshing = input(false);
   readonly refreshError = input(false);
+  readonly showInitialSkeleton = input(true);
   readonly state = input.required<LoadState>();
   readonly retry = output<void>();
 }
@@ -311,9 +336,9 @@ export class ListPager {
   readonly i18n = inject(I18n);
   readonly total = input(0);
   readonly page = input(1);
-  readonly size = input(25);
+  readonly size = input(DEFAULT_PAGE_SIZE);
   readonly showSizePicker = input(false);
-  readonly sizeOptions = input([5, 10, 25, 50]);
+  readonly sizeOptions = input(PAGE_SIZE_OPTIONS);
   readonly busy = input(false);
   readonly pageChange = output<number>();
   readonly sizeChange = output<number>();

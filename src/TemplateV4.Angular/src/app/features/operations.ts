@@ -8,6 +8,7 @@ import {
   Resource,
   ListQuery,
   Confirmations,
+  DEFAULT_PAGE_SIZE,
 } from '../shared/workspace';
 
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
@@ -410,7 +411,7 @@ export class OperationsPage {
 
           pageNumber: this.query.page,
 
-          pageSize: 25,
+          pageSize: DEFAULT_PAGE_SIZE,
 
           failedOnly: this.query.text('failed') === 'true',
 

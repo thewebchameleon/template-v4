@@ -1,4 +1,5 @@
 import { Component, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HlmDrawer, HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { NotificationItem, NotificationPage } from '../api/models';
@@ -12,6 +13,50 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../shared/workspace';
   selector: 'app-notification-drawer',
   imports: [WorkspaceUi, HlmDrawerImports],
   providers: [workspaceIcons],
+  styles: `
+    .notification-drawer-scroll {
+      scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;
+      scrollbar-width: thin;
+    }
+
+    .notification-drawer-scroll::-webkit-scrollbar {
+      width: 0.375rem;
+    }
+
+    .notification-drawer-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .notification-drawer-scroll::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+      border-radius: 9999px;
+    }
+
+    .notification-drawer-scroll::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--muted-foreground) 65%, transparent);
+    }
+
+    [data-notification-item] {
+      transition:
+        opacity 180ms cubic-bezier(0.4, 0, 1, 1),
+        transform 180ms cubic-bezier(0.4, 0, 1, 1);
+    }
+
+    [data-notification-item].notification-dismiss {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+
+    [data-notification-item].notification-collapse {
+      height: 0 !important;
+      padding-block: 0 !important;
+      border-bottom-width: 0 !important;
+      transition:
+        height 180ms cubic-bezier(0, 0, 0.2, 1),
+        padding-block 180ms cubic-bezier(0, 0, 0.2, 1),
+        border-bottom-width 180ms cubic-bezier(0, 0, 0.2, 1);
+    }
+  `,
   template: `
     <hlm-drawer #drawer="hlmDrawer" direction="right">
       <button
@@ -43,53 +88,45 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../shared/workspace';
           <p hlmDrawerDescription>{{ 'yourInboxHelp' | t }}</p>
         </hlm-drawer-header>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-4">
+        <div
+          hlmDrawerBody
+          class="notification-drawer-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing) group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"
+        >
           <app-page-state
             [state]="data.state()"
             [refreshing]="data.refreshing()"
             [refreshError]="data.refreshError()"
             (retry)="load()"
           >
-            <ul aria-live="polite">
+            <ul aria-live="polite" class="-mx-(--card-spacing)">
               @for (item of data.value()?.page?.items ?? []; track item.id) {
-                <li class="workspace-notice" [class.unread]="!item.readAt">
-                  <span class="workspace-icon" aria-hidden="true">
-                    <ng-icon
-                      [name]="
-                        item.kind === 'notificationSecurity' ? 'lucideShieldCheck' : 'lucideBell'
-                      "
-                    />
-                  </span>
+                <li
+                  class="workspace-notice px-(--panel-header-padding-inline)"
+                  data-notification-item
+                >
                   <div class="min-w-0 flex-1">
-                    <p class="font-medium">
-                      {{ item.kind | t }}
-                      @if (!item.readAt) {
-                        <span class="workspace-unread-dot" [attr.aria-label]="'unread' | t"></span>
-                      }
-                    </p>
+                    <a
+                      class="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline focus-visible:underline"
+                      [routerLink]="detailsRoute(item)"
+                      (click)="open(item)"
+                    >
+                      <span>{{ item.kind | t }}</span>
+                      <ng-icon name="lucideArrowUpRight" />
+                    </a>
                     <p class="workspace-meta mt-1">{{ item.kind + 'Help' | t }}</p>
-                    <p class="workspace-meta mt-2">{{ i18n.date(item.createdAt) }}</p>
-                    <div class="mt-3 flex flex-wrap gap-2">
+                    <div class="mt-2 flex items-start gap-3">
+                      <p class="workspace-meta">{{ i18n.date(item.createdAt) }}</p>
                       <button
                         hlmBtn
-                        variant="outline"
-                        size="sm"
+                        type="button"
+                        variant="link"
+                        size="text"
+                        class="shrink-0"
                         [disabled]="busy()"
-                        (click)="open(item)"
+                        (click)="read(item, $event)"
                       >
-                        {{ 'viewDetails' | t }}<ng-icon name="lucideArrowUpRight" />
+                        {{ 'markRead' | t }}
                       </button>
-                      @if (!item.readAt) {
-                        <button
-                          hlmBtn
-                          variant="ghost"
-                          size="sm"
-                          [disabled]="busy()"
-                          (click)="read(item)"
-                        >
-                          {{ 'markRead' | t }}
-                        </button>
-                      }
                     </div>
                   </div>
                 </li>
@@ -113,7 +150,6 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../shared/workspace';
           <button hlmBtn variant="outline" (click)="viewAll()">
             {{ 'viewAllNotifications' | t }}
           </button>
-          <button hlmBtn variant="ghost" hlmDrawerClose>{{ 'close' | t }}</button>
         </hlm-drawer-footer>
       </hlm-drawer-content>
     </hlm-drawer>
@@ -128,10 +164,18 @@ export class NotificationDrawer {
   readonly data = new Resource<NotificationPage>();
   readonly busy = signal(false);
   private readonly drawer = viewChild.required(HlmDrawer);
+  private loaded = false;
+
+  constructor() {
+    this.unread.changes.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.loaded && !this.busy()) void this.load();
+    });
+  }
 
   async load() {
+    this.loaded = true;
     const loaded = await this.data.load((signal) =>
-      this.api.get('notifications', { pageNumber: 1 }, signal),
+      this.api.get('notifications', { pageNumber: 1, unreadOnly: true }, signal),
     );
     if (loaded) this.unread.set(this.data.value()!.unread);
   }
@@ -149,27 +193,63 @@ export class NotificationDrawer {
         unread,
         page: {
           ...value.page,
-          items: value.page.items.map((item) =>
-            !id || item.id === id
-              ? { ...item, readAt: item.readAt ?? new Date().toISOString() }
-              : item,
-          ),
+          total: id ? Math.max(0, value.page.total - changed) : 0,
+          items: id ? value.page.items.filter((item) => item.id !== id) : [],
         },
       };
     });
   }
 
-  async read(item: NotificationItem) {
+  async read(item: NotificationItem, event: MouseEvent) {
     if (this.busy() || item.readAt) return;
+    const element = (event.currentTarget as HTMLElement).closest<HTMLElement>('li');
     this.busy.set(true);
     try {
       await this.api.post('notifications/read?id=' + encodeURIComponent(item.id));
+      await this.animateDismiss(element);
       this.applyRead(item.id);
     } catch {
       /* Request errors are already reported centrally. */
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private async animateDismiss(element: HTMLElement | null) {
+    if (
+      !element ||
+      document.documentElement.dataset['motion'] === 'reduced' ||
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+    )
+      return;
+
+    const height = element.getBoundingClientRect().height;
+    const exitFinished = this.waitForTransition(element, 'transform');
+    element.classList.add('notification-dismiss');
+    await exitFinished;
+
+    element.style.height = `${height}px`;
+    element.style.overflow = 'hidden';
+    element.style.boxSizing = 'border-box';
+    void element.offsetHeight;
+    const collapseFinished = this.waitForTransition(element, 'height');
+    element.classList.add('notification-collapse');
+    await collapseFinished;
+  }
+
+  private waitForTransition(element: HTMLElement, propertyName: string) {
+    return new Promise<void>((resolve) => {
+      const finish = () => {
+        window.clearTimeout(timeout);
+        element.removeEventListener('transitionend', onTransitionEnd);
+        resolve();
+      };
+      const onTransitionEnd = (event: TransitionEvent) => {
+        if (event.target === element && event.propertyName === propertyName) finish();
+      };
+      const timeout = window.setTimeout(finish, 280);
+      element.addEventListener('transitionend', onTransitionEnd);
+    });
   }
 
   async readAll() {
@@ -185,8 +265,14 @@ export class NotificationDrawer {
     }
   }
 
-  async open(item: NotificationItem) {
-    if (!['/profile', '/security', '/privacy', '/operations', '/me'].includes(item.link)) return;
+  detailsRoute(item: NotificationItem) {
+    if (!['/profile', '/security', '/privacy', '/operations', '/me'].includes(item.link))
+      return null;
+    return item.link === '/profile' ? '/security' : item.link;
+  }
+
+  open(item: NotificationItem) {
+    if (!this.detailsRoute(item)) return;
     const actor = this.auth.access()?.userId;
     if (!item.readAt) {
       void this.api
@@ -199,7 +285,6 @@ export class NotificationDrawer {
         });
     }
     this.drawer().close();
-    await this.router.navigateByUrl(item.link === '/profile' ? '/security' : item.link);
   }
 
   async viewAll() {

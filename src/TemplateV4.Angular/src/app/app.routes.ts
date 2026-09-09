@@ -28,7 +28,6 @@ export const routes: Routes = [
   },
   { path: 'profile', redirectTo: 'security', pathMatch: 'full' },
   { path: 'sessions', redirectTo: 'security/sessions', pathMatch: 'full' },
-  { path: 'invitations', redirectTo: 'users/invitations', pathMatch: 'full' },
   {
     path: 'me',
     data: { breadcrumb: 'account' },
@@ -37,22 +36,8 @@ export const routes: Routes = [
     loadComponent: () => import('./features/account-home').then((m) => m.AccountHomePage),
   },
   {
-    path: 'roles',
-    data: { breadcrumb: 'rolesPermissions', permission: 'roles.manage' },
-    canActivate: [authGuard, permissionGuard],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/roles').then((m) => m.RolesPage),
-  },
-  {
-    path: 'users/invite',
-    data: { breadcrumb: 'invite', permission: 'users.manage' },
-    canActivate: [authGuard, permissionGuard],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/invite-user').then((m) => m.InviteUserPage),
-  },
-  {
     path: 'users',
-    data: { breadcrumb: 'users', permission: 'users.read' },
+    data: { breadcrumb: 'users', permissions: ['users.read', 'roles.manage'] },
     canActivate: [authGuard, permissionGuard],
     canDeactivate: [unsavedGuard],
     loadComponent: () => import('./features/users').then((m) => m.UsersPage),
@@ -110,12 +95,6 @@ export const routes: Routes = [
     data: { breadcrumb: 'privacyAndData' },
     canActivate: [authGuard],
     loadComponent: () => import('./features/privacy').then((m) => m.PrivacyPage),
-  },
-  {
-    path: 'users/invitations',
-    data: { breadcrumb: 'invitations', permission: 'users.manage' },
-    canActivate: [authGuard, permissionGuard],
-    loadComponent: () => import('./features/invitations').then((m) => m.InvitationsPage),
   },
   {
     path: 'users/:id',

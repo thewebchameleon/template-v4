@@ -69,6 +69,7 @@ import { getSecuritySettings } from '../fn/framework/get-security-settings';
 import { GetSecuritySettings$Params } from '../fn/framework/get-security-settings';
 import { getUserAccess } from '../fn/framework/get-user-access';
 import { GetUserAccess$Params } from '../fn/framework/get-user-access';
+import { InvitationPage } from '../models/invitation-page';
 import { listAuditHistory } from '../fn/framework/list-audit-history';
 import { ListAuditHistory$Params } from '../fn/framework/list-audit-history';
 import { listDeletionRequests } from '../fn/framework/list-deletion-requests';
@@ -95,7 +96,6 @@ import { NotificationSummary } from '../models/notification-summary';
 import { OperationsOverview } from '../models/operations-overview';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
-import { PageOfInvitationItem } from '../models/page-of-invitation-item';
 import { passkeyLogin } from '../fn/framework/passkey-login';
 import { PasskeyLogin$Params } from '../fn/framework/passkey-login';
 import { passkeyLoginOptions } from '../fn/framework/passkey-login-options';
@@ -957,7 +957,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listInvitations$Response(params?: ListInvitations$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfInvitationItem>> {
+  listInvitations$Response(params?: ListInvitations$Params, context?: HttpContext): Observable<StrictHttpResponse<InvitationPage>> {
     const obs = listInvitations(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -968,10 +968,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listInvitations(params?: ListInvitations$Params, context?: HttpContext): Observable<PageOfInvitationItem> {
+  listInvitations(params?: ListInvitations$Params, context?: HttpContext): Observable<InvitationPage> {
     const resp = this.listInvitations$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<PageOfInvitationItem>): PageOfInvitationItem => r.body)
+      map((r: StrictHttpResponse<InvitationPage>): InvitationPage => r.body)
     );
   }
 

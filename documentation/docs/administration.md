@@ -1,12 +1,12 @@
 # Administration and access
 
-Administrators land on **Users** after completing required security setup. The directory contains a summary, status tabs, debounced search, role filtering, compact identity, role and status columns, and server-backed page-size controls. Filters remain in the URL so a directory view can be revisited or shared. Open a person's name to inspect their access, assign roles or change their account status. **Invitations** is a neighboring view; **Invite user** opens the shared invitation form from either view.
+Administrators land on **Users** after completing required security setup. The page has bookmarkable **Users**, **Invitations** and **Roles** tabs. The Users tab contains a directory summary, status tabs, debounced search, role filtering, compact identity, role and status columns, and server-backed page-size controls. The Invitations tab contains the invitation lifecycle card with status counts and page-size controls. **Invite user** opens the same shared form from either tab. Filters remain in the URL so directory and invitation views can be revisited or shared. Open a person's name to inspect their access, assign roles or change their account status.
 
 Changes to a person's access sign them out of existing sessions. Failed saves retain edits. When another administrator changes the record, reload the latest version explicitly before reapplying a draft. Users cannot change their own access here, and the last active Administrator cannot be disabled or demoted.
 
 ## Roles and permissions
 
-**Roles & permissions** lets an operator with `roles.manage` create and edit custom roles. Select a role to open its description, membership count and grouped permissions in a right-side drawer. The built-in **Administrator** and **Reader** roles are read-only; the database migrator maintains their definitions.
+The **Roles** tab lets an operator with `roles.manage` create and edit custom roles. Select a role to open its description, membership count and grouped permissions in a right-side drawer. The built-in **Administrator** and **Reader** roles are read-only; the database migrator maintains their definitions.
 
 Custom role names are 2–80 ASCII letters, digits, spaces or hyphens. Descriptions are limited to 240 characters. **Manage users** includes **View users**. An operator can grant only permissions they currently hold and cannot alter a role containing stronger permissions or a role assigned to themselves. Ask another appropriately privileged administrator to make such a change. Role changes sign members out so their next session uses current permissions.
 

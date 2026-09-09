@@ -138,6 +138,7 @@ import { NotificationDrawer } from './features/notification-drawer';
                   @for (item of adminLinks; track item.path) {
                     @if (
                       auth.has(item.permission) ||
+                      (item.path === '/users' && auth.has('roles.manage')) ||
                       (item.path === '/operations' && auth.has('jobs.trigger'))
                     ) {
                       <li hlmSidebarMenuItem>
@@ -213,7 +214,7 @@ import { NotificationDrawer } from './features/notification-drawer';
                   <h2 hlmDrawerTitle>{{ 'settings' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'settingsDescription' | t }}</p>
                 </hlm-drawer-header>
-                <div class="min-h-0 flex-1 overflow-y-auto p-4">
+                <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
                   <app-preferences [expanded]="true" />
                 </div>
                 <hlm-drawer-footer>
@@ -228,7 +229,7 @@ import { NotificationDrawer } from './features/notification-drawer';
     } @else {
       <main id="main" tabindex="-1"><ng-container *ngTemplateOutlet="page" /></main>
     }
-    <hlm-toaster [theme]="theme.preference()" position="top-right" richColors />
+    <hlm-toaster [theme]="theme.preference()" position="top-center" richColors />
     <app-confirmation />
     <ng-template #page>
       <router-outlet />
@@ -281,12 +282,6 @@ export class App {
   );
   readonly adminLinks = [
     { path: '/users', label: 'users', icon: 'lucideUsersRound', permission: 'users.read' },
-    {
-      path: '/roles',
-      label: 'rolesPermissions',
-      icon: 'lucideShieldCheck',
-      permission: 'roles.manage',
-    },
     { path: '/audit', label: 'auditHistory', icon: 'lucideHistory', permission: 'settings.manage' },
     {
       path: '/operations',

@@ -21,6 +21,8 @@ if (exportPath is not null && !builder.Environment.IsDevelopment()) throw new In
 builder.AddServiceDefaults();
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddSignalR();
+if (exportPath is null) builder.Services.AddHostedService<NotificationChangeRelay>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
@@ -64,6 +66,13 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
     };
     options.Events = new()
     {
+        OnMessageReceived = context =>
+        {
+            if (context.HttpContext.Request.Path.StartsWithSegments("/api/v1/auth/notifications/stream") &&
+                context.Request.Query.TryGetValue("access_token", out var token))
+                context.Token = token;
+            return Task.CompletedTask;
+        },
         OnTokenValidated = async context =>
     {
         if (!await context.HttpContext.RequestServices.GetRequiredService<AuthService>().Validate(context.Principal!, context.HttpContext.RequestAborted)) context.Fail("Session revoked.");
@@ -139,6 +148,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "templatev4 v1"));
 }
 app.MapApiEndpoints(origins);
+app.MapHub<NotificationHub>("/api/v1/auth/notifications/stream").RequireAuthorization();
 if (exportPath is not null)
 {
     await app.StartAsync();

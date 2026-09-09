@@ -20,18 +20,23 @@ public sealed record ForgotPasswordRequest(string Email);
 public sealed record CultureRequest(string Culture);
 public sealed record InvitationRequest(Guid UserId, bool Cancel = false);
 public sealed record InvitationItem(Guid Id, string DisplayName, string Email, string State, bool EmailConfirmed, DateTimeOffset? SentAt, DateTimeOffset? ExpiresAt, DateTimeOffset? AcceptedAt, DateTimeOffset? ResendAt);
+public sealed record InvitationPage(IReadOnlyList<InvitationItem> Items, int Total, int PageNumber, int PageSize, int Pending, int Expired, int Accepted, int Revoked);
 public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
-    public async Task<Result<Page<InvitationItem>>> Invitations(int pageNumber, int pageSize, string? search, string state, string sort, string direction, CancellationToken ct)
+    public async Task<Result<InvitationPage>> Invitations(int pageNumber, int pageSize, string? search, string state, string sort, string direction, CancellationToken ct)
     {
-        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || state is not ("all" or "Pending" or "Expired" or "Accepted" or "Revoked") || sort is not ("displayName" or "state" or "expiresAt" or "sentAt") || direction is not ("asc" or "desc")) return Result<Page<InvitationItem>>.Fail("validation.failed", ErrorKind.Validation);
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || state is not ("all" or "Pending" or "Expired" or "Accepted" or "Revoked") || sort is not ("displayName" or "state" or "expiresAt" or "sentAt") || direction is not ("asc" or "desc")) return Result<InvitationPage>.Fail("validation.failed", ErrorKind.Validation);
         var now = time.GetUtcNow();
         var source = from u in db.Users.AsNoTracking()
                      join p in db.Profiles.AsNoTracking() on u.Id equals p.Id
                      where u.InvitationSentAt != null || u.PasswordHash == null
                      select new { u, p, State = u.InvitationCancelledAt != null || p.Disabled ? "Revoked" : u.PasswordHash != null && u.EmailConfirmed ? "Accepted" : u.InvitationExpiresAt < now ? "Expired" : "Pending" };
         if (!string.IsNullOrWhiteSpace(search)) source = source.Where(x => x.p.DisplayName.Contains(search) || x.u.Email!.Contains(search));
+        var pending = await source.CountAsync(x => x.State == "Pending", ct);
+        var expired = await source.CountAsync(x => x.State == "Expired", ct);
+        var accepted = await source.CountAsync(x => x.State == "Accepted", ct);
+        var revoked = await source.CountAsync(x => x.State == "Revoked", ct);
         if (state != "all") source = source.Where(x => x.State == state);
         var total = await source.CountAsync(ct);
         var descending = direction == "desc";
@@ -48,7 +53,7 @@ public sealed class AccountService(FrameworkDb db, UserManager<AppUser> users, I
         };
         var items = await ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize)
             .Select(x => new InvitationItem(x.u.Id, x.p.DisplayName, x.u.Email!, x.State, x.u.EmailConfirmed, x.u.InvitationSentAt, x.u.InvitationExpiresAt, x.u.InvitationAcceptedAt, x.u.InvitationSentAt == null ? null : x.u.InvitationSentAt.Value.AddMinutes(2))).ToArrayAsync(ct);
-        return Result<Page<InvitationItem>>.Success(new(items, total, pageNumber, pageSize));
+        return Result<InvitationPage>.Success(new(items, total, pageNumber, pageSize, pending, expired, accepted, revoked));
     }
     public async Task<Result<Unit>> Invitation(Guid actor, InvitationRequest request, CancellationToken ct)
     {

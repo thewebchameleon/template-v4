@@ -12,9 +12,11 @@ import {
   DebouncedSearch,
   ListQuery,
   protectUnload,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
 } from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
-import { RecordIdentity, RecordStatus, RowActions } from '../shared/workspace-cells';
+import { RecordIdentity, RecordStatus } from '../shared/workspace-cells';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { Runtime } from '../core/runtime';
@@ -23,60 +25,73 @@ import { Notifications } from '../core/notifications';
 import { AccessCatalog, RoleItem } from '../api/models';
 const column = createColumnHelper<DataTableFeatures, RoleItem>();
 @Component({
-  selector: 'app-roles',
+  selector: 'app-roles-panel',
   imports: [WorkspaceUi, DataTable, HlmCheckboxImports, HlmDrawerImports],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `
-    <app-page-header title="rolesPermissions" description="rolesIntro" eyebrow="administration"
-      ><button hlmBtn (click)="select(null)">
-        <ng-icon name="lucidePlus" />{{ 'createRole' | t }}
-      </button></app-page-header
-    >
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
-      ><div>
-        <section hlmCard>
-          <div hlmCardHeader>
-            <h2 hlmCardTitle>{{ 'roles' | t }}</h2>
-          </div>
-          <div hlmCardContent>
-            <div class="workspace-toolbar">
-              <div hlmField>
-                <label hlmFieldLabel for="role-search">{{ 'search' | t }}</label
-                ><input
-                  hlmInput
-                  id="role-search"
-                  [ngModel]="search.value()"
-                  (ngModelChange)="search.update($event)"
-                  maxlength="120"
-                  [placeholder]="'roleSearch' | t"
-                />
-              </div>
-              @if (search.value()) {
-                <button hlmBtn type="button" variant="ghost" (click)="search.update('')">
-                  {{ 'clear' | t }}
-                </button>
-              }
+    <section hlmCard class="workspace-directory-panel">
+      <div hlmCardHeader class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 hlmCardTitle>{{ 'roles' | t }}</h2>
+          <p hlmCardDescription>{{ 'rolesSelectionHelp' | t }}</p>
+        </div>
+        <button hlmBtn type="button" (click)="select(null)">
+          <ng-icon name="lucidePlus" />{{ 'createRole' | t }}
+        </button>
+      </div>
+      <div hlmCardContent>
+        <div class="workspace-directory-controls">
+          <div class="workspace-directory-toolbar">
+            <div hlmField class="min-w-0 flex-1 sm:max-w-sm">
+              <label hlmFieldLabel class="sr-only" for="role-search">{{ 'search' | t }}</label>
+              <input
+                hlmInput
+                id="role-search"
+                [ngModel]="search.value()"
+                (ngModelChange)="search.update($event)"
+                maxlength="120"
+                [placeholder]="'roleSearch' | t"
+              />
             </div>
-            <app-data-table
-              [columns]="columns()"
-              [data]="data.value()?.roles.items ?? []"
-              [loading]="data.refreshing()"
-              [loadingText]="'loading' | t"
-              [emptyText]="emptyText()"
-              [sortColumn]="query.text('sort', 'name')"
-              [sortDirection]="query.direction('asc')"
-              (sortChange)="sort($event)"
-            />
-            <app-list-pager
-              [total]="data.value()?.roles.total ?? 0"
-              [page]="query.page"
-              [busy]="data.refreshing()"
-              (pageChange)="query.set({ page: $event })"
-            />
+            @if (search.value()) {
+              <button hlmBtn type="button" variant="ghost" (click)="search.update('')">
+                {{ 'clear' | t }}
+              </button>
+            }
           </div>
-        </section></div
-    ></app-page-state>
+        </div>
+        <app-page-state
+          [state]="data.state()"
+          [refreshError]="data.refreshError()"
+          [showInitialSkeleton]="false"
+          (retry)="load()"
+        >
+          <app-data-table
+            [columns]="columns()"
+            fillColumn="name"
+            [rowActionLabel]="roleDetailsLabel"
+            (rowAction)="select($event)"
+            [data]="data.value()?.roles.items ?? []"
+            [loading]="data.state() === 'loading' || data.refreshing()"
+            [loadingText]="'loading' | t"
+            [emptyText]="emptyText()"
+            [sortColumn]="query.text('sort', 'name')"
+            [sortDirection]="query.direction('asc')"
+            (sortChange)="sort($event)"
+          />
+          <app-list-pager
+            [total]="data.value()?.roles.total ?? 0"
+            [page]="query.page"
+            [size]="pageSize()"
+            [showSizePicker]="true"
+            [busy]="data.refreshing()"
+            (pageChange)="query.set({ page: $event })"
+            (sizeChange)="setPageSize($event)"
+          />
+        </app-page-state>
+      </div>
+    </section>
     <hlm-drawer
       direction="right"
       [state]="editorOpen() ? 'open' : 'closed'"
@@ -93,7 +108,7 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
           </p>
         </hlm-drawer-header>
         <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && save()">
-          <div class="grid min-h-0 flex-1 gap-5 overflow-y-auto px-4">
+          <div hlmDrawerBody class="grid min-h-0 flex-1 gap-5 overflow-y-auto">
             <div hlmField>
               <label hlmFieldLabel for="role-name">{{ 'roleName' | t }}</label
               ><input
@@ -180,7 +195,7 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
     </hlm-drawer>
   `,
 })
-export class RolesPage {
+export class RolesPanel {
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
   readonly i18n = inject(I18n);
@@ -188,7 +203,7 @@ export class RolesPage {
   readonly selected = signal<RoleItem | null>(null);
   readonly editorOpen = signal(false);
   readonly permissions = signal<string[]>([]);
-  readonly query = new ListQuery();
+  readonly query = new ListQuery('role');
   readonly search = new DebouncedSearch(this.query);
   readonly busy = signal(false);
   readonly conflict = signal(false);
@@ -202,6 +217,8 @@ export class RolesPage {
   readonly emptyText = computed(() =>
     this.query.text('search') ? this.i18n.text('roleSearchEmpty') : this.i18n.text('rolesEmpty'),
   );
+  readonly roleDetailsLabel = (role: RoleItem) =>
+    `${this.i18n.text(role.builtIn ? 'viewRole' : 'editRole')}: ${role.name}`;
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
@@ -214,6 +231,7 @@ export class RolesPage {
               description:
                 row.original.description ||
                 (row.original.builtIn ? this.i18n.text('builtInRoleHelp') : ''),
+              constrainWidth: false,
             },
           }),
       }),
@@ -228,22 +246,6 @@ export class RolesPage {
             inputs: { value: row.original.builtIn ? 'builtIn' : 'customRole' },
           }),
       }),
-      column.display({
-        id: 'actions',
-        enableSorting: false,
-        header: this.i18n.text('actions'),
-        cell: ({ row }) =>
-          flexRenderComponent(RowActions, {
-            inputs: {
-              actions: [
-                {
-                  label: row.original.builtIn ? 'viewRole' : 'editRole',
-                  run: () => void this.select(row.original),
-                },
-              ],
-            },
-          }),
-      }),
     ]);
   });
   readonly groups = computed(() => [
@@ -254,7 +256,7 @@ export class RolesPage {
       const search = this.query.text('search');
       this.search.sync(search);
       void this.load();
-    });
+    }, ['search', 'page', 'size', 'sort', 'direction']);
   }
   async load() {
     const loaded = await this.data.load((signal) =>
@@ -262,7 +264,7 @@ export class RolesPage {
         '/roles',
         {
           pageNumber: this.query.page,
-          pageSize: 25,
+          pageSize: this.pageSize(),
           search: this.query.text('search'),
           sort: this.query.text('sort', 'name'),
           direction: this.query.direction('asc'),
@@ -270,11 +272,18 @@ export class RolesPage {
         signal,
       ),
     );
-    if (loaded) this.query.clamp(this.data.value()?.roles.total);
+    if (loaded) this.query.clamp(this.data.value()?.roles.total, this.pageSize());
     return loaded;
   }
   sort(value: ServerSort) {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
+  }
+  setPageSize(size: number) {
+    void this.query.set({ size, page: 1 });
   }
   groupPermissions(group: string) {
     return (

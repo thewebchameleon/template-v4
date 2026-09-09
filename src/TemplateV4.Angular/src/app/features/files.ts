@@ -8,6 +8,7 @@ import {
   DebouncedSearch,
   Confirmations,
   protectUnload,
+  DEFAULT_PAGE_SIZE,
 } from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { RecordIdentity, RowActions } from '../shared/workspace-cells';
@@ -233,7 +234,7 @@ export class FilesPage {
         'files',
         {
           pageNumber: this.query.page,
-          pageSize: 25,
+          pageSize: DEFAULT_PAGE_SIZE,
           search: this.query.text('search'),
           sort: this.query.text('sort', 'createdAt'),
           direction: this.query.direction('desc'),

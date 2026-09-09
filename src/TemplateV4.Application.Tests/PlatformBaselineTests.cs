@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using TemplateV4.Application;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
@@ -102,6 +103,34 @@ public sealed partial class SecurityAndMessagingTests
     }
 
     [Fact]
+    public async Task Notification_changes_publish_the_user_only_after_commit()
+    {
+        await using var scope = _services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var user = await User(services);
+        var db = services.GetRequiredService<FrameworkDb>();
+        await using var listener = new NpgsqlConnection(_postgres.GetConnectionString());
+        await listener.OpenAsync();
+        var received = new TaskCompletionSource<Guid>(TaskCreationOptions.RunContinuationsAsynchronously);
+        listener.Notification += (_, notification) =>
+        {
+            if (Guid.TryParse(notification.Payload, out var userId)) received.TrySetResult(userId);
+        };
+        await new NpgsqlCommand("LISTEN notification_changes", listener).ExecuteNonQueryAsync();
+
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        db.Notifications.Add(new() { UserId = user.Id, Kind = "notificationJobCompleted", Link = "/operations", CreatedAt = _clock.Now });
+        await db.SaveChangesAsync();
+        var waiting = listener.WaitAsync();
+        await Task.Delay(100);
+        Assert.False(waiting.IsCompleted);
+
+        await transaction.CommitAsync();
+        await waiting.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(user.Id, await received.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact]
     public async Task Baseline_privacy_export_excludes_secrets_and_approval_anonymises_atomically()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
@@ -181,13 +210,19 @@ public sealed partial class SecurityAndMessagingTests
         db.ChangeTracker.Clear(); _clock.Now = _clock.Now.AddHours(3);
         Assert.Equal(1, (await accounts.Invitations(1, 25, null, "Expired", "sentAt", "desc", default)).Value!.Total);
         Assert.True((await accounts.Invitation(actor.Id, new(user.Id), default)).IsSuccess);
-        Assert.Equal(1, (await accounts.Invitations(1, 25, "Invited", "Pending", "displayName", "asc", default)).Value!.Total);
+        var pending = (await accounts.Invitations(1, 25, "Invited", "Pending", "displayName", "asc", default)).Value!;
+        Assert.Equal(1, pending.Total);
+        Assert.Equal(1, pending.Pending);
+        Assert.Equal(0, pending.Expired);
         var current = (await manager.FindByIdAsync(user.Id.ToString()))!;
         var confirmation = await manager.GenerateEmailConfirmationTokenAsync(current);
         Assert.True((await accounts.Confirm(new(user.Id, confirmation), default)).IsSuccess);
         var password = await manager.GeneratePasswordResetTokenAsync(current);
         Assert.True((await accounts.Reset(new(user.Id, password, "Test-only!Password942"), default)).IsSuccess);
-        Assert.Equal(1, (await accounts.Invitations(1, 25, null, "Accepted", "state", "asc", default)).Value!.Total);
+        var accepted = (await accounts.Invitations(1, 25, null, "Accepted", "state", "asc", default)).Value!;
+        Assert.Equal(1, accepted.Total);
+        Assert.Equal(1, accepted.Accepted);
+        Assert.Equal(0, accepted.Pending);
         Assert.False((await accounts.Invitation(actor.Id, new(user.Id, true), default)).IsSuccess);
         var revoked = new AppUser { Id = Guid.NewGuid(), Email = "revoked@example.test", UserName = "revoked@example.test" };
         await manager.CreateAsync(revoked); db.Profiles.Add(UserProfile.Create(revoked.Id, "Revoked", "en-ZA", false)); await db.SaveChangesAsync();

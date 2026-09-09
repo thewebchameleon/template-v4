@@ -44,7 +44,7 @@ export class Auth {
       : this.has('users.read')
         ? '/users'
         : this.has('roles.manage')
-          ? '/roles'
+          ? '/users?section=roles'
           : this.has('settings.manage')
             ? '/settings'
             : this.has('jobs.trigger')

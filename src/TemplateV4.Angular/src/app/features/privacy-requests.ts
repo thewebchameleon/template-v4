@@ -6,6 +6,7 @@ import {
   Resource,
   ListQuery,
   Confirmations,
+  DEFAULT_PAGE_SIZE,
 } from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { RecordIdentity, RowActions } from '../shared/workspace-cells';
@@ -116,7 +117,7 @@ export class PrivacyRequestsPage {
         'privacy/requests',
         {
           pageNumber: this.query.page,
-          pageSize: 25,
+          pageSize: DEFAULT_PAGE_SIZE,
           sort: this.query.text('sort', 'requestedAt'),
           direction: this.query.direction('asc'),
         },

@@ -1,7 +1,14 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
-import { WorkspaceUi, workspaceIcons, Resource, ListQuery } from '../shared/workspace';
+import {
+  WorkspaceUi,
+  workspaceIcons,
+  Resource,
+  ListQuery,
+  DEFAULT_PAGE_SIZE,
+} from '../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../shared/data-table';
 import { Auth } from '../core/auth';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -139,6 +146,7 @@ export class InboxPage {
   });
   constructor() {
     this.query.connect(() => void this.load());
+    this.unread.changes.pipe(takeUntilDestroyed()).subscribe(() => void this.load());
   }
   async load() {
     const loaded = await this.data.load((signal) =>
@@ -146,7 +154,7 @@ export class InboxPage {
         'notifications',
         {
           pageNumber: this.query.page,
-          pageSize: 25,
+          pageSize: DEFAULT_PAGE_SIZE,
           unreadOnly: this.query.text('filter') === 'unread',
           sort: this.query.text('sort', 'createdAt'),
           direction: this.query.direction('desc'),

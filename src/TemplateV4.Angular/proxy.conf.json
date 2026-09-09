@@ -1,4 +1,4 @@
 {
-  "/api": { "target": "https://localhost:7101", "secure": false },
+  "/api": { "target": "https://localhost:7101", "secure": false, "ws": true },
   "/openapi": { "target": "https://localhost:7101", "secure": false }
 }

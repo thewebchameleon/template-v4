@@ -7,7 +7,7 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { PageOfInvitationItem } from '../../models/page-of-invitation-item';
+import { InvitationPage } from '../../models/invitation-page';
 
 export interface ListInvitations$Params {
   pageNumber?: number;
@@ -18,7 +18,7 @@ export interface ListInvitations$Params {
   direction?: string;
 }
 
-export function listInvitations(http: HttpClient, rootUrl: string, params?: ListInvitations$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfInvitationItem>> {
+export function listInvitations(http: HttpClient, rootUrl: string, params?: ListInvitations$Params, context?: HttpContext): Observable<StrictHttpResponse<InvitationPage>> {
   const rb = new RequestBuilder(rootUrl, listInvitations.PATH, 'get');
   if (params) {
     rb.query('pageNumber', params.pageNumber, {});
@@ -34,7 +34,7 @@ export function listInvitations(http: HttpClient, rootUrl: string, params?: List
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<PageOfInvitationItem>;
+      return r as StrictHttpResponse<InvitationPage>;
     })
   );
 }

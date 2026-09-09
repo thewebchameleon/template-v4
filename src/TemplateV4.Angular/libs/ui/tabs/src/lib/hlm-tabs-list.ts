@@ -44,7 +44,10 @@ export class HlmTabsList {
     indicator.className =
       'pointer-events-none absolute top-0 left-0 rounded-md bg-primary shadow-sm motion-safe:transition-[transform,width,height] motion-safe:duration-200 motion-safe:ease-out';
     indicator.style.opacity = '0';
+    indicator.style.transition = 'none';
     element.prepend(indicator);
+
+    let transitionsEnabled = false;
 
     const positionIndicator = (target?: HTMLElement | null) => {
       if (this.variant() !== 'default') {
@@ -54,7 +57,7 @@ export class HlmTabsList {
 
       const selected =
         target ??
-        element.querySelector<HTMLElement>('button[hlmTabsTrigger][aria-selected="true"]');
+        element.querySelector<HTMLElement>('[data-slot="tabs-trigger"][aria-selected="true"]');
       if (!selected) {
         indicator.style.opacity = '0';
         return;
@@ -66,6 +69,11 @@ export class HlmTabsList {
       indicator.style.height = `${selectedRect.height}px`;
       indicator.style.transform = `translate3d(${selectedRect.left - listRect.left}px, ${selectedRect.top - listRect.top}px, 0)`;
       indicator.style.opacity = '1';
+      if (!transitionsEnabled) {
+        indicator.getBoundingClientRect();
+        indicator.style.removeProperty('transition');
+        transitionsEnabled = true;
+      }
     };
 
     const mutationObserver = new view.MutationObserver(() => positionIndicator());

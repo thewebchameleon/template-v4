@@ -25,6 +25,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   untilDate: ['Until', 'Tot'],
   applyFilters: ['Apply filters', 'Pas filters toe'],
   clear: ['Clear', 'Maak skoon'],
+  clearFilters: ['Clear filters', 'Maak filters skoon'],
   auditPersonFilter: [
     'Showing activity for the selected person or record. Clear filters to see everything.',
     'Wys aktiwiteit vir die gekose persoon of rekord. Maak filters skoon om alles te sien.',

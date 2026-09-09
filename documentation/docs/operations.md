@@ -14,7 +14,7 @@ API job requests enter the outbox and commit before Worker creates a durable Qua
 
 ## Deployment
 
-Publish Web, API and Worker separately. AppHost is local only. The shared .NET Dockerfile accepts PROJECT; the build creates the appropriate fixed entrypoint for each workload. Images run nonroot. Provision writable key/storage mounts with matching container UID permissions. Mount Angular runtime-config.json at deployment time; same-origin /api routing is the default. Nginx's CSP must be deliberately extended if selecting a cross-origin API URL.
+Publish Web, API and Worker separately. AppHost is local only. The shared .NET Dockerfile accepts PROJECT; the build creates the appropriate fixed entrypoint for each workload. Images run nonroot. Provision writable key/storage mounts with matching container UID permissions. Mount Angular runtime-config.json at deployment time; same-origin /api routing is the default and must preserve WebSocket upgrades for SignalR notification invalidation. Nginx's CSP must be deliberately extended if selecting a cross-origin API URL.
 
 Aspire is the default local path; Compose exposes the Web container's Nginx with a local development certificate and disposable development configuration. Mailpit is local-only. Never deploy the development manifest, environment, or bootstrap settings unchanged. Production must supply wrapping certificates, dedicated database users, durable shared key storage, platform-managed TLS, and provider credentials.
 
