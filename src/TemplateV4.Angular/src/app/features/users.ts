@@ -40,7 +40,11 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
   ],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-header title="users" description="peopleIntro" eyebrow="administration" />
+  template: ` <app-page-header
+      title="userManagement"
+      description="peopleIntro"
+      eyebrow="administration"
+    />
     <app-people-nav [section]="section()" (sectionChange)="setSection($event)" />
     @if (section() === 'users') {
       <section hlmCard class="workspace-directory-panel">

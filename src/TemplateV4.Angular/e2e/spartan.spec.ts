@@ -5,6 +5,7 @@ async function mockApp(
   page: Page,
   permissions = ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
   mfaConfigured = true,
+  modules = { 'audit-history': true, operations: true },
 ) {
   const access = {
     accessToken: 'test-access',
@@ -16,7 +17,9 @@ async function mockApp(
   };
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
+    if (path === '/api/v1/auth/culture') return route.fulfill({ status: 204 });
     const responses: Record<string, unknown> = {
+      '/api/v1/modules': modules,
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': access,
@@ -119,8 +122,12 @@ test('desktop sidebar exposes permission links, collapses, and signs out from ac
 }) => {
   await mockApp(page);
   await page.goto('/profile');
-  await expect(page.getByRole('link', { name: 'Users', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Admin settings', exact: true })).toBeVisible();
+  await expect(
+    page.locator('#sidebar-label-panel').getByRole('link', { name: 'Users', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('#sidebar-label-panel').getByRole('link', { name: 'Admin settings', exact: true }),
+  ).toBeVisible();
   const sidebar = page.locator('hlm-sidebar');
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
   await page.getByRole('button', { name: 'Toggle navigation', exact: true }).click();
@@ -135,6 +142,149 @@ test('desktop sidebar exposes permission links, collapses, and signs out from ac
   await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
+});
+
+test('desktop rail stays fixed while the label panel resizes, persists and collapses', async ({
+  page,
+}) => {
+  await mockApp(page);
+  await page.goto('/profile');
+
+  const sidebar = page.locator('hlm-sidebar');
+  const destinations = page.locator('[data-slot="sidebar-destination-rail"]');
+  const separator = page.getByRole('separator', { name: 'Resize navigation' });
+  const panel = page.locator('#sidebar-label-panel');
+  const rootSize = await page
+    .locator('html')
+    .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  const railWidth = () => destinations.evaluate((el) => el.getBoundingClientRect().width);
+  const panelWidth = () =>
+    panel.evaluate(
+      (el) =>
+        el.getBoundingClientRect().width /
+        parseFloat(getComputedStyle(document.documentElement).fontSize),
+    );
+  await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
+  await expect.poll(panelWidth).toBeCloseTo(12, 1);
+  await expect(separator).toHaveAttribute('aria-valuemin', '0');
+  await expect(separator).toHaveAttribute('aria-valuemax', '20');
+
+  await separator.press('ArrowRight');
+  await expect.poll(panelWidth).toBeCloseTo(12.5, 1);
+  await separator.press('End');
+  await expect.poll(panelWidth).toBeCloseTo(20, 1);
+  await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
+  await separator.press('Home');
+  await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+  await expect.poll(panelWidth).toBe(0);
+  await expect(panel).toHaveAttribute('inert', '');
+  await expect(destinations.getByRole('link', { name: 'Users', exact: true })).toBeVisible();
+
+  await destinations.getByRole('link', { name: 'Users', exact: true }).click();
+  await expect(page).toHaveURL(/\/users$/);
+  await expect(sidebar).toHaveAttribute('data-state', 'expanded');
+  await destinations.getByRole('link', { name: 'Users', exact: true }).click();
+  await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+  await separator.dblclick();
+  await expect.poll(panelWidth).toBeCloseTo(12, 1);
+
+  const bounds = (await separator.boundingBox())!;
+  const x = bounds.x + bounds.width / 2;
+  await page.mouse.move(x, 180);
+  await expect(separator.locator('.sidebar-resize-affordance')).toHaveCSS('opacity', '1');
+  const firstGuide = (await separator.locator('.sidebar-resize-guide').boundingBox())!;
+  await page.mouse.move(x, 280);
+  const secondGuide = (await separator.locator('.sidebar-resize-guide').boundingBox())!;
+  expect(secondGuide.y - firstGuide.y).toBeCloseTo(100, 0);
+  await expect(separator.locator('.sidebar-resize-tooltip')).toHaveText('Drag to resize');
+  await page.mouse.down();
+  await page.mouse.move(x + 4 * rootSize, 320);
+  await expect(separator).toHaveAttribute('data-resizing', 'true');
+  await page.mouse.up();
+  await expect.poll(panelWidth).toBeCloseTo(16, 1);
+  await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
+  await page.reload();
+  await expect.poll(panelWidth).toBeCloseTo(16, 1);
+
+  const persisted = (await separator.boundingBox())!;
+  await page.mouse.move(persisted.x + persisted.width / 2, 280);
+  await page.mouse.down();
+  await page.mouse.move(persisted.x + 50, 300);
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+  await expect.poll(panelWidth).toBeCloseTo(16, 1);
+  await accessible(page);
+
+  const restored = (await separator.boundingBox())!;
+  await page.mouse.move(restored.x + restored.width / 2, 280);
+  await page.mouse.down();
+  await page.mouse.move(2 * rootSize, 280);
+  await page.mouse.up();
+  await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+  await page.reload();
+  await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+  await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(separator).toBeHidden();
+  await expect(destinations).toHaveCount(0);
+});
+
+test('settings reset restores every display preference and the sidebar default', async ({
+  page,
+}) => {
+  await mockApp(page);
+  await page.goto('/profile');
+
+  const rail = page.getByRole('separator', { name: 'Resize navigation' });
+  await rail.press('End');
+  await page.getByRole('button', { name: 'Open settings' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Settings' });
+  await drawer.getByRole('button', { name: 'Dark', exact: true }).click();
+  await drawer.getByRole('combobox', { name: 'Language', exact: true }).click();
+  await page.getByRole('option', { name: 'Afrikaans', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Ekstra groot', exact: true }).click();
+  const rootSize = await page
+    .locator('html')
+    .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-slot="sidebar-destination-rail"]')
+        .evaluate((el) => el.getBoundingClientRect().width),
+    )
+    .toBeCloseTo(4 * rootSize, 1);
+  await expect
+    .poll(() =>
+      page.locator('#sidebar-label-panel').evaluate((el) => el.getBoundingClientRect().width),
+    )
+    .toBeCloseTo(20 * rootSize, 1);
+  await drawer.getByRole('button', { name: 'Hoog', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Verminder', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Kompak', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Stel alle instellings terug', exact: true }).click();
+
+  await expect(
+    drawer.getByRole('button', { name: 'Reset all settings', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en-ZA');
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preference', 'system');
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'default');
+  await expect(page.locator('html')).toHaveAttribute('data-contrast', 'standard');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'system');
+  await expect(page.locator('html')).toHaveAttribute('data-density', 'comfortable');
+  await expect(page.locator('hlm-sidebar')).toHaveAttribute('data-state', 'expanded');
+  await expect
+    .poll(() =>
+      page.evaluate(() => ({
+        width: getComputedStyle(document.querySelector('[hlmSidebarWrapper]')!).getPropertyValue(
+          '--sidebar-width',
+        ),
+        storedWidth: localStorage.getItem('templatev4-sidebar-panel-width'),
+        storedOpen: localStorage.getItem('templatev4-sidebar-panel-open'),
+        storedUi: localStorage.getItem('templatev4-ui-preferences'),
+      })),
+    )
+    .toEqual({ width: '16rem', storedWidth: null, storedOpen: null, storedUi: null });
 });
 
 test('navigation shows sessions when MFA is not required', async ({ page }) => {
@@ -187,6 +337,23 @@ test('reader sidebar hides administration and mobile navigation closes after sel
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     .toBe(true);
+});
+
+test('disabled modules hide destinations and reject direct navigation', async ({ page }) => {
+  await mockApp(page, undefined, true, { 'audit-history': false, operations: false });
+  await page.goto('/users');
+  await expect(page.locator('main h1')).toBeVisible();
+  await expect(page.locator('a[href="/audit"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/operations"]')).toHaveCount(0);
+  for (const path of ['/audit', '/operations']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/me$/);
+    await expect(page.locator('main h1')).toBeVisible();
+  }
+  await page.keyboard.press('Tab');
+  await accessible(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await accessible(page);
 });
 
 for (const path of ['profile', 'users', 'sessions', 'settings']) {

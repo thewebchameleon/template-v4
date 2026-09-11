@@ -87,6 +87,16 @@ export class UiPreferences {
     this.update({ density: value });
   }
 
+  reset() {
+    this.state.set(defaults);
+    this.apply();
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // Keep the defaults active for this page when storage is unavailable.
+    }
+  }
+
   private update(change: Partial<UiPreferenceState>) {
     this.state.update((current) => ({ ...current, ...change }));
     this.apply();

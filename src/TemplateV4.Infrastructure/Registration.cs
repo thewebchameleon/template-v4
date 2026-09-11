@@ -6,8 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
+using TemplateV4.Application.Modules;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
+using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
 using TemplateV4.Infrastructure.Storage;
@@ -23,6 +25,7 @@ public static class Registration
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(ModuleConfiguration.Load(config));
         services.AddHttpContextAccessor();
         var cultures = new CultureCatalog(config["Localisation:DefaultCulture"] ?? "en-ZA", (config.GetSection("Localisation:SupportedCultures").Get<string[]>() ?? ["en-ZA", "af-ZA"]).ToHashSet());
         if (!cultures.Supported.Contains(cultures.DefaultCulture) || cultures.Supported.Any(culture => !CultureCatalog.Examples.Supported.Contains(culture)))
@@ -105,10 +108,11 @@ public sealed class BackgroundExecutionContext : IExecutionContext
     public string? TenantId { get; set; }
     public string? TraceParent { get; set; }
 }
-public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnvironment environment) : IFeatureFlags
+public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnvironment environment, ModuleCatalog modules) : IFeatureFlags
 {
     public bool Enabled(string feature, IExecutionContext context)
     {
+        if (feature is "files" or "maintenance" && !modules.Enabled(feature)) return false;
         var section = configuration.GetSection($"Features:{feature}");
         if (context.TenantId is not null && bool.TryParse(section[$"Tenants:{context.TenantId}"], out var tenant)) return tenant;
         if (context.ActorId is not null && bool.TryParse(section[$"Users:{context.ActorId}"], out var user)) return user;

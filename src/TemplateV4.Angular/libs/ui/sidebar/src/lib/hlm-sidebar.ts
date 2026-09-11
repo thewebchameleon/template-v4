@@ -16,6 +16,7 @@ import { injectHlmSidebarConfig } from './hlm-sidebar.token';
     '[attr.data-collapsible]': '_dataCollapsible()',
     '[attr.data-variant]': '_dataVariant()',
     '[attr.data-side]': '_dataSide()',
+    '[attr.data-layout]': 'collapsible() === "panel" ? "rail-panel" : null',
   },
   template: `
     <ng-template #contentContainer>
@@ -51,11 +52,16 @@ import { injectHlmSidebarConfig } from './hlm-sidebar.token';
         data-slot="sidebar-container"
         [attr.data-side]="_dataSide()"
         [class]="_sidebarContainerComputedClass()"
+        [style.left]="collapsible() === 'panel' ? 'auto' : null"
+        [style.right]="collapsible() === 'panel' ? 'auto' : null"
+        [style.inset-inline-start]="collapsible() === 'panel' ? '0' : null"
       >
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          class="bg-sidebar group-data-[variant=floating]:ring-sidebar-border group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 flex size-full flex-col"
+          class="bg-sidebar group-data-[variant=floating]:ring-sidebar-border group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 flex size-full"
+          [class.flex-row]="collapsible() === 'panel'"
+          [class.flex-col]="collapsible() !== 'panel'"
         >
           <ng-container *ngTemplateOutlet="contentContainer" />
         </div>
@@ -71,11 +77,11 @@ export class HlmSidebar {
 
   public readonly side = input<'left' | 'right'>('left');
   public readonly variant = input<SidebarVariant>(this._sidebarService.variant());
-  public readonly collapsible = input<'offcanvas' | 'icon' | 'none'>('offcanvas');
+  public readonly collapsible = input<'offcanvas' | 'icon' | 'none' | 'panel'>('offcanvas');
 
   protected readonly _sidebarGapComputedClass = computed(() =>
     hlm(
-      'transition-[width] duration-200 ease-linear relative w-(--sidebar-width) bg-transparent',
+      'transition-[width] duration-200 ease-linear group-data-[resizing=true]/sidebar-wrapper:transition-none relative w-(--sidebar-width) bg-transparent',
       'group-data-[collapsible=offcanvas]:w-0',
       'group-data-[side=right]:rotate-180',
       this.variant() === 'floating' || this.variant() === 'inset'
@@ -87,10 +93,12 @@ export class HlmSidebar {
   public readonly sidebarContainerClass = input<ClassValue>('');
   protected readonly _sidebarContainerComputedClass = computed(() =>
     hlm(
-      'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
-      this.variant() === 'floating' || this.variant() === 'inset'
-        ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
-        : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l',
+      'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear group-data-[resizing=true]/sidebar-wrapper:transition-none data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
+      this.collapsible() === 'panel'
+        ? 'p-0'
+        : this.variant() === 'floating' || this.variant() === 'inset'
+          ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
+          : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l',
       this.sidebarContainerClass(),
     ),
   );

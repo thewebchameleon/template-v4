@@ -14,11 +14,11 @@ public static class WorkspaceEndpoints
     public static RouteGroupBuilder MapWorkspaceEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/audit", async ([AsParameters] AuditQuery query, Dispatcher<AuditQuery, Page<AuditItem>> dispatcher, CancellationToken ct) => (await dispatcher.Send(query, ct)).ToHttp())
-            .RequireAuthorization(Permissions.Settings).WithName("ListAuditHistory").Produces<Page<AuditItem>>();
+            .RequireModule("audit-history").RequireAuthorization(Permissions.Settings).WithName("ListAuditHistory").Produces<Page<AuditItem>>();
         group.MapGet("/invitations", async (AccountService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string state = "all", string sort = "sentAt", string direction = "desc") => (await service.Invitations(pageNumber, pageSize, search, state, sort, direction, ct)).ToHttp())
             .RequireAuthorization(Permissions.Manage).WithName("ListInvitations").Produces<InvitationPage>();
         group.MapGet("/operations/overview", async (OperationsService service, CancellationToken ct) => Results.Ok(await service.Overview(ct)))
-            .RequireAuthorization(Permissions.Settings).WithName("GetOperationsOverview").Produces<OperationsOverview>();
+            .RequireModule("operations").RequireAuthorization(Permissions.Settings).WithName("GetOperationsOverview").Produces<OperationsOverview>();
         group.MapGet("/notifications/summary", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => Results.Ok(await service.Summary(EndpointSecurity.Actor(principal), ct)))
             .RequireAuthorization().WithName("GetNotificationSummary").Produces<NotificationSummary>();
         group.MapGet("/notifications", async (NotificationService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, int pageSize = 25, bool unreadOnly = false, string sort = "createdAt", string direction = "desc") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, pageSize, unreadOnly, sort, direction, ct)).ToHttp())

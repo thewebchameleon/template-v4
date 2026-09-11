@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAccessibility,
@@ -11,6 +11,7 @@ import {
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
+import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
 import { Auth } from './auth';
 import { I18n, Translate } from './i18n';
 import { Runtime } from './runtime';
@@ -86,21 +87,25 @@ import { UiPreferences } from './ui-preferences';
         </div>
 
         <div hlmField>
-          <span hlmFieldLabel>
+          <label hlmFieldLabel for="settings-language">
             <ng-icon name="lucideLanguages" aria-hidden="true" />
             {{ 'culture' | t }}
-          </span>
-          <hlm-toggle-group
-            type="single"
-            variant="outline"
-            class="grid w-full grid-cols-2"
+          </label>
+          <hlm-select
+            class="w-full"
             [value]="i18n.culture()"
-            (valueChange)="language(singleValue($event))"
+            [itemToString]="cultureLabel"
+            (valueChange)="language($event)"
           >
-            @for (culture of runtime.supportedCultures; track culture) {
-              <button hlmToggleGroupItem [value]="culture">{{ cultureLabel(culture) }}</button>
-            }
-          </hlm-toggle-group>
+            <hlm-select-trigger buttonId="settings-language" class="w-full">
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal [ariaLabel]="'culture' | t">
+              @for (culture of runtime.supportedCultures; track culture) {
+                <hlm-select-item [value]="culture">{{ cultureLabel(culture) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
         </div>
 
         <div hlmField>
@@ -183,6 +188,8 @@ export class Preferences {
   readonly i18n = inject(I18n);
   readonly theme = inject(Theme);
   readonly ui = inject(UiPreferences);
+  readonly sidebar = inject(HlmSidebarService);
+  readonly resetting = signal(false);
 
   readonly themeLabel = (preference: string) =>
     this.i18n.text(
@@ -198,5 +205,18 @@ export class Preferences {
     if (!culture) return;
     if (this.auth.access()) await this.auth.action('culture', { culture });
     this.i18n.set(culture);
+  }
+
+  async reset() {
+    if (this.resetting()) return;
+    this.resetting.set(true);
+    try {
+      this.theme.set('system');
+      this.ui.reset();
+      this.sidebar.reset();
+      await this.language(this.runtime.defaultCulture);
+    } finally {
+      this.resetting.set(false);
+    }
   }
 }

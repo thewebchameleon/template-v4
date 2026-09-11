@@ -25,6 +25,7 @@ public static class EndpointRegistration
             .RequireRateLimiting("api")
             .MapUserEndpoints()
             .MapAccessEndpoints()
+            .MapModuleEndpoints()
             .MapPlatformEndpoints();
 
         return app;

@@ -121,6 +121,8 @@ export type { CreateRole$Params as CreateRole$Params } from './fn/framework/crea
 export { createRole as createRole } from './fn/framework/create-role';
 export type { UpdateRole$Params as UpdateRole$Params } from './fn/framework/update-role';
 export { updateRole as updateRole } from './fn/framework/update-role';
+export type { GetModules$Params as GetModules$Params } from './fn/framework/get-modules';
+export { getModules as getModules } from './fn/framework/get-modules';
 export type { TriggerMaintenance$Params as TriggerMaintenance$Params } from './fn/framework/trigger-maintenance';
 export { triggerMaintenance as triggerMaintenance } from './fn/framework/trigger-maintenance';
 export type { GetFeatures$Params as GetFeatures$Params } from './fn/framework/get-features';

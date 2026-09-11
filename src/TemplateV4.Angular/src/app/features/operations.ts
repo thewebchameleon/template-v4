@@ -231,15 +231,17 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
                 </ol>
               </div>
 
-              <div hlmCardFooter>
-                <a
-                  hlmBtn
-                  variant="outline"
-                  routerLink="/audit"
-                  [queryParams]="{ action: 'operations' }"
-                  >{{ 'viewAudit' | t }}<ng-icon name="lucideArrowUpRight"
-                /></a>
-              </div>
+              @if (features.moduleEnabled('audit-history')) {
+                <div hlmCardFooter>
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    routerLink="/audit"
+                    [queryParams]="{ action: 'operations' }"
+                    >{{ 'viewAudit' | t }}<ng-icon name="lucideArrowUpRight"
+                  /></a>
+                </div>
+              }
             </section>
           }
         </aside>

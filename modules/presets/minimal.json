@@ -1,0 +1,8 @@
+{
+  "Modules": {
+    "files": false,
+    "maintenance": false,
+    "operations": false,
+    "audit-history": false
+  }
+}

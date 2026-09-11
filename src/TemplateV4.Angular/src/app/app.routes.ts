@@ -1,4 +1,4 @@
-import { filesGuard } from './core/features';
+import { filesGuard, moduleGuard } from './core/features';
 import { Routes } from '@angular/router';
 import { authGuard, permissionGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
@@ -106,13 +106,13 @@ export const routes: Routes = [
   {
     path: 'audit',
     data: { breadcrumb: 'auditHistory', permission: 'settings.manage' },
-    canActivate: [authGuard, permissionGuard],
+    canActivate: [authGuard, permissionGuard, moduleGuard('audit-history')],
     loadComponent: () => import('./features/audit').then((m) => m.AuditPage),
   },
   {
     path: 'operations',
     data: { breadcrumb: 'operations', permissions: ['settings.manage', 'jobs.trigger'] },
-    canActivate: [authGuard, permissionGuard],
+    canActivate: [authGuard, permissionGuard, moduleGuard('operations')],
     loadComponent: () => import('./features/operations').then((m) => m.OperationsPage),
   },
   {

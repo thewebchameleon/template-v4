@@ -1,0 +1,44 @@
+[
+  {
+    "id": "identity",
+    "required": true,
+    "enabledByDefault": true,
+    "dependencies": []
+  },
+  {
+    "id": "audit-recording",
+    "required": true,
+    "enabledByDefault": true,
+    "dependencies": ["identity"]
+  },
+  {
+    "id": "delivery",
+    "required": true,
+    "enabledByDefault": true,
+    "dependencies": ["identity"]
+  },
+  {
+    "id": "files",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["identity", "audit-recording"]
+  },
+  {
+    "id": "maintenance",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["delivery"]
+  },
+  {
+    "id": "operations",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["delivery", "audit-recording"]
+  },
+  {
+    "id": "audit-history",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["audit-recording"]
+  }
+]

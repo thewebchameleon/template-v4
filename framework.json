@@ -5,6 +5,11 @@
   "templateVersion": "0.1.0",
   "scaffoldingVersion": "0.1.0",
   "name": "templatev4",
+  "moduleCatalog": "modules/catalog.json",
+  "modulePresets": {
+    "baseline": "modules/presets/baseline.json",
+    "minimal": "modules/presets/minimal.json"
+  },
   "toolchains": {
     "dotnet": "10.0.401",
     "node": "24.19.0",
@@ -76,10 +81,7 @@
   },
   "cultures": {
     "default": "en-ZA",
-    "supported": [
-      "en-ZA",
-      "af-ZA"
-    ]
+    "supported": ["en-ZA", "af-ZA"]
   },
   "packages": {
     "TemplateV4.SharedKernel": "src/TemplateV4.SharedKernel",

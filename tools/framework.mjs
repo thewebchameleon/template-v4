@@ -23,10 +23,17 @@ const write = (relative, content) => {
 };
 switch (command) {
   case 'inspect': console.log(JSON.stringify(manifest, null, 2)); break;
+  case 'modules': {
+    const { inspectModules } = await import('./modules.mjs');
+    console.log(JSON.stringify(inspectModules(root, manifest, kind ?? 'baseline'), null, 2));
+    break;
+  }
   case 'validate': {
     const { default: Ajv } = await import('../src/TemplateV4.Angular/node_modules/ajv/dist/2020.js');
     const validate = new Ajv().compile(JSON.parse(fs.readFileSync(path.join(root, 'framework.schema.json'), 'utf8')));
     if (!validate(manifest)) throw new Error(JSON.stringify(validate.errors));
+    const { inspectModules } = await import('./modules.mjs');
+    for (const preset of Object.keys(manifest.modulePresets)) inspectModules(root, manifest, preset);
     const sdk = JSON.parse(fs.readFileSync(path.join(root, 'global.json'), 'utf8')).sdk.version;
     if (sdk !== manifest.toolchains.dotnet) throw new Error('SDK manifest mismatch.');
     const frontend = JSON.parse(fs.readFileSync(path.join(root, manifest.projects.Web, 'package.json'), 'utf8'));
@@ -66,7 +73,7 @@ switch (command) {
     const app = manifest.projects.Application;
     console.log('Scaffold: review its behavior and explicitly register it before use.');
     const header = `using TemplateV4.SharedKernel;\n\nnamespace TemplateV4.Application.${name};\n\n`;
-    if (kind === 'feature') {
+    if (kind === 'feature' || kind === 'module') {
       const folder = `${app}/${name}`;
       const files = [
         [`${folder}/${name}.cs`, header + `public sealed record ${name}Query : IQuery<string>, IAuthorizedRequest\n{\n    public string Permission => "${name.toLowerCase()}.read";\n}\n\npublic sealed class ${name}Handler : IHandler<${name}Query, string>\n{\n    public Task<Result<string>> Handle(${name}Query request, CancellationToken cancellationToken)\n        => Task.FromResult(Result<string>.Success("${name}"));\n}\n`],
@@ -74,6 +81,16 @@ switch (command) {
         [`${manifest.projects.Web}/src/app/features/${name.toLowerCase()}.ts`, `import { Component } from '@angular/core';\nimport { WorkspaceUi } from '../shared/workspace';\n@Component({selector:'app-${name.toLowerCase()}',imports:[WorkspaceUi],template:'<app-page-header title="${name.toLowerCase()}.title" description="${name.toLowerCase()}.description" /><section hlmCard><div hlmCardHeader><h2 hlmCardTitle>${name}</h2></div><div hlmCardContent></div></section>'})\nexport class ${name}Page {}\n`],
         [`${folder}/README.md`, `# ${name}\n\nThis read-only starter returns its feature name. Replace that behavior with your Application contract.\n\nRegister IHandler<${name}Query, string> with ${name}Handler, seed ${name.toLowerCase()}.read and its authorization policy, call api.Map${name}(), and add the lazy Angular route. Regenerate API clients, replace the page text with localisation keys, and add behavioral tests. For writes follow documentation/docs/user-management.md: explicit validator, transaction, domain event, outbox and BackgroundWorker consumer.\n`]
       ];
+      if (kind === 'module') {
+        files[1][1] = files[1][1].replace('.RequireAuthorization(', `.RequireModule("${name.toLowerCase()}").RequireAuthorization(`);
+        files.push(
+          [`modules/scaffolds/${name.toLowerCase()}.json`, JSON.stringify({ id: name.toLowerCase(), required: false, enabledByDefault: false, dependencies: ['identity'] }, null, 2) + '\n'],
+          [`${manifest.projects.Domain}/${name}/README.md`, `# ${name} domain\n\nOwn business invariants here. Keep this layer BCL-only.\n`],
+          [`${manifest.projects.Infrastructure}/${name}/README.md`, `# ${name} infrastructure\n\nOwn focused persistence, provider adapters and explicit registration here. Do not access other module tables directly.\n`],
+          [`${manifest.projects.Worker}/${name}/README.md`, `# ${name} worker\n\nOwn scheduling and consumers here. Define disable/drain behavior before registering a job.\n`],
+          [`${manifest.documentation}/modules/${name.toLowerCase()}.md`, `# ${name}\n\nStatus: Scaffold, disabled and unregistered.\n\nReview modules/scaffolds/${name.toLowerCase()}.json and explicitly merge its descriptor into modules/catalog.json after implementing the slice. Register handlers and permissions, gate endpoints with RequireModule, and guard UI routes with moduleGuard. Define settings, migration ownership, retention, event contracts and disable behavior. Add focused behavioral tests before activation.\n`],
+        );
+      }
       if (files.some(([file]) => fs.existsSync(path.join(root, file)))) throw new Error('Feature target already exists; no files written.');
       for (const file of files) write(...file);
       break;
@@ -103,5 +120,5 @@ switch (command) {
     }
     break;
   }
-  default: console.log('templatev4 CLI: inspect | validate | doctor | dev-init | dev | clients | upgrade | new <kind> <Name>');
+  default: console.log('templatev4 CLI: inspect | modules [baseline|minimal] | validate | doctor | dev-init | dev | clients | upgrade | new <kind|module> <Name>');
 }

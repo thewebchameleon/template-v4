@@ -17,15 +17,15 @@
 }
 
 :root[data-text-size='default'] {
-  font-size: 87.5%;
-}
-
-:root[data-text-size='large'] {
   font-size: 100%;
 }
 
-:root[data-text-size='extra-large'] {
+:root[data-text-size='large'] {
   font-size: 112.5%;
+}
+
+:root[data-text-size='extra-large'] {
+  font-size: 125%;
 }
 
 :root[data-density='compact'] {

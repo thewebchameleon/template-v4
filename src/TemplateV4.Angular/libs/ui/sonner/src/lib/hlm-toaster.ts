@@ -9,11 +9,11 @@ import {
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCheck,
+  lucideCircleCheck,
+  lucideCircleX,
   lucideInfo,
   lucideLoaderCircle,
   lucideTriangleAlert,
-  lucideX,
 } from '@ng-icons/lucide';
 import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
 import { hlm } from '@spartan-ng/helm/utils';
@@ -24,11 +24,11 @@ import type { ClassValue } from 'clsx';
   imports: [BrnSonnerImports, NgIcon],
   providers: [
     provideIcons({
-      lucideCheck,
+      lucideCircleCheck,
+      lucideCircleX,
       lucideInfo,
       lucideLoaderCircle,
       lucideTriangleAlert,
-      lucideX,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,10 +57,10 @@ import type { ClassValue } from 'clsx';
         />
       </ng-template>
       <ng-template #successIcon>
-        <ng-icon name="lucideCheck" size="20" aria-hidden="true" />
+        <ng-icon name="lucideCircleCheck" size="20" aria-hidden="true" />
       </ng-template>
       <ng-template #errorIcon>
-        <ng-icon name="lucideX" size="20" aria-hidden="true" />
+        <ng-icon name="lucideCircleX" size="20" aria-hidden="true" />
       </ng-template>
       <ng-template #infoIcon>
         <ng-icon name="lucideInfo" size="20" aria-hidden="true" />
@@ -102,9 +102,11 @@ export class HlmToaster {
       classes: {
         ...options?.classes,
         toast: hlm(
-          'rounded-2xl! [&_[data-icon]]:m-0! [&_[data-icon]]:size-10! [&_[data-icon]]:items-center! [&_[data-icon]]:justify-center! [&_[data-icon]]:rounded-full [&_[data-icon]]:text-[var(--toast-icon-foreground)] [&_[data-icon]_ng-icon]:flex [&_[data-icon]_ng-icon]:items-center [&_[data-icon]_ng-icon]:justify-center [&_[data-icon]_svg]:m-0! [&_[data-icon]_svg]:[--ng-icon__stroke-width:3] [&[data-type=loading]_[data-icon]]:bg-[var(--toast-loading-icon)] [&[data-type=success]_[data-icon]]:bg-[var(--toast-success-icon)] [&[data-type=error]_[data-icon]]:bg-[var(--toast-error-icon)] [&[data-type=info]_[data-icon]]:bg-[var(--toast-info-icon)] [&[data-type=warning]_[data-icon]]:bg-[var(--toast-warning-icon)]',
+          'items-start! gap-2.5! rounded-xl! border-0! px-4! py-3! shadow-none! [&_[data-content]]:gap-0.5! [&_[data-icon]]:m-0! [&_[data-icon]]:mt-0.5! [&_[data-icon]]:size-5! [&_[data-icon]]:items-center! [&_[data-icon]]:justify-center! [&_[data-icon]_ng-icon]:flex [&_[data-icon]_ng-icon]:items-center [&_[data-icon]_ng-icon]:justify-center [&_[data-icon]_svg]:m-0! [&_[data-icon]_svg]:[--ng-icon__stroke-width:2]',
           options?.classes?.toast,
         ),
+        title: hlm('text-sm! leading-5! font-semibold!', options?.classes?.title),
+        description: hlm('text-xs! leading-4! opacity-100!', options?.classes?.description),
       },
     };
   });
@@ -116,6 +118,30 @@ export class HlmToaster {
       '--normal-text': 'var(--popover-foreground)',
       '--normal-border': 'var(--border)',
       '--border-radius': 'var(--radius)',
+      '--brn-sonner-toast-success-background': 'var(--toast-success-background)',
+      '--brn-sonner-toast-success-border': 'var(--toast-success-background)',
+      '--brn-sonner-toast-success-color': 'var(--toast-success-foreground)',
+      '--brn-sonner-toast-info-background': 'var(--toast-info-background)',
+      '--brn-sonner-toast-info-border': 'var(--toast-info-background)',
+      '--brn-sonner-toast-info-color': 'var(--toast-info-foreground)',
+      '--brn-sonner-toast-warning-background': 'var(--toast-warning-background)',
+      '--brn-sonner-toast-warning-border': 'var(--toast-warning-background)',
+      '--brn-sonner-toast-warning-color': 'var(--toast-warning-foreground)',
+      '--brn-sonner-toast-error-background': 'var(--toast-error-background)',
+      '--brn-sonner-toast-error-border': 'var(--toast-error-background)',
+      '--brn-sonner-toast-error-color': 'var(--toast-error-foreground)',
+      '--brn-sonner-toast-dark-success-background': 'var(--toast-success-background)',
+      '--brn-sonner-toast-dark-success-border': 'var(--toast-success-background)',
+      '--brn-sonner-toast-dark-success-color': 'var(--toast-success-foreground)',
+      '--brn-sonner-toast-dark-info-background': 'var(--toast-info-background)',
+      '--brn-sonner-toast-dark-info-border': 'var(--toast-info-background)',
+      '--brn-sonner-toast-dark-info-color': 'var(--toast-info-foreground)',
+      '--brn-sonner-toast-dark-warning-background': 'var(--toast-warning-background)',
+      '--brn-sonner-toast-dark-warning-border': 'var(--toast-warning-background)',
+      '--brn-sonner-toast-dark-warning-color': 'var(--toast-warning-foreground)',
+      '--brn-sonner-toast-dark-error-background': 'var(--toast-error-background)',
+      '--brn-sonner-toast-dark-error-border': 'var(--toast-error-background)',
+      '--brn-sonner-toast-dark-error-color': 'var(--toast-error-foreground)',
     },
     { alias: 'style' },
   );

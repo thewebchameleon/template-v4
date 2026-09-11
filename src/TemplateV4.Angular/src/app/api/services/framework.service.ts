@@ -55,6 +55,8 @@ import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
 import { getFeatures } from '../fn/framework/get-features';
 import { GetFeatures$Params } from '../fn/framework/get-features';
+import { getModules } from '../fn/framework/get-modules';
+import { GetModules$Params } from '../fn/framework/get-modules';
 import { getNotificationSummary } from '../fn/framework/get-notification-summary';
 import { GetNotificationSummary$Params } from '../fn/framework/get-notification-summary';
 import { getOperationsOverview } from '../fn/framework/get-operations-overview';
@@ -1782,6 +1784,41 @@ export class FrameworkService extends BaseService {
     const resp = this.updateRole$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<RoleItem>): RoleItem => r.body)
+    );
+  }
+
+  /** Path part for operation `getModules()` */
+  static readonly GetModulesPath = '/api/v1/modules';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getModules()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getModules$Response(params?: GetModules$Params, context?: HttpContext): Observable<StrictHttpResponse<{
+[key: string]: boolean;
+}>> {
+    const obs = getModules(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getModules$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getModules(params?: GetModules$Params, context?: HttpContext): Observable<{
+[key: string]: boolean;
+}> {
+    const resp = this.getModules$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<{
+[key: string]: boolean;
+}>): {
+[key: string]: boolean;
+} => r.body)
     );
   }
 

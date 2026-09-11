@@ -12,6 +12,8 @@
     "name",
     "toolchains",
     "modules",
+    "moduleCatalog",
+    "modulePresets",
     "projects",
     "workloads",
     "generatedCode",
@@ -21,6 +23,8 @@
     "cultures"
   ],
   "properties": {
+    "moduleCatalog": { "type": "string" },
+    "modulePresets": { "$ref": "#/$defs/map" },
     "$schema": {
       "type": "string"
     },
@@ -42,14 +46,7 @@
     "toolchains": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "dotnet",
-        "node",
-        "npm",
-        "docmd",
-        "angular",
-        "spartan"
-      ],
+      "required": ["dotnet", "node", "npm", "docmd", "angular", "spartan"],
       "properties": {
         "dotnet": {
           "$ref": "#/$defs/version"
@@ -99,10 +96,7 @@
     "cultures": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "default",
-        "supported"
-      ],
+      "required": ["default", "supported"],
       "properties": {
         "default": {
           "type": "string"

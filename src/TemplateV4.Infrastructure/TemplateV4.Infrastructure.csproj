@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <EmbeddedResource Include="../../modules/catalog.json" LogicalName="TemplateV4.Modules.catalog.json" />
+    <EmbeddedResource Include="../../modules/presets/*.json" LogicalName="TemplateV4.Modules.%(Filename).json" />
     <Content Include="EmailTemplates/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="Persistence/Migrations/quartz-3.20.1.sql" />
     <EmbeddedResource Include="Persistence/Migrations/quartz-4.0.1-upgrade.sql" />

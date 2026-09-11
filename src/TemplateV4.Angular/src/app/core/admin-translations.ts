@@ -20,7 +20,11 @@ export const adminDictionary: Record<string, [string, string]> = {
   'audit.user.enabled': ['Account enabled', 'Rekening geaktiveer'],
   rolesPermissions: ['Roles & permissions', 'Rolle en toestemmings'],
   roles: ['Roles', 'Rolle'],
-  peopleIntro: ['Find people and manage their access.', 'Vind mense en bestuur hul toegang.'],
+  userManagement: ['User Management', 'Gebruikersbestuur'],
+  peopleIntro: [
+    'Manage users, invitations, roles and access.',
+    'Bestuur gebruikers, uitnodigings, rolle en toegang.',
+  ],
   directory: ['User directory', 'Gebruikersgids'],
   user: ['User', 'Gebruiker'],
   userStatusFilter: ['Filter users by status', 'Filtreer gebruikers volgens status'],
