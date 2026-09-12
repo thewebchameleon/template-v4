@@ -1,4 +1,4 @@
-FROM node:24.19.0-alpine AS build
+FROM node:26.8-alpine AS build
 WORKDIR /app
 COPY src/TemplateV4.Angular/package*.json ./
 RUN npm install --global npm@11.19.1
