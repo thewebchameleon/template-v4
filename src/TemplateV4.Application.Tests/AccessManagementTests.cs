@@ -94,7 +94,7 @@ public sealed partial class SecurityAndMessagingTests
         var paged = (await access.Catalog(1, 1, null, "members", "desc", default)).Value!.Roles;
         Assert.Single(paged.Items); Assert.True(paged.Total >= 3); Assert.Equal(1, paged.PageSize);
         var db = sp.GetRequiredService<FrameworkDb>();
-        Assert.Contains(await db.Audit.ToArrayAsync(), e => e.SubjectId == created.Value.Id && e.Action == "role.granted:users.manage");
+        Assert.Contains(await db.Audit.ToArrayAsync(), e => e.SubjectId == created.Value.Id && e.Action == "role.granted" && e.ChangesJson!.Contains("users.manage"));
     }
 
     [Fact]

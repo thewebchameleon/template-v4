@@ -92,7 +92,7 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
             message.PoisonedAt = null; message.Attempts = 0; message.AvailableAt = time.GetUtcNow(); message.LeaseId = null; message.LeaseUntil = null;
         }
         else return Result.Fail("validation.failed", ErrorKind.Validation);
-        db.Audit.Add(new() { ActorId = actor, SubjectId = request.Id, Action = "operations.replayed", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = actor, SubjectId = request.Id, Action = "operations.replayed", SubjectType = "operation", MetadataJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string> { ["kind"] = request.Kind }), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
 }

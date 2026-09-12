@@ -260,7 +260,7 @@ public sealed partial class SecurityAndMessagingTests
         client.DefaultRequestHeaders.Add("Origin", "https://localhost"); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
         var login = await client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest(email, "Test-only!Password942", "baseline-test")); Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         client.DefaultRequestHeaders.Authorization = new("Bearer", (await login.Content.ReadFromJsonAsync<AccessResponse>())!.AccessToken);
-        foreach (var path in new[] { "audit", "invitations", "operations/overview", "privacy/requests" }) Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
+        foreach (var path in new[] { "audit", "audit/1", "invitations", "operations/overview", "privacy/requests" }) Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
         foreach (var path in new[] { "notifications", "notifications/summary", "privacy" }) Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/files")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/roles")).StatusCode);

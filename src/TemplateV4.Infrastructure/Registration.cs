@@ -8,11 +8,13 @@ using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Platform;
+using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
 using TemplateV4.Infrastructure.Storage;
+using TemplateV4.Infrastructure.Support;
 using TemplateV4.Infrastructure.Users;
 
 namespace TemplateV4.Infrastructure;
@@ -31,8 +33,10 @@ public static class Registration
         if (!cultures.Supported.Contains(cultures.DefaultCulture) || cultures.Supported.Any(culture => !CultureCatalog.Examples.Supported.Contains(culture)))
             throw new InvalidOperationException("Configure supported localisation resources before enabling a culture.");
         services.AddSingleton(cultures);
-        services.AddDbContext<FrameworkDb>(options =>
+        services.AddScoped<AuditCapture>();
+        services.AddDbContext<FrameworkDb>((provider, options) =>
         {
+            options.AddInterceptors(provider.GetRequiredService<AuditCapture>());
             options.UseNpgsql(config.GetConnectionString("app") ?? throw new InvalidOperationException("ConnectionStrings:app is required."),
                 postgres => postgres.MigrationsHistoryTable("migrations", "app"));
             if (environment.IsDevelopment()) options.EnableDetailedErrors();
@@ -63,8 +67,23 @@ public static class Registration
         services.AddScoped<SharedRateLimiter>();
         services.AddScoped<OperationsService>();
         services.AddScoped<IAuditHistory, AuditHistory>();
+        services.AddScoped<IHandler<GetAuditDetail, AuditDetail>, AuditDetailHandler>();
         services.AddScoped<IHandler<AuditQuery, Page<AuditItem>>, AuditQueryHandler>();
         services.AddSingleton<IValidator<AuditQuery>, AuditQueryValidator>();
+        services.AddScoped<ISupportTickets, SupportTicketStore>();
+        services.AddScoped<IHandler<ListTickets, Page<TicketItem>>, ListTicketsHandler>();
+        services.AddSingleton<IValidator<ListTickets>, ListTicketsValidator>();
+        services.AddScoped<IHandler<GetTicket, TicketDetail>, GetTicketHandler>();
+        services.AddScoped<IHandler<CreateTicket, Guid>, CreateTicketHandler>();
+        services.AddSingleton<IValidator<CreateTicket>, CreateTicketValidator>();
+        services.AddScoped<IHandler<ReplyTicket, Unit>, ReplyTicketHandler>();
+        services.AddSingleton<IValidator<ReplyTicket>, ReplyTicketValidator>();
+        services.AddScoped<IHandler<UpdateTicket, Unit>, UpdateTicketHandler>();
+        services.AddSingleton<IValidator<UpdateTicket>, UpdateTicketValidator>();
+        services.AddScoped<IHandler<SaveSupportCategory, Unit>, SaveSupportCategoryHandler>();
+        services.AddSingleton<IValidator<SaveSupportCategory>, SaveSupportCategoryValidator>();
+        services.AddScoped<IHandler<AttachTicket, Unit>, AttachTicketHandler>();
+        services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
         services.AddScoped<FileService>();
         services.AddScoped<IRuntimeModules, RuntimeModuleStore>();

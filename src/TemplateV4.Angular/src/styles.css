@@ -7,6 +7,15 @@
 @import './brand.css';
 /* You can add global styles to this file, and also import other style files */
 
+/* Keep explicit theme previews isolated from the active application theme. */
+@custom-variant dark {
+  &:is(.dark *, [data-theme-preview='dark'], [data-theme-preview='dark'] *):not(
+      :is([data-theme-preview='light'], [data-theme-preview='light'] *)
+    ) {
+    @slot;
+  }
+}
+
 :root {
   color-scheme: light;
   --radius: 0.625rem;

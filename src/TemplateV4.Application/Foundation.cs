@@ -17,6 +17,6 @@ public sealed class UserProvisionedHandler(IEventOutbox outbox) : IDomainEventHa
 public sealed record UserCreated(Guid UserId, string Culture) : IIntegrationEvent;
 public sealed record JobRequested(Guid RequestId, string Culture) : IIntegrationEvent;
 
-public enum EmailTemplate { Verification, PasswordReset, SecurityNotification, Notification, MfaCode }
+public enum EmailTemplate { Verification, PasswordReset, SecurityNotification, Notification, MfaCode, SupportTicket }
 public sealed record EmailRequest(Guid UserId, EmailTemplate Template, string Culture, string? ActionUrl = null, string? TemplateName = null, string? ProtectedContent = null, string? ProtectedRecipient = null) : IIntegrationEvent;
 public interface IEmailSender { Task Send(string recipient, EmailRequest email, Guid messageId, CancellationToken cancellationToken); }

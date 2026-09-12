@@ -1,3 +1,4 @@
+using TemplateV4.Application.Platform;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
@@ -74,6 +75,7 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         // A delegated operator must not alter a role assigned to themselves.
         if (role is not null && await db.UserRoles.AnyAsync(x => x.RoleId == role.Id && x.UserId == context.ActorId, ct))
             return Result<RoleItem>.Fail("role.self_edit", ErrorKind.Conflict);
+        var previousName = role?.Name;
         if (role is null) { role = new IdentityRole<Guid>(name) { Id = Guid.NewGuid() }; db.Roles.Add(role); }
         role.Name = name; role.NormalizedName = normalized; role.ConcurrencyStamp = Guid.NewGuid().ToString();
         db.RoleClaims.RemoveRange(old.Where(x => x.ClaimType is "permission" or "description"));
@@ -82,9 +84,9 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         var members = db.UserRoles.Where(x => x.RoleId == role.Id).Select(x => x.UserId);
         await db.Sessions.Where(x => members.Contains(x.UserId) && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
         var previous = old.Where(x => x.ClaimType == "permission").Select(x => x.ClaimValue!).ToArray();
-        foreach (var permission in request.Permissions.Except(previous)) db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, Action = "role.granted:" + permission, At = time.GetUtcNow() });
-        foreach (var permission in previous.Except(request.Permissions)) db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, Action = "role.removed:" + permission, At = time.GetUtcNow() });
-        db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, Action = id is null ? "role.created" : "role.permissions_changed", At = time.GetUtcNow() });
+        foreach (var permission in request.Permissions.Except(previous)) db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, SubjectType = "role", Action = "role.granted", ChangesJson = AuditCapture.Changes(new AuditChange("permission", null, permission)), At = time.GetUtcNow() });
+        foreach (var permission in previous.Except(request.Permissions)) db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, SubjectType = "role", Action = "role.removed", ChangesJson = AuditCapture.Changes(new AuditChange("permission", permission, null)), At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, SubjectType = "role", Action = id is null ? "role.created" : "role.permissions_changed", ChangesJson = AuditCapture.Changes(new AuditChange("name", previousName, name), new("permissions", string.Join(", ", previous.Order()), string.Join(", ", request.Permissions.Order()))), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return Result<RoleItem>.Success(new(role.Id, name, request.Description.Trim(), role.ConcurrencyStamp, false, await members.CountAsync(ct), request.Permissions.Order().ToArray()));
     }

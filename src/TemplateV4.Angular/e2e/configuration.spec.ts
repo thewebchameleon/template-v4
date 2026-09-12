@@ -182,10 +182,24 @@ test('configuration denies delegated settings operators', async ({ page }) => {
 test('picker is accessible in both themes and reflows on mobile', async ({ page }) => {
   await configurationApp(page);
   await page.goto('/administration/configuration');
-  const lightPreview = page.locator('[data-theme-preview="light"] [data-slot="card-content"]');
-  const darkPreview = page.locator('[data-theme-preview="dark"] [data-slot="card-content"]');
-  await expect(lightPreview).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-  await expect(darkPreview).toHaveCSS('background-color', 'rgb(24, 24, 27)');
+  const lightPreview = page.locator('[data-theme-preview="light"]');
+  const darkPreview = page.locator('[data-theme-preview="dark"]');
+  for (const hostDark of [false, true]) {
+    await page.evaluate(
+      (enabled) => document.documentElement.classList.toggle('dark', enabled),
+      hostDark,
+    );
+    await expect(lightPreview.locator('[data-slot="card-content"]')).toHaveCSS(
+      'background-color',
+      'rgb(255, 255, 255)',
+    );
+    await expect(lightPreview).toHaveCSS('color-scheme', 'light');
+    await expect(darkPreview.locator('[data-slot="card-content"]')).toHaveCSS(
+      'background-color',
+      'rgb(24, 24, 27)',
+    );
+    await expect(darkPreview).toHaveCSS('color-scheme', 'dark');
+  }
   await page.getByRole('button', { name: 'Add custom color', exact: true }).click();
   await expect(page.getByLabel('Color name', { exact: true })).toBeFocused();
   for (const dark of [false, true]) {

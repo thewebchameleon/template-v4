@@ -9,7 +9,9 @@ public static class Permissions
     public const string Jobs = "jobs.trigger";
     public const string Settings = "settings.manage";
     public const string Roles = "roles.manage";
-    public static readonly string[] All = [Read, Manage, Roles, Jobs, Settings];
+    public const string SupportAgent = "support.agent";
+    public const string SupportAdmin = "support.admin";
+    public static readonly string[] All = [Read, Manage, Roles, Jobs, Settings, SupportAgent, SupportAdmin];
 }
 public sealed record UserDto(Guid Id, string Email, string DisplayName, string Culture, bool Disabled, string[] Roles, Guid Version, string Status = "Active", string Username = "");
 public sealed record Page<T>(IReadOnlyList<T> Items, int Total, int PageNumber, int PageSize);

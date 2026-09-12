@@ -13,12 +13,14 @@ export class AdministrationNavigation {
         path: '/administration/users',
         label: 'userManagement',
         icon: 'lucideUsersRound',
-        permissions: ['users.read', 'roles.manage', 'settings.manage'],
+        section: 'administration',
+        permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
       },
       {
         path: '/administration/configuration',
         label: 'configuration',
         icon: 'lucideSettings',
+        section: 'administration',
         permissions: ['settings.manage'],
         administratorOnly: true,
       },
@@ -26,6 +28,7 @@ export class AdministrationNavigation {
         path: '/administration/modules',
         label: 'modules',
         icon: 'lucideSettings2',
+        section: 'administration',
         permissions: ['settings.manage'],
         administratorOnly: true,
       },
@@ -33,19 +36,15 @@ export class AdministrationNavigation {
         path: '/administration/storage',
         label: 'storageSettings',
         icon: 'lucideFolderOpen',
+        section: 'modules',
         permissions: ['settings.manage'],
         feature: 'files',
-      },
-      {
-        path: '/administration/privacy-requests',
-        label: 'privacyRequests',
-        icon: 'lucideShieldCheck',
-        permissions: ['settings.manage'],
       },
       {
         path: '/administration/audit-history',
         label: 'auditHistory',
         icon: 'lucideHistory',
+        section: 'administration',
         permissions: ['settings.manage'],
         module: 'audit-history',
       },
@@ -53,6 +52,7 @@ export class AdministrationNavigation {
         path: '/administration/system-health',
         label: 'systemHealth',
         icon: 'lucideActivity',
+        section: 'administration',
         permissions: ['settings.manage', 'jobs.trigger'],
         module: 'operations',
       },
@@ -73,6 +73,25 @@ export const administrationLandingGuard: CanActivateFn = async (route) => {
   const router = inject(Router);
   await features.load();
   return router.createUrlTree([navigation.links()[0]?.path ?? '/forbidden'], {
+    queryParams: route.queryParams,
+    fragment: route.fragment ?? undefined,
+  });
+};
+
+export const peopleLandingGuard: CanActivateFn = (route) => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  if (auth.has('users.read')) return true;
+
+  const path = auth.has('users.manage')
+    ? '/administration/users/invitations'
+    : auth.has('roles.manage')
+      ? '/administration/users/roles'
+      : auth.has('settings.manage')
+        ? '/administration/users/account-security'
+        : '/forbidden';
+
+  return router.createUrlTree([path], {
     queryParams: route.queryParams,
     fragment: route.fragment ?? undefined,
   });

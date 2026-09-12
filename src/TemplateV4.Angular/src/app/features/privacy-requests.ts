@@ -20,14 +20,11 @@ const column = createColumnHelper<DataTableFeatures, DeletionItem>();
   selector: 'app-privacy-requests',
   imports: [WorkspaceUi, DataTable],
   providers: [workspaceIcons],
-  template: ` <app-page-header
-      eyebrow="administration"
-      title="privacyRequests"
-      description="privacyRequestsIntro"
-      ><button hlmBtn variant="outline" (click)="load()" [disabled]="data.state() === 'loading'">
+  template: ` <div class="mb-6 flex justify-end">
+      <button hlmBtn variant="outline" (click)="load()" [disabled]="data.state() === 'loading'">
         <ng-icon name="lucideRefreshCw" />{{ 'refresh' | t }}
-      </button></app-page-header
-    >
+      </button>
+    </div>
     <div hlmAlert class="mb-6">
       <h2 hlmAlertTitle>{{ 'reviewBeforeApproval' | t }}</h2>
       <p hlmAlertDescription>{{ 'reviewBeforeApprovalHelp' | t }}</p>

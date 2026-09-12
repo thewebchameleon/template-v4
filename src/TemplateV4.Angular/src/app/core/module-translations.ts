@@ -12,16 +12,13 @@ export const moduleDictionary: Record<string, [string, string]> = {
   ],
   enableFilesModule: ['Enable Files', 'Aktiveer Lêers'],
   filesModuleDisableHelp: [
-    'Disabling Files hides file pages and storage settings and blocks file access for everyone. Existing files are preserved and become available again when enabled. Save to apply your change.',
-    'Deaktivering versteek lêerbladsye en berginginstellings en blokkeer lêertoegang vir almal. Bestaande lêers word behou en is weer beskikbaar wanneer dit geaktiveer word. Stoor om jou verandering toe te pas.',
+    'Disabling Files hides file pages and storage settings and blocks file access for everyone. Existing files are preserved and become available again when enabled. Changes apply immediately.',
+    'Deaktivering versteek lêerbladsye en berginginstellings en blokkeer lêertoegang vir almal. Bestaande lêers word behou en is weer beskikbaar wanneer dit geaktiveer word. Veranderinge word onmiddellik toegepas.',
   ],
   moduleUnavailable: [
     'This module is unavailable in this deployment. Contact your deployment administrator to make it available.',
     'Hierdie module is nie in hierdie ontplooiing beskikbaar nie. Kontak jou ontplooiingsadministrateur om dit beskikbaar te maak.',
   ],
-  moduleEnabled: ['Currently enabled', 'Tans geaktiveer'],
-  moduleDisabled: ['Currently disabled', 'Tans gedeaktiveer'],
-  reloadModules: ['Reload saved settings', 'Herlaai gestoorde instellings'],
   filesModuleEnabled: [
     'Files enabled for this application.',
     'Lêers is vir hierdie toepassing geaktiveer.',

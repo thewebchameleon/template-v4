@@ -1,3 +1,4 @@
+import { dictionary } from './translations';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
 import { Injectable, inject, signal } from '@angular/core';
@@ -12,7 +13,7 @@ export class Features {
   readonly modules = signal<Record<string, boolean>>({});
   private generation = 0;
   private pending?: Promise<void>;
-  load() {
+  load(): Promise<void> {
     if (this.pending) return this.pending;
     const generation = this.generation;
     const pending = this.fetch(generation)
@@ -22,6 +23,9 @@ export class Features {
           this.modules.set({});
         }
       })
+      // A sign-in reset can supersede a route guard's in-flight fetch. Wait for
+      // the current actor's modules before the guard decides whether to redirect.
+      .then(() => (generation === this.generation ? undefined : this.load()))
       .finally(() => {
         if (this.pending === pending) this.pending = undefined;
       });
@@ -71,5 +75,9 @@ export const moduleGuard =
     const router = inject(Router);
     if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
     await features.load();
+    if (name === 'support') {
+      const translations = await import('./support-translations');
+      Object.assign(dictionary, translations.supportDictionary);
+    }
     return features.moduleEnabled(name) || router.createUrlTree(['/me']);
   };

@@ -53,10 +53,10 @@ try
     }
     if (builder.Configuration.GetValue("Database:GrantRuntimeRoles", false))
         await db.Database.ExecuteSqlRawAsync("""
-            GRANT USAGE ON SCHEMA app, identity, messaging, audit TO templatev4_api, templatev4_worker;
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, identity, messaging TO templatev4_api, templatev4_worker;
+            GRANT USAGE ON SCHEMA app, identity, messaging, audit, files, support TO templatev4_api, templatev4_worker;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, identity, messaging, files, support TO templatev4_api, templatev4_worker;
             GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA audit TO templatev4_api, templatev4_worker;
-            GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, identity, messaging, audit TO templatev4_api, templatev4_worker;
+            GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, identity, messaging, audit, files, support TO templatev4_api, templatev4_worker;
             GRANT USAGE ON SCHEMA quartz TO templatev4_worker;
             GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA quartz TO templatev4_worker;
             GRANT USAGE ON ALL SEQUENCES IN SCHEMA quartz TO templatev4_worker;

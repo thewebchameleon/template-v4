@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
@@ -7,6 +8,24 @@ namespace TemplateV4.Infrastructure;
 
 public sealed class AuditHistory(FrameworkDb db) : IAuditHistory
 {
+    public async Task<AuditDetail?> Detail(long id, CancellationToken ct)
+    {
+        var row = await db.Audit.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (row is null) return null;
+        var actorName = row.ActorNameSnapshot;
+        var subjectName = row.SubjectNameSnapshot;
+        if (row.SchemaVersion is null)
+        {
+            actorName = await db.Profiles.Where(x => x.Id == row.ActorId).Select(x => x.DisplayName).FirstOrDefaultAsync(ct);
+            subjectName = await db.Profiles.Where(x => x.Id == row.SubjectId).Select(x => x.DisplayName).FirstOrDefaultAsync(ct)
+                ?? await db.Roles.Where(x => x.Id == row.SubjectId).Select(x => x.Name).FirstOrDefaultAsync(ct);
+        }
+        return new(new(row.Id, row.ActorId, actorName, row.SubjectId, subjectName, row.Action, row.At), row.ActorType, row.SubjectType,
+            row.Outcome, row.FailureCode, row.Source, row.Reason, row.TraceParent, row.SchemaVersion,
+            JsonSerializer.Deserialize<AuditChange[]>(row.ChangesJson ?? "[]")!,
+            JsonSerializer.Deserialize<AuditRelatedEntity[]>(row.RelatedEntitiesJson ?? "[]")!,
+            JsonSerializer.Deserialize<Dictionary<string, string>>(row.MetadataJson ?? "{}")!);
+    }
     public async Task<Page<AuditItem>> List(AuditQuery query, CancellationToken ct)
     {
         var source = db.Audit.AsNoTracking().AsQueryable();
@@ -21,10 +40,10 @@ public sealed class AuditHistory(FrameworkDb db) : IAuditHistory
         {
             "action" when descending => source.OrderByDescending(x => x.Action).ThenByDescending(x => x.Id),
             "action" => source.OrderBy(x => x.Action).ThenBy(x => x.Id),
-            "actorName" when descending => source.OrderByDescending(x => db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault()).ThenByDescending(x => x.Id),
-            "actorName" => source.OrderBy(x => db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault()).ThenBy(x => x.Id),
-            "subjectName" when descending => source.OrderByDescending(x => db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault()).ThenByDescending(x => x.Id),
-            "subjectName" => source.OrderBy(x => db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault()).ThenBy(x => x.Id),
+            "actorName" when descending => source.OrderByDescending(x => (x.SchemaVersion != null ? x.ActorNameSnapshot : db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault())).ThenByDescending(x => x.Id),
+            "actorName" => source.OrderBy(x => (x.SchemaVersion != null ? x.ActorNameSnapshot : db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault())).ThenBy(x => x.Id),
+            "subjectName" when descending => source.OrderByDescending(x => (x.SchemaVersion != null ? x.SubjectNameSnapshot : db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault())).ThenByDescending(x => x.Id),
+            "subjectName" => source.OrderBy(x => (x.SchemaVersion != null ? x.SubjectNameSnapshot : db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault())).ThenBy(x => x.Id),
             _ when descending => source.OrderByDescending(x => x.At).ThenByDescending(x => x.Id),
             _ => source.OrderBy(x => x.At).ThenBy(x => x.Id)
         };
@@ -32,9 +51,9 @@ public sealed class AuditHistory(FrameworkDb db) : IAuditHistory
             .Select(x => new AuditItem(
                 x.Id,
                 x.ActorId,
-                x.ActorId == null ? null : db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault(),
+                (x.SchemaVersion != null ? x.ActorNameSnapshot : db.Profiles.Where(p => p.Id == x.ActorId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.ActorId).Select(r => r.Name).FirstOrDefault()),
                 x.SubjectId,
-                x.SubjectId == null ? null : db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault(),
+                (x.SchemaVersion != null ? x.SubjectNameSnapshot : db.Profiles.Where(p => p.Id == x.SubjectId).Select(p => p.DisplayName).FirstOrDefault() ?? db.Roles.Where(r => r.Id == x.SubjectId).Select(r => r.Name).FirstOrDefault()),
                 x.Action,
                 x.At)).ToArrayAsync(ct);
         return new(entries, total, query.PageNumber, query.PageSize);

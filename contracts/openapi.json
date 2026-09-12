@@ -1395,6 +1395,42 @@
         ]
       }
     },
+    "/api/v1/auth/audit/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetAuditDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/operations/overview": {
       "get": {
         "tags": [
@@ -2566,6 +2602,434 @@
         ]
       }
     },
+    "/api/v1/auth/support": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListSupportTickets",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "Priority",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "Assignee",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "Queue",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "updatedAt"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfTicketItem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateSupportTicket",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicket"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/options": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetSupportOptions",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportOptions"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetSupportTicket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/reply": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ReplySupportTicket",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyTicket"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/update": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UpdateSupportTicket",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicket"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/categories": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveSupportCategory",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSupportCategory"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/attachments": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "AttachSupportTicket",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachTicket"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/support/{id}/attachments/{attachmentId}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DownloadSupportAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/bootstrap/status": {
       "get": {
         "tags": [
@@ -3158,6 +3622,146 @@
           }
         }
       },
+      "AttachTicket": {
+        "required": [
+          "id",
+          "name",
+          "content",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "format": "byte"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AuditChange": {
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "before": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "after": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AuditDetail": {
+        "required": [
+          "entry",
+          "actorType",
+          "subjectType",
+          "outcome",
+          "failureCode",
+          "source",
+          "reason",
+          "traceParent",
+          "schemaVersion",
+          "changes",
+          "relatedEntities",
+          "metadata"
+        ],
+        "type": "object",
+        "properties": {
+          "entry": {
+            "$ref": "#/components/schemas/AuditItem"
+          },
+          "actorType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subjectType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outcome": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "failureCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "traceParent": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "schemaVersion": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditChange"
+            }
+          },
+          "relatedEntities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditRelatedEntity"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "AuditItem": {
         "required": [
           "id",
@@ -3206,6 +3810,29 @@
           "at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AuditRelatedEntity": {
+        "required": [
+          "type",
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3265,6 +3892,26 @@
               "null",
               "string"
             ],
+            "format": "uuid"
+          }
+        }
+      },
+      "CreateTicket": {
+        "required": [
+          "subject",
+          "description",
+          "categoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string",
             "format": "uuid"
           }
         }
@@ -4102,6 +4749,64 @@
           }
         }
       },
+      "PageOfTicketItem": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfTicketMessage": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketMessage"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PasskeyChallengeRequest": {
         "required": [
           "challengeId"
@@ -4387,6 +5092,31 @@
           }
         }
       },
+      "ReplyTicket": {
+        "required": [
+          "id",
+          "body",
+          "internal",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "body": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "ResetPasswordRequest": {
         "required": [
           "userId",
@@ -4579,6 +5309,40 @@
           }
         }
       },
+      "SaveSupportCategory": {
+        "required": [
+          "id",
+          "name",
+          "active",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SecurityPolicyRequest": {
         "required": [
           "mfaPolicy",
@@ -4684,6 +5448,286 @@
           "defaultQuotaBytes": {
             "type": "integer",
             "format": "int64"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SupportAgent": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "SupportCategory": {
+        "required": [
+          "id",
+          "name",
+          "active",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SupportOptions": {
+        "required": [
+          "categories",
+          "agents",
+          "agent",
+          "administrator"
+        ],
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupportCategory"
+            }
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupportAgent"
+            }
+          },
+          "agent": {
+            "type": "boolean"
+          },
+          "administrator": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TicketAttachment": {
+        "required": [
+          "id",
+          "name",
+          "size",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketDetail": {
+        "required": [
+          "ticket",
+          "description",
+          "messages",
+          "attachments",
+          "agent"
+        ],
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "$ref": "#/components/schemas/TicketItem"
+          },
+          "description": {
+            "type": "string"
+          },
+          "messages": {
+            "$ref": "#/components/schemas/PageOfTicketMessage"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketAttachment"
+            }
+          },
+          "agent": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TicketItem": {
+        "required": [
+          "id",
+          "subject",
+          "requesterId",
+          "requester",
+          "categoryId",
+          "category",
+          "status",
+          "priority",
+          "assigneeId",
+          "assignee",
+          "createdAt",
+          "updatedAt",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "requesterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requester": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "assigneeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assignee": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TicketMessage": {
+        "required": [
+          "id",
+          "authorId",
+          "author",
+          "body",
+          "internal",
+          "kind",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "author": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "body": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UpdateTicket": {
+        "required": [
+          "id",
+          "status",
+          "priority",
+          "categoryId",
+          "assigneeId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assigneeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           },
           "version": {
             "type": "string",

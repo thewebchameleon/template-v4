@@ -38,7 +38,11 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);
-        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
+        var supportTickets = await db.Set<SupportTicketRow>().AsNoTracking().Where(x => x.RequesterId == actor).ToArrayAsync(ct);
+        var ticketIds = supportTickets.Select(x => x.Id).ToArray();
+        var supportMessages = await db.Set<SupportMessageRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId) && !x.Internal).ToArrayAsync(ct);
+        var supportAttachments = await db.Set<SupportAttachmentRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId)).Select(x => new { x.Id, x.TicketId, x.Name, Size = x.Content.Length, x.At }).ToArrayAsync(ct);
+        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.exported", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return result;
     }
@@ -147,6 +151,20 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             user.EmailConfirmed = false; user.EmailMfaEnabled = false; user.TwoFactorEnabled = false; user.OptionalEmailEnabled = false;
             user.SecurityStamp = Guid.NewGuid().ToString();
             profile.Anonymise(time.GetUtcNow());
+            // Erasure runs even when Support is disabled. Remove requester conversations and files,
+            // and erase contributions to other requesters' tickets without retaining content in audit.
+            await db.Set<SupportTicketRow>().Where(x => x.RequesterId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<SupportMessageRow>().Where(x => x.AuthorId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<SupportAttachmentRow>().Where(x => x.OwnerId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<SupportTicketRow>().Where(x => x.AssigneeId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(t => t.AssigneeId, (Guid?)null).SetProperty(t => t.Version, Guid.NewGuid()), ct);
+            // Historical display names and file names follow the existing account erasure policy.
+            var ownedFiles = db.Files.Where(x => x.OwnerId == user.Id).Select(x => x.Id);
+            await db.Audit.Where(x => x.ActorId == user.Id)
+                .ExecuteUpdateAsync(x => x.SetProperty(a => a.ActorNameSnapshot, (string?)null), ct);
+            await db.Audit.Where(x => x.SubjectId == user.Id || ownedFiles.Contains(x.SubjectId!.Value))
+                .ExecuteUpdateAsync(x => x.SetProperty(a => a.SubjectNameSnapshot, (string?)null)
+                    .SetProperty(a => a.ChangesJson, (string?)null).SetProperty(a => a.MetadataJson, (string?)null)
+                    .SetProperty(a => a.RelatedEntitiesJson, (string?)null).SetProperty(a => a.Reason, (string?)null), ct);
             await db.Sessions.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.AuthChallenges.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.UserTokens.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);

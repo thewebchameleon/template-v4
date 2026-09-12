@@ -9,36 +9,60 @@
     "id": "audit-recording",
     "required": true,
     "enabledByDefault": true,
-    "dependencies": ["identity"]
+    "dependencies": [
+      "identity"
+    ]
   },
   {
     "id": "delivery",
     "required": true,
     "enabledByDefault": true,
-    "dependencies": ["identity"]
+    "dependencies": [
+      "identity"
+    ]
   },
   {
     "id": "files",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": ["identity", "audit-recording"]
+    "dependencies": [
+      "identity",
+      "audit-recording"
+    ]
   },
   {
     "id": "maintenance",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": ["delivery"]
+    "dependencies": [
+      "delivery"
+    ]
   },
   {
     "id": "operations",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": ["delivery", "audit-recording"]
+    "dependencies": [
+      "delivery",
+      "audit-recording"
+    ]
   },
   {
     "id": "audit-history",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": ["audit-recording"]
+    "dependencies": [
+      "audit-recording"
+    ]
+  },
+  {
+    "id": "support",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": [
+      "identity",
+      "audit-recording",
+      "delivery"
+    ]
   }
 ]

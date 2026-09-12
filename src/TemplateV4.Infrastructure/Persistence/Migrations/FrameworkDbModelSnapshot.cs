@@ -320,11 +320,55 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ActorId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ActorNameSnapshot")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("ActorType")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<DateTimeOffset>("At")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ChangesJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RelatedEntitiesJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<Guid?>("SubjectId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("SubjectNameSnapshot")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("SubjectType")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("TraceParent")
                         .HasColumnType("text");
@@ -426,7 +470,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("file_storage_settings", "app");
+                    b.ToTable("file_storage_settings", "files");
 
                     b.HasData(
                         new
@@ -681,6 +725,12 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasData(
                         new
                         {
+                            Id = "support",
+                            Enabled = true,
+                            Version = new Guid("b6c2b6df-1f86-46ea-90f1-c7bc3b61ba49")
+                        },
+                        new
+                        {
                             Id = "files",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
@@ -805,7 +855,173 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ParentId", "OwnerId");
 
-                    b.ToTable("files", "app");
+                    b.ToTable("files", "files");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportAttachmentRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("attachments", "support", t =>
+                        {
+                            t.HasCheckConstraint("CK_support_attachment_size", "octet_length(\"Content\") BETWEEN 1 AND 5242880");
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportCategoryRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("categories", "support");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("9a0e9b19-33fb-49e0-8bd0-77eb7eca5c20"),
+                            Active = true,
+                            Name = "General",
+                            Version = new Guid("44639415-d2d9-4517-be2d-c119d95a5f83")
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportMessageRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
+
+                    b.Property<bool>("Internal")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("TicketId", "At", "Id");
+
+                    b.ToTable("messages", "support");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportTicketRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssigneeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("RequesterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssigneeId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("RequesterId", "UpdatedAt", "Id");
+
+                    b.HasIndex("Status", "UpdatedAt", "Id");
+
+                    b.ToTable("tickets", "support");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserNotification", b =>
@@ -991,6 +1207,55 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ParentId", "OwnerId")
                         .HasPrincipalKey("Id", "OwnerId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportAttachmentRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.SupportTicketRow", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportMessageRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.SupportTicketRow", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportTicketRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("AssigneeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.SupportCategoryRow", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserNotification", b =>

@@ -13,7 +13,8 @@ public static class EndpointRegistration
             .MapOperationsEndpoints()
             .MapWorkspaceEndpoints()
             .MapConfigurationEndpoints()
-            .MapRuntimeModuleEndpoints();
+            .MapRuntimeModuleEndpoints()
+            .MapSupportEndpoints();
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")

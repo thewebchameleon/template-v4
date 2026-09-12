@@ -17,7 +17,7 @@ import {
   lucideBell,
   lucideFolderOpen,
   lucideHistory,
-  lucideMail,
+  lucideLifeBuoy,
   lucideActivity,
   lucideShieldCheck,
   lucideMoveHorizontal,
@@ -74,7 +74,7 @@ import { NotificationDrawer } from './features/notification-drawer';
       lucideBell,
       lucideFolderOpen,
       lucideHistory,
-      lucideMail,
+      lucideLifeBuoy,
       lucideActivity,
       lucideShieldCheck,
       lucideMoveHorizontal,
@@ -254,26 +254,32 @@ import { NotificationDrawer } from './features/notification-drawer';
               ) {
                 <nav
                   hlmSidebarGroup
-                  class="sidebar-submenu"
+                  class="sidebar-submenu gap-4"
                   [attr.aria-label]="'administration' | t"
                 >
-                  <div hlmSidebarGroupLabel>{{ 'administration' | t }}</div>
-                  <ul hlmSidebarMenu>
-                    @for (item of availableAdminLinks(); track item.path) {
-                      <li hlmSidebarMenuItem>
-                        <a
-                          hlmSidebarMenuButton
-                          [routerLink]="item.path"
-                          routerLinkActive
-                          #active="routerLinkActive"
-                          [isActive]="active.isActive"
-                          ariaCurrentWhenActive="page"
-                          closeMobileSidebarOnClick
-                          ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
-                        >
-                      </li>
-                    }
-                  </ul>
+                  @for (section of administrationSections(); track section.label) {
+                    <div role="group" [attr.aria-labelledby]="'admin-section-' + section.label">
+                      <div hlmSidebarGroupLabel [id]="'admin-section-' + section.label">
+                        {{ section.label | t }}
+                      </div>
+                      <ul hlmSidebarMenu>
+                        @for (item of section.links; track item.path) {
+                          <li hlmSidebarMenuItem>
+                            <a
+                              hlmSidebarMenuButton
+                              [routerLink]="item.path"
+                              routerLinkActive
+                              #active="routerLinkActive"
+                              [isActive]="active.isActive"
+                              ariaCurrentWhenActive="page"
+                              closeMobileSidebarOnClick
+                              ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
+                            >
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
                 </nav>
               }
             </div>
@@ -445,6 +451,18 @@ export class App {
   }
   private readonly administration = inject(AdministrationNavigation);
   readonly availableAdminLinks = this.administration.links;
+  readonly administrationSections = computed(() =>
+    [
+      {
+        label: 'administration',
+        links: this.availableAdminLinks().filter((item) => item.section === 'administration'),
+      },
+      {
+        label: 'modules',
+        links: this.availableAdminLinks().filter((item) => item.section === 'modules'),
+      },
+    ].filter((section) => section.links.length),
+  );
   private previousPath = '';
   readonly alternatePageEntrance = signal(false);
   readonly administrationActive = computed(() => {
@@ -464,6 +482,9 @@ export class App {
   });
   readonly railLinks = computed(() => [
     ...(!this.auth.access()?.setupRequired ? [{ ...this.dashboardLink, hasPanel: false }] : []),
+    ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('support')
+      ? [{ path: '/support', label: 'support', icon: 'lucideLifeBuoy', hasPanel: false }]
+      : []),
     ...(!this.auth.access()?.setupRequired && this.features.enabled('files')
       ? [{ path: '/files', label: 'files', icon: 'lucideFolderOpen', hasPanel: false }]
       : []),

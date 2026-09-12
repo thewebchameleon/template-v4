@@ -47,30 +47,6 @@ import { AccessCatalog } from '../api/models';
                 maxlength="254"
               />
             </div>
-            <fieldset hlmFieldSet>
-              <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
-              <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
-              <div hlmFieldGroup data-slot="checkbox-group">
-                @for (role of catalog.value()?.roles.items ?? []; track role.id) {
-                  <label hlmFieldLabel [for]="'invite-role-' + role.id">
-                    <div hlmField orientation="horizontal" style="align-items: center">
-                      <hlm-checkbox
-                        class="disabled:cursor-default"
-                        style="margin-top: 0"
-                        [inputId]="'invite-role-' + role.id"
-                        [checked]="roles.includes(role.name)"
-                        [disabled]="!canAssign(role.permissions) || busy()"
-                        (checkedChange)="toggle(role.name, $event)"
-                      />
-                      <div hlmFieldContent>
-                        <span hlmFieldTitle>{{ role.name }}</span>
-                        <p hlmFieldDescription>{{ role.description }}</p>
-                      </div>
-                    </div>
-                  </label>
-                }
-              </div>
-            </fieldset>
             <div hlmField>
               <label hlmFieldLabel for="invite-language">{{ 'culture' | t }}</label>
               <hlm-select
@@ -91,6 +67,30 @@ import { AccessCatalog } from '../api/models';
                 </hlm-select-content>
               </hlm-select>
             </div>
+            <fieldset hlmFieldSet class="mt-2">
+              <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
+              <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
+              <div hlmFieldGroup data-slot="checkbox-group">
+                @for (role of catalog.value()?.roles.items ?? []; track role.id) {
+                  <label hlmFieldLabel [for]="'invite-role-' + role.id">
+                    <div hlmField orientation="horizontal" style="align-items: center">
+                      <hlm-checkbox
+                        class="disabled:cursor-default"
+                        style="margin-top: 0"
+                        [inputId]="'invite-role-' + role.id"
+                        [checked]="roles.includes(role.name)"
+                        [disabled]="!canAssign(role.permissions) || busy()"
+                        (checkedChange)="toggle(role.name, $event)"
+                      />
+                      <div hlmFieldContent>
+                        <span hlmFieldTitle>{{ role.name }}</span>
+                        <p hlmFieldDescription>{{ roleDescription(role) }}</p>
+                      </div>
+                    </div>
+                  </label>
+                }
+              </div>
+            </fieldset>
           </div>
         </app-page-state>
       </div>
@@ -112,12 +112,13 @@ export class InvitationEditor {
   readonly busy = signal(false);
   readonly invited = output<void>();
   readonly runtime = inject(Runtime);
+  private readonly i18n = inject(I18n);
   private readonly http = inject(HttpClient);
   private readonly toast = inject(Notifications);
   name = '';
   email = '';
   roles = ['Reader'];
-  culture = inject(I18n).culture();
+  culture = this.i18n.culture();
   private key = crypto.randomUUID();
   private fingerprint = '';
   readonly cultureLabel = (culture: string) => (culture === 'af-ZA' ? 'Afrikaans' : 'English');
@@ -129,6 +130,12 @@ export class InvitationEditor {
   }
   canAssign(permissions: string[]) {
     return permissions.every((p) => this.auth.has(p));
+  }
+  roleDescription(role: { name: string; description: string }) {
+    if (role.description.trim()) return role.description;
+    if (role.name === 'Administrator') return this.i18n.text('administratorRoleHelp');
+    if (role.name === 'Reader') return this.i18n.text('readerRoleHelp');
+    return this.i18n.text('customRoleAssignmentHelp');
   }
   toggle(role: string, on: boolean) {
     this.roles = on ? [...this.roles, role] : this.roles.filter((r) => r !== role);

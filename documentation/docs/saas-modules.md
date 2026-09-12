@@ -10,11 +10,12 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Audit recording | Required | Security and business audit writes remain active |
 | Delivery | Required | Accepted messages, jobs and cleanup continue |
 | Files | `Modules:files` | File routes return 404; navigation is hidden; retention continues |
+| Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
 | Maintenance | `Modules:maintenance` | New HTTP and cron requests stop; accepted jobs drain |
 | Operations | `Modules:operations` | Queue browsing/replay APIs and navigation are unavailable; worker delivery continues |
 | Audit history | `Modules:audit-history` | Audit browsing API and navigation are unavailable; recording continues |
 
-Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the four optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable Files application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
+Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the five optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable Files and Support application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
 
 `node tools/framework.mjs modules minimal` prints a resolved JSON configuration suitable for merging into host settings. It does not mutate running hosts. `node tools/framework.mjs validate` validates the catalog and every preset, including unknown dependencies, cycles, required capabilities and disabled prerequisites. Hosts repeat those validations at startup. Invalid booleans and unknown module names fail startup.
 
@@ -26,7 +27,7 @@ File and maintenance feature flags remain additional restrictions. For example, 
 
 Run `node tools/framework.mjs new module Reports`. This creates an Application query, an API endpoint with a module gate, an Angular page, a disabled descriptor for review, ownership folders for Domain/Infrastructure/Worker, and extension documentation. It never overwrites existing files or automatically registers an incomplete slice.
 
-Implement the use cases and explicit registrations; add the reviewed descriptor to the catalog. Register permission policies, gate navigation and lazy routes with the shared capability service and `moduleGuard`, and regenerate OpenAPI clients. A module's mappings and migrations remain present when disabled so retained data stays readable by approved recovery and cleanup paths. Do not conditionally change the EF model based on module activation.
+Implement the use cases and explicit registrations; add the reviewed descriptor to the catalog. Register permission policies, gate navigation and lazy routes with the shared capability service and `moduleGuard`, and regenerate OpenAPI clients. A substantial module that owns persistent data uses a module-named PostgreSQL schema in the shared `FrameworkDb` and migration stream. Files owns `files.files` and `files.file_storage_settings`, and Support owns its tables in `support`; platform, Identity, messaging and audit data retain their cross-cutting schemas. Capability modules that expose another foundation's data, such as Operations and Audit History, do not duplicate that data in their own schemas. A module's mappings and migrations remain present when disabled so retained data stays readable by approved recovery and cleanup paths. Do not conditionally change the EF model based on module activation.
 
 Modules communicate through explicit Application contracts or versioned events. They do not query another module's tables. Domain stays BCL-only; Application references only Domain and SharedKernel. Scheduling stays in BackgroundWorker. Scaffolds must describe pending-work behavior and data retention before activation. Physical source removal and hot-loaded plugins are outside this initial module system.
 
@@ -44,3 +45,5 @@ Modules communicate through explicit Application contracts or versioned events. 
 Personal subscription, team SaaS and combined product presets will be added with their working account and billing modules. They are not advertised as usable presets yet. Stripe and PayFast are the approved payment-provider choices; no payment adapter is implemented by this foundation. Verify their current payment and subscription contracts against official provider documentation when implementing phase 3.
 
 See [module lifecycle](adr/0018-saas-module-lifecycle.md), [customer isolation](adr/0019-saas-customer-isolation.md), and [billing boundaries](adr/0020-saas-billing-providers.md).
+
+See the [customer support portal](support.md) for Support setup, permissions and workflow.

@@ -36,7 +36,7 @@ test('administrator changes registration with the current settings version', asy
     }
     await route.fulfill({ json: settings });
   });
-  await page.goto('/administration/users?section=security');
+  await page.goto('/administration/users/account-security');
   const registration = page.getByRole('switch');
   await expect(registration).not.toBeChecked();
   await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();

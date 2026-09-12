@@ -1,4 +1,4 @@
-import { administrationLandingGuard } from './core/administration';
+import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
 import { filesGuard, moduleGuard } from './core/features';
 import { Routes } from '@angular/router';
 import { authGuard, permissionGuard, administratorRoleGuard } from './core/auth';
@@ -78,6 +78,39 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'support',
+    runGuardsAndResolvers: 'always',
+    data: { breadcrumb: 'support' },
+    canActivate: [authGuard, moduleGuard('support')],
+    children: [
+      {
+        path: '',
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/support').then((m) => m.SupportPage),
+      },
+      {
+        path: 'new',
+        data: { breadcrumb: 'supportNew' },
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/support-new').then((m) => m.SupportNewPage),
+      },
+      {
+        path: 'categories',
+        data: { breadcrumb: 'supportCategories', permission: 'support.admin' },
+        canActivate: [permissionGuard],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () =>
+          import('./features/support-categories').then((m) => m.SupportCategoriesPage),
+      },
+      {
+        path: ':id',
+        data: { breadcrumb: 'supportTicketDetails' },
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/support-detail').then((m) => m.SupportDetailPage),
+      },
+    ],
+  },
+  {
     path: 'files',
     data: { breadcrumb: 'files' },
     canActivate: [authGuard, filesGuard],
@@ -93,7 +126,6 @@ export const routes: Routes = [
   { path: 'users/:id', redirectTo: 'administration/users/:id', pathMatch: 'full' },
   { path: 'audit', redirectTo: 'administration/audit-history', pathMatch: 'full' },
   { path: 'operations', redirectTo: 'administration/system-health', pathMatch: 'full' },
-  { path: 'privacy-requests', redirectTo: 'administration/privacy-requests', pathMatch: 'full' },
   {
     path: 'administration',
     data: { breadcrumb: 'administration' },
@@ -104,17 +136,70 @@ export const routes: Routes = [
         path: 'users',
         data: {
           breadcrumb: 'userManagement',
-          permissions: ['users.read', 'roles.manage', 'settings.manage'],
+          permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
         },
         canActivate: [authGuard, permissionGuard],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            data: { breadcrumb: false, section: 'users' },
+            canActivate: [peopleLandingGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
+            path: 'invitations',
+            data: { breadcrumb: 'invitations', permission: 'users.manage', section: 'invitations' },
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
+            path: 'roles',
+            data: { breadcrumb: 'roles', permission: 'roles.manage', section: 'roles' },
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
+            path: 'account-security',
+            data: { breadcrumb: 'security', permission: 'settings.manage', section: 'security' },
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
+            path: 'privacy-requests',
+            data: {
+              breadcrumb: 'privacyRequests',
+              permission: 'settings.manage',
+              section: 'privacy',
+            },
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
+            path: ':ownerId/files',
+            data: { breadcrumb: 'files', permission: 'settings.manage' },
+            canActivate: [permissionGuard, filesGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/files').then((m) => m.FilesPage),
+          },
+          {
+            path: ':id',
+            data: { breadcrumb: 'personDetails', permission: 'users.read' },
+            canActivate: [permissionGuard],
+            canDeactivate: [unsavedGuard],
+            loadComponent: () => import('./features/user-detail').then((m) => m.UserDetailPage),
+          },
+        ],
       },
       {
         path: 'modules',
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, permissionGuard, administratorRoleGuard],
-        canDeactivate: [unsavedGuard],
         loadComponent: () => import('./features/modules').then((m) => m.ModulesPage),
       },
       {
@@ -125,26 +210,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/configuration').then((m) => m.ConfigurationPage),
       },
       {
-        path: 'users/:ownerId/files',
-        data: { breadcrumb: 'files', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, filesGuard],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/files').then((m) => m.FilesPage),
-      },
-      {
         path: 'storage',
         data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
         canActivate: [authGuard, permissionGuard, filesGuard],
         canDeactivate: [unsavedGuard],
         loadComponent: () =>
           import('./features/storage-settings').then((m) => m.StorageSettingsPage),
-      },
-      {
-        path: 'users/:id',
-        data: { breadcrumb: 'personDetails', permission: 'users.read' },
-        canActivate: [authGuard, permissionGuard],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/user-detail').then((m) => m.UserDetailPage),
       },
       {
         path: 'audit-history',
@@ -157,13 +228,6 @@ export const routes: Routes = [
         data: { breadcrumb: 'systemHealth', permissions: ['settings.manage', 'jobs.trigger'] },
         canActivate: [authGuard, permissionGuard, moduleGuard('operations')],
         loadComponent: () => import('./features/operations').then((m) => m.OperationsPage),
-      },
-      {
-        path: 'privacy-requests',
-        data: { breadcrumb: 'privacyRequests', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard],
-        loadComponent: () =>
-          import('./features/privacy-requests').then((m) => m.PrivacyRequestsPage),
       },
     ],
   },

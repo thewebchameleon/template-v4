@@ -14,9 +14,11 @@ Distinguish deployment modules, runtime feature settings and customer entitlemen
 
 The initial optional modules are files, maintenance, operations and audit history. Identity, audit recording and durable delivery remain required foundations. Other existing features retain their current behavior until explicitly modularized. Disabling entry points does not delete schema or data. Retention, security audit writes and accepted jobs/messages continue; new maintenance cron dispatch is suppressed and its persisted daily trigger is unscheduled. Future billing callbacks must similarly remain available for accepted payment obligations.
 
+Persistent modules with substantial owned data use a module-named PostgreSQL schema while sharing the framework database, EF context and migration stream. Files owns `files.files` and `files.file_storage_settings`; its quota override remains on the Identity user because it participates in account administration. Support owns its ticket, category, message and attachment tables in `support`. Cross-cutting capabilities keep their existing schemas: delivery uses `messaging`, audit recording uses `audit`, and platform configuration uses `app`. Capability modules such as Operations and Audit History read data owned by those foundations and do not receive duplicate schemas. New module code must not query another module's tables directly; it uses explicit Application contracts or versioned events.
+
 ## Consequences
 
-No hot-plug assembly discovery, runtime service location or separate module deployment is introduced. Module settings require restart. No conditional EF models or automatic destructive rollback. A module scaffold remains disabled and unregistered until its implementation, dependencies, permissions, UI, cleanup and contracts have been reviewed.
+No hot-plug assembly discovery, runtime service location, separate module deployment, database or `DbContext` is introduced. PostgreSQL schemas communicate ownership but do not provide an application boundary by themselves. Module settings require restart. No conditional EF models or automatic destructive rollback. A module scaffold remains disabled and unregistered until its implementation, dependencies, permissions, UI, cleanup and contracts have been reviewed.
 
 ## Enforcement and extension points
 

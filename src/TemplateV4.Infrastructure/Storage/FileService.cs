@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Globalization;
+using TemplateV4.Application.Platform;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
@@ -26,9 +29,10 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvid
     {
         if (request.DefaultQuotaBytes is < 0 or > MaximumQuotaBytes) return Result.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var previous = await Settings(ct);
         var changed = await db.FileStorageSettings.Where(x => x.Id == 1 && x.Version == request.Version).ExecuteUpdateAsync(x => x.SetProperty(s => s.DefaultQuotaBytes, request.DefaultQuotaBytes).SetProperty(s => s.Version, Guid.NewGuid()), ct);
         if (changed == 0) return Result.Fail("files.settings_conflict", ErrorKind.Conflict);
-        db.Audit.Add(new() { ActorId = actor, Action = "file.quota_default_changed", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = actor, Action = "file.quota_default_changed", SubjectType = "configuration", SubjectNameSnapshot = "storage", ChangesJson = AuditCapture.Changes(new AuditChange("defaultQuotaBytes", previous.DefaultQuotaBytes.ToString(CultureInfo.InvariantCulture), request.DefaultQuotaBytes.ToString(CultureInfo.InvariantCulture))), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<Unit>> SetQuota(Guid actor, Guid owner, FileQuotaRequest request, CancellationToken ct)
@@ -37,8 +41,9 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvid
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await Lock(owner, ct);
         if (!await db.Profiles.AnyAsync(x => x.Id == owner, ct)) return Result.Fail("files.not_found", ErrorKind.NotFound);
+        var previous = await db.Users.Where(x => x.Id == owner).Select(x => x.StorageQuotaBytes).SingleAsync(ct);
         await db.Users.Where(x => x.Id == owner).ExecuteUpdateAsync(x => x.SetProperty(u => u.StorageQuotaBytes, request.QuotaBytes), ct);
-        db.Audit.Add(new() { ActorId = actor, SubjectId = owner, Action = "file.quota_changed", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = actor, SubjectId = owner, Action = "file.quota_changed", SubjectType = "user", ChangesJson = AuditCapture.Changes(new AuditChange("quotaBytes", previous?.ToString(CultureInfo.InvariantCulture), request.QuotaBytes?.ToString(CultureInfo.InvariantCulture))), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<FilePage>> List(Guid actor, int pageNumber, int pageSize, string? search, string sort, string direction, CancellationToken ct, Guid? parentId = null)
@@ -107,7 +112,7 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvid
         await db.Entry(file).ReloadAsync(ct);
         if (file.DeletedAt != null || !await Active(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
         file.Ready = true;
-        db.Audit.Add(new() { ActorId = actor, SubjectId = file.Id, Action = "file.uploaded", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = actor, SubjectId = file.Id, Action = "file.uploaded", SubjectType = "file", SubjectNameSnapshot = file.Name, MetadataJson = JsonSerializer.Serialize(new Dictionary<string, string> { ["sizeBytes"] = file.Size.ToString(CultureInfo.InvariantCulture), ["contentType"] = file.ContentType }), RelatedEntitiesJson = JsonSerializer.Serialize(new[] { new AuditRelatedEntity("user", actor, null) }), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await finish.CommitAsync(ct);
         return Result<FileItem>.Success(Item(file));
     }
@@ -127,9 +132,10 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvid
         if (!ValidName(request.Name)) return Result.Fail("files.invalid_name", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await Lock(actor, ct);
+        var previous = await db.Files.AsNoTracking().Where(x => x.Id == id && x.OwnerId == actor && x.Ready && x.DeletedAt == null).Select(x => x.Name).SingleOrDefaultAsync(ct);
         var changed = await db.Files.Where(x => x.Id == id && x.OwnerId == actor && x.Ready && x.DeletedAt == null).ExecuteUpdateAsync(x => x.SetProperty(f => f.Name, request.Name.Trim()), ct);
         if (changed == 0) return Result.Fail("files.not_found", ErrorKind.NotFound);
-        db.Audit.Add(new() { ActorId = actor, SubjectId = id, Action = "file.renamed", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = actor, SubjectId = id, Action = "file.renamed", SubjectType = "file", SubjectNameSnapshot = request.Name.Trim(), ChangesJson = AuditCapture.Changes(new AuditChange("name", previous, request.Name.Trim())), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<Unit>> Delete(Guid actor, Guid id, CancellationToken ct)

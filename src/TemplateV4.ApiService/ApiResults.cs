@@ -36,6 +36,13 @@ public static class ApiResults
 
         {
 
+            "support.not_found" => af ? "Hierdie kaartjie is nie beskikbaar nie." : "This support ticket is unavailable.",
+            "support.category_invalid" => af ? "Kies ’n aktiewe kategorie." : "Choose an active category.",
+            "support.assignee_invalid" => af ? "Kies ’n aktiewe ondersteuningsagent." : "Choose an active support agent.",
+            "support.reopen_required" => af ? "Heropen die kaartjie om voort te gaan." : "Reopen the ticket before continuing.",
+            "support.attachment_limit" => af ? "Die kaartjie se aanhangsellimiet is bereik." : "This ticket has reached its attachment limit.",
+            "support.category_limit" => af ? "Die limiet van 100 kategorieë is bereik." : "The limit of 100 categories has been reached.",
+            "support.last_category" => af ? "Hou minstens een aktiewe kategorie." : "Keep at least one active category.",
             "modules.conflict" => af ? "Module-instellings het verander. Herlaai die gestoorde instellings en probeer weer." : "Module settings changed. Reload the saved settings and try again.",
             "modules.unavailable" => af ? "Hierdie module is nie in hierdie ontplooiing beskikbaar nie." : "This module is unavailable in this deployment.",
             "modules.unknown" => af ? "Kies 'n ondersteunde module." : "Choose a supported module.",
@@ -50,6 +57,8 @@ public static class ApiResults
             "files.empty" => af ? "Kies â€™n lÃªer wat nie leeg is nie." : "Choose a file that is not empty.",
 
             "files.quota" => af ? "Jou bergingtoelaag is vol." : "Your storage allowance is full. Deleted files count until retention cleanup completes.",
+
+            "audit.not_found" => af ? "Hierdie ouditinskrywing is nie beskikbaar nie." : "This audit entry is no longer available.",
 
             "files.not_found" => af ? "Hierdie lÃªer is nie beskikbaar nie." : "This file is no longer available.",
 

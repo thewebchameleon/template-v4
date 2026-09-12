@@ -10,6 +10,7 @@ public static class ModuleEndpoints
         {
             var enabled = modules.Definitions.ToDictionary(x => x.Id, x => modules.Enabled(x.Id));
             enabled["files"] = await runtime.Enabled("files", ct);
+            enabled["support"] = await runtime.Enabled("support", ct);
             return Results.Ok(enabled);
         })
             .WithName("GetModules").Produces<Dictionary<string, bool>>();
@@ -18,7 +19,7 @@ public static class ModuleEndpoints
 
     public static RouteHandlerBuilder RequireModule(this RouteHandlerBuilder endpoint, string module)
         => endpoint.AddEndpointFilter(async (invocation, next) =>
-            (module == "files"
+            (module is "files" or "support"
                 ? await invocation.HttpContext.RequestServices.GetRequiredService<IRuntimeModules>().Enabled(module, invocation.HttpContext.RequestAborted)
                 : invocation.HttpContext.RequestServices.GetRequiredService<ModuleCatalog>().Enabled(module))
                 ? await next(invocation) : Results.NotFound());

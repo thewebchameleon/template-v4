@@ -3,6 +3,7 @@
     "files": true,
     "maintenance": true,
     "operations": true,
-    "audit-history": true
+    "audit-history": true,
+    "support": true
   }
 }

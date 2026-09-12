@@ -36,7 +36,7 @@ public sealed partial class SecurityAndMessagingTests
         var modules = await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/modules");
         Assert.True(modules!["identity"]);
         Assert.False(modules["operations"]);
-        foreach (var path in new[] { "/api/v1/auth/audit", "/api/v1/auth/operations", "/api/v1/auth/operations/overview", "/api/v1/auth/files" })
+        foreach (var path in new[] { "/api/v1/auth/audit", "/api/v1/auth/audit/1", "/api/v1/auth/operations", "/api/v1/auth/operations/overview", "/api/v1/auth/files", "/api/v1/auth/support/", "/api/v1/auth/support/options" })
             Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(path)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/v1/jobs/maintenance", new { })).StatusCode);
         Assert.True(await db.Audit.CountAsync() >= auditCount);

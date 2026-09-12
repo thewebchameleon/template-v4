@@ -246,5 +246,5 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         db.RefreshTokens.Add(new() { Hash = Hash(raw), SessionId = session.Id, ExpiresAt = session.ExpiresAt });
         return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, IsAdministrator: !setup && roles.Contains("Administrator")), raw);
     }
-    private void Audit(string action, Guid userId) => db.Audit.Add(new() { Action = action, ActorId = userId, SubjectId = userId, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
+    private void Audit(string action, Guid userId) => db.Audit.Add(new() { Action = action, ActorId = action == "auth.login_failed" ? null : userId, ActorType = action == "auth.login_failed" ? "anonymous" : "user", SubjectId = userId, SubjectType = "user", Outcome = action == "auth.login_failed" ? "failure" : action == "auth.refresh_reuse" ? "denied" : "success", FailureCode = action == "auth.login_failed" ? "auth.invalid_credentials" : action == "auth.refresh_reuse" ? "auth.refresh_reuse" : null, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
 }

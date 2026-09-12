@@ -53,12 +53,11 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await page.goto('/administration/modules');
   const control = page.getByRole('switch', { name: 'Enable Files' });
   await expect(control).toBeChecked();
-  await control.focus();
-  await page.keyboard.press('Space');
+  await page.getByText('Disabling Files hides file pages', { exact: false }).click();
   await expect(control).not.toBeChecked();
-  expect(app.enabled()).toBe(true);
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByText('Currently disabled', { exact: true })).toBeVisible();
+  await expect.poll(app.enabled).toBe(false);
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Reload saved settings' })).toHaveCount(0);
   await expect(page.locator('a[href="/files"]')).toHaveCount(0);
   await expect(page.locator('a[href="/administration/storage"]')).toHaveCount(0);
   await page.reload();
@@ -69,32 +68,29 @@ test('modules save application-wide Files state, refresh navigation and guard di
   }
   await page.goto('/administration/modules');
   await control.click();
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByText('Currently enabled', { exact: true })).toBeVisible();
-  await expect(page.locator('a[href="/administration/storage"]').first()).toBeVisible();
+  await expect.poll(app.enabled).toBe(true);
+  const modulesNavigation = page
+    .getByRole('navigation', { name: 'Administration', exact: true })
+    .getByRole('group', { name: 'Modules', exact: true });
+  await expect(modulesNavigation.getByRole('link', { name: 'File storage' })).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Destinations' })
+    .getByRole('link', { name: 'Files', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/files$/);
 });
 
-test('modules retain a failed draft and confirm before discarding it', async ({ page }) => {
+test('modules restore the saved state when an immediate update fails', async ({ page }) => {
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
   const control = page.getByRole('switch', { name: 'Enable Files' });
-  await control.click();
   app.fail();
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await control.click();
   await expect(
     page.getByText('Module settings changed. Reload the saved settings and try again.'),
   ).toBeVisible();
-  await expect(control).not.toBeChecked();
-  expect(app.enabled()).toBe(true);
-  await page.getByRole('button', { name: 'Reload saved settings' }).click();
-  const dialog = page.getByRole('alertdialog');
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await expect(control).not.toBeChecked();
-  await page.getByRole('button', { name: 'Reload saved settings' }).click();
-  await dialog.getByRole('button', { name: 'Confirm', exact: true }).click();
   await expect(control).toBeChecked();
-  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled();
+  expect(app.enabled()).toBe(true);
 });
 
 test('modules deny delegated settings operators and explain unavailable deployments', async ({

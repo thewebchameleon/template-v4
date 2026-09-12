@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
@@ -21,6 +22,7 @@ import { InvitationDrawer } from './invite-user';
 import { InvitationsPanel } from './invitations';
 import { RolesPanel } from './roles';
 import { AccountSecurityPanel } from './account-security';
+import { PrivacyRequestsPage } from './privacy-requests';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { I18n } from '../core/i18n';
@@ -38,13 +40,14 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     InvitationsPanel,
     RolesPanel,
     AccountSecurityPanel,
+    PrivacyRequestsPage,
     UserDetailPage,
   ],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header
       title="userManagement"
-      description="peopleIntro"
+      [description]="section() === 'privacy' ? 'privacyRequestsIntro' : 'peopleIntro'"
       eyebrow="administration"
     />
     <app-people-nav [section]="section()" (sectionChange)="setSection($event)" />
@@ -235,6 +238,8 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
       <app-invitations-panel />
     } @else if (section() === 'security') {
       <app-account-security-panel />
+    } @else if (section() === 'privacy') {
+      <app-privacy-requests />
     } @else {
       <app-roles-panel />
     }`,
@@ -252,6 +257,8 @@ export class UsersPage {
   readonly detailEditor = viewChild(UserDetailPage);
   readonly detailsBusy = computed(() => this.detailEditor()?.busy() ?? false);
   private readonly confirm = inject(Confirmations);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly detailsLabel = (user: UserDto) =>
     `${this.i18n.text('personDetails')}: ${user.username || user.displayName}`;
   readonly roleLabel = (role: string) => (role === 'all' ? this.i18n.text('allRoles') : role);
@@ -290,33 +297,29 @@ export class UsersPage {
     ]);
   });
   constructor() {
-    this.query.connect(() => {
-      this.search.sync(this.query.text('search'));
-      if (this.section() === 'users') void this.load();
-    }, ['section', 'search', 'page', 'size', 'status', 'role', 'sort', 'direction']);
+    if (this.section() === 'users')
+      this.query.connect(() => {
+        this.search.sync(this.query.text('search'));
+        void this.load();
+      }, ['search', 'page', 'size', 'status', 'role', 'sort', 'direction']);
   }
   section() {
-    const requested = this.query.text('section');
-    if (requested === 'invitations' && this.auth.has('users.manage')) return 'invitations';
-    if (requested === 'roles' && this.auth.has('roles.manage')) return 'roles';
-    if (requested === 'security' && this.auth.has('settings.manage')) return 'security';
-    if (this.auth.has('users.read')) return 'users';
-    if (this.auth.has('roles.manage')) return 'roles';
-    return 'security';
+    return this.route.snapshot.data['section'] as string;
   }
   async setSection(section: string) {
-    if (
-      !['users', 'invitations', 'roles', 'security'].includes(section) ||
-      section === this.section()
-    )
-      return;
-    if (
-      this.hasUnsavedChanges() &&
-      !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
-    )
-      return;
-    this.selectedUser.set(null);
-    await this.query.set({ section });
+    const paths: Record<string, string> = {
+      users: '/administration/users',
+      invitations: '/administration/users/invitations',
+      roles: '/administration/users/roles',
+      security: '/administration/users/account-security',
+      privacy: '/administration/users/privacy-requests',
+    };
+    const path = paths[section];
+    if (!path || section === this.section()) return;
+    await this.router.navigate([path], {
+      queryParams: { section: null },
+      queryParamsHandling: 'merge',
+    });
   }
   async load() {
     const params: Record<string, string | number> = {

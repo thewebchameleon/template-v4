@@ -1,3 +1,4 @@
+using TemplateV4.Application.Platform;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -127,8 +128,9 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         var user = (await users.FindByIdAsync(id.ToString()))!;
         var methods = await ConfiguredMethods(user);
         if (!methods.Contains(request.Method)) return Result.Fail("auth.mfa_method_unavailable", ErrorKind.Validation);
+        var previous = user.PreferredMfaMethod;
         user.PreferredMfaMethod = request.Method;
-        db.Audit.Add(new() { ActorId = id, SubjectId = id, Action = "auth.mfa_preference_changed", At = time.GetUtcNow() });
+        db.Audit.Add(new() { ActorId = id, SubjectId = id, Action = "auth.mfa_preference_changed", ChangesJson = AuditCapture.Changes(new AuditChange("preferredMfaMethod", previous, request.Method)), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<MfaEnrollment>> BeginEnrollment(Guid id, Guid sessionId, SecurityProof proof, CancellationToken ct)
@@ -219,7 +221,9 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         db.Audit.Add(new()
         {
             ActorId = actor,
-            Action = $"security.policy_changed:mfa:{previousPolicy}>{request.MfaPolicy}:registration:{previousRegistration}>{request.RegistrationEnabled}",
+            Action = "security.policy_changed",
+            SubjectType = "configuration", SubjectNameSnapshot = "security",
+            ChangesJson = AuditCapture.Changes(new AuditChange("mfaPolicy", previousPolicy, request.MfaPolicy), new("registrationEnabled", previousRegistration.ToString(), request.RegistrationEnabled.ToString())),
             At = time.GetUtcNow()
         });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<SecuritySettings>.Success(settings);

@@ -13,6 +13,9 @@ import { StrictHttpResponse } from '../strict-http-response';
 import { AccessCatalog } from '../models/access-catalog';
 import { AccessResponse } from '../models/access-response';
 import { AdminBootstrapStatus } from '../models/admin-bootstrap-status';
+import { attachSupportTicket } from '../fn/framework/attach-support-ticket';
+import { AttachSupportTicket$Params } from '../fn/framework/attach-support-ticket';
+import { AuditDetail } from '../models/audit-detail';
 import { beginMfaEnrollment } from '../fn/framework/begin-mfa-enrollment';
 import { BeginMfaEnrollment$Params } from '../fn/framework/begin-mfa-enrollment';
 import { completeMfa } from '../fn/framework/complete-mfa';
@@ -31,6 +34,8 @@ import { createFileFolder } from '../fn/framework/create-file-folder';
 import { CreateFileFolder$Params } from '../fn/framework/create-file-folder';
 import { createRole } from '../fn/framework/create-role';
 import { CreateRole$Params } from '../fn/framework/create-role';
+import { createSupportTicket } from '../fn/framework/create-support-ticket';
+import { CreateSupportTicket$Params } from '../fn/framework/create-support-ticket';
 import { createUser } from '../fn/framework/create-user';
 import { CreateUser$Params } from '../fn/framework/create-user';
 import { deleteFile } from '../fn/framework/delete-file';
@@ -40,6 +45,8 @@ import { disableMfa } from '../fn/framework/disable-mfa';
 import { DisableMfa$Params } from '../fn/framework/disable-mfa';
 import { downloadFile } from '../fn/framework/download-file';
 import { DownloadFile$Params } from '../fn/framework/download-file';
+import { downloadSupportAttachment } from '../fn/framework/download-support-attachment';
+import { DownloadSupportAttachment$Params } from '../fn/framework/download-support-attachment';
 import { downloadUserFile } from '../fn/framework/download-user-file';
 import { DownloadUserFile$Params } from '../fn/framework/download-user-file';
 import { EmailMfaChallengeResponse } from '../models/email-mfa-challenge-response';
@@ -54,6 +61,8 @@ import { getAccessCatalog } from '../fn/framework/get-access-catalog';
 import { GetAccessCatalog$Params } from '../fn/framework/get-access-catalog';
 import { getAdminBootstrapStatus } from '../fn/framework/get-admin-bootstrap-status';
 import { GetAdminBootstrapStatus$Params } from '../fn/framework/get-admin-bootstrap-status';
+import { getAuditDetail } from '../fn/framework/get-audit-detail';
+import { GetAuditDetail$Params } from '../fn/framework/get-audit-detail';
 import { getCsrfToken } from '../fn/framework/get-csrf-token';
 import { GetCsrfToken$Params } from '../fn/framework/get-csrf-token';
 import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
@@ -80,6 +89,10 @@ import { getRegistrationSettings } from '../fn/framework/get-registration-settin
 import { GetRegistrationSettings$Params } from '../fn/framework/get-registration-settings';
 import { getSecuritySettings } from '../fn/framework/get-security-settings';
 import { GetSecuritySettings$Params } from '../fn/framework/get-security-settings';
+import { getSupportOptions } from '../fn/framework/get-support-options';
+import { GetSupportOptions$Params } from '../fn/framework/get-support-options';
+import { getSupportTicket } from '../fn/framework/get-support-ticket';
+import { GetSupportTicket$Params } from '../fn/framework/get-support-ticket';
 import { getUserAccess } from '../fn/framework/get-user-access';
 import { GetUserAccess$Params } from '../fn/framework/get-user-access';
 import { InvitationPage } from '../models/invitation-page';
@@ -97,6 +110,8 @@ import { listRuntimeModules } from '../fn/framework/list-runtime-modules';
 import { ListRuntimeModules$Params } from '../fn/framework/list-runtime-modules';
 import { listSessions } from '../fn/framework/list-sessions';
 import { ListSessions$Params } from '../fn/framework/list-sessions';
+import { listSupportTickets } from '../fn/framework/list-support-tickets';
+import { ListSupportTickets$Params } from '../fn/framework/list-support-tickets';
 import { listUserFiles } from '../fn/framework/list-user-files';
 import { ListUserFiles$Params } from '../fn/framework/list-user-files';
 import { listUsers } from '../fn/framework/list-users';
@@ -113,6 +128,7 @@ import { NotificationSummary } from '../models/notification-summary';
 import { OperationsOverview } from '../models/operations-overview';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
+import { PageOfTicketItem } from '../models/page-of-ticket-item';
 import { passkeyLogin } from '../fn/framework/passkey-login';
 import { PasskeyLogin$Params } from '../fn/framework/passkey-login';
 import { passkeyLoginOptions } from '../fn/framework/passkey-login-options';
@@ -141,6 +157,8 @@ import { renameFile } from '../fn/framework/rename-file';
 import { RenameFile$Params } from '../fn/framework/rename-file';
 import { replayDelivery } from '../fn/framework/replay-delivery';
 import { ReplayDelivery$Params } from '../fn/framework/replay-delivery';
+import { replySupportTicket } from '../fn/framework/reply-support-ticket';
+import { ReplySupportTicket$Params } from '../fn/framework/reply-support-ticket';
 import { requestAccountDeletion } from '../fn/framework/request-account-deletion';
 import { RequestAccountDeletion$Params } from '../fn/framework/request-account-deletion';
 import { requestEmailChange } from '../fn/framework/request-email-change';
@@ -163,6 +181,8 @@ import { savePlatformAppearance } from '../fn/framework/save-platform-appearance
 import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-appearance';
 import { saveRuntimeModule } from '../fn/framework/save-runtime-module';
 import { SaveRuntimeModule$Params } from '../fn/framework/save-runtime-module';
+import { saveSupportCategory } from '../fn/framework/save-support-category';
+import { SaveSupportCategory$Params } from '../fn/framework/save-support-category';
 import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
@@ -175,10 +195,14 @@ import { setSecuritySettings } from '../fn/framework/set-security-settings';
 import { SetSecuritySettings$Params } from '../fn/framework/set-security-settings';
 import { setUserFileQuota } from '../fn/framework/set-user-file-quota';
 import { SetUserFileQuota$Params } from '../fn/framework/set-user-file-quota';
+import { SupportOptions } from '../models/support-options';
+import { TicketDetail } from '../models/ticket-detail';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
 import { updateRole } from '../fn/framework/update-role';
 import { UpdateRole$Params } from '../fn/framework/update-role';
+import { updateSupportTicket } from '../fn/framework/update-support-ticket';
+import { UpdateSupportTicket$Params } from '../fn/framework/update-support-ticket';
 import { updateUser } from '../fn/framework/update-user';
 import { UpdateUser$Params } from '../fn/framework/update-user';
 import { uploadFile } from '../fn/framework/upload-file';
@@ -1113,6 +1137,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getAuditDetail()` */
+  static readonly GetAuditDetailPath = '/api/v1/auth/audit/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getAuditDetail()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getAuditDetail$Response(params: GetAuditDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<AuditDetail>> {
+    const obs = getAuditDetail(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getAuditDetail$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getAuditDetail(params: GetAuditDetail$Params, context?: HttpContext): Observable<AuditDetail> {
+    const resp = this.getAuditDetail$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<AuditDetail>): AuditDetail => r.body)
+    );
+  }
+
   /** Path part for operation `getOperationsOverview()` */
   static readonly GetOperationsOverviewPath = '/api/v1/auth/operations/overview';
 
@@ -1893,6 +1944,249 @@ export class FrameworkService extends BaseService {
     const resp = this.saveRuntimeModule$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<RuntimeModule>): RuntimeModule => r.body)
+    );
+  }
+
+  /** Path part for operation `listSupportTickets()` */
+  static readonly ListSupportTicketsPath = '/api/v1/auth/support';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listSupportTickets()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSupportTickets$Response(params?: ListSupportTickets$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfTicketItem>> {
+    const obs = listSupportTickets(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listSupportTickets$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSupportTickets(params?: ListSupportTickets$Params, context?: HttpContext): Observable<PageOfTicketItem> {
+    const resp = this.listSupportTickets$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfTicketItem>): PageOfTicketItem => r.body)
+    );
+  }
+
+  /** Path part for operation `createSupportTicket()` */
+  static readonly CreateSupportTicketPath = '/api/v1/auth/support';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createSupportTicket$Response(params: CreateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+    const obs = createSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createSupportTicket(params: CreateSupportTicket$Params, context?: HttpContext): Observable<string> {
+    const resp = this.createSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<string>): string => r.body)
+    );
+  }
+
+  /** Path part for operation `getSupportOptions()` */
+  static readonly GetSupportOptionsPath = '/api/v1/auth/support/options';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getSupportOptions()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportOptions$Response(params?: GetSupportOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<SupportOptions>> {
+    const obs = getSupportOptions(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getSupportOptions$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportOptions(params?: GetSupportOptions$Params, context?: HttpContext): Observable<SupportOptions> {
+    const resp = this.getSupportOptions$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<SupportOptions>): SupportOptions => r.body)
+    );
+  }
+
+  /** Path part for operation `getSupportTicket()` */
+  static readonly GetSupportTicketPath = '/api/v1/auth/support/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getSupportTicket()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportTicket$Response(params: GetSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<TicketDetail>> {
+    const obs = getSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getSupportTicket$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportTicket(params: GetSupportTicket$Params, context?: HttpContext): Observable<TicketDetail> {
+    const resp = this.getSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<TicketDetail>): TicketDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `replySupportTicket()` */
+  static readonly ReplySupportTicketPath = '/api/v1/auth/support/reply';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `replySupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  replySupportTicket$Response(params: ReplySupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = replySupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `replySupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  replySupportTicket(params: ReplySupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.replySupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `updateSupportTicket()` */
+  static readonly UpdateSupportTicketPath = '/api/v1/auth/support/update';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `updateSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateSupportTicket$Response(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = updateSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `updateSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateSupportTicket(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.updateSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `saveSupportCategory()` */
+  static readonly SaveSupportCategoryPath = '/api/v1/auth/support/categories';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveSupportCategory()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportCategory$Response(params: SaveSupportCategory$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveSupportCategory(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveSupportCategory$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportCategory(params: SaveSupportCategory$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveSupportCategory$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `attachSupportTicket()` */
+  static readonly AttachSupportTicketPath = '/api/v1/auth/support/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `attachSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  attachSupportTicket$Response(params: AttachSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = attachSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `attachSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  attachSupportTicket(params: AttachSupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.attachSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadSupportAttachment()` */
+  static readonly DownloadSupportAttachmentPath = '/api/v1/auth/support/{id}/attachments/{attachmentId}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadSupportAttachment()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadSupportAttachment$Response(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadSupportAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadSupportAttachment$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadSupportAttachment(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadSupportAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 

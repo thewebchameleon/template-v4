@@ -3,6 +3,7 @@
     "files": false,
     "maintenance": false,
     "operations": false,
-    "audit-history": false
+    "audit-history": false,
+    "support": false
   }
 }

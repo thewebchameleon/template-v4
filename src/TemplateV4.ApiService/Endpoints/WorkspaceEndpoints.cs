@@ -15,6 +15,8 @@ public static class WorkspaceEndpoints
     {
         group.MapGet("/audit", async ([AsParameters] AuditQuery query, Dispatcher<AuditQuery, Page<AuditItem>> dispatcher, CancellationToken ct) => (await dispatcher.Send(query, ct)).ToHttp())
             .RequireModule("audit-history").RequireAuthorization(Permissions.Settings).WithName("ListAuditHistory").Produces<Page<AuditItem>>();
+        group.MapGet("/audit/{id:long}", async (long id, Dispatcher<GetAuditDetail, AuditDetail> dispatcher, CancellationToken ct) => (await dispatcher.Send(new(id), ct)).ToHttp())
+            .RequireModule("audit-history").RequireAuthorization(Permissions.Settings).WithName("GetAuditDetail").Produces<AuditDetail>();
         group.MapGet("/invitations", async (AccountService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string state = "all", string sort = "sentAt", string direction = "desc") => (await service.Invitations(pageNumber, pageSize, search, state, sort, direction, ct)).ToHttp())
             .RequireAuthorization(Permissions.Manage).WithName("ListInvitations").Produces<InvitationPage>();
         group.MapGet("/operations/overview", async (OperationsService service, CancellationToken ct) => Results.Ok(await service.Overview(ct)))

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
+using TemplateV4.Application.Platform;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
@@ -20,7 +21,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         var role = await users.AddToRolesAsync(identity, command.Roles);
         if (!role.Succeeded) throw new InvalidOperationException("Seeded role assignment failed.");
         var profile = UserProfile.Create(identity.Id, command.DisplayName, command.Culture);
-        db.Profiles.Add(profile); Audit("user.created", identity.Id);
+        db.Profiles.Add(profile); Audit("user.created", identity.Id, new AuditChange("roles", null, string.Join(", ", command.Roles.Order())));
         return Result<UserDto>.Success(new(identity.Id, command.Email, profile.DisplayName, profile.Culture, false, command.Roles, profile.Version, Username: identity.UserName!));
     }
 
@@ -90,10 +91,10 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
             throw new InvalidOperationException("Role update failed.");
         if (!(await users.UpdateSecurityStampAsync(identity)).Succeeded) throw new InvalidOperationException("Security stamp update failed.");
         await db.Sessions.Where(x => x.UserId == command.Id && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), cancellationToken);
-        foreach (var roleName in command.Roles.Except(oldRoles)) Audit("user.role_granted:" + roleName, command.Id);
-        foreach (var roleName in oldRoles.Except(command.Roles)) Audit("user.role_removed:" + roleName, command.Id);
+        foreach (var roleName in command.Roles.Except(oldRoles)) Audit("user.role_granted", command.Id, new AuditChange("role", null, roleName));
+        foreach (var roleName in oldRoles.Except(command.Roles)) Audit("user.role_removed", command.Id, new AuditChange("role", roleName, null));
         if (wasDisabled != command.Disabled) Audit(command.Disabled ? "user.disabled" : "user.enabled", command.Id);
-        Audit("user.access_changed", command.Id);
+        Audit("user.access_changed", command.Id, new AuditChange("disabled", wasDisabled.ToString(), command.Disabled.ToString()), new("roles", string.Join(", ", oldRoles.Order()), string.Join(", ", command.Roles.Order())));
         outbox.Add(new EmailRequest(command.Id, EmailTemplate.SecurityNotification, profile.Culture));
         return Result<UserDto>.Success(new(identity.Id, identity.Email!, profile.DisplayName, profile.Culture, profile.Disabled, command.Roles, profile.Version, Username: identity.UserName!));
     }
@@ -105,5 +106,5 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         if (roles.Length != names.Length) return false;
         return !await db.RoleClaims.AnyAsync(c => roles.Contains(c.RoleId) && c.ClaimType == "permission" && !allowed.Contains(c.ClaimValue!), ct);
     }
-    private void Audit(string action, Guid subject) => db.Audit.Add(new() { Action = action, SubjectId = subject, ActorId = context.ActorId, At = time.GetUtcNow(), TraceParent = context.TraceParent });
+    private void Audit(string action, Guid subject, params AuditChange[] changes) => db.Audit.Add(new() { Action = action, SubjectId = subject, SubjectType = "user", ChangesJson = AuditCapture.Changes(changes), ActorId = context.ActorId, At = time.GetUtcNow(), TraceParent = context.TraceParent });
 }

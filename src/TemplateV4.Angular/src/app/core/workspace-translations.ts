@@ -17,8 +17,12 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   activity: ['Activity', 'Aktiwiteit'],
   allActivity: ['All activity', 'Alle aktiwiteit'],
   auditSearchPlaceholder: [
-    'e.g. invitation, privacy, security',
-    'bv. invitation, privacy, security',
+    'Search activity, e.g. invitation, privacy or security',
+    'Soek aktiwiteit, bv. uitnodiging, privaatheid of sekuriteit',
+  ],
+  auditFiltersHelp: [
+    'Limit activity to a date range. The last seven days are selected by default.',
+    'Beperk aktiwiteit tot ’n datumreeks. Die laaste sewe dae is by verstek gekies.',
   ],
   fromDate: ['From', 'Vanaf'],
   untilDate: ['Until', 'Tot'],

@@ -3,6 +3,27 @@ import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  support: ['Support', 'Ondersteuning'],
+  notificationSupport: [
+    'A support ticket has been updated.',
+    '�n Ondersteuningskaartjie is opgedateer.',
+  ],
+  'permission.support.agent': ['Manage support tickets', 'Bestuur ondersteuningskaartjies'],
+  'permission.support.admin': [
+    'Administer support and categories',
+    'Administreer ondersteuning en kategorie�',
+  ],
+  'permissionGroup.support': ['Support', 'Ondersteuning'],
+  supportModuleHelp: [
+    'Customer support portal and agent queue.',
+    'Klanteondersteuningsportaal en agentwaglys.',
+  ],
+  enableSupportModule: ['Enable Support', 'Aktiveer Ondersteuning'],
+  supportModuleDisableHelp: [
+    'Disabling Support blocks ticket access and retains existing data.',
+    'Deaktivering blokkeer kaartjietoegang en behou bestaande data.',
+  ],
+  supportSaved: ['Support changes saved.', 'Ondersteuningsveranderings gestoor.'],
   ...moduleDictionary,
   ...configurationDictionary,
   ...workspaceDictionary,

@@ -115,6 +115,18 @@ public sealed class AuditEntry
     public string Action { get; set; } = "";
     public string? TraceParent { get; set; }
     public DateTimeOffset At { get; set; }
+    public int? SchemaVersion { get; set; }
+    public string? ActorType { get; set; }
+    public string? ActorNameSnapshot { get; set; }
+    public string? SubjectType { get; set; }
+    public string? SubjectNameSnapshot { get; set; }
+    public string? Outcome { get; set; }
+    public string? FailureCode { get; set; }
+    public string? Source { get; set; }
+    public string? Reason { get; set; }
+    public string? ChangesJson { get; set; }
+    public string? RelatedEntitiesJson { get; set; }
+    public string? MetadataJson { get; set; }
 }
 
 public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
@@ -192,6 +204,17 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         model.Entity<AuditEntry>(entity =>
         {
             entity.ToTable("entries", "audit"); entity.Property(x => x.Action).HasMaxLength(100);
+            entity.Property(x => x.ActorType).HasMaxLength(40);
+            entity.Property(x => x.SubjectType).HasMaxLength(40);
+            entity.Property(x => x.ActorNameSnapshot).HasMaxLength(256);
+            entity.Property(x => x.SubjectNameSnapshot).HasMaxLength(256);
+            entity.Property(x => x.Outcome).HasMaxLength(20);
+            entity.Property(x => x.FailureCode).HasMaxLength(100);
+            entity.Property(x => x.Source).HasMaxLength(40);
+            entity.Property(x => x.Reason).HasMaxLength(500);
+            entity.Property(x => x.ChangesJson).HasColumnType("jsonb");
+            entity.Property(x => x.RelatedEntitiesJson).HasColumnType("jsonb");
+            entity.Property(x => x.MetadataJson).HasColumnType("jsonb");
             entity.HasIndex(x => new { x.SubjectId, x.At });
             entity.HasIndex(x => new { x.At, x.Id });
             entity.HasIndex(x => new { x.ActorId, x.At });
@@ -205,7 +228,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         });
         model.Entity<StoredFile>(entity =>
         {
-            entity.ToTable("files", "app"); entity.Property(x => x.Name).HasMaxLength(180);
+            entity.ToTable("files", "files"); entity.Property(x => x.Name).HasMaxLength(180);
             entity.Property(x => x.ContentType).HasMaxLength(100);
             entity.HasIndex(x => new { x.OwnerId, x.CreatedAt }); entity.HasIndex(x => x.DeletedAt);
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.OwnerId).OnDelete(DeleteBehavior.Restrict);
@@ -215,7 +238,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         });
         model.Entity<FileStorageSettings>(entity =>
         {
-            entity.ToTable("file_storage_settings", "app");
+            entity.ToTable("file_storage_settings", "files");
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasData(new FileStorageSettings { Id = 1, DefaultQuotaBytes = 100L * 1024 * 1024, Version = new Guid("df8c4bbd-18fb-45f8-8f13-a4c58a334660") });
         });
@@ -232,8 +255,10 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.ToTable("runtime_modules", "app");
             entity.Property(x => x.Id).HasMaxLength(80);
             entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasData(new RuntimeModuleSettings { Id = "support", Enabled = true, Version = new Guid("b6c2b6df-1f86-46ea-90f1-c7bc3b61ba49") });
             entity.HasData(new RuntimeModuleSettings { Id = "files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
+        SupportModel.Configure(model);
         model.Entity<DeletionRequest>(entity =>
         {
             entity.ToTable("deletion_requests", "app"); entity.Property(x => x.State).HasMaxLength(30);

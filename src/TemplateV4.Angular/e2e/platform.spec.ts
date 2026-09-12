@@ -64,7 +64,7 @@ for (const width of [390, 1440]) {
       ['notifications', 'Notifications'],
       ['files', 'Files'],
       ['privacy', 'Privacy & data'],
-      ['administration/privacy-requests', 'Privacy Requests'],
+      ['administration/users/privacy-requests', 'User Management'],
     ]) {
       await page.goto('/' + path);
       await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();

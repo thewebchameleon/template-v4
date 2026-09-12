@@ -22,6 +22,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
             EmailTemplate.Verification => af ? "Bevestig jou rekening" : "Verify your account",
             EmailTemplate.PasswordReset => af ? "Stel jou wagwoord" : "Set your password",
             EmailTemplate.SecurityNotification => af ? "Rekeningsekuriteit verander" : "Account security changed",
+            EmailTemplate.SupportTicket => af ? "Jou ondersteuningskaartjie is opgedateer" : "Your support ticket has been updated",
             EmailTemplate.MfaCode => af ? "Jou aanmeldkode" : "Your sign-in code",
             _ => af ? "Kennisgewing" : "Notification"
         };

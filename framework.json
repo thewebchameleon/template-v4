@@ -37,7 +37,8 @@
     "notifications",
     "privacy",
     "s3-storage",
-    "role-management"
+    "role-management",
+    "support"
   ],
   "projects": {
     "Domain": "src/TemplateV4.Domain",
@@ -79,11 +80,15 @@
     "ui": "Spartan NG",
     "access": "Identity roles with protected built-ins and delegated permissions",
     "configuration": "Administrator-only platform settings; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding and accessible light/dark palettes",
-    "personalFiles": "Enabled by default; folders, owner/admin downloads, database-managed 100 MiB default and per-user quota overrides"
+    "personalFiles": "Enabled by default; folders, owner/admin downloads, database-managed 100 MiB default and per-user quota overrides",
+    "support": "Customer support portal with requester isolation, delegated agents, categories, ticket history, bounded attachments and runtime activation"
   },
   "cultures": {
     "default": "en-ZA",
-    "supported": ["en-ZA", "af-ZA"]
+    "supported": [
+      "en-ZA",
+      "af-ZA"
+    ]
   },
   "packages": {
     "TemplateV4.SharedKernel": "src/TemplateV4.SharedKernel",

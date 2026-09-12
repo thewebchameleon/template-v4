@@ -18,7 +18,7 @@ public sealed class SaveRuntimeModuleValidator : IValidator<SaveRuntimeModule>
     public Dictionary<string, string[]> Validate(SaveRuntimeModule request)
     {
         Dictionary<string, string[]> errors = [];
-        if (request.Id != "files") errors["id"] = ["modules.unknown"];
+        if (request.Id is not ("files" or "support")) errors["id"] = ["modules.unknown"];
         if (request.Version == Guid.Empty) errors["version"] = ["validation.failed"];
         return errors;
     }

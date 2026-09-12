@@ -40,7 +40,7 @@ public sealed class PlatformAppearanceStore(FrameworkDb db, IExecutionContext co
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.PrimaryColor, value.PrimaryColor).SetProperty(s => s.Version, value.Version)
                 .SetProperty(s => s.CustomColorsJson, json).SetProperty(s => s.SelectedCustomColorId, value.SelectedCustomColorId), ct);
         if (changed == 0) return Result<PlatformAppearance>.Fail("appearance.conflict", ErrorKind.Conflict);
-        db.Audit.Add(new() { ActorId = context.ActorId, Action = "configuration.appearance_changed", At = time.GetUtcNow(), TraceParent = context.TraceParent });
+        db.Audit.Add(new() { ActorId = context.ActorId, Action = "configuration.appearance_changed", SubjectType = "configuration", SubjectNameSnapshot = "appearance", ChangesJson = AuditCapture.Changes(new AuditChange("primaryColor", previous.PrimaryColor, value.PrimaryColor), new("customColors", JsonSerializer.Serialize(previous.CustomColors), json), new("selectedCustomColorId", previous.SelectedCustomColorId?.ToString(), selected?.ToString())), At = time.GetUtcNow(), TraceParent = context.TraceParent });
         return Result<PlatformAppearance>.Success(value);
     }
 }

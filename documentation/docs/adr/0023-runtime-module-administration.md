@@ -19,3 +19,7 @@ Disabling does not modify files, folders, quotas or object storage. Re-enabling 
 Run DatabaseMigrator before the updated API. Future runtime modules need a seeded row, an explicit validator allowlist entry, an effective-state endpoint gate, localized editor content and navigation/route guards. Update the deployment dependencies separately; runtime activation must never enable a missing provider or dependency. Module scaffolds remain disabled deployment descriptors requiring implementation review; they do not automatically become runtime switches. Regenerate EF migrations and OpenAPI clients using the existing tooling.
 
 Validate PostgreSQL persistence across API instances, role/permission/CSRF denial, optimistic conflicts and transactional audit, complete file API gating and file preservation after re-enabling. Browser tests cover keyboard operation, unsaved changes, save failure, guards, navigation, both themes and narrow reflow, and require explicit permission before execution. Existing CI already discovers the integration and browser test files; browser execution stays opt-in.
+
+## Support extension
+
+[ADR 0025](0025-customer-support-portal.md) extends the same runtime model to Support. The editor maintains an independent draft/version for each module; the effective-state endpoint evaluates both settings on every request. Support retains its conversations while disabled and permits established privacy erasure and accepted email delivery.

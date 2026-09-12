@@ -535,7 +535,6 @@ test('administration groups destinations and retains active state on nested rout
   const menu = panel.getByRole('navigation', { name: 'Administration', exact: true });
   await expect(menu.getByRole('link')).toHaveText([
     'User Management',
-    'Privacy Requests',
     'Audit History',
     'System Health',
   ]);
@@ -554,6 +553,6 @@ test('administration groups destinations and retains active state on nested rout
   await page.goBack();
   await expect(page).toHaveURL(/\/administration\/users$/);
   await expect(administration).toHaveAttribute('data-active', 'true');
-  await page.goto('/users?section=security');
-  await expect(page).toHaveURL(/\/administration\/users\?section=security$/);
+  await page.goto('/users?search=person');
+  await expect(page).toHaveURL(/\/administration\/users\?search=person$/);
 });
