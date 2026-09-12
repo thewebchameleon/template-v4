@@ -5,7 +5,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Hierdie bladsy het moontlik verskuif. Keer terug na jou profiel.',
   ],
 
-  auditHistory: ['Audit history', 'Ouditgeskiedenis'],
+  auditHistory: ['Audit History', 'Ouditgeskiedenis'],
   auditIntro: [
     'A clear record of the changes that shape your workspace.',
     '’n Duidelike rekord van veranderinge in jou werkruimte.',
@@ -104,7 +104,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'The account will be disabled and its invitation links will stop working.',
     'Die rekening word gedeaktiveer en uitnodigingskakels sal nie meer werk nie.',
   ],
-  operations: ['Operations', 'Bedryf'],
+  systemHealth: ['System Health', 'Stelselgesondheid'],
   operationsIntro: [
     'Keep delivery moving. See what is waiting, what needs attention and what happened last.',
     'Hou aflewering aan die gang. Sien wat wag en wat aandag nodig het.',
@@ -369,7 +369,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   ],
   deletionRequested: ['Deletion request submitted', 'Verwyderingsversoek ingedien'],
   deletionWithdrawn: ['Deletion request withdrawn', 'Verwyderingsversoek teruggetrek'],
-  privacyRequests: ['Privacy requests', 'Privaatheidsversoeke'],
+  privacyRequests: ['Privacy Requests', 'Privaatheidsversoeke'],
   privacyRequestsIntro: [
     'Review account deletion requests with care and a clear record of every decision.',
     'Hersien rekeningverwyderingsversoeke met sorg en ’n duidelike rekord.',

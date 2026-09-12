@@ -72,8 +72,7 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByRole('button', { name: 'Add passkey', exact: true }).last().click();
   await expect(page.getByText('Browser test key', { exact: true })).toBeVisible();
   await expect(page.getByText('Your account requires MFA.', { exact: false })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Account Manage your account' }).click();
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByLabel('Username', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -103,8 +102,7 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByRole('button', { name: 'Required for everyone', exact: true }).click();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Security settings saved');
-  await page.getByRole('button', { name: 'Account Manage your account' }).click();
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign in with a passkey', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
@@ -132,8 +130,7 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await expect(page.getByText('Save your recovery codes', { exact: true })).toBeVisible();
   const recovery = await page.locator('li code').first().innerText();
   await page.getByRole('button', { name: 'I have saved these codes', exact: true }).click();
-  await page.getByRole('button', { name: 'Account Manage your account' }).click();
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByLabel('Username', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
@@ -143,8 +140,7 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByLabel('Authenticator or recovery code', { exact: true }).fill(recovery);
   await page.getByRole('button', { name: 'Verify', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Account Manage your account' }).click();
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.reload();
   await page.goto('/profile');

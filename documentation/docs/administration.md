@@ -1,6 +1,6 @@
 # Administration and access
 
-Administrators land on **Users** after completing required security setup. The page has bookmarkable **Users**, **Invitations** and **Roles** tabs. The Users tab contains a directory summary, status tabs, debounced search, role filtering, compact identity, role and status columns, and server-backed page-size controls. The Invitations tab contains the invitation lifecycle card with status counts and page-size controls. **Invite user** opens the same shared form from either tab. Filters remain in the URL so directory and invitation views can be revisited or shared. Open a person's name to inspect their access, assign roles or change their account status.
+Signed-in users land on **Dashboard** after completing required security setup. Administrators open **Administration** (the shield-cog icon) from the navigation rail, then **User Management**. The Users page has bookmarkable **Users**, **Invitations**, **Roles** and **Account security** tabs. The Users tab contains a directory summary, status tabs, debounced search, role filtering, compact identity, role and status columns, and server-backed page-size controls. The Invitations tab contains the invitation lifecycle card with status counts and page-size controls. **Invite user** opens the same shared form from either tab. Filters remain in the URL so directory and invitation views can be revisited or shared. Open a person's name to inspect their access, assign roles or change their account status.
 
 Changes to a person's access sign them out of existing sessions. Failed saves retain edits. When another administrator changes the record, reload the latest version explicitly before reapplying a draft. Users cannot change their own access here, and the last active Administrator cannot be disabled or demoted.
 
@@ -24,11 +24,11 @@ The baseline permission catalog is:
 
 Adding granular operator/reviewer permissions is an extension: change the catalog, endpoint and handler policies, UI navigation and descriptions together. The current catalog intentionally preserves the existing `settings.manage` grouping.
 
-## Account and operations
+## Account and System Health
 
 **Account** (`/me`) contains identity and email change. **Security** contains authentication methods, recovery codes and the sessions shortcut. Proof fields appear for the chosen action. Copy recovery codes and acknowledge saving them before leaving. **Privacy** retains data export, retention and deletion requests.
 
-**Operations** owns delivery recovery and maintenance. Its queue remains accessible independently of overview loading. Use the queue filters and recovery guidance before retrying a named delivery. **Audit history** supports activity/date filters and named actor/subject filters, preserving context when following related records.
+**System Health** owns delivery recovery and maintenance. Its queue remains accessible independently of overview loading. Use the queue filters and recovery guidance before retrying a named delivery. **Audit history** supports activity/date filters and named actor/subject filters, preserving context when following related records.
 
 Personal files are optional. Set `Features:files:Enabled=true` in the API configuration to enable the route and endpoints. The default starter hides Files, but retains storage services and cleanup so existing stored data is not destroyed or abandoned.
 
@@ -39,3 +39,9 @@ List requests are canceled when superseded or when the component is destroyed. R
 The initial performance baseline is 1,000+ accounts, not a claim of 1,000 concurrent users. Validate realistic traffic and query plans before adding indexes, caching, push delivery or background export jobs. Authenticated responses remain uncached. Production Nginx compresses static text and gives hashed JS/CSS a long cache lifetime; index/runtime configuration must stay fresh.
 
 For changes, complete documentation, formatting/lint, manifest checks and builds before running tests. Access/session/persistence behavior needs real PostgreSQL integration tests. E2E tests require explicit authorization before execution. Include both roles, cultures, themes, narrow viewports, failed saves and version conflicts in the browser review. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+
+Account security is available at `/administration/users?section=security` with `settings.manage` permission, including for operators without directory or role access. It contains the MFA policy and public-registration controls and preserves version-conflict and unsaved-draft handling. The standalone `/settings` page and navigation entry are removed without a redirect. Extend the shared people navigation and permission-aware section selection when adding tabs.
+
+Administration is one permission-filtered rail destination with a shield-cog icon. It opens the existing resizable label panel containing **User Management** (`/administration/users`), **Privacy Requests** (`/administration/privacy-requests`), **Audit History** (`/administration/audit-history`) and **System Health** (`/administration/system-health`), in that order. The panel shows this group on administration routes; mobile includes it in the navigation sheet. The parent route opens the first permitted, enabled child. Nested user details remain under `/administration/users/:id`. Old top-level URLs redirect to their canonical routes, preserving query state and existing notification links. System Health replaces the Operations page name; API paths, module identifiers and audit event contracts retain `operations`.
+
+Extend `core/administration.ts` and the guarded child routes together for new administration pages. Navigation and the parent landing route share the permission/module-filtered list; endpoint and route guards remain authoritative. Keep localized breadcrumbs, active rail state, named links and panel expanded state consistent for direct visits and browser history.

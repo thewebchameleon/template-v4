@@ -20,6 +20,7 @@ import { PeopleNav } from '../shared/people-nav';
 import { InvitationDrawer } from './invite-user';
 import { InvitationsPanel } from './invitations';
 import { RolesPanel } from './roles';
+import { AccountSecurityPanel } from './account-security';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
 import { I18n } from '../core/i18n';
@@ -36,6 +37,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     InvitationDrawer,
     InvitationsPanel,
     RolesPanel,
+    AccountSecurityPanel,
     UserDetailPage,
   ],
   providers: [workspaceIcons],
@@ -231,6 +233,8 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
       </hlm-drawer>
     } @else if (section() === 'invitations') {
       <app-invitations-panel />
+    } @else if (section() === 'security') {
+      <app-account-security-panel />
     } @else {
       <app-roles-panel />
     }`,
@@ -257,6 +261,7 @@ export class UsersPage {
   private readonly invitationDrawer = viewChild(InvitationDrawer);
   private readonly invitationsPanel = viewChild(InvitationsPanel);
   private readonly rolesPanel = viewChild(RolesPanel);
+  private readonly securityPanel = viewChild(AccountSecurityPanel);
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
@@ -294,11 +299,17 @@ export class UsersPage {
     const requested = this.query.text('section');
     if (requested === 'invitations' && this.auth.has('users.manage')) return 'invitations';
     if (requested === 'roles' && this.auth.has('roles.manage')) return 'roles';
+    if (requested === 'security' && this.auth.has('settings.manage')) return 'security';
     if (this.auth.has('users.read')) return 'users';
-    return 'roles';
+    if (this.auth.has('roles.manage')) return 'roles';
+    return 'security';
   }
   async setSection(section: string) {
-    if (!['users', 'invitations', 'roles'].includes(section) || section === this.section()) return;
+    if (
+      !['users', 'invitations', 'roles', 'security'].includes(section) ||
+      section === this.section()
+    )
+      return;
     if (
       this.hasUnsavedChanges() &&
       !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
@@ -373,7 +384,9 @@ export class UsersPage {
       (this.detailEditor()?.hasUnsavedChanges() ?? false) ||
       this.detailsBusy() ||
       (this.invitationsPanel()?.hasUnsavedChanges() ?? false) ||
-      (this.rolesPanel()?.hasUnsavedChanges() ?? false)
+      (this.rolesPanel()?.hasUnsavedChanges() ?? false) ||
+      (this.securityPanel()?.hasUnsavedChanges() ?? false) ||
+      (this.securityPanel()?.busy() ?? false)
     );
   }
   openDetails(user: UserDto) {

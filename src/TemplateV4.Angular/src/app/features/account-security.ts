@@ -1,4 +1,3 @@
-import { protectUnload } from '../shared/confirmation';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -15,10 +14,8 @@ import { Runtime } from '../core/runtime';
 import { I18n, Translate } from '../core/i18n';
 import { SecuritySettings } from '../api/models/security-settings';
 import { Notifications } from '../core/notifications';
-import { PageHeader } from '../shared/workspace';
 @Component({
-  selector: 'app-settings',
-  host: { '(window:beforeunload)': 'beforeUnload($event)' },
+  selector: 'app-account-security-panel',
   imports: [
     FormsModule,
     HlmButtonImports,
@@ -29,14 +26,8 @@ import { PageHeader } from '../shared/workspace';
     HlmAlertImports,
     HlmSpinnerImports,
     Translate,
-    PageHeader,
   ],
   template: `
-    <app-page-header
-      eyebrow="administration"
-      title="adminSettings"
-      description="adminSettingsIntro"
-    />
     <section hlmCard class="max-w-(--form-content-width)">
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'security' | t }}</h2>
@@ -113,10 +104,7 @@ import { PageHeader } from '../shared/workspace';
     </section>
   `,
 })
-export class SettingsPage {
-  beforeUnload(event: BeforeUnloadEvent) {
-    protectUnload(event, this.hasUnsavedChanges());
-  }
+export class AccountSecurityPanel {
   hasUnsavedChanges() {
     const saved = this.settings();
     return (

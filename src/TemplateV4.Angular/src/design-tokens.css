@@ -13,6 +13,8 @@
   --app-header-height: 4rem;
   --app-content-width: 80rem;
   --app-content-padding: calc(var(--spacing) * 6);
+  --app-content-enter-distance: 2rem;
+  --app-content-enter-duration: 500ms;
   --app-section-gap: calc(var(--spacing) * 6);
   --panel-radius: 1.25rem;
   --panel-content-radius: 0.875rem;
@@ -52,6 +54,36 @@
     max-width: var(--app-content-width);
     margin-inline: auto;
     padding: var(--app-content-padding);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion='reduced']) .app-content {
+      animation: app-content-enter var(--app-content-enter-duration)
+        cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    /* Alternating names replay the entrance without remounting routed content. */
+    :root:not([data-motion='reduced']) .app-content-enter-alternate {
+      animation-name: app-content-enter-alternate;
+    }
+  }
+  @keyframes app-content-enter {
+    from {
+      opacity: 0;
+      transform: translateY(var(--app-content-enter-distance));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes app-content-enter-alternate {
+    from {
+      opacity: 0;
+      transform: translateY(var(--app-content-enter-distance));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
   .header-separator {
     height: calc(var(--spacing) * 4);

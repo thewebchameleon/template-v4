@@ -112,7 +112,7 @@ export const adminDictionary: Record<string, [string, string]> = {
   'permissionGroup.users': ['People', 'Mense'],
   'permissionGroup.roles': ['Access management', 'Toegangsbestuur'],
   'permissionGroup.settings': ['Administration', 'Administrasie'],
-  'permissionGroup.jobs': ['Operations', 'Bedrywighede'],
+  'permissionGroup.jobs': ['System Health', 'Stelselgesondheid'],
   'permission.users.read': ['View users', 'Bekyk gebruikers'],
   'permission.users.manage': ['Manage users', 'Bestuur gebruikers'],
   'permission.roles.manage': ['Manage roles and permissions', 'Bestuur rolle en toestemmings'],

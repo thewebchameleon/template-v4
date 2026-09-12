@@ -58,13 +58,13 @@ for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await platform(page);
     for (const [path, title] of [
-      ['audit', 'Audit history'],
+      ['administration/audit-history', 'Audit History'],
       ['invitations', 'Invitations'],
-      ['operations', 'Operations'],
+      ['administration/system-health', 'System Health'],
       ['notifications', 'Notifications'],
       ['files', 'Files'],
       ['privacy', 'Privacy & data'],
-      ['privacy-requests', 'Privacy requests'],
+      ['administration/privacy-requests', 'Privacy Requests'],
     ]) {
       await page.goto('/' + path);
       await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();

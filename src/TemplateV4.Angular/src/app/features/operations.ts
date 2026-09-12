@@ -44,7 +44,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
 
   template: ` <app-page-header
       eyebrow="administration"
-      title="operations"
+      title="systemHealth"
       description="operationsIntro"
       ><button
         hlmBtn
@@ -236,7 +236,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
                   <a
                     hlmBtn
                     variant="outline"
-                    routerLink="/audit"
+                    routerLink="/administration/audit-history"
                     [queryParams]="{ action: 'operations' }"
                     >{{ 'viewAudit' | t }}<ng-icon name="lucideArrowUpRight"
                   /></a>

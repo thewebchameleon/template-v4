@@ -11,7 +11,7 @@
 
 - **Audit history** searches actions and dates and follows actor/subject links. It returns no trace headers or message payloads. Person detail pages link to that person's filtered history. Audit history requires `settings.manage`; the built-in Administrator receives it.
 - **Invitations** shows pending, expired, accepted and revoked state, onboarding progress, last queued time and resend cooldown. Last queued means the token was prepared, not a delivery receipt. Legacy timestamps remain unknown. Revocation invalidates links and disables the account; accepted accounts are managed through Users.
-- **Operations** shows pending/failed counts, oldest backlog age, active jobs, last maintenance and deployment version. Failed deliveries are replayed through the existing audited, CSRF-protected endpoint after explicit in-app confirmation. The view is a timestamped snapshot; Refresh reloads it.
+- **System Health** shows pending/failed counts, oldest backlog age, active jobs, last maintenance and deployment version. Failed deliveries are replayed through the existing audited, CSRF-protected endpoint after explicit in-app confirmation. The view is a timestamped snapshot; Refresh reloads it.
 - **Privacy requests** lets an administrator approve anonymisation or decline a pending request. The approval dialog describes the irreversible result. Users cannot process their own request; the last active administrator is protected. Withdrawal/review is serialized by an account advisory lock.
 
 ## Retention defaults
@@ -44,4 +44,4 @@ See [ADR 0015](adr/0015-platform-baseline-workflows.md) for transaction and prov
 
 ## Administration-focused starter
 
-[ADR 0016](adr/0016-administration-and-delegated-access.md) consolidates invitations under Users, moves email changes into Account, and places maintenance in Operations. Files are optional and disabled by default (`Features:files:Enabled`). Existing objects and retention cleanup remain intact. See [administration](administration.md).
+[ADR 0016](adr/0016-administration-and-delegated-access.md) consolidates invitations under Users, moves email changes into Account, and places maintenance in System Health. Files are optional and disabled by default (`Features:files:Enabled`). Existing objects and retention cleanup remain intact. See [administration](administration.md).

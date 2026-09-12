@@ -39,17 +39,7 @@ export class Auth {
   private csrf = '';
   private pending: Promise<boolean> | null = null;
   landing() {
-    return this.access()?.setupRequired
-      ? '/security'
-      : this.has('users.read')
-        ? '/users'
-        : this.has('roles.manage')
-          ? '/users?section=roles'
-          : this.has('settings.manage')
-            ? '/settings'
-            : this.has('jobs.trigger')
-              ? '/operations'
-              : '/me';
+    return this.access()?.setupRequired ? '/security' : '/dashboard';
   }
   has(permission: string) {
     return this.access()?.permissions.includes(permission) ?? false;

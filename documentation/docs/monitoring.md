@@ -14,7 +14,7 @@ The committed empty target list intentionally sends no probes to a guessed publi
 
 Worker samples bounded, payload-free gauges every thirty seconds using the existing `templatev4` Meter. Names are `platform.delivery.pending`, `platform.delivery.failed`, `platform.delivery.oldest_seconds`, `platform.jobs.active` and `platform.delivery.sample_timestamp_seconds`. Prometheus normalizes dots to underscores. Take the maximum across replicas for database-wide gauges; never sum duplicate snapshots. A timestamp detects stale collection instead of interpreting stale zeroes as success. The supplied collector handles metrics; route traces to your existing trace backend separately if required.
 
-The Operations page provides current counts, last maintenance, an explicit checked timestamp and deployment version. Set `DEPLOYMENT_VERSION` to a release or commit identifier. A healthy process is not proof of readiness or successful delivery.
+The System Health page provides current counts, last maintenance, an explicit checked timestamp and deployment version. Set `DEPLOYMENT_VERSION` to a release or commit identifier. A healthy process is not proof of readiness or successful delivery.
 
 The supplied collector accepts traces through a no-op exporter so the application's shared OTLP endpoint does not produce unsupported-service errors. Replace `nop` with your trace backend to retain traces; payload logging is never enabled.
 

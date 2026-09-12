@@ -6,6 +6,7 @@ async function mockApp(
   permissions = ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
   mfaConfigured = true,
   modules = { 'audit-history': true, operations: true },
+  setupRequired = false,
 ) {
   const access = {
     accessToken: 'test-access',
@@ -13,7 +14,7 @@ async function mockApp(
     culture: 'en-ZA',
     permissions,
     mfaConfigured,
-    setupRequired: false,
+    setupRequired,
   };
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -87,6 +88,61 @@ async function accessible(page: Page) {
   ).toEqual([]);
 }
 
+test('account submenu opens settings with the keyboard and keeps sign out in the header', async ({
+  page,
+}) => {
+  await mockApp(page);
+  await page.goto('/dashboard');
+  const trigger = page
+    .locator('[data-slot="sidebar-destination-rail"]')
+    .getByRole('button', { name: 'Manage your account', exact: true });
+  await expect(
+    page.locator('[data-slot=sidebar-destination-rail] a[href="/security"]'),
+  ).toHaveCount(0);
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  const menu = page
+    .locator('#sidebar-label-panel')
+    .getByRole('navigation', { name: 'Account', exact: true });
+  await expect(menu.locator('a, button')).toHaveText([
+    'Profile',
+    'Account security',
+    'Sessions',
+    'Notifications',
+    'Privacy & data',
+    'Accessibility',
+  ]);
+  for (const [label, path] of [
+    ['Profile', '/me'],
+    ['Account security', '/security'],
+    ['Sessions', '/security/sessions'],
+    ['Notifications', '/notifications'],
+    ['Privacy & data', '/privacy'],
+  ]) {
+    await expect(menu.getByRole('link', { name: label, exact: true })).toHaveAttribute(
+      'href',
+      path,
+    );
+  }
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await accessible(page);
+  await menu.getByRole('button', { name: 'Accessibility', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(menu).toBeVisible();
+  const drawer = page.getByRole('dialog', { name: 'Settings', exact: true });
+  await expect(drawer).toBeVisible();
+  await accessible(page);
+  await page.keyboard.press('Escape');
+  await expect(drawer).toBeHidden();
+  const signOut = page
+    .locator('.app-header')
+    .getByRole('button', { name: 'Sign out', exact: true });
+  await expect(signOut).toHaveClass(/\btext-destructive\b/);
+  await signOut.click();
+  await expect(page).toHaveURL(/\/login$/);
+});
+
 test('forgot password captures the recovery email in a dialog', async ({ page }) => {
   let recoveryEmail: string | undefined;
   await page.route('**/api/v1/**', async (route) => {
@@ -117,7 +173,7 @@ test('forgot password captures the recovery email in a dialog', async ({ page })
   expect(recoveryEmail).toBe('recover@example.test');
 });
 
-test('desktop sidebar exposes permission links, collapses, and signs out from account menu', async ({
+test('desktop sidebar exposes permission links, collapses, and signs out from the header', async ({
   page,
 }) => {
   await mockApp(page);
@@ -134,12 +190,15 @@ test('desktop sidebar exposes permission links, collapses, and signs out from ac
   await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
   await page.getByRole('button', { name: 'Toggle navigation', exact: true }).click();
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
-  await page.getByRole('button', { name: /Manage your account/ }).click();
-  await expect(page.getByRole('menuitem', { name: 'Account', exact: true })).toBeVisible();
-  await page.getByRole('menuitem', { name: 'Your sessions', exact: true }).click();
+  await expect(
+    page.locator('#sidebar-label-panel').getByRole('link', { name: 'Profile', exact: true }),
+  ).toBeVisible();
+  await page
+    .locator('#sidebar-label-panel')
+    .getByRole('link', { name: 'Sessions', exact: true })
+    .click();
   await expect(page).toHaveURL(/\/security\/sessions$/);
-  await page.getByRole('button', { name: /Manage your account/ }).click();
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click();
+  await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: 'Welcome back', exact: true })).toBeVisible();
 });
@@ -178,12 +237,14 @@ test('desktop rail stays fixed while the label panel resizes, persists and colla
   await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
   await expect.poll(panelWidth).toBe(0);
   await expect(panel).toHaveAttribute('inert', '');
-  await expect(destinations.getByRole('link', { name: 'Users', exact: true })).toBeVisible();
+  await expect(
+    destinations.getByRole('link', { name: 'Administration', exact: true }),
+  ).toBeVisible();
 
-  await destinations.getByRole('link', { name: 'Users', exact: true }).click();
+  await destinations.getByRole('link', { name: 'Administration', exact: true }).click();
   await expect(page).toHaveURL(/\/users$/);
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
-  await destinations.getByRole('link', { name: 'Users', exact: true }).click();
+  await destinations.getByRole('link', { name: 'Administration', exact: true }).click();
   await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
   await separator.dblclick();
   await expect.poll(panelWidth).toBeCloseTo(12, 1);
@@ -292,8 +353,9 @@ test('navigation shows sessions when MFA is not required', async ({ page }) => {
   await page.goto('/profile');
 
   await expect(page.getByRole('link', { name: 'Your sessions', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: /Manage your account/ }).click();
-  await expect(page.getByRole('menuitem', { name: 'Your sessions', exact: true })).toBeVisible();
+  await expect(
+    page.locator('#sidebar-label-panel').getByRole('link', { name: 'Sessions', exact: true }),
+  ).toBeVisible();
 });
 
 test('breadcrumbs name the current page and return through browser history', async ({ page }) => {
@@ -341,11 +403,11 @@ test('reader sidebar hides administration and mobile navigation closes after sel
 
 test('disabled modules hide destinations and reject direct navigation', async ({ page }) => {
   await mockApp(page, undefined, true, { 'audit-history': false, operations: false });
-  await page.goto('/users');
+  await page.goto('/administration/users');
   await expect(page.locator('main h1')).toBeVisible();
-  await expect(page.locator('a[href="/audit"]')).toHaveCount(0);
-  await expect(page.locator('a[href="/operations"]')).toHaveCount(0);
-  for (const path of ['/audit', '/operations']) {
+  await expect(page.locator('a[href="/administration/audit-history"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/administration/system-health"]')).toHaveCount(0);
+  for (const path of ['/administration/audit-history', '/administration/system-health']) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/me$/);
     await expect(page.locator('main h1')).toBeVisible();
@@ -356,7 +418,7 @@ test('disabled modules hide destinations and reject direct navigation', async ({
   await accessible(page);
 });
 
-for (const path of ['profile', 'users', 'sessions', 'settings']) {
+for (const path of ['dashboard', 'profile', 'users', 'sessions', 'settings']) {
   test(`${path} uses accessible Spartan components on desktop and mobile`, async ({ page }) => {
     await mockApp(page);
     await page.goto(`/${path}`);
@@ -370,3 +432,117 @@ for (const path of ['profile', 'users', 'sessions', 'settings']) {
     await accessible(page);
   });
 }
+
+for (const permissions of [
+  [],
+  ['users.read'],
+  ['roles.manage'],
+  ['settings.manage'],
+  ['jobs.trigger'],
+]) {
+  test(`dashboard is the signed-in landing page for ${permissions.join(',') || 'readers'}`, async ({
+    page,
+  }) => {
+    await mockApp(page, permissions);
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
+    await expect(page.getByText('Placeholder content', { exact: true })).toBeVisible();
+  });
+}
+
+test('dashboard rail collapses the panel across clicks, reloads and browser history', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await mockApp(page);
+  await page.goto('/dashboard');
+  const rail = page.getByRole('navigation', { name: 'Destinations', exact: true });
+  const dashboard = rail.getByRole('link', { name: 'Dashboard', exact: true });
+  const account = rail.getByRole('link', { name: 'Account', exact: true });
+  const panel = page.locator('#sidebar-label-panel');
+  await expect(rail.getByRole('link').first()).toHaveAttribute('href', '/dashboard');
+  await expect(dashboard).toHaveAttribute('aria-current', 'page');
+  await expect(dashboard).not.toHaveAttribute('aria-expanded');
+  await expect(panel).toHaveAttribute('inert', '');
+  await dashboard.focus();
+  await page.keyboard.press('Enter');
+  await expect(panel).toHaveAttribute('inert', '');
+  await page.keyboard.press('Control+b');
+  await expect(panel).toHaveAttribute('inert', '');
+  await expect(page.getByRole('separator', { name: 'Resize navigation' })).toHaveCount(0);
+  await account.click();
+  await expect(panel).not.toHaveAttribute('inert');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(panel).toHaveAttribute('inert', '');
+  await page.reload();
+  await expect(panel).toHaveAttribute('inert', '');
+  await page.goForward();
+  await expect(page).toHaveURL(/\/me$/);
+  await expect(panel).not.toHaveAttribute('inert');
+  await dashboard.click();
+  await expect(panel).toHaveAttribute('inert', '');
+  await page.evaluate(() => document.documentElement.classList.add('dark'));
+  await accessible(page);
+});
+
+test('dashboard is available through the mobile navigation sheet', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockApp(page, []);
+  await page.goto('/me');
+  const trigger = page.getByRole('button', { name: 'Toggle navigation', exact: true });
+  await trigger.click();
+  const sheet = page.getByRole('dialog', { name: 'Toggle navigation' });
+  await sheet.getByRole('link', { name: 'Dashboard', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(sheet).toBeHidden();
+  await trigger.click();
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole('link', { name: 'Account', exact: true }).click();
+  await expect(page).toHaveURL(/\/me$/);
+  await expect(sheet).toBeHidden();
+});
+
+test('dashboard retains required security setup and authentication guards', async ({ page }) => {
+  await mockApp(page, [], false, undefined, true);
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/security$/);
+  await expect(
+    page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Dashboard' }),
+  ).toHaveCount(0);
+  await page.route('**/api/v1/auth/refresh', (route) => route.fulfill({ status: 401 }));
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login\?returnUrl=%2Fdashboard$/);
+});
+
+test('administration groups destinations and retains active state on nested routes', async ({
+  page,
+}) => {
+  await mockApp(page);
+  await page.goto('/dashboard');
+  const rail = page.locator('[data-slot="sidebar-destination-rail"]');
+  const administration = rail.getByRole('link', { name: 'Administration', exact: true });
+  await administration.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(administration).toHaveAttribute('aria-expanded', 'true');
+  const menu = page
+    .locator('#sidebar-label-panel')
+    .getByRole('navigation', { name: 'Administration', exact: true });
+  await expect(menu.getByRole('link')).toHaveText([
+    'User Management',
+    'Privacy Requests',
+    'Audit History',
+    'System Health',
+  ]);
+  await expect(rail.getByRole('link', { name: 'System Health', exact: true })).toHaveCount(0);
+  await menu.getByRole('link', { name: 'System Health', exact: true }).click();
+  await expect(page).toHaveURL(/\/administration\/system-health$/);
+  await expect(administration).toHaveAttribute('data-active', 'true');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(administration).toHaveAttribute('data-active', 'true');
+  await page.goto('/users?section=security');
+  await expect(page).toHaveURL(/\/administration\/users\?section=security$/);
+});

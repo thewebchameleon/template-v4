@@ -3,6 +3,37 @@ import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
   ...workspaceDictionary,
   ...adminDictionary,
+  dashboard: ['Dashboard', 'Kontrolepaneel'],
+  dashboardIntro: [
+    'Your workspace at a glance. These placeholders are ready for your own data.',
+    'Jou werkruimte in een oogopslag. Hierdie plekhouers is gereed vir jou eie data.',
+  ],
+  dashboardPlaceholder: ['Placeholder content', 'Plekhouerinhoud'],
+  dashboardMetricPlaceholder: ['Metric placeholder', 'Metriekplekhouer'],
+  dashboardProjects: ['Projects', 'Projekte'],
+  dashboardInProgress: ['In progress', 'Aan die gang'],
+  dashboardCompleted: ['Completed', 'Voltooi'],
+  dashboardUpcoming: ['Upcoming', 'Komende'],
+  dashboardOverview: ['Activity overview', 'Aktiwiteitsoorsig'],
+  dashboardOverviewHelp: [
+    'A space for trends across your workspace.',
+    'Ruimte vir tendense in jou werkruimte.',
+  ],
+  dashboardChartPlaceholder: ['Chart placeholder', 'Grafiekplekhouer'],
+  dashboardChartHelp: [
+    'Your activity chart will appear here once data is connected.',
+    'Jou aktiwiteitsgrafiek sal hier verskyn sodra data gekoppel is.',
+  ],
+  dashboardRecentActivity: ['Recent activity', 'Onlangse aktiwiteit'],
+  dashboardRecentActivityHelp: [
+    'A space for the latest workspace updates.',
+    'Ruimte vir die jongste werkruimte-opdaterings.',
+  ],
+  dashboardActivityPlaceholder: ['Activity feed placeholder', 'Aktiwiteitsvoerplekhouer'],
+  dashboardActivityHelp: [
+    'Your recent updates will appear here once data is connected.',
+    'Jou onlangse opdaterings sal hier verskyn sodra data gekoppel is.',
+  ],
   accountNavigation: ['Account', 'Rekening'],
   appBrand: ['templatev4', 'templatev4'],
   signupTitle: ['Create an account', 'Skep ’n rekening'],
@@ -166,6 +197,9 @@ export const dictionary: Record<string, [string, string]> = {
   resendInvitation: ['Resend invitation', 'Stuur uitnodiging weer'],
   cancelInvitation: ['Cancel invitation', 'Kanselleer uitnodiging'],
   profile: ['My profile', 'My profiel'],
+  accountMenuProfile: ['Profile', 'Profiel'],
+  accountMenuSessions: ['Sessions', 'Sessies'],
+  accessibility: ['Accessibility', 'Toeganklikheid'],
   security: ['Account security', 'Rekeningsekuriteit'],
   securityHelp: [
     'Confirm your password before changing security settings.',
@@ -240,11 +274,6 @@ export const dictionary: Record<string, [string, string]> = {
     'Hierdie permanente beginrekening het nie ’n aflewerbare e-posadres nie. Wagwoord- en faktorherstel vereis die gedokumenteerde operateurherstelprosedure.',
   ],
   securitySaved: ['Security settings saved.', 'Sekuriteitsinstellings gestoor.'],
-  adminSettings: ['Admin settings', 'Administrateurinstellings'],
-  adminSettingsIntro: [
-    'Manage registration access and multi-factor authentication requirements.',
-    'Bestuur registrasietoegang en multifaktorstawingsvereistes.',
-  ],
   policyHelp: [
     'Policy changes apply immediately. Users who need a factor must complete setup before accessing protected pages.',
     'Beleidsveranderings geld onmiddellik. Gebruikers moet ’n faktor opstel voordat hulle beskermde bladsye kan gebruik.',

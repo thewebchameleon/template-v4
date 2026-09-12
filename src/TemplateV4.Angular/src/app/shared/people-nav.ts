@@ -7,7 +7,7 @@ import { Translate } from '../core/i18n';
   imports: [HlmTabsImports, Translate],
   template: `<nav class="mb-6" [attr.aria-label]="'people' | t">
     <hlm-tabs [tab]="section()" (tabActivated)="sectionChange.emit($event)">
-      <hlm-tabs-list>
+      <hlm-tabs-list class="flex-wrap">
         @if (auth.has('users.read')) {
           <button hlmTabsTrigger="users">{{ 'users' | t }}</button>
         }
@@ -16,6 +16,9 @@ import { Translate } from '../core/i18n';
         }
         @if (auth.has('roles.manage')) {
           <button hlmTabsTrigger="roles">{{ 'roles' | t }}</button>
+        }
+        @if (auth.has('settings.manage')) {
+          <button hlmTabsTrigger="security">{{ 'security' | t }}</button>
         }
       </hlm-tabs-list>
     </hlm-tabs>

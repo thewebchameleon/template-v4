@@ -266,9 +266,22 @@ export class NotificationDrawer {
   }
 
   detailsRoute(item: NotificationItem) {
-    if (!['/profile', '/security', '/privacy', '/operations', '/me'].includes(item.link))
+    if (
+      ![
+        '/profile',
+        '/security',
+        '/privacy',
+        '/operations',
+        '/administration/system-health',
+        '/me',
+      ].includes(item.link)
+    )
       return null;
-    return item.link === '/profile' ? '/security' : item.link;
+    return item.link === '/profile'
+      ? '/security'
+      : item.link === '/operations'
+        ? '/administration/system-health'
+        : item.link;
   }
 
   open(item: NotificationItem) {

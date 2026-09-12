@@ -230,7 +230,17 @@ export class InboxPage {
     }
   }
   async open(item: NotificationItem) {
-    if (!['/profile', '/security', '/privacy', '/operations', '/me'].includes(item.link)) return;
+    if (
+      ![
+        '/profile',
+        '/security',
+        '/privacy',
+        '/operations',
+        '/administration/system-health',
+        '/me',
+      ].includes(item.link)
+    )
+      return;
     const actor = this.auth.access()?.userId;
     if (!item.readAt) {
       void this.api
@@ -242,6 +252,12 @@ export class InboxPage {
           /* Request errors are already reported centrally. */
         });
     }
-    await this.router.navigateByUrl(item.link === '/profile' ? '/security' : item.link);
+    await this.router.navigateByUrl(
+      item.link === '/profile'
+        ? '/security'
+        : item.link === '/operations'
+          ? '/administration/system-health'
+          : item.link,
+    );
   }
 }

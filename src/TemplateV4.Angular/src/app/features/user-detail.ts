@@ -26,7 +26,7 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
         title="personDetails"
         description="personDetailsHelp"
         eyebrow="administration"
-        ><a hlmBtn variant="outline" routerLink="/users"
+        ><a hlmBtn variant="outline" routerLink="/administration/users"
           ><ng-icon name="lucideArrowLeft" />{{ 'users' | t }}</a
         ></app-page-header
       >
@@ -116,7 +116,7 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
                 <a
                   hlmBtn
                   variant="outline"
-                  routerLink="/audit"
+                  routerLink="/administration/audit-history"
                   [queryParams]="{
                     subjectId: detail.user.id,
                     subjectName: detail.user.displayName,
@@ -171,7 +171,8 @@ export class UserDetailPage implements OnInit {
       this.conflict.set(false);
       if (!this.embedded())
         this.breadcrumbs.set([
-          { label: 'users', link: '/users' },
+          { label: 'administration', link: '/administration' },
+          { label: 'userManagement', link: '/administration/users' },
           { label: value.user.displayName },
         ]);
     }

@@ -30,6 +30,7 @@ export class HlmSidebarService {
   private readonly _root = this._document.documentElement;
   private readonly _window = this._document.defaultView;
   private readonly _open = signal<boolean>(this._config.defaultOpen);
+  private readonly _panelAvailable = signal(true);
   private readonly _openMobile = signal(false);
   private readonly _isMobile = signal(false);
   private readonly _variant = signal<SidebarVariant>('sidebar');
@@ -42,7 +43,7 @@ export class HlmSidebarService {
   private _resizeOriginWidthRem = fallbackPanelWidthRem;
   private _resizeOriginOpen = true;
 
-  public readonly open: Signal<boolean> = this._open.asReadonly();
+  public readonly open: Signal<boolean> = computed(() => this._panelAvailable() && this._open());
   public readonly openMobile: Signal<boolean> = this._openMobile.asReadonly();
   public readonly isMobile: Signal<boolean> = this._isMobile.asReadonly();
   public readonly variant: Signal<SidebarVariant> = this._variant.asReadonly();
@@ -52,13 +53,13 @@ export class HlmSidebarService {
   public readonly railWidthRem: Signal<number> = this._railWidthRem.asReadonly();
   public readonly panelMaxWidthRem: Signal<number> = this._panelMaxWidthRem.asReadonly();
   public readonly panelWidthCss = computed(() =>
-    this._open() ? `${this._panelWidthRem()}rem` : '0rem',
+    this.open() ? `${this._panelWidthRem()}rem` : '0rem',
   );
   public readonly widthCss = computed(
-    () => `${this._railWidthRem() + (this._open() ? this._panelWidthRem() : 0)}rem`,
+    () => `${this._railWidthRem() + (this.open() ? this._panelWidthRem() : 0)}rem`,
   );
   public readonly state = computed<'expanded' | 'collapsed'>(() =>
-    this._open() ? 'expanded' : 'collapsed',
+    this.open() ? 'expanded' : 'collapsed',
   );
 
   constructor() {
@@ -138,13 +139,17 @@ export class HlmSidebarService {
     if (this._isMobile()) this._openMobile.set(open);
   }
 
+  public setPanelAvailable(available: boolean): void {
+    this._panelAvailable.set(available);
+  }
+
   public setVariant(variant: SidebarVariant): void {
     this._variant.set(variant);
   }
 
   public toggleSidebar(): void {
     if (this._isMobile()) this._openMobile.update((value) => !value);
-    else this.setOpen(!this._open());
+    else if (this._panelAvailable()) this.setOpen(!this._open());
   }
 
   public openPanel(): void {
