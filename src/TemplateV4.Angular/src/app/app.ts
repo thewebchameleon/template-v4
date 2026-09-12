@@ -11,6 +11,7 @@ import {
   lucideUsersRound,
   lucideSettings,
   lucideSettings2,
+  lucidePaintbrush,
   lucideMonitor,
   lucideLogOut,
   lucideBell,
@@ -19,7 +20,6 @@ import {
   lucideMail,
   lucideActivity,
   lucideShieldCheck,
-  lucideShieldCog,
   lucideMoveHorizontal,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -68,6 +68,7 @@ import { NotificationDrawer } from './features/notification-drawer';
       lucideUsersRound,
       lucideSettings,
       lucideSettings2,
+      lucidePaintbrush,
       lucideMonitor,
       lucideLogOut,
       lucideBell,
@@ -76,7 +77,6 @@ import { NotificationDrawer } from './features/notification-drawer';
       lucideMail,
       lucideActivity,
       lucideShieldCheck,
-      lucideShieldCog,
       lucideMoveHorizontal,
     }),
   ],
@@ -113,26 +113,40 @@ import { NotificationDrawer } from './features/notification-drawer';
                     <span class="sidebar-rail-indicator" aria-hidden="true"></span>
                   }
                   @for (item of railLinks(); track item.path) {
-                    <a
-                      hlmBtn
-                      variant="ghost"
-                      size="icon"
-                      [routerLink]="item.path"
-                      routerLinkActive
-                      #railActive="routerLinkActive"
-                      ariaCurrentWhenActive="page"
-                      [attr.data-active]="railActive.isActive"
-                      [attr.aria-expanded]="
-                        item.hasPanel ? railActive.isActive && sidebar.open() : null
-                      "
-                      [attr.aria-controls]="item.hasPanel ? 'sidebar-label-panel' : null"
-                      [attr.aria-label]="item.label | t"
-                      [hlmTooltip]="item.label | t"
-                      position="right"
-                      (click)="selectRailDestination($event, railActive.isActive, item.hasPanel)"
-                    >
-                      <ng-icon [name]="item.icon" size="1.5rem" />
-                    </a>
+                    @if (item.hasPanel) {
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        [attr.data-active]="railPanelActive(item.path)"
+                        [attr.aria-expanded]="railPanelActive(item.path) && sidebar.open()"
+                        aria-controls="sidebar-label-panel"
+                        [attr.aria-label]="item.label | t"
+                        [hlmTooltip]="item.label | t"
+                        position="right"
+                        (click)="selectRailPanel(item.path)"
+                      >
+                        <ng-icon [name]="item.icon" size="1.5rem" />
+                      </button>
+                    } @else {
+                      <a
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        [routerLink]="item.path"
+                        routerLinkActive
+                        #railActive="routerLinkActive"
+                        ariaCurrentWhenActive="page"
+                        [attr.data-active]="railActive.isActive"
+                        [attr.aria-label]="item.label | t"
+                        [hlmTooltip]="item.label | t"
+                        position="right"
+                        (click)="selectRailDestination($event)"
+                      >
+                        <ng-icon [name]="item.icon" size="1.5rem" />
+                      </a>
+                    }
                   }
                 </div>
               </nav>
@@ -197,7 +211,11 @@ import { NotificationDrawer } from './features/notification-drawer';
                 </nav>
               }
               @if (sidebar.isMobile() || accountPanelActive()) {
-                <nav hlmSidebarGroup [attr.aria-label]="'accountNavigation' | t">
+                <nav
+                  hlmSidebarGroup
+                  class="sidebar-submenu"
+                  [attr.aria-label]="'accountNavigation' | t"
+                >
                   <div hlmSidebarGroupLabel>{{ 'accountNavigation' | t }}</div>
                   <ul hlmSidebarMenu>
                     @for (item of accountMenuLinks(); track item.path) {
@@ -222,9 +240,9 @@ import { NotificationDrawer } from './features/notification-drawer';
                       </li>
                     }
                     <li hlmSidebarMenuItem>
-                      <button hlmSidebarMenuButton type="button" (click)="openAccountSettings()">
+                      <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
                         <ng-icon name="lucideSettings2" aria-hidden="true" /><span>{{
-                          'accessibility' | t
+                          'themeAccessibility' | t
                         }}</span>
                       </button>
                     </li>
@@ -232,10 +250,13 @@ import { NotificationDrawer } from './features/notification-drawer';
                 </nav>
               }
               @if (
-                availableAdminLinks().length &&
-                (sidebar.isMobile() || (!accountPanelActive() && administrationActive()))
+                availableAdminLinks().length && (sidebar.isMobile() || administrationPanelActive())
               ) {
-                <nav hlmSidebarGroup [attr.aria-label]="'administration' | t">
+                <nav
+                  hlmSidebarGroup
+                  class="sidebar-submenu"
+                  [attr.aria-label]="'administration' | t"
+                >
                   <div hlmSidebarGroupLabel>{{ 'administration' | t }}</div>
                   <ul hlmSidebarMenu>
                     @for (item of availableAdminLinks(); track item.path) {
@@ -294,22 +315,24 @@ import { NotificationDrawer } from './features/notification-drawer';
             }
             <hlm-drawer
               direction="right"
-              [state]="settingsOpen() ? 'open' : 'closed'"
-              (stateChanged)="settingsOpen.set($event === 'open')"
+              [state]="themeDrawerOpen() ? 'open' : 'closed'"
+              (stateChanged)="themeDrawerOpen.set($event === 'open')"
             >
               <button
                 hlmBtn
                 hlmDrawerTrigger
                 size="icon"
                 variant="ghost"
-                [attr.aria-label]="'openSettings' | t"
+                [attr.aria-label]="'openThemeDrawer' | t"
+                [hlmTooltip]="'themeDrawer' | t"
+                position="bottom"
               >
-                <ng-icon name="lucideSettings" />
+                <ng-icon name="lucidePaintbrush" />
               </button>
               <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
                 <hlm-drawer-header>
-                  <h2 hlmDrawerTitle>{{ 'settings' | t }}</h2>
-                  <p hlmDrawerDescription>{{ 'settingsDescription' | t }}</p>
+                  <h2 hlmDrawerTitle>{{ 'themeDrawer' | t }}</h2>
+                  <p hlmDrawerDescription>{{ 'themeDrawerDescription' | t }}</p>
                 </hlm-drawer-header>
                 <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
                   <app-preferences #preferences [expanded]="true" />
@@ -353,7 +376,7 @@ import { NotificationDrawer } from './features/notification-drawer';
   `,
 })
 export class App {
-  readonly settingsOpen = signal(false);
+  readonly themeDrawerOpen = signal(false);
   readonly accountMenuLinks = computed(() =>
     [
       { path: '/me', label: 'accountMenuProfile', icon: 'lucideUserRound', requiresMfa: true },
@@ -374,10 +397,10 @@ export class App {
     ].filter((item) => !item.requiresMfa || !this.auth.access()?.setupRequired),
   );
 
-  openAccountSettings(): void {
+  openThemeDrawer(): void {
     this.sidebar.setOpenMobile(false);
     // Let the mobile sheet restore focus before opening the drawer focus trap.
-    setTimeout(() => this.settingsOpen.set(true));
+    setTimeout(() => this.themeDrawerOpen.set(true));
   }
 
   readonly features = inject(Features);
@@ -397,30 +420,28 @@ export class App {
     icon: 'lucideLayoutDashboard',
     requiresMfa: true,
   };
-  readonly accountPanelSelected = signal(false);
+  readonly selectedPanel = signal<string | null>(null);
   readonly accountPanelActive = computed(() => {
     this.navigationEnd();
+    const selectedPanel = this.selectedPanel();
     return (
-      this.accountPanelSelected() ||
-      this.accountMenuLinks().some((item) =>
-        this.router.isActive(item.path, {
-          paths: 'subset',
-          queryParams: 'ignored',
-          matrixParams: 'ignored',
-          fragment: 'ignored',
-        }),
-      )
+      selectedPanel === 'account' ||
+      (selectedPanel === null &&
+        this.accountMenuLinks().some((item) =>
+          this.router.isActive(item.path, {
+            paths: 'subset',
+            queryParams: 'ignored',
+            matrixParams: 'ignored',
+            fragment: 'ignored',
+          }),
+        ))
     );
   });
 
   selectAccountPanel(): void {
-    if (this.accountPanelActive()) {
-      this.sidebar.toggleSidebar();
-    } else {
-      this.accountPanelSelected.set(true);
-      this.sidebar.setPanelAvailable(true);
-      this.sidebar.openPanel();
-    }
+    this.selectedPanel.set('account');
+    this.sidebar.setPanelAvailable(true);
+    this.sidebar.openPanel();
   }
   private readonly administration = inject(AdministrationNavigation);
   readonly availableAdminLinks = this.administration.links;
@@ -435,6 +456,12 @@ export class App {
       fragment: 'ignored',
     });
   });
+  readonly administrationPanelActive = computed(() => {
+    const selectedPanel = this.selectedPanel();
+    return (
+      selectedPanel === '/administration' || (selectedPanel === null && this.administrationActive())
+    );
+  });
   readonly railLinks = computed(() => [
     ...(!this.auth.access()?.setupRequired ? [{ ...this.dashboardLink, hasPanel: false }] : []),
     ...(!this.auth.access()?.setupRequired && this.features.enabled('files')
@@ -445,7 +472,7 @@ export class App {
           {
             path: '/administration',
             label: 'administration',
-            icon: 'lucideShieldCog',
+            icon: 'lucideSettings',
             hasPanel: true,
           },
         ]
@@ -454,6 +481,8 @@ export class App {
   readonly activeRailIndex = computed(() => {
     this.navigationEnd();
     if (this.accountPanelActive()) return -1;
+    const selectedPanel = this.selectedPanel();
+    if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
     return this.railLinks().findIndex((item) =>
       this.router.isActive(item.path, {
         paths: 'subset',
@@ -465,19 +494,45 @@ export class App {
   });
 
   readonly hasSecondaryNavigation = computed(
-    () => this.accountPanelActive() || this.administrationActive(),
+    () => this.accountPanelActive() || this.administrationPanelActive(),
   );
 
-  selectRailDestination(event: MouseEvent, active: boolean, hasPanel: boolean): void {
+  railPanelActive(path: string): boolean {
+    this.navigationEnd();
+    const selectedPanel = this.selectedPanel();
+    return (
+      selectedPanel === path ||
+      (selectedPanel === null &&
+        this.router.isActive(path, {
+          paths: 'subset',
+          queryParams: 'ignored',
+          matrixParams: 'ignored',
+          fragment: 'ignored',
+        }))
+    );
+  }
+
+  private routeDestination(path: string): string {
+    if (
+      this.accountMenuLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`))
+    )
+      return 'account';
+    return (
+      this.railLinks().find((item) => path === item.path || path.startsWith(`${item.path}/`))
+        ?.path ?? path
+    );
+  }
+
+  selectRailPanel(path: string): void {
+    this.selectedPanel.set(path);
+    this.sidebar.setPanelAvailable(true);
+    this.sidebar.openPanel();
+  }
+
+  selectRailDestination(event: MouseEvent): void {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
       return;
-    this.accountPanelSelected.set(false);
-    if (active) {
-      event.preventDefault();
-      if (hasPanel) this.sidebar.toggleSidebar();
-    } else if (hasPanel) {
-      this.sidebar.openPanel();
-    }
+    this.selectedPanel.set(null);
   }
   constructor() {
     effect(() => this.sidebar.setPanelAvailable(this.hasSecondaryNavigation()));
@@ -496,11 +551,14 @@ export class App {
     });
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationEnd) {
+        if (actor()) void this.features.load();
         const path = event.urlAfterRedirects.split(/[?#]/)[0];
         if (path !== this.previousPath) {
-          this.accountPanelSelected.set(false);
+          this.selectedPanel.set(null);
           if (this.previousPath === '/dashboard' && path !== '/dashboard') this.sidebar.openPanel();
-          this.alternatePageEntrance.update((alternate) => !alternate);
+          if (this.routeDestination(path) !== this.routeDestination(this.previousPath)) {
+            this.alternatePageEntrance.update((alternate) => !alternate);
+          }
           setTimeout(() => document.getElementById('main')?.focus());
         }
         this.previousPath = path;

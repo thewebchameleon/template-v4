@@ -15,6 +15,7 @@ export interface ListFiles$Params {
   search?: string;
   sort?: string;
   direction?: string;
+  parentId?: string;
 }
 
 export function listFiles(http: HttpClient, rootUrl: string, params?: ListFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
@@ -25,6 +26,7 @@ export function listFiles(http: HttpClient, rootUrl: string, params?: ListFiles$
     rb.query('search', params.search, {});
     rb.query('sort', params.sort, {});
     rb.query('direction', params.direction, {});
+    rb.query('parentId', params.parentId, {});
   }
 
   return http.request(

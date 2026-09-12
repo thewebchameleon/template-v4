@@ -110,7 +110,7 @@ test('account submenu opens settings with the keyboard and keeps sign out in the
     'Sessions',
     'Notifications',
     'Privacy & data',
-    'Accessibility',
+    'Theme & Accessibility',
   ]);
   for (const [label, path] of [
     ['Profile', '/me'],
@@ -127,10 +127,13 @@ test('account submenu opens settings with the keyboard and keeps sign out in the
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('menu')).toHaveCount(0);
   await accessible(page);
-  await menu.getByRole('button', { name: 'Accessibility', exact: true }).focus();
+  await menu.getByRole('button', { name: 'Theme & Accessibility', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(menu).toBeVisible();
-  const drawer = page.getByRole('dialog', { name: 'Settings', exact: true });
+  const drawer = page.getByRole('dialog', {
+    name: 'Theme & Accessibility Settings',
+    exact: true,
+  });
   await expect(drawer).toBeVisible();
   await accessible(page);
   await page.keyboard.press('Escape');
@@ -298,8 +301,8 @@ test('settings reset restores every display preference and the sidebar default',
 
   const rail = page.getByRole('separator', { name: 'Resize navigation' });
   await rail.press('End');
-  await page.getByRole('button', { name: 'Open settings' }).click();
-  const drawer = page.getByRole('dialog', { name: 'Settings' });
+  await page.getByRole('button', { name: 'Open theme' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Theme & Accessibility Settings' });
   await drawer.getByRole('button', { name: 'Dark', exact: true }).click();
   await drawer.getByRole('combobox', { name: 'Language', exact: true }).click();
   await page.getByRole('option', { name: 'Afrikaans', exact: true }).click();
@@ -522,20 +525,28 @@ test('administration groups destinations and retains active state on nested rout
   await mockApp(page);
   await page.goto('/dashboard');
   const rail = page.locator('[data-slot="sidebar-destination-rail"]');
-  const administration = rail.getByRole('link', { name: 'Administration', exact: true });
+  const administration = rail.getByRole('button', { name: 'Administration', exact: true });
+  const account = rail.getByRole('button', { name: 'Account', exact: true });
+  const panel = page.locator('#sidebar-label-panel');
   await administration.focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(administration).toHaveAttribute('aria-expanded', 'true');
-  const menu = page
-    .locator('#sidebar-label-panel')
-    .getByRole('navigation', { name: 'Administration', exact: true });
+  const menu = panel.getByRole('navigation', { name: 'Administration', exact: true });
   await expect(menu.getByRole('link')).toHaveText([
     'User Management',
     'Privacy Requests',
     'Audit History',
     'System Health',
   ]);
+  await administration.click();
+  await expect(panel).not.toHaveAttribute('inert');
+  await account.click();
+  await expect(panel.getByRole('navigation', { name: 'Account', exact: true })).toBeVisible();
+  await administration.click();
+  await expect(menu).toBeVisible();
+  await expect(panel).not.toHaveAttribute('inert');
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(rail.getByRole('link', { name: 'System Health', exact: true })).toHaveCount(0);
   await menu.getByRole('link', { name: 'System Health', exact: true }).click();
   await expect(page).toHaveURL(/\/administration\/system-health$/);

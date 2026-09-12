@@ -13,7 +13,7 @@ const badgeVariants = cva(
         destructive:
           'bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20',
         notification:
-          'size-5 rounded-full bg-[var(--notification-badge)] p-0 text-[var(--notification-badge-foreground)]',
+          'h-auto min-h-[1.667em] min-w-[1.667em] rounded-full bg-[var(--notification-badge)] px-[0.333em] py-[0.25em] leading-none tabular-nums text-[var(--notification-badge-foreground)]',
         outline: 'border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground',
         ghost: 'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
         link: 'text-primary underline-offset-4 hover:underline',

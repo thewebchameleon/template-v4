@@ -41,16 +41,13 @@ import { Notifications } from '../core/notifications';
       >
         <fieldset hlmFieldSet>
           <legend hlmFieldLegend>{{ 'mfaPolicy' | t }}</legend>
-          <hlm-tabs [tab]="policy" (tabActivated)="policy = $event">
+          <hlm-tabs
+            [tab]="requireEveryone ? 'Everyone' : 'Optional'"
+            (tabActivated)="requireEveryone = $event === 'Everyone'"
+          >
             <hlm-tabs-list [attr.aria-label]="'mfaPolicy' | t" class="flex-wrap">
               <button hlmTabsTrigger="Optional" [disabled]="busy() || settingsState() !== 'ready'">
                 {{ 'policyOptional' | t }}
-              </button>
-              <button
-                hlmTabsTrigger="Administrators"
-                [disabled]="busy() || settingsState() !== 'ready'"
-              >
-                {{ 'policyAdministrators' | t }}
               </button>
               <button hlmTabsTrigger="Everyone" [disabled]="busy() || settingsState() !== 'ready'">
                 {{ 'policyEveryone' | t }}
@@ -60,8 +57,31 @@ import { Notifications } from '../core/notifications';
         </fieldset>
         <label
           hlmFieldLabel
+          for="administrators-mfa-required"
+          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+        >
+          <div hlmField orientation="horizontal">
+            <hlm-switch
+              inputId="administrators-mfa-required"
+              name="administratorsMfaRequired"
+              aria-describedby="administrators-mfa-help"
+              [ngModel]="requireEveryone || requireAdministrators"
+              (ngModelChange)="requireAdministrators = $event"
+              [disabled]="busy() || settingsState() !== 'ready' || requireEveryone"
+              class="self-center"
+            />
+            <div hlmFieldContent>
+              <span hlmFieldTitle>{{ 'policyAdministrators' | t }}</span>
+              <p hlmFieldDescription id="administrators-mfa-help">
+                {{ 'policyAdministratorsHelp' | t }}
+              </p>
+            </div>
+          </div>
+        </label>
+        <label
+          hlmFieldLabel
           for="registration-enabled"
-          class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
+          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
         >
           <div hlmField orientation="horizontal">
             <hlm-switch
@@ -121,7 +141,19 @@ export class AccountSecurityPanel {
   readonly settingsConflict = signal(false);
   readonly busy = signal(false);
   private readonly notifications = inject(Notifications);
-  policy = 'Administrators';
+  requireEveryone = false;
+  requireAdministrators = true;
+  get policy(): string {
+    return this.requireEveryone
+      ? 'Everyone'
+      : this.requireAdministrators
+        ? 'Administrators'
+        : 'Optional';
+  }
+  set policy(value: string) {
+    this.requireEveryone = value === 'Everyone';
+    this.requireAdministrators = value !== 'Optional';
+  }
   registrationEnabled = false;
   constructor() {
     void this.load();

@@ -18,7 +18,7 @@ export type SidebarVariant = 'sidebar' | 'floating' | 'inset';
 const panelWidthStorageKey = 'templatev4-sidebar-panel-width';
 const panelOpenStorageKey = 'templatev4-sidebar-panel-open';
 const fallbackRailWidthRem = 4;
-const fallbackPanelWidthRem = 12;
+const fallbackPanelWidthRem = 16;
 const fallbackPanelMaxWidthRem = 20;
 
 @Injectable({ providedIn: 'root' })

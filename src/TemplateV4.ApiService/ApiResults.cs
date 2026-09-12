@@ -36,6 +36,13 @@ public static class ApiResults
 
         {
 
+            "modules.conflict" => af ? "Module-instellings het verander. Herlaai die gestoorde instellings en probeer weer." : "Module settings changed. Reload the saved settings and try again.",
+            "modules.unavailable" => af ? "Hierdie module is nie in hierdie ontplooiing beskikbaar nie." : "This module is unavailable in this deployment.",
+            "modules.unknown" => af ? "Kies 'n ondersteunde module." : "Choose a supported module.",
+            "appearance.conflict" => af ? "Konfigurasie het verander. Herlaai die gestoorde instellings en probeer weer." : "Configuration changed. Reload the saved settings and try again.",
+            "files.invalid_name" => af ? "Gebruik 'n naam van 1–180 karakters sonder skuinsstrepe of beheertekens." : "Use a name of 1–180 characters without slashes or control characters.",
+            "files.folder_not_empty" => af ? "Verwyder eers die inhoud van hierdie vouer." : "Delete the contents of this folder first.",
+            "files.settings_conflict" => af ? "Berginginstellings het verander. Herlaai en probeer weer." : "Storage settings changed. Reload and try again.",
             "files.invalid_type" => af ? "Kies ’n ondersteunde lêer waarvan die inhoud by die lêertipe pas." : "Choose a supported file whose content matches its file type.",
 
             "files.too_large" => af ? "Lêers mag nie groter as 20 MB wees nie." : "Files must be 20 MB or smaller.",

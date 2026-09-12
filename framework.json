@@ -73,11 +73,13 @@
     "email": "SMTP",
     "storage": "S3-compatible / SeaweedFS; local flat-key filesystem fallback",
     "featureFlags": "configuration",
+    "runtimeModules": "Administrator-only application-wide module activation in PostgreSQL; Files enabled by default, deployment and feature restrictions remain authoritative",
     "apiClient": "ng-openapi-gen",
     "documentation": "DocMD",
     "ui": "Spartan NG",
     "access": "Identity roles with protected built-ins and delegated permissions",
-    "personalFiles": "Optional; Features:files:Enabled defaults to false"
+    "configuration": "Administrator-only platform settings; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding and accessible light/dark palettes",
+    "personalFiles": "Enabled by default; folders, owner/admin downloads, database-managed 100 MiB default and per-user quota overrides"
   },
   "cultures": {
     "default": "en-ZA",

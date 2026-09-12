@@ -1,4 +1,5 @@
 using TemplateV4.Application;
+using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 
 namespace TemplateV4.ApiService.Endpoints;
@@ -12,8 +13,8 @@ public static class PlatformEndpoints
                     ? Results.NotFound()
                     : (await dispatcher.Send(new(context.Request.Headers["Idempotency-Key"].FirstOrDefault()), ct)).ToHttp())
             .RequireAuthorization(Permissions.Jobs).WithName("TriggerMaintenance");
-        group.MapGet("/features", (IFeatureFlags flags, IExecutionContext context) =>
-                Results.Ok(new { maintenance = flags.Enabled("maintenance", context), files = flags.Enabled("files", context) }))
+        group.MapGet("/features", async (IFeatureFlags flags, IExecutionContext context, IRuntimeModules modules, CancellationToken ct) =>
+                Results.Ok(new { maintenance = flags.Enabled("maintenance", context), files = flags.Enabled("files", context) && await modules.Enabled("files", ct) }))
             .WithName("GetFeatures");
 
         return group;

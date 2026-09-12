@@ -1,6 +1,10 @@
 import { adminDictionary } from './admin-translations';
+import { moduleDictionary } from './module-translations';
+import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  ...moduleDictionary,
+  ...configurationDictionary,
   ...workspaceDictionary,
   ...adminDictionary,
   dashboard: ['Dashboard', 'Kontrolepaneel'],
@@ -70,8 +74,8 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   registrationEnabled: ['Allow public registration', 'Laat openbare registrasie toe'],
   registrationHelp: [
-    'New users must verify their email and receive Reader access. Registration is disabled by default.',
-    'Nuwe gebruikers moet hul e-pos verifieer en ontvang Leser-toegang. Registrasie is by verstek gedeaktiveer.',
+    'Let people create an account without an invitation. They verify their email and start with Reader access.',
+    'Laat mense sonder ’n uitnodiging ’n rekening skep. Hulle verifieer hul e-pos en begin met Leser-toegang.',
   ],
 
   workspace: ['Workspace', 'Werkruimte'],
@@ -91,9 +95,10 @@ export const dictionary: Record<string, [string, string]> = {
   backTo: ['Back to', 'Terug na'],
   dismissError: ['Dismiss error', 'Maak fout toe'],
   theme: ['Appearance', 'Voorkoms'],
-  settings: ['Settings', 'Instellings'],
-  openSettings: ['Open settings', 'Maak instellings oop'],
-  settingsDescription: [
+  themeAccessibility: ['Theme & Accessibility', 'Tema en toeganklikheid'],
+  themeDrawer: ['Theme & Accessibility Settings', 'Tema- en toeganklikheidsinstellings'],
+  openThemeDrawer: ['Open theme', 'Maak tema oop'],
+  themeDrawerDescription: [
     'Personalise how the application looks and feels on this device.',
     'Verpersoonlik hoe die toepassing op hierdie toestel lyk en voel.',
   ],
@@ -281,6 +286,10 @@ export const dictionary: Record<string, [string, string]> = {
   mfaPolicy: ['MFA policy', 'MFA-beleid'],
   policyOptional: ['Optional for everyone', 'Opsioneel vir almal'],
   policyAdministrators: ['Required for administrators', 'Vereis vir administrateurs'],
+  policyAdministratorsHelp: [
+    'Ask administrators to use an extra sign-in step to keep their accounts secure. Always on when MFA is required for everyone.',
+    'Vereis dat administrateurs ’n ekstra aanmeldstap gebruik om hul rekeninge te beveilig. Altyd aan wanneer MFA vir almal vereis word.',
+  ],
   policyEveryone: ['Required for everyone', 'Vereis vir almal'],
   save: ['Save changes', 'Stoor veranderinge'],
   settingsConflict: [

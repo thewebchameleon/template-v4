@@ -95,11 +95,18 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
   await page.getByRole('link', { name: 'Admin settings', exact: true }).click();
   await accessible();
   await expect(
-    page
-      .locator('hlm-toggle-group[aria-label="MFA policy"]')
-      .getByRole('button', { pressed: true }),
-  ).toHaveText('Required for administrators');
-  await page.getByRole('button', { name: 'Required for everyone', exact: true }).click();
+    page.getByRole('tab', { name: 'Optional for everyone', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  const administratorsMfa = page.getByRole('switch', {
+    name: 'Required for administrators',
+    exact: true,
+  });
+  await expect(administratorsMfa).toBeChecked();
+  await administratorsMfa.uncheck();
+  await expect(administratorsMfa).not.toBeChecked();
+  await page.getByRole('tab', { name: 'Required for everyone', exact: true }).click();
+  await expect(administratorsMfa).toBeChecked();
+  await expect(administratorsMfa).toBeDisabled();
   await page.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Security settings saved');
   await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();

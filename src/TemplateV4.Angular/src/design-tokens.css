@@ -6,7 +6,7 @@
   --app-sidebar-rail-width: 4rem;
   --app-sidebar-rail-target-size: 2.75rem;
   --app-sidebar-rail-gap: 0.75rem;
-  --app-sidebar-panel-width: 12rem;
+  --app-sidebar-panel-width: 16rem;
   --app-sidebar-panel-max-width: 20rem;
   --app-sidebar-total-width: calc(var(--app-sidebar-rail-width) + var(--app-sidebar-panel-width));
   --app-sidebar-mobile-width: 18rem;
@@ -56,7 +56,8 @@
     padding: var(--app-content-padding);
   }
   @media (prefers-reduced-motion: no-preference) {
-    :root:not([data-motion='reduced']) .app-content {
+    :root:not([data-motion='reduced']) .app-content,
+    :root:not([data-motion='reduced']) .sidebar-submenu {
       animation: app-content-enter var(--app-content-enter-duration)
         cubic-bezier(0.22, 0.61, 0.36, 1);
     }

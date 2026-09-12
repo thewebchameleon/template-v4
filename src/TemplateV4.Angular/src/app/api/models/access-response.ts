@@ -8,6 +8,7 @@ export interface AccessResponse {
   emailCodeSent?: boolean;
   emailResendAt?: (string | null);
   expiresAt: string;
+  isAdministrator?: boolean;
   mfaConfigured: boolean;
   mfaMethods?: (Array<string> | null);
   passkeyRequired?: boolean;

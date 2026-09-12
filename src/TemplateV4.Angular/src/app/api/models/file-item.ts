@@ -5,6 +5,8 @@ export interface FileItem {
   contentType: string;
   createdAt: string;
   id: string;
+  isFolder: boolean;
   name: string;
+  parentId: (string | null);
   size: number;
 }

@@ -79,6 +79,39 @@ async function administration(
   });
 }
 
+test('security tab changes preserve cancelled drafts and navigate after discard', async ({
+  page,
+}) => {
+  await administration(page);
+  await page.goto('/administration/users?section=security');
+  const registration = page.getByRole('switch', { name: 'Allow public registration' });
+  await expect(registration).toBeEnabled();
+  await registration.click();
+  const roles = page.getByRole('tab', { name: 'Roles', exact: true });
+  const security = page.getByRole('tab', { name: 'Security', exact: true });
+  await roles.click();
+  const dialog = page.getByRole('alertdialog');
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/section=security/);
+  await expect(security).toHaveAttribute('aria-selected', 'true');
+  await expect(roles).toHaveAttribute('aria-selected', 'false');
+  await expect(registration).toBeChecked();
+
+  await roles.click();
+  await dialog.getByRole('button', { name: 'Discard changes', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/section=roles/);
+  await expect(page.getByRole('columnheader', { name: 'Role name', exact: true })).toBeVisible();
+  await expect(roles).toHaveAttribute('aria-selected', 'true');
+  await expect(registration).toHaveCount(0);
+
+  await security.click();
+  await expect(registration).toBeEnabled();
+  await expect(registration).not.toBeChecked();
+  await expect(dialog).toBeHidden();
+});
+
 test('role catalog is accessible and built-in grants cannot be edited', async ({ page }) => {
   await administration(page);
   await page.goto('/roles');

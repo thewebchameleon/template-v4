@@ -1,19 +1,32 @@
 # Repository guidance
 
-Before significant changes, inspect `framework.json`, `documentation/docs/README.md`, and the relevant decisions under `documentation/docs/adr/`. Keep code, manifest, docs, scaffolding, and CI consistent in the same change.
+## Working agreement
 
-Domain has no framework dependencies. Application references only Domain and the BCL-only SharedKernel package. Infrastructure owns EF, Identity, providers, and transactions. ApiService never references Quartz. BackgroundWorker owns scheduling. No generic repositories or runtime service location in Application. Register handlers explicitly.
+- Complete the requested work within its authorized scope. Make routine, reversible implementation decisions using existing conventions. Ask and wait when missing input materially affects scope, public behavior, data safety, or an irreversible action; do not ask again for authorization already given.
+- Inspect the working tree before editing and preserve unrelated local changes. Work in the primary agent; parallelize independent reads and checks when useful.
+- Scale inspection and validation to the change. Use focused searches and read relevant sections once; avoid full-repo audits for local fixes. Use available timing information without building a separate timing harness.
+- Keep updates concise. Finish with the outcome, validation performed, and any remaining limitation. Do not claim checks that were not run.
 
-Use copied Spartan Helm controls; do not introduce competing UI libraries. Do not edit generated OpenAPI clients or migration designer files manually. Never log secrets, authorization headers, email action URLs, refresh tokens, or message payloads.
+## Context and ownership
 
-Treat accessibility as an acceptance criterion for every UI change. Preserve semantic HTML, keyboard operation, visible focus, accessible names and state announcements, sufficient color contrast in light and dark modes, reduced-motion preferences, and usable zoom/reflow. Validate the affected experience with automated accessibility checks where applicable and with focused keyboard and visual review proportional to the change; E2E accessibility checks still require the explicit permission described below.
+Before changes spanning layers, contracts, dependencies, or conventions, read [framework.json](framework.json), the relevant sections of the [developer guide](documentation/docs/README.md), and applicable [ADRs](documentation/docs/adr). Small local edits need only the affected code and guidance.
 
-Data-table search inputs must apply automatically after a 300 ms debounce, persist the search in URL query state, and reset pagination to page 1. Do not add a manual search or submit button beside a data-table search input.
+- `framework.json` is the source for project paths and toolchain versions; do not duplicate version pins here.
+- Use the repo-local [framework-change skill](.agents/skills/framework-change/SKILL.md) for changes spanning framework layers, modules, providers, or public API contracts.
+- Angular work also follows [its scoped guidance](src/TemplateV4.Angular/AGENTS.md). Load UI details only when working on the UI.
+- Keep affected code, manifest, docs, scaffolding, and CI consistent. New architectural or extension-point conventions need an ADR and extension documentation; routine fixes and instruction refactoring do not.
 
-Data-table panels must use the shared `hlmCard`/`hlmCardHeader`/`hlmCardContent`, `app-data-table`, and `app-list-pager` composition. Align panel headings, filters, outer table columns, and pager content using `--card-spacing` (four spacing units, 16px at the default scale); do not add page-local horizontal offsets. Place the pager immediately after the table with no intervening layout gap, as the last content in the panel. Keep its shared full-width subtle background, rounded bottom corners, equal compact vertical padding, results on the left, and pagination on the right (stacked on mobile). Maintain these rules in shared styles for every new panel, including compact density and both themes.
+## Boundaries
 
-Boolean filters on data-table pages must use the copied Spartan Helm `hlm-checkbox` inside an `hlmField`, with an `hlmFieldLabel` and `hlmFieldDescription`. Do not use a switch or toggle button for these filters.
+- Domain and SharedKernel are BCL-only. Application references only Domain and SharedKernel; no generic repositories or runtime service location. Register handlers explicitly.
+- Infrastructure owns EF, Identity, providers, and transactions. ApiService adapts HTTP and never references Quartz; BackgroundWorker owns scheduling.
+- Regenerate OpenAPI contracts/clients and EF-generated files through their owning tools. Never hand-edit generated clients, migration designers, or model snapshots.
+- Never log secrets, authorization headers, email action URLs, refresh tokens, or message payloads.
 
-Leave all tests until the absolute last validation stage, after implementation, documentation, format/lint, manifest validation, and applicable builds are complete. Then run focused tests for behavior changes; use real PostgreSQL integration tests for persistence, sessions, or messaging changes. Before running any end-to-end (E2E) tests, ask the user for explicit permission and stop to await their response. Do not run E2E tests without that permission. Significant conventions need an ADR and extension-point documentation.
+## Validation
 
-Ask for clarification when a decision needs the user's input, and stop to await their response. Do not ask again for actions already authorized. Keep unrelated local work intact.
+Run the smallest checks that demonstrate the changed behavior and affected contracts. Focused reproduction tests may run early; complete relevant formatting/lint, manifest checks, builds, and behavioral tests before delivery. Broaden or repeat checks only for new changes, failures, or unresolved risks. Documentation-only edits need content/link/format checks, not application builds or test suites.
+
+Persistence, session, and messaging changes require real PostgreSQL integration tests. Read [verification guidance](documentation/docs/verification.md) and the affected package scripts or CI steps when choosing commands; do not run every check by default.
+
+E2E tests require explicit user permission: ask and stop if it has not already been granted for this work. This includes browser accessibility checks, Angular's `npm test` (Playwright), and end-to-end smoke scripts. Complete other authorized validation before requesting that permission.

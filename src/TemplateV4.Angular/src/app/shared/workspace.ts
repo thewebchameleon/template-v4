@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -111,6 +111,7 @@ export const PAGE_SIZE_OPTIONS: readonly number[] = [5, 10, 25, 50];
 export class ListQuery {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly params = toSignal(this.route.queryParamMap, { requireSync: true });
   private readonly changes = this.route.queryParamMap.pipe(takeUntilDestroyed());
   constructor(private readonly namespace = '') {}
   private key(key: string) {
@@ -130,7 +131,7 @@ export class ListQuery {
     });
   }
   text(key: string, fallback = '') {
-    return this.route.snapshot.queryParamMap.get(this.key(key)) ?? fallback;
+    return this.params().get(this.key(key)) ?? fallback;
   }
   get page() {
     const n = Number(this.text('page', '1'));

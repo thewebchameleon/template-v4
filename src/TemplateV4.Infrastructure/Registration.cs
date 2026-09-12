@@ -67,6 +67,12 @@ public static class Registration
         services.AddSingleton<IValidator<AuditQuery>, AuditQueryValidator>();
         services.AddScoped<NotificationService>();
         services.AddScoped<FileService>();
+        services.AddScoped<IRuntimeModules, RuntimeModuleStore>();
+        services.AddScoped<IHandler<SaveRuntimeModule, RuntimeModule>, SaveRuntimeModuleHandler>();
+        services.AddSingleton<IValidator<SaveRuntimeModule>, SaveRuntimeModuleValidator>();
+        services.AddScoped<IPlatformAppearance, PlatformAppearanceStore>();
+        services.AddScoped<IHandler<SavePlatformAppearance, PlatformAppearance>, SavePlatformAppearanceHandler>();
+        services.AddSingleton<IValidator<SavePlatformAppearance>, SavePlatformAppearanceValidator>();
         services.AddScoped<PrivacyService>();
         services.AddScoped<IPasskeyHandler<AppUser>, PasskeyHandler<AppUser>>();
         services.Configure<IdentityPasskeyOptions>(options =>

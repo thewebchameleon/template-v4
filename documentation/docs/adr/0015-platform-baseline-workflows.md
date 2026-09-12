@@ -1,6 +1,6 @@
 # ADR 0015: platform administration, files and privacy workflows
 
-Status: Accepted
+Status: Accepted (file access, quota, type and enablement policy updated by [ADR 0021](0021-user-file-library.md))
 
 ## Context
 

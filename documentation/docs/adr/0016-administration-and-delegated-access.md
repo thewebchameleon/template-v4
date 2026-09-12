@@ -1,6 +1,6 @@
 # ADR 0016: administration workflows and delegated access
 
-Status: Accepted
+Status: Accepted (file access, quota, type and enablement policy updated by [ADR 0021](0021-user-file-library.md))
 
 ## Context
 
@@ -34,6 +34,6 @@ Use the shared resource and table compositions for new pages. Keep a primary act
 
 Account security is available at `/administration/users?section=security` with `settings.manage` permission, including for operators without directory or role access. It contains the MFA policy and public-registration controls and preserves version-conflict and unsaved-draft handling. The standalone `/settings` page and navigation entry are removed without a redirect. Extend the shared people navigation and permission-aware section selection when adding tabs.
 
-Administration is one permission-filtered rail destination with a shield-cog icon. It opens the existing resizable label panel containing **User Management** (`/administration/users`), **Privacy Requests** (`/administration/privacy-requests`), **Audit History** (`/administration/audit-history`) and **System Health** (`/administration/system-health`), in that order. The panel shows this group on administration routes; mobile includes it in the navigation sheet. The parent route opens the first permitted, enabled child. Nested user details remain under `/administration/users/:id`. Old top-level URLs redirect to their canonical routes, preserving query state and existing notification links. System Health replaces the Operations page name; API paths, module identifiers and audit event contracts retain `operations`.
+Administration is one permission-filtered rail destination with a settings-cog icon. Pointer or keyboard activation opens or switches to the existing resizable label panel without navigating, and repeated activation keeps the panel open. The panel contains **User Management** (`/administration/users`), **Configuration** (`/administration/configuration`, Administrator role only), **File storage** (`/administration/storage`, when enabled), **Privacy Requests** (`/administration/privacy-requests`), **Audit History** (`/administration/audit-history`) and **System Health** (`/administration/system-health`), in that order. The panel shows this group on administration routes; mobile includes it in the navigation sheet. Direct navigation to the parent route opens the first permitted, enabled child. Nested user details remain under `/administration/users/:id`. Old top-level URLs redirect to their canonical routes, preserving query state and existing notification links. System Health replaces the Operations page name; API paths, module identifiers and audit event contracts retain `operations`.
 
 Extend `core/administration.ts` and the guarded child routes together for new administration pages. Navigation and the parent landing route share the permission/module-filtered list; endpoint and route guards remain authoritative. Keep localized breadcrumbs, active rail state, named links and panel expanded state consistent for direct visits and browser history.

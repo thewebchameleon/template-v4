@@ -60,7 +60,7 @@ public sealed partial class SecurityAndMessagingTests
     }
 
     [Fact]
-    public async Task Baseline_files_enforce_owner_type_quota_and_deleted_access()
+    public async Task Baseline_files_enforce_owner_name_quota_and_deleted_access()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         var user = await User(sp); var other = await User(sp); var files = sp.GetRequiredService<FileService>(); var db = sp.GetRequiredService<FrameworkDb>();
@@ -71,7 +71,7 @@ public sealed partial class SecurityAndMessagingTests
         var download = await files.Download(user.Id, result.Value.Id, default); Assert.True(download.IsSuccess);
         using (var reader = new StreamReader(download.Value!.Content)) Assert.Equal("private document", await reader.ReadToEndAsync());
         using var invalid = new MemoryStream("not a png"u8.ToArray());
-        Assert.Equal("files.invalid_type", (await files.Upload(user.Id, "image.png", invalid, default)).Error!.Code);
+        Assert.Equal("files.invalid_name", (await files.Upload(user.Id, "../image.png", invalid, default)).Error!.Code);
         Assert.Equal(ErrorKind.NotFound, (await files.Delete(other.Id, result.Value.Id, default)).Error!.Kind);
         Assert.True((await files.Delete(user.Id, result.Value.Id, default)).IsSuccess);
         Assert.False((await files.Download(user.Id, result.Value.Id, default)).IsSuccess);
@@ -262,7 +262,7 @@ public sealed partial class SecurityAndMessagingTests
         client.DefaultRequestHeaders.Authorization = new("Bearer", (await login.Content.ReadFromJsonAsync<AccessResponse>())!.AccessToken);
         foreach (var path in new[] { "audit", "invitations", "operations/overview", "privacy/requests" }) Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
         foreach (var path in new[] { "notifications", "notifications/summary", "privacy" }) Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/" + path)).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/auth/files")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/files")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/roles")).StatusCode);
         client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/privacy/deletion", new { })).StatusCode);

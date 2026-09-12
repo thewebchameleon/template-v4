@@ -14,6 +14,8 @@ public sealed class StoredFile
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid OwnerId { get; set; }
+    public Guid? ParentId { get; set; }
+    public bool IsFolder { get; set; }
     public string Name { get; set; } = "";
     public string ContentType { get; set; } = "application/octet-stream";
     public long Size { get; set; }
@@ -21,6 +23,13 @@ public sealed class StoredFile
     public DateTimeOffset? DeletedAt { get; set; }
     public DateTimeOffset? PurgedAt { get; set; }
     public bool Ready { get; set; }
+}
+
+public sealed class FileStorageSettings
+{
+    public int Id { get; set; } = 1;
+    public long DefaultQuotaBytes { get; set; } = 100L * 1024 * 1024;
+    public Guid Version { get; set; } = Guid.NewGuid();
 }
 
 public sealed class DeletionRequest

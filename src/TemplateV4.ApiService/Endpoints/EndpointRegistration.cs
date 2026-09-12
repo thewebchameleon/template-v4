@@ -11,7 +11,9 @@ public static class EndpointRegistration
             .MapAuthenticationEndpoints()
             .MapSecurityEndpoints()
             .MapOperationsEndpoints()
-            .MapWorkspaceEndpoints();
+            .MapWorkspaceEndpoints()
+            .MapConfigurationEndpoints()
+            .MapRuntimeModuleEndpoints();
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")

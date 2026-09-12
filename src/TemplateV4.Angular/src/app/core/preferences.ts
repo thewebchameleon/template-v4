@@ -75,7 +75,7 @@ import { UiPreferences } from './ui-preferences';
           </span>
           <hlm-toggle-group
             type="single"
-            variant="outline"
+            variant="inset"
             class="grid w-full grid-cols-3"
             [value]="theme.preference()"
             (valueChange)="theme.set(singleValue($event))"
@@ -115,7 +115,7 @@ import { UiPreferences } from './ui-preferences';
           </span>
           <hlm-toggle-group
             type="single"
-            variant="outline"
+            variant="inset"
             class="grid w-full grid-cols-3"
             [value]="ui.textSize()"
             (valueChange)="ui.setTextSize(singleValue($event))"
@@ -133,7 +133,7 @@ import { UiPreferences } from './ui-preferences';
           </span>
           <hlm-toggle-group
             type="single"
-            variant="outline"
+            variant="inset"
             class="grid w-full grid-cols-2"
             [value]="ui.contrast()"
             (valueChange)="ui.setContrast(singleValue($event))"
@@ -150,7 +150,7 @@ import { UiPreferences } from './ui-preferences';
           </span>
           <hlm-toggle-group
             type="single"
-            variant="outline"
+            variant="inset"
             class="grid w-full grid-cols-2"
             [value]="ui.motion()"
             (valueChange)="ui.setMotion(singleValue($event))"
@@ -168,7 +168,7 @@ import { UiPreferences } from './ui-preferences';
           </span>
           <hlm-toggle-group
             type="single"
-            variant="outline"
+            variant="inset"
             class="grid w-full grid-cols-2"
             [value]="ui.density()"
             (valueChange)="ui.setDensity(singleValue($event))"

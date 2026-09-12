@@ -16,6 +16,27 @@ export class AdministrationNavigation {
         permissions: ['users.read', 'roles.manage', 'settings.manage'],
       },
       {
+        path: '/administration/configuration',
+        label: 'configuration',
+        icon: 'lucideSettings',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+      },
+      {
+        path: '/administration/modules',
+        label: 'modules',
+        icon: 'lucideSettings2',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+      },
+      {
+        path: '/administration/storage',
+        label: 'storageSettings',
+        icon: 'lucideFolderOpen',
+        permissions: ['settings.manage'],
+        feature: 'files',
+      },
+      {
         path: '/administration/privacy-requests',
         label: 'privacyRequests',
         icon: 'lucideShieldCheck',
@@ -38,8 +59,10 @@ export class AdministrationNavigation {
     ].filter(
       (item) =>
         !this.auth.access()?.setupRequired &&
+        (!item.administratorOnly || this.auth.access()?.isAdministrator === true) &&
         item.permissions.some((permission) => this.auth.has(permission)) &&
-        (!item.module || this.features.moduleEnabled(item.module)),
+        (!item.module || this.features.moduleEnabled(item.module)) &&
+        (!item.feature || this.features.enabled(item.feature)),
     ),
   );
 }

@@ -25,12 +25,12 @@ export class WorkspaceApi {
   post<T = unknown>(path: string, body: unknown = {}) {
     return this.auth.action<T>(path, body);
   }
-  async upload(file: File, progress: (value: number) => void) {
+  async upload(file: File, progress: (value: number) => void, parentId = '') {
     const headers = await this.auth.browserHeaders();
     await firstValueFrom(
       this.http
         .post(`${this.runtime.apiUrl}/api/v1/auth/files/upload`, file, {
-          params: { name: file.name },
+          params: { name: file.name, ...(parentId ? { parentId } : {}) },
           headers: { ...headers, 'Content-Type': 'application/octet-stream' },
           withCredentials: true,
           observe: 'events',

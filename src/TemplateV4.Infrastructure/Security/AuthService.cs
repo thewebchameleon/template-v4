@@ -12,7 +12,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
 
-public sealed record AccessResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid UserId, string[] Permissions, string Culture, bool MfaConfigured, bool SetupRequired = false, string? ChallengeId = null, bool PasskeyRequired = false, string[]? MfaMethods = null, string? PreferredMfaMethod = null, bool EmailCodeSent = false, DateTimeOffset? EmailResendAt = null);
+public sealed record AccessResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid UserId, string[] Permissions, string Culture, bool MfaConfigured, bool SetupRequired = false, string? ChallengeId = null, bool PasskeyRequired = false, string[]? MfaMethods = null, string? PreferredMfaMethod = null, bool EmailCodeSent = false, DateTimeOffset? EmailResendAt = null, bool IsAdministrator = false);
 public sealed record AuthTokens(AccessResponse Access, string RefreshToken);
 public sealed record LoginRequest(string Username, string Password, string Device);
 public sealed record SessionDto(Guid Id, string Device, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, bool Current);
@@ -244,7 +244,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
             new SigningCredentials(keys.Active, SecurityAlgorithms.RsaSha256));
         var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         db.RefreshTokens.Add(new() { Hash = Hash(raw), SessionId = session.Id, ExpiresAt = session.ExpiresAt });
-        return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup), raw);
+        return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, IsAdministrator: !setup && roles.Contains("Administrator")), raw);
     }
     private void Audit(string action, Guid userId) => db.Audit.Add(new() { Action = action, ActorId = userId, SubjectId = userId, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
 }

@@ -35,7 +35,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.OptionalEmailEnabled }).SingleAsync(ct);
         var sessions = await db.Sessions.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Device, x.CreatedAt, x.ExpiresAt, x.RevokedAt }).ToArrayAsync(ct);
         var notifications = await db.Notifications.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Kind, x.Link, x.CreatedAt, x.ReadAt }).ToArrayAsync(ct);
-        var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt }).ToArrayAsync(ct);
+        var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);
         var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });

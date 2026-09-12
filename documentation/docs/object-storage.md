@@ -34,4 +34,8 @@ API/Worker load keys through key-per-file configuration. The migrator does not i
 
 A single-node deployment is a practical baseline, not high availability. For production resilience, follow [SeaweedFS replication guidance](https://github.com/seaweedfs/seaweedfs/wiki/Replication) across separate hosts and maintain encrypted off-host backups of data and filer metadata. Do not treat replicas on the same machine as disaster recovery. Test restoring both database metadata and the referenced objects before claiming recovery targets.
 
-The type allowlist is not antivirus scanning. Add scanning/quarantine before setting `StoredFile.Ready` if the product's threat model requires it. File sharing, public links and automatic bucket creation by the app are deliberately separate extension points.
+The file library accepts all file types and always downloads them as attachments; it does not scan for malware. Add scanning/quarantine before setting `StoredFile.Ready` if the product's threat model requires it. File sharing, public links and automatic bucket creation by the app are deliberately separate extension points.
+
+## File library extension points
+
+[ADR 0021](adr/0021-user-file-library.md) defines folder ownership and administrator quota management. Folder metadata stays in PostgreSQL; object keys never contain user names or folder paths. `FileService.MaxUploadBytes` defines the 20 MiB cap enforced while reading the request and advertised to the UI. Keep reverse-proxy body limits aligned when changing it. The old `Storage:QuotaBytes` configuration is replaced by database settings: configure the default through Administration → File storage and individual overrides through user details. Run the migrator before restarting API and Worker. Existing files migrate into the root folder.

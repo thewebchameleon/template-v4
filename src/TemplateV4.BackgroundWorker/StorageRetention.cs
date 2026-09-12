@@ -27,7 +27,7 @@ public sealed class StorageRetention(IServiceScopeFactory scopes, ILogger<Storag
                 var files = await db.Files.Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < now.AddDays(-1))).OrderBy(x => x.CreatedAt).Take(20).ToArrayAsync(ct);
                 foreach (var file in files)
                 {
-                    await storage.Delete(file.Id.ToString("N"), ct);
+                    if (!file.IsFolder) await storage.Delete(file.Id.ToString("N"), ct);
                     file.PurgedAt = now; file.DeletedAt ??= now; file.Name = "Deleted file";
                     db.Audit.Add(new() { SubjectId = file.Id, Action = "file.purged", At = now });
                 }

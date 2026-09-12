@@ -1,0 +1,88 @@
+export const configurationDictionary: Record<string, [string, string]> = {
+  customColors: ['Custom colors', 'Eie kleure'],
+  customColorsHelp: [
+    'A shared palette for all administrators. Add up to 24 named colors. Save publishes palette changes and the selected color together.',
+    '’n Gedeelde palet vir alle administrateurs. Voeg tot 24 benoemde kleure by. Stoor publiseer paletveranderinge en die gekose kleur saam.',
+  ],
+  addCustomColor: ['Add custom color', 'Voeg eie kleur by'],
+  editCustomColor: ['Edit / rename', 'Wysig / hernoem'],
+  removeCustomColor: ['Remove', 'Verwyder'],
+  removeCustomColorTitle: ['Remove custom color?', 'Verwyder eie kleur?'],
+  removeCustomColorHelp: [
+    'This color will be removed from your draft. Save to publish the change.',
+    'Hierdie kleur sal uit jou konsep verwyder word. Stoor om die verandering te publiseer.',
+  ],
+  customPickerHelp: [
+    'Drag to choose a color, or use the sliders with arrow keys. Changes appear in the light and dark previews.',
+    'Sleep om ’n kleur te kies, of gebruik die skuifbalke met pyltjiesleutels. Veranderinge verskyn in die ligte en donker voorskoue.',
+  ],
+  customColorName: ['Color name', 'Kleurnaam'],
+  customColorNameHelp: [
+    'Use a unique name of 1–40 characters.',
+    'Gebruik ’n unieke naam van 1–40 karakters.',
+  ],
+  customColorNameInvalid: [
+    'Choose a unique name of 1–40 characters without control characters.',
+    'Kies ’n unieke naam van 1–40 karakters sonder beheertekens.',
+  ],
+  useCustomColor: ['Use color', 'Gebruik kleur'],
+  colorHue: ['Hue', 'Kleurtoon'],
+  colorSaturation: ['Saturation', 'Versadiging'],
+  colorBrightness: ['Brightness', 'Helderheid'],
+  noCustomColors: [
+    'No custom colors yet. Add a color to build your shared palette.',
+    'Nog geen eie kleure nie. Voeg ’n kleur by om jou gedeelde palet te bou.',
+  ],
+  activeCustomColorRemoved: [
+    'Custom color removed and default blue selected. Save to publish.',
+    'Eie kleur verwyder en verstekblou gekies. Stoor om te publiseer.',
+  ],
+  customColorRemoved: [
+    'Custom color removed. Save to publish.',
+    'Eie kleur verwyder. Stoor om te publiseer.',
+  ],
+  configuration: ['Configuration', 'Konfigurasie'],
+  configurationHelp: [
+    'Manage settings for everyone on the platform.',
+    'Bestuur instellings vir almal op die platform.',
+  ],
+  platformAppearance: ['Appearance', 'Voorkoms'],
+  platformAppearanceHelp: [
+    'Choose the platform primary color. Your selection previews across this page; saved changes apply when other users next refresh.',
+    'Kies die platform se primêre kleur. Jou keuse wys regoor hierdie bladsy; gestoorde veranderinge geld wanneer ander gebruikers weer herlaai.',
+  ],
+  primaryColor: ['Primary color', 'Primêre kleur'],
+  colorPresets: ['Color presets', 'Voorafgestelde kleure'],
+  customHexColor: ['Custom hex color', 'Eie hekskleur'],
+  primaryColorHelp: [
+    'Enter # and six hexadecimal characters, for example #2563EB. Accessible shades are generated for both themes.',
+    'Voer # en ses heksadesimale karakters in, byvoorbeeld #2563EB. Toeganklike skakerings word vir albei temas geskep.',
+  ],
+  primaryColorInvalid: [
+    'Enter a valid six-digit hex color, such as #2563EB.',
+    'Voer ’n geldige hekskleur van ses syfers in, soos #2563EB.',
+  ],
+  appearancePreview: ['Live preview', 'Regstreekse voorskou'],
+  appearancePreviewHelp: [
+    'The cards show the generated shades on explicit light and dark surfaces. Save publishes your choice.',
+    'Die kaarte wys die gegenereerde skakerings op uitdruklike ligte en donker oppervlakke. Stoor publiseer jou keuse.',
+  ],
+  previewButton: ['Sample button', 'Voorbeeldknoppie'],
+  previewAccent: ['Accent text', 'Aksentteks'],
+  undoChanges: ['Undo changes', 'Ontdoen veranderinge'],
+  undoChangesTitle: ['Undo changes?', 'Ontdoen veranderinge?'],
+  undoChangesHelp: [
+    'Your unsaved appearance changes will be discarded and replaced with the saved settings.',
+    'Jou ongestoorde voorkomsveranderinge sal weggegooi en met die gestoorde instellings vervang word.',
+  ],
+  appearanceSaved: ['Appearance saved and applied.', 'Voorkoms gestoor en toegepas.'],
+  colorBlue: ['Blue', 'Blou'],
+  colorViolet: ['Violet', 'Violet'],
+  colorMagenta: ['Magenta', 'Magenta'],
+  colorOrange: ['Orange', 'Oranje'],
+  colorEmerald: ['Emerald', 'Smaraggroen'],
+  colorCyan: ['Cyan', 'Siaan'],
+  colorLime: ['Lime', 'Lemmetjiegroen'],
+  colorYellow: ['Yellow', 'Geel'],
+  colorRed: ['Red', 'Rooi'],
+};

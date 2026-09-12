@@ -9,7 +9,7 @@ export class HlmSwitchThumb {
   constructor() {
     classes(
       () =>
-        'bg-background dark:data-unchecked:bg-foreground dark:data-checked:bg-primary-foreground rounded-full group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 data-unchecked:translate-x-0 data-checked:ltr:translate-x-[calc(100%-2px)] data-checked:rtl:-translate-x-[calc(100%-2px)] pointer-events-none block ring-0 transition-transform',
+        'bg-background dark:data-unchecked:bg-foreground dark:data-checked:bg-primary-foreground rounded-full group-data-[size=default]/switch:size-[1rem] group-data-[size=sm]/switch:size-[0.75rem] shrink-0 data-unchecked:translate-x-0 data-checked:ltr:translate-x-full data-checked:rtl:-translate-x-full pointer-events-none block ring-0 transition-transform',
     );
   }
 }

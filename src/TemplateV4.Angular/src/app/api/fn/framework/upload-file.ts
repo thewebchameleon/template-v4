@@ -11,6 +11,7 @@ import { FileItem } from '../../models/file-item';
 
 export interface UploadFile$Params {
   name: string;
+  parentId?: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -23,6 +24,7 @@ export function uploadFile(http: HttpClient, rootUrl: string, params: UploadFile
   const rb = new RequestBuilder(rootUrl, uploadFile.PATH, 'post');
   if (params) {
     rb.query('name', params.name, {});
+    rb.query('parentId', params.parentId, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/octet-stream');
   }

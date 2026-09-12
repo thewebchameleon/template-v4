@@ -281,6 +281,9 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
+                    b.Property<long?>("StorageQuotaBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -404,6 +407,34 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("State", "RequestedAt");
 
                     b.ToTable("deletion_requests", "app");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.FileStorageSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("DefaultQuotaBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("file_storage_settings", "app");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DefaultQuotaBytes = 104857600L,
+                            Version = new Guid("df8c4bbd-18fb-45f8-8f13-a4c58a334660")
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.IdempotencyRecord", b =>
@@ -545,6 +576,49 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("outbox", "messaging");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PlatformAppearanceSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CustomColorsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("PrimaryColor")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<Guid?>("SelectedCustomColorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("platform_appearance_settings", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_platform_appearance_singleton", "\"Id\" = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CustomColorsJson = "[]",
+                            PrimaryColor = "#2563EB",
+                            Version = new Guid("06d9599a-a693-4d21-9745-152b0515b89b")
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.RateBucket", b =>
                 {
                     b.Property<string>("Id")
@@ -585,6 +659,32 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("SessionId");
 
                     b.ToTable("refresh_tokens", "identity");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.RuntimeModuleSettings", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("runtime_modules", "app");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "files",
+                            Enabled = true,
+                            Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SecuritySettings", b =>
@@ -672,12 +772,18 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsFolder")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(180)
                         .HasColumnType("character varying(180)");
 
                     b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("PurgedAt")
@@ -694,6 +800,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("DeletedAt");
 
                     b.HasIndex("OwnerId", "CreatedAt");
+
+                    b.HasIndex("OwnerId", "ParentId");
+
+                    b.HasIndex("ParentId", "OwnerId");
 
                     b.ToTable("files", "app");
                 });
@@ -875,6 +985,12 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId", "OwnerId")
+                        .HasPrincipalKey("Id", "OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserNotification", b =>

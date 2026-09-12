@@ -13,6 +13,7 @@ import {
 import { Breadcrumbs } from '../shared/breadcrumbs';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Runtime } from '../core/runtime';
+import { Features } from '../core/features';
 import { Auth } from '../core/auth';
 import { Notifications } from '../core/notifications';
 import { AccessCatalog, UserAccessDetail } from '../api/models';
@@ -43,6 +44,14 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
             <div hlmCardHeader>
               <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
               <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
+              @if (auth.has('settings.manage') && features.enabled('files')) {
+                <a
+                  hlmBtn
+                  variant="outline"
+                  [routerLink]="['/administration/users', detail.user.id, 'files']"
+                  >{{ 'manageUserFiles' | t }}</a
+                >
+              }
             </div>
             <form hlmCardContent class="grid gap-5" (ngSubmit)="save()">
               <fieldset hlmFieldSet>
@@ -136,6 +145,7 @@ export class UserDetailPage implements OnInit {
   readonly saved = output<void>();
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
+  readonly features = inject(Features);
   readonly data = new Resource<UserAccessDetail>();
   readonly catalog = new Resource<AccessCatalog>();
   readonly roles = signal<string[]>([]);

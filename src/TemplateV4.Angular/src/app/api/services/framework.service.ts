@@ -27,6 +27,8 @@ import { confirmMfaEnrollment } from '../fn/framework/confirm-mfa-enrollment';
 import { ConfirmMfaEnrollment$Params } from '../fn/framework/confirm-mfa-enrollment';
 import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-administrator';
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
+import { createFileFolder } from '../fn/framework/create-file-folder';
+import { CreateFileFolder$Params } from '../fn/framework/create-file-folder';
 import { createRole } from '../fn/framework/create-role';
 import { CreateRole$Params } from '../fn/framework/create-role';
 import { createUser } from '../fn/framework/create-user';
@@ -38,11 +40,14 @@ import { disableMfa } from '../fn/framework/disable-mfa';
 import { DisableMfa$Params } from '../fn/framework/disable-mfa';
 import { downloadFile } from '../fn/framework/download-file';
 import { DownloadFile$Params } from '../fn/framework/download-file';
+import { downloadUserFile } from '../fn/framework/download-user-file';
+import { DownloadUserFile$Params } from '../fn/framework/download-user-file';
 import { EmailMfaChallengeResponse } from '../models/email-mfa-challenge-response';
 import { exportAccountData } from '../fn/framework/export-account-data';
 import { ExportAccountData$Params } from '../fn/framework/export-account-data';
 import { FileItem } from '../models/file-item';
 import { FilePage } from '../models/file-page';
+import { FileStorageSettings } from '../models/file-storage-settings';
 import { forgotPassword } from '../fn/framework/forgot-password';
 import { ForgotPassword$Params } from '../fn/framework/forgot-password';
 import { getAccessCatalog } from '../fn/framework/get-access-catalog';
@@ -55,16 +60,22 @@ import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
 import { getFeatures } from '../fn/framework/get-features';
 import { GetFeatures$Params } from '../fn/framework/get-features';
+import { getFileStorageSettings } from '../fn/framework/get-file-storage-settings';
+import { GetFileStorageSettings$Params } from '../fn/framework/get-file-storage-settings';
 import { getModules } from '../fn/framework/get-modules';
 import { GetModules$Params } from '../fn/framework/get-modules';
 import { getNotificationSummary } from '../fn/framework/get-notification-summary';
 import { GetNotificationSummary$Params } from '../fn/framework/get-notification-summary';
 import { getOperationsOverview } from '../fn/framework/get-operations-overview';
 import { GetOperationsOverview$Params } from '../fn/framework/get-operations-overview';
+import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
+import { GetPlatformAppearance$Params } from '../fn/framework/get-platform-appearance';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
 import { GetPrivacyStatus$Params } from '../fn/framework/get-privacy-status';
 import { getProfile } from '../fn/framework/get-profile';
 import { GetProfile$Params } from '../fn/framework/get-profile';
+import { getPublicAppearance } from '../fn/framework/get-public-appearance';
+import { GetPublicAppearance$Params } from '../fn/framework/get-public-appearance';
 import { getRegistrationSettings } from '../fn/framework/get-registration-settings';
 import { GetRegistrationSettings$Params } from '../fn/framework/get-registration-settings';
 import { getSecuritySettings } from '../fn/framework/get-security-settings';
@@ -82,8 +93,12 @@ import { listInvitations } from '../fn/framework/list-invitations';
 import { ListInvitations$Params } from '../fn/framework/list-invitations';
 import { listNotifications } from '../fn/framework/list-notifications';
 import { ListNotifications$Params } from '../fn/framework/list-notifications';
+import { listRuntimeModules } from '../fn/framework/list-runtime-modules';
+import { ListRuntimeModules$Params } from '../fn/framework/list-runtime-modules';
 import { listSessions } from '../fn/framework/list-sessions';
 import { ListSessions$Params } from '../fn/framework/list-sessions';
+import { listUserFiles } from '../fn/framework/list-user-files';
+import { ListUserFiles$Params } from '../fn/framework/list-user-files';
 import { listUsers } from '../fn/framework/list-users';
 import { ListUsers$Params } from '../fn/framework/list-users';
 import { login } from '../fn/framework/login';
@@ -107,8 +122,10 @@ import { PasskeyMfaOptions$Params } from '../fn/framework/passkey-mfa-options';
 import { PasskeyOptions } from '../models/passkey-options';
 import { passkeyRegistrationOptions } from '../fn/framework/passkey-registration-options';
 import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-registration-options';
+import { PlatformAppearance } from '../models/platform-appearance';
 import { PrivacyStatus } from '../models/privacy-status';
 import { ProfileResponse } from '../models/profile-response';
+import { PublicAppearance } from '../models/public-appearance';
 import { readNotifications } from '../fn/framework/read-notifications';
 import { ReadNotifications$Params } from '../fn/framework/read-notifications';
 import { refresh } from '../fn/framework/refresh';
@@ -120,6 +137,8 @@ import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
 import { RegistrationSettings } from '../models/registration-settings';
 import { removePasskey } from '../fn/framework/remove-passkey';
 import { RemovePasskey$Params } from '../fn/framework/remove-passkey';
+import { renameFile } from '../fn/framework/rename-file';
+import { RenameFile$Params } from '../fn/framework/rename-file';
 import { replayDelivery } from '../fn/framework/replay-delivery';
 import { ReplayDelivery$Params } from '../fn/framework/replay-delivery';
 import { requestAccountDeletion } from '../fn/framework/request-account-deletion';
@@ -135,8 +154,15 @@ import { RevokeSession$Params } from '../fn/framework/revoke-session';
 import { RoleItem } from '../models/role-item';
 import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
+import { RuntimeModule } from '../models/runtime-module';
+import { saveFileStorageSettings } from '../fn/framework/save-file-storage-settings';
+import { SaveFileStorageSettings$Params } from '../fn/framework/save-file-storage-settings';
 import { saveNotificationPreferences } from '../fn/framework/save-notification-preferences';
 import { SaveNotificationPreferences$Params } from '../fn/framework/save-notification-preferences';
+import { savePlatformAppearance } from '../fn/framework/save-platform-appearance';
+import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-appearance';
+import { saveRuntimeModule } from '../fn/framework/save-runtime-module';
+import { SaveRuntimeModule$Params } from '../fn/framework/save-runtime-module';
 import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
@@ -147,6 +173,8 @@ import { setMfaPreference } from '../fn/framework/set-mfa-preference';
 import { SetMfaPreference$Params } from '../fn/framework/set-mfa-preference';
 import { setSecuritySettings } from '../fn/framework/set-security-settings';
 import { SetSecuritySettings$Params } from '../fn/framework/set-security-settings';
+import { setUserFileQuota } from '../fn/framework/set-user-file-quota';
+import { SetUserFileQuota$Params } from '../fn/framework/set-user-file-quota';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
 import { updateRole } from '../fn/framework/update-role';
@@ -1436,6 +1464,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getPublicAppearance()` */
+  static readonly GetPublicAppearancePath = '/api/v1/auth/appearance';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPublicAppearance()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPublicAppearance$Response(params?: GetPublicAppearance$Params, context?: HttpContext): Observable<StrictHttpResponse<PublicAppearance>> {
+    const obs = getPublicAppearance(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPublicAppearance$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPublicAppearance(params?: GetPublicAppearance$Params, context?: HttpContext): Observable<PublicAppearance> {
+    const resp = this.getPublicAppearance$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PublicAppearance>): PublicAppearance => r.body)
+    );
+  }
+
   /** Path part for operation `listFiles()` */
   static readonly ListFilesPath = '/api/v1/auth/files';
 
@@ -1541,6 +1596,303 @@ export class FrameworkService extends BaseService {
     const resp = this.deleteFile$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `createFileFolder()` */
+  static readonly CreateFileFolderPath = '/api/v1/auth/files/folders';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createFileFolder()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createFileFolder$Response(params: CreateFileFolder$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+    const obs = createFileFolder(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createFileFolder$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createFileFolder(params: CreateFileFolder$Params, context?: HttpContext): Observable<FileItem> {
+    const resp = this.createFileFolder$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FileItem>): FileItem => r.body)
+    );
+  }
+
+  /** Path part for operation `renameFile()` */
+  static readonly RenameFilePath = '/api/v1/auth/files/{id}/rename';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `renameFile()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  renameFile$Response(params: RenameFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = renameFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `renameFile$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  renameFile(params: RenameFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.renameFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getFileStorageSettings()` */
+  static readonly GetFileStorageSettingsPath = '/api/v1/auth/files/admin/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getFileStorageSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getFileStorageSettings$Response(params?: GetFileStorageSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<FileStorageSettings>> {
+    const obs = getFileStorageSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getFileStorageSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getFileStorageSettings(params?: GetFileStorageSettings$Params, context?: HttpContext): Observable<FileStorageSettings> {
+    const resp = this.getFileStorageSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FileStorageSettings>): FileStorageSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `saveFileStorageSettings()` */
+  static readonly SaveFileStorageSettingsPath = '/api/v1/auth/files/admin/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveFileStorageSettings()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveFileStorageSettings$Response(params: SaveFileStorageSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveFileStorageSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveFileStorageSettings$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveFileStorageSettings(params: SaveFileStorageSettings$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveFileStorageSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listUserFiles()` */
+  static readonly ListUserFilesPath = '/api/v1/auth/files/admin/users/{owner}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listUserFiles()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listUserFiles$Response(params: ListUserFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
+    const obs = listUserFiles(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listUserFiles$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listUserFiles(params: ListUserFiles$Params, context?: HttpContext): Observable<FilePage> {
+    const resp = this.listUserFiles$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FilePage>): FilePage => r.body)
+    );
+  }
+
+  /** Path part for operation `setUserFileQuota()` */
+  static readonly SetUserFileQuotaPath = '/api/v1/auth/files/admin/users/{owner}/quota';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `setUserFileQuota()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setUserFileQuota$Response(params: SetUserFileQuota$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = setUserFileQuota(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `setUserFileQuota$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setUserFileQuota(params: SetUserFileQuota$Params, context?: HttpContext): Observable<void> {
+    const resp = this.setUserFileQuota$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadUserFile()` */
+  static readonly DownloadUserFilePath = '/api/v1/auth/files/admin/users/{owner}/{id}/download';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadUserFile()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadUserFile$Response(params: DownloadUserFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadUserFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadUserFile$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadUserFile(params: DownloadUserFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadUserFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getPlatformAppearance()` */
+  static readonly GetPlatformAppearancePath = '/api/v1/auth/configuration/appearance';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPlatformAppearance()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPlatformAppearance$Response(params?: GetPlatformAppearance$Params, context?: HttpContext): Observable<StrictHttpResponse<PlatformAppearance>> {
+    const obs = getPlatformAppearance(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPlatformAppearance$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPlatformAppearance(params?: GetPlatformAppearance$Params, context?: HttpContext): Observable<PlatformAppearance> {
+    const resp = this.getPlatformAppearance$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PlatformAppearance>): PlatformAppearance => r.body)
+    );
+  }
+
+  /** Path part for operation `savePlatformAppearance()` */
+  static readonly SavePlatformAppearancePath = '/api/v1/auth/configuration/appearance';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `savePlatformAppearance()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  savePlatformAppearance$Response(params: SavePlatformAppearance$Params, context?: HttpContext): Observable<StrictHttpResponse<PlatformAppearance>> {
+    const obs = savePlatformAppearance(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `savePlatformAppearance$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  savePlatformAppearance(params: SavePlatformAppearance$Params, context?: HttpContext): Observable<PlatformAppearance> {
+    const resp = this.savePlatformAppearance$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PlatformAppearance>): PlatformAppearance => r.body)
+    );
+  }
+
+  /** Path part for operation `listRuntimeModules()` */
+  static readonly ListRuntimeModulesPath = '/api/v1/auth/administration/modules';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listRuntimeModules()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listRuntimeModules$Response(params?: ListRuntimeModules$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RuntimeModule>>> {
+    const obs = listRuntimeModules(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listRuntimeModules$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listRuntimeModules(params?: ListRuntimeModules$Params, context?: HttpContext): Observable<Array<RuntimeModule>> {
+    const resp = this.listRuntimeModules$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<RuntimeModule>>): Array<RuntimeModule> => r.body)
+    );
+  }
+
+  /** Path part for operation `saveRuntimeModule()` */
+  static readonly SaveRuntimeModulePath = '/api/v1/auth/administration/modules';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveRuntimeModule()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveRuntimeModule$Response(params: SaveRuntimeModule$Params, context?: HttpContext): Observable<StrictHttpResponse<RuntimeModule>> {
+    const obs = saveRuntimeModule(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveRuntimeModule$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveRuntimeModule(params: SaveRuntimeModule$Params, context?: HttpContext): Observable<RuntimeModule> {
+    const resp = this.saveRuntimeModule$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<RuntimeModule>): RuntimeModule => r.body)
     );
   }
 

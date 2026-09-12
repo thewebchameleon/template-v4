@@ -4,7 +4,7 @@
 
 - **Notifications** opens from the header bell as a right-side inbox drawer with recent items, mark-read actions and deep links. The full notification centre separates the `/notifications` inbox from `/notifications/preferences` delivery preferences with route-backed tabs. Inbox items expose their details and read/unread action on the right; preferences are not shown in the drawer. SignalR invalidates the badge and loaded notification views after committed changes from API or Worker processes; visible-tab polling remains a bounded fallback. Essential security email is unaffected by preferences.
 - **Account** owns personal identity and verified email changes; **Security** owns factors and active sessions.
-- **Files**, when enabled, offers name search, URL-persisted sort/pagination, upload progress, download and confirmed deletion. Files are private to their owner, including against administrators. Limits are 20 MiB per upload and a configurable total quota. Deleted and incomplete objects count until purged.
+- **Files** is enabled by default in the baseline and offers folders, renaming, debounced name search within the current folder, URL-persisted sort/pagination, upload progress, attachment downloads and confirmed deletion. Any file type is accepted, including empty files, with a 20 MiB upload cap. Owners manage their own library; administrators with `settings.manage` can browse and download through user details. Folders must be empty before deletion. Deleted and incomplete objects count until purged. See [file library policy](adr/0021-user-file-library.md).
 - **Privacy & data** offers a JSON export with explicit safe fields, deletion requests and withdrawal. The export includes file metadata; users download content separately from Files. It never serializes Identity entities, password hashes, authenticators, refresh tokens, challenges or outbox payloads.
 
 ## Administration
@@ -14,13 +14,15 @@
 - **System Health** shows pending/failed counts, oldest backlog age, active jobs, last maintenance and deployment version. Failed deliveries are replayed through the existing audited, CSRF-protected endpoint after explicit in-app confirmation. The view is a timestamped snapshot; Refresh reloads it.
 - **Privacy requests** lets an administrator approve anonymisation or decline a pending request. The approval dialog describes the irreversible result. Users cannot process their own request; the last active administrator is protected. Withdrawal/review is serialized by an account advisory lock.
 
+**File storage** at `/administration/storage` sets the database-backed default allowance (initially 100 MiB per user). User details → Files and storage quota opens that user’s folders and a quota override; leave the override blank to follow the current default. Both administration workflows require `settings.manage`. Existing files remain available after a reduction; new uploads must fit the new quota.
+
 ## Retention defaults
 
 | Setting                             | Default                           | Bounds                    |
 | ----------------------------------- | --------------------------------- | ------------------------- |
 | `Privacy:DeletedFileRetentionDays`  | 30 days                           | 1–365 days                |
 | `Privacy:NotificationRetentionDays` | 90 days                           | 7–365 days                |
-| `Storage:QuotaBytes`                | 1 GiB                             | 20 MiB–100 GiB            |
+| File storage default / user override | 100 MiB / inherit default       | 0–100 GiB                 |
 | `Operations:BacklogWarningSeconds`  | 300 seconds                       | 60–86400 seconds          |
 | `Deployment:Version`                | Assembly version (Compose: 0.1.0) | Set to release identifier |
 

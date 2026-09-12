@@ -1,7 +1,7 @@
 import { administrationLandingGuard } from './core/administration';
 import { filesGuard, moduleGuard } from './core/features';
 import { Routes } from '@angular/router';
-import { authGuard, permissionGuard } from './core/auth';
+import { authGuard, permissionGuard, administratorRoleGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
@@ -109,6 +109,35 @@ export const routes: Routes = [
         canActivate: [authGuard, permissionGuard],
         canDeactivate: [unsavedGuard],
         loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+      },
+      {
+        path: 'modules',
+        data: { breadcrumb: 'modules', permission: 'settings.manage' },
+        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/modules').then((m) => m.ModulesPage),
+      },
+      {
+        path: 'configuration',
+        data: { breadcrumb: 'configuration', permission: 'settings.manage' },
+        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/configuration').then((m) => m.ConfigurationPage),
+      },
+      {
+        path: 'users/:ownerId/files',
+        data: { breadcrumb: 'files', permission: 'settings.manage' },
+        canActivate: [authGuard, permissionGuard, filesGuard],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () => import('./features/files').then((m) => m.FilesPage),
+      },
+      {
+        path: 'storage',
+        data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
+        canActivate: [authGuard, permissionGuard, filesGuard],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () =>
+          import('./features/storage-settings').then((m) => m.StorageSettingsPage),
       },
       {
         path: 'users/:id',

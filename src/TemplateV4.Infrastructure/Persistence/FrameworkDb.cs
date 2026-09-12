@@ -9,6 +9,7 @@ namespace TemplateV4.Infrastructure.Persistence;
 
 public sealed class AppUser : IdentityUser<Guid>
 {
+    public long? StorageQuotaBytes { get; set; }
     public DateTimeOffset? InvitationSentAt { get; set; }
     public DateTimeOffset? InvitationExpiresAt { get; set; }
     public DateTimeOffset? InvitationAcceptedAt { get; set; }
@@ -131,7 +132,10 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
     public DbSet<JobRun> JobRuns => Set<JobRun>();
     public DbSet<UserNotification> Notifications => Set<UserNotification>();
     public DbSet<StoredFile> Files => Set<StoredFile>();
+    public DbSet<FileStorageSettings> FileStorageSettings => Set<FileStorageSettings>();
     public DbSet<DeletionRequest> DeletionRequests => Set<DeletionRequest>();
+    public DbSet<PlatformAppearanceSettings> PlatformAppearanceSettings => Set<PlatformAppearanceSettings>();
+    public DbSet<RuntimeModuleSettings> RuntimeModules => Set<RuntimeModuleSettings>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -205,6 +209,30 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.ContentType).HasMaxLength(100);
             entity.HasIndex(x => new { x.OwnerId, x.CreatedAt }); entity.HasIndex(x => x.DeletedAt);
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.OwnerId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasAlternateKey(x => new { x.Id, x.OwnerId });
+            entity.HasOne<StoredFile>().WithMany().HasForeignKey(x => new { x.ParentId, x.OwnerId }).HasPrincipalKey(x => new { x.Id, x.OwnerId }).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => new { x.OwnerId, x.ParentId });
+        });
+        model.Entity<FileStorageSettings>(entity =>
+        {
+            entity.ToTable("file_storage_settings", "app");
+            entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasData(new FileStorageSettings { Id = 1, DefaultQuotaBytes = 100L * 1024 * 1024, Version = new Guid("df8c4bbd-18fb-45f8-8f13-a4c58a334660") });
+        });
+        model.Entity<PlatformAppearanceSettings>(entity =>
+        {
+            entity.ToTable("platform_appearance_settings", "app", table => table.HasCheckConstraint("CK_platform_appearance_singleton", "\"Id\" = 1"));
+            entity.Property(x => x.CustomColorsJson).HasColumnType("jsonb").HasDefaultValue("[]");
+            entity.Property(x => x.PrimaryColor).HasMaxLength(7);
+            entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasData(new PlatformAppearanceSettings { Id = 1, PrimaryColor = "#2563EB", Version = new Guid("06d9599a-a693-4d21-9745-152b0515b89b") });
+        });
+        model.Entity<RuntimeModuleSettings>(entity =>
+        {
+            entity.ToTable("runtime_modules", "app");
+            entity.Property(x => x.Id).HasMaxLength(80);
+            entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasData(new RuntimeModuleSettings { Id = "files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         model.Entity<DeletionRequest>(entity =>
         {

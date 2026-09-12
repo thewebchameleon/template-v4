@@ -2,6 +2,7 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HlmDrawer, HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmTooltip } from '@spartan-ng/helm/tooltip';
 import { NotificationItem, NotificationPage } from '../api/models';
 import { Auth } from '../core/auth';
 import { I18n } from '../core/i18n';
@@ -11,7 +12,7 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../shared/workspace';
 
 @Component({
   selector: 'app-notification-drawer',
-  imports: [WorkspaceUi, HlmDrawerImports],
+  imports: [WorkspaceUi, HlmDrawerImports, HlmTooltip],
   providers: [workspaceIcons],
   styles: `
     .notification-drawer-scroll {
@@ -68,6 +69,8 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../shared/workspace';
         [attr.aria-label]="
           ('notificationCentre' | t) + ': ' + unread.count() + ' ' + ('unread' | t)
         "
+        [hlmTooltip]="'notificationCentre' | t"
+        position="bottom"
         (click)="load()"
       >
         <ng-icon name="lucideBell" />
