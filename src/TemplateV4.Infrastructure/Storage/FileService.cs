@@ -14,7 +14,7 @@ public sealed record FileNameRequest(string Name);
 public sealed record CreateFolderRequest(string Name, Guid? ParentId = null);
 public sealed record FileQuotaRequest(long? QuotaBytes);
 public sealed record StorageSettingsRequest(long DefaultQuotaBytes, Guid Version);
-public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvider time)
+public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvider time, TemplateV4.Application.Billing.IStorageEntitlements entitlements)
 {
     public const long MaxUploadBytes = 20 * 1024 * 1024;
     public const long MaximumQuotaBytes = 100L * 1024 * 1024 * 1024;
@@ -23,7 +23,7 @@ public sealed class FileService(FrameworkDb db, IFileStorage storage, TimeProvid
     private Task Lock(Guid owner, CancellationToken ct) => db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
     private Task<bool> FolderExists(Guid owner, Guid? parent, CancellationToken ct) => parent is null ? Task.FromResult(true) : db.Files.AnyAsync(x => x.Id == parent && x.OwnerId == owner && x.IsFolder && x.Ready && x.DeletedAt == null, ct);
     private Task<bool> Active(Guid owner, CancellationToken ct) => db.Profiles.AnyAsync(x => x.Id == owner && !x.Disabled, ct);
-    private async Task<long> Quota(Guid owner, CancellationToken ct) => await db.Users.Where(x => x.Id == owner).Select(x => x.StorageQuotaBytes).SingleAsync(ct) ?? (await Settings(ct)).DefaultQuotaBytes;
+    private async Task<long> Quota(Guid owner, CancellationToken ct) => await entitlements.Quota(owner, ct) ?? await db.Users.Where(x => x.Id == owner).Select(x => x.StorageQuotaBytes).SingleAsync(ct) ?? (await Settings(ct)).DefaultQuotaBytes;
     public Task<FileStorageSettings> Settings(CancellationToken ct) => db.FileStorageSettings.AsNoTracking().SingleAsync(ct);
     public async Task<Result<Unit>> SaveSettings(Guid actor, StorageSettingsRequest request, CancellationToken ct)
     {

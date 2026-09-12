@@ -1,5 +1,7 @@
 # Developer guide
 
+For accounts, shared organization files and subscriptions, see [Organizations and billing](customer-billing.md).
+
 For the configurable SaaS starter, see [modules, deployment presets and roadmap](saas-modules.md). The module catalog complements the framework inventory; it does not replace feature flags or permission checks.
 
 The framework manifest is the inventory and version contract. CLI and CI load it directly. `global.json`, central NuGet versions, NuGet lockfiles, npm's exact versions and lockfile pin builds.
@@ -93,10 +95,10 @@ Enabled actions use a pointer cursor through the semantic control selectors in `
 
 - `src/TemplateV4.Angular/src/brand.css`: the project brand guide. Configure the complete primary and neutral shade palettes, light/dark semantic color mappings, chart palette, and heading/body font tokens here. Both font tokens default to locally bundled Inter 4.1 (variable weights 100–900), with system fallbacks and `font-display: swap`. Font assets and their license live in `public/fonts/inter`; update the font-face declaration and `src/index.html` preload together when replacing the font. The default primary is blue; components continue to consume semantic tokens rather than palette shades directly.
 - `src/TemplateV4.Angular/src/styles.css`: global Tailwind/Spartan setup, color-scheme behavior, radius, and base element styles. Tailwind's `--spacing`, `--text-*`, and font-weight theme variables are the shared scales; override them with `@theme` to customize every copied component consistently.
-- `src/TemplateV4.Angular/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and image treatment. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
+- `src/TemplateV4.Angular/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and artwork motion. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
 - Shared `hlmCard` panels use a muted rounded shell with an inset semantic card surface. Tune the `--panel-*` variables in `src/TemplateV4.Angular/src/design-tokens.css`; keep structural card styling centralized in `libs/ui/card` so light, dark and responsive treatments remain consistent across feature pages.
 - Right-side drawers use the same panel tokens and card-in-card composition. Put scrollable drawer content on an element with `hlmDrawerBody`; pair it with the shared drawer header and optional footer so the body uses matching top and horizontal insets across themes and viewport sizes. The notification drawer keeps its list-specific inset and edge treatment.
-- `src/TemplateV4.Angular/src/app/features/auth-layout.ts`: shared two-column authentication composition and the local `public/auth-background.jpg` artwork. Change the `appBrand` translation for branding.
+- `src/TemplateV4.Angular/src/app/features/auth-layout.ts`: shared two-column authentication composition and the local `public/auth-sky.svg` artwork (the FeralUI Blue sky palette with soft clouds, subtle grain and reduced-motion-aware drift). Change the `appBrand` translation for branding.
 - `src/TemplateV4.Angular/libs/ui`: owned Helm variants and component styles. Extend these for control-wide changes; prefer their variants and semantic tokens in page templates. Use `hlm-select` with its trigger, value, portaled content, and items for dropdowns, including form drawers and table filters. Preserve accessible labels and required-value validation.
 
 Public registration is disabled by default. Administrators enable **Allow public registration** under **Users → Account security** without additional credential or factor confirmation. New users register at `/signup`, verify email, and receive Reader access. MFA policy still applies. See [registration policy](adr/0009-configurable-public-registration.md).

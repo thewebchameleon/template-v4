@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
+import { ProfileEditor } from './profile-editor';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { WorkspaceUi, workspaceIcons, Resource, protectUnload } from '../shared/workspace';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -6,7 +7,7 @@ import { Notifications } from '../core/notifications';
 import { ProfileResponse } from '../api/models';
 @Component({
   selector: 'app-account-home',
-  imports: [WorkspaceUi, HlmCheckboxImports],
+  imports: [WorkspaceUi, HlmCheckboxImports, ProfileEditor],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="account" description="accountIntro"
@@ -16,6 +17,7 @@ import { ProfileResponse } from '../api/models';
     >
     <app-page-state [state]="data.state()" (retry)="load()"
       ><div class="max-w-(--form-content-width) grid gap-6">
+        <app-profile-editor [profile]="data.value()" (saved)="data.value.set($event)" />
         <section hlmCard>
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ data.value()?.displayName }}</h2>
@@ -108,6 +110,7 @@ import { ProfileResponse } from '../api/models';
     >`,
 })
 export class AccountHomePage {
+  readonly editor = viewChild(ProfileEditor);
   readonly api = inject(WorkspaceApi);
   readonly data = new Resource<ProfileResponse>();
   readonly busy = signal(false);
@@ -124,7 +127,7 @@ export class AccountHomePage {
     return this.data.load((signal) => this.api.get('profile', {}, signal));
   }
   hasUnsavedChanges() {
-    return !!(this.email || this.password || this.code);
+    return !!(this.email || this.password || this.code || this.editor()?.hasUnsavedChanges());
   }
   beforeUnload(event: BeforeUnloadEvent) {
     protectUnload(event, this.hasUnsavedChanges());

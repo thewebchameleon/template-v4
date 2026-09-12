@@ -36,7 +36,7 @@ public static class Hosting
         var telemetry = builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddRuntimeInstrumentation().AddMeter("templatev4"))
             .WithTracing(traces => traces.AddAspNetCoreInstrumentation(options => options.Filter = context => !context.Request.Path.StartsWithSegments("/health"))
-                .AddHttpClientInstrumentation().AddSource("TemplateV4.*"));
+                .AddHttpClientInstrumentation(options => options.FilterHttpRequestMessage = request => request.RequestUri?.Host != "api.payfast.co.za").AddSource("TemplateV4.*"));
         if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
         {
             telemetry.WithMetrics(metrics => metrics.AddOtlpExporter()).WithTracing(traces => traces.AddOtlpExporter());

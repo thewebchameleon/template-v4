@@ -38,7 +38,9 @@
     "privacy",
     "s3-storage",
     "role-management",
-    "support"
+    "support",
+    "organizations",
+    "billing"
   ],
   "projects": {
     "Domain": "src/TemplateV4.Domain",

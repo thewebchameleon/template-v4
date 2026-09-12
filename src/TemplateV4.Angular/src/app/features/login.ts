@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideChevronRight, lucideKeyRound, lucideMail, lucideSmartphone } from '@ng-icons/lucide';
 import { BrnInputOtp } from '@spartan-ng/brain/input-otp';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -9,7 +11,6 @@ import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { AuthLayout } from './auth-layout';
 import { Registration } from '../core/registration';
 import { Auth } from '../core/auth';
@@ -19,6 +20,7 @@ import { Notifications } from '../core/notifications';
 
 @Component({
   selector: 'app-login',
+  providers: [provideIcons({ lucideChevronRight, lucideKeyRound, lucideMail, lucideSmartphone })],
   imports: [
     FormsModule,
     BrnInputOtp,
@@ -29,7 +31,7 @@ import { Notifications } from '../core/notifications';
     HlmCheckboxImports,
     HlmSpinnerImports,
     HlmDialogImports,
-    HlmTabsImports,
+    NgIcon,
     AuthLayout,
     RouterLink,
     Translate,
@@ -45,20 +47,32 @@ import { Notifications } from '../core/notifications';
       @if (auth.challenge() && challengeStep() === 'choose') {
         <fieldset hlmFieldSet>
           <legend hlmFieldLegend>{{ 'authenticationMethod' | t }}</legend>
-          <hlm-tabs
-            orientation="vertical"
-            [tab]="selectedMethod()"
-            (tabActivated)="selectMethod($event)"
-            class="w-full"
-          >
-            <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'authenticationMethod' | t">
-              @for (method of auth.mfaMethods(); track method) {
-                <button [hlmTabsTrigger]="method" class="w-full">
-                  {{ methodLabel(method) | t }}
-                </button>
-              }
-            </hlm-tabs-list>
-          </hlm-tabs>
+          <div class="flex flex-col gap-2">
+            @for (method of auth.mfaMethods(); track method) {
+              <button
+                hlmBtn
+                variant="outline"
+                type="button"
+                class="h-auto w-full justify-start gap-3 py-3 text-left whitespace-normal"
+                [disabled]="busy()"
+                (click)="selectMethod(method)"
+                [attr.aria-labelledby]="'method-label-' + method"
+                [attr.aria-describedby]="'method-description-' + method"
+              >
+                <ng-icon [name]="methodIcon(method)" size="1.5rem" aria-hidden="true" />
+                <span class="flex min-w-0 flex-1 flex-col gap-1">
+                  <span [id]="'method-label-' + method">{{ methodLabel(method) | t }}</span>
+                  <span
+                    class="text-sm font-normal text-muted-foreground"
+                    [id]="'method-description-' + method"
+                  >
+                    {{ methodDescription(method) | t }}
+                  </span>
+                </span>
+                <ng-icon name="lucideChevronRight" aria-hidden="true" />
+              </button>
+            }
+          </div>
         </fieldset>
       }
       <form class="auth-fields" #form="ngForm" (ngSubmit)="form.valid && submit()">
@@ -280,6 +294,20 @@ export class LoginPage implements OnInit, OnDestroy {
       : method === 'Authenticator'
         ? 'authenticatorMethod'
         : 'emailMethod';
+  }
+  methodIcon(method: string) {
+    return method === 'Passkey'
+      ? 'lucideKeyRound'
+      : method === 'Authenticator'
+        ? 'lucideSmartphone'
+        : 'lucideMail';
+  }
+  methodDescription(method: string) {
+    return method === 'Passkey'
+      ? 'passkeyMethodDescription'
+      : method === 'Authenticator'
+        ? 'authenticatorMethodDescription'
+        : 'emailMethodDescription';
   }
   async selectMethod(value: string | string[] | null | undefined) {
     if (typeof value !== 'string' || !value || this.busy()) return;

@@ -25,14 +25,10 @@
   --auth-form-width: 20rem;
   --auth-panel-padding: calc(var(--spacing) * 10);
   --auth-panel-padding-mobile: calc(var(--spacing) * 6);
-  --auth-artwork-brightness: 0.6;
-  --auth-artwork-grayscale: 1;
+  --auth-artwork-drift-duration: 36s;
   --auth-title-size: var(--text-2xl);
   --brand-mark-size: 2rem;
   --auth-brand-mark-size: 1.5rem;
-}
-:root.dark {
-  --auth-artwork-brightness: 0.2;
 }
 @layer components {
   .page-title {
@@ -328,15 +324,26 @@
   .auth-artwork {
     position: relative;
     display: none;
-    background: var(--muted);
+    overflow: hidden;
+    background: var(--auth-sky-background);
   }
-  .auth-artwork-image {
+  .auth-artwork::before {
+    content: '';
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(var(--auth-artwork-grayscale)) brightness(var(--auth-artwork-brightness));
+    inset: -8%;
+    background: url('/auth-sky.svg') center / cover;
+    animation: auth-sky-drift var(--auth-artwork-drift-duration) ease-in-out infinite alternate;
+  }
+  @keyframes auth-sky-drift {
+    from {
+      transform: translate(-2%, 1%) scale(1.04);
+    }
+    to {
+      transform: translate(2%, -1%) scale(1.08);
+    }
+  }
+  :root[data-motion='reduced'] .auth-artwork::before {
+    animation: none;
   }
   .auth-heading {
     display: flex;

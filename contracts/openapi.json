@@ -10,6 +10,29 @@
     }
   ],
   "paths": {
+    "/api/v1/billing/callbacks/{provider}": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ReceivePaymentCallback",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/auth/csrf": {
       "get": {
         "tags": [
@@ -475,6 +498,76 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UpdateProfile",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/profile/options": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetProfileOptions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOptions"
                 }
               }
             }
@@ -3030,6 +3123,910 @@
         ]
       }
     },
+    "/api/v1/auth/customers": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCustomers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerHome"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateOrganization",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/rename": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RenameOrganization",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameOrganization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/members": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganizationMembers",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfCustomerMember"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/invite": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "InviteOrganizationMember",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteMember"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/invitations/{invitation}/accept": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "AcceptOrganizationInvitation",
+        "parameters": [
+          {
+            "name": "invitation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/invitations/{invitation}/revoke": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RevokeOrganizationInvitation",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "invitation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/members/role": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ChangeOrganizationRole",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeMember"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/members/remove": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RemoveOrganizationMember",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/transfer": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "TransferOrganizationOwnership",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCustomerBilling",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/trial": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "StartBillingTrial",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartTrial"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/checkout": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateSubscriptionCheckout",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/cancel": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CancelCustomerSubscription",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/files": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganizationFiles",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationFilePage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/files/upload": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UploadOrganizationFile",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/files/{id}/delete": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DeleteOrganizationFile",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/files/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DownloadOrganizationFile",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/configuration/billing": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetBillingSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveBillingSettings",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/bootstrap/status": {
       "get": {
         "tags": [
@@ -3589,6 +4586,10 @@
           "isAdministrator": {
             "type": "boolean",
             "default": false
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "UTC"
           }
         }
       },
@@ -3836,6 +4837,161 @@
           }
         }
       },
+      "BillingPlan": {
+        "required": [
+          "id",
+          "name",
+          "pricing",
+          "currency",
+          "monthlyMinor",
+          "yearlyMinor",
+          "storageBytes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pricing": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "monthlyMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "yearlyMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "storageBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "BillingSettings": {
+        "required": [
+          "ownership",
+          "stripeEnabled",
+          "payFastEnabled",
+          "defaultProvider",
+          "trialDays",
+          "graceDays",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "ownership": {
+            "type": "string"
+          },
+          "stripeEnabled": {
+            "type": "boolean"
+          },
+          "payFastEnabled": {
+            "type": "boolean"
+          },
+          "defaultProvider": {
+            "type": "string"
+          },
+          "trialDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "graceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "BillingSummary": {
+        "required": [
+          "customerId",
+          "plans",
+          "settings",
+          "planId",
+          "state",
+          "provider",
+          "trialUntil",
+          "paidUntil",
+          "seats",
+          "storageBytes",
+          "canManage",
+          "canCheckout",
+          "interval"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingPlan"
+            }
+          },
+          "settings": {
+            "$ref": "#/components/schemas/BillingSettings"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "trialUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "paidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "seats": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "storageBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "canManage": {
+            "type": "boolean"
+          },
+          "canCheckout": {
+            "type": "boolean"
+          },
+          "interval": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ChangeEmailRequest": {
         "required": [
           "email",
@@ -3848,6 +5004,88 @@
           },
           "proof": {
             "$ref": "#/components/schemas/SecurityProof"
+          }
+        }
+      },
+      "ChangeMember": {
+        "required": [
+          "userId",
+          "role",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "required": [
+          "planId",
+          "interval",
+          "provider",
+          "seats",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "interval": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "seats": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CheckoutResponse": {
+        "required": [
+          "id",
+          "url",
+          "fields"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "fields": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3893,6 +5131,17 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "CreateOrganization": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -3981,6 +5230,119 @@
             "type": "string"
           },
           "color": {
+            "type": "string"
+          }
+        }
+      },
+      "CustomerHome": {
+        "required": [
+          "mode",
+          "accounts",
+          "invitations"
+        ],
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerInfo"
+            }
+          },
+          "invitations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerInvitation"
+            }
+          }
+        }
+      },
+      "CustomerInfo": {
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "role",
+          "members",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "members": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CustomerInvitation": {
+        "required": [
+          "id",
+          "customerId",
+          "customerName",
+          "role",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CustomerMember": {
+        "required": [
+          "userId",
+          "name",
+          "email",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
             "type": "string"
           }
         }
@@ -4394,6 +5756,21 @@
           }
         }
       },
+      "InviteMember": {
+        "required": [
+          "email",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
       "JsonElement": { },
       "LoginRequest": {
         "required": [
@@ -4411,6 +5788,23 @@
           },
           "device": {
             "type": "string"
+          }
+        }
+      },
+      "MemberAction": {
+        "required": [
+          "userId",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -4604,6 +5998,53 @@
           }
         }
       },
+      "OrganizationFileItem": {
+        "required": [
+          "id",
+          "name",
+          "size",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrganizationFilePage": {
+        "required": [
+          "page",
+          "usedBytes",
+          "quotaBytes"
+        ],
+        "type": "object",
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageOfOrganizationFileItem"
+          },
+          "usedBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quotaBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PageOfAuditItem": {
         "required": [
           "items",
@@ -4617,6 +6058,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AuditItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfCustomerMember": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerMember"
             }
           },
           "total": {
@@ -4704,6 +6174,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/NotificationItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfOrganizationFileItem": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationFileItem"
             }
           },
           "total": {
@@ -4950,6 +6449,27 @@
           }
         }
       },
+      "ProfileOptions": {
+        "required": [
+          "cultures",
+          "timeZones"
+        ],
+        "type": "object",
+        "properties": {
+          "cultures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timeZones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "ProfileResponse": {
         "required": [
           "id",
@@ -4963,7 +6483,13 @@
           "passkeys",
           "emailMfaEnabled",
           "mfaMethods",
-          "preferredMfaMethod"
+          "preferredMfaMethod",
+          "firstName",
+          "lastName",
+          "phoneNumber",
+          "timeZone",
+          "avatarDataUrl",
+          "version"
         ],
         "type": "object",
         "properties": {
@@ -5013,6 +6539,37 @@
           },
           "preferredMfaMethod": {
             "type": "string"
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "avatarDataUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -5073,6 +6630,22 @@
           },
           "proof": {
             "$ref": "#/components/schemas/SecurityProof"
+          }
+        }
+      },
+      "RenameOrganization": {
+        "required": [
+          "name",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -5438,6 +7011,17 @@
           }
         }
       },
+      "StartTrial": {
+        "required": [
+          "planId"
+        ],
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          }
+        }
+      },
       "StorageSettingsRequest": {
         "required": [
           "defaultQuotaBytes",
@@ -5694,6 +7278,61 @@
           "at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UpdateProfileRequest": {
+        "required": [
+          "displayName",
+          "firstName",
+          "lastName",
+          "phoneNumber",
+          "culture",
+          "timeZone",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "culture": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "avatarBase64": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "removeAvatar": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

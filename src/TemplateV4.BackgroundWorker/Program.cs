@@ -16,6 +16,7 @@ builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();
 builder.Services.AddHostedService<OutboxPump>();
 builder.Services.AddHostedService<JobReconciler>();
 builder.Services.AddHostedService<StorageRetention>();
+builder.Services.AddHostedService<BillingReconciler>();
 builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddQuartz(options =>
 {

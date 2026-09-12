@@ -1,6 +1,6 @@
 # ADR 0019: personal and organization SaaS accounts
 
-Status: Accepted design; implementation pending.
+Status: Accepted; initial implementation follows [ADR 0026](0026-customer-billing-implementation.md).
 
 ## Context
 

@@ -4,6 +4,7 @@ import { dictionary } from './translations';
 const storageKey = 'templatev4-culture';
 @Injectable({ providedIn: 'root' })
 export class I18n {
+  readonly timeZone = signal('UTC');
   private readonly runtime = inject(Runtime);
   readonly culture = signal(
     this.runtime.supportedCultures.includes(document.documentElement.lang)
@@ -44,12 +45,14 @@ export class I18n {
   private readonly numbers = new Map<string, Intl.NumberFormat>();
   date(value: string) {
     const culture = this.culture();
-    if (!this.dates.has(culture))
+    const timeZone = this.timeZone();
+    const key = `${culture}:${timeZone}`;
+    if (!this.dates.has(key))
       this.dates.set(
-        culture,
-        new Intl.DateTimeFormat(culture, { dateStyle: 'medium', timeStyle: 'short' }),
+        key,
+        new Intl.DateTimeFormat(culture, { dateStyle: 'medium', timeStyle: 'short', timeZone }),
       );
-    return this.dates.get(culture)!.format(new Date(value));
+    return this.dates.get(key)!.format(new Date(value));
   }
   number(value: number) {
     const culture = this.culture();

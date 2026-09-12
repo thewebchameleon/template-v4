@@ -3,16 +3,22 @@
 
 import { PasskeySummary } from '../models/passkey-summary';
 export interface ProfileResponse {
+  avatarDataUrl: (string | null);
   culture: string;
   displayName: string;
   email: string;
   emailMfaEnabled: boolean;
+  firstName: (string | null);
   id: string;
+  lastName: (string | null);
   mfaEnabled: boolean;
   mfaMethods: Array<string>;
   mfaRequired: boolean;
   passkeys: Array<PasskeySummary>;
+  phoneNumber: (string | null);
   preferredMfaMethod: string;
   recoveryCodes: number;
   roles: Array<string>;
+  timeZone: string;
+  version: string;
 }

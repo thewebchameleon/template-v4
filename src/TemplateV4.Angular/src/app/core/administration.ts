@@ -10,6 +10,14 @@ export class AdministrationNavigation {
   readonly links = computed(() =>
     [
       {
+        path: '/administration/billing',
+        label: 'billingSettings',
+        icon: 'lucideSettings',
+        section: 'modules',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+      },
+      {
         path: '/administration/users',
         label: 'userManagement',
         icon: 'lucideUsersRound',

@@ -8,6 +8,14 @@ User list requests are bounded and stably sorted. Updates require the profile co
 
 The sample demonstrates administration of account invitations and activation status. Its directory is rendered through the shared Spartan/TanStack `app-data-table` composition while search, status and role filtering, sorting, page size and pagination remain server-side. Read Authentication and Authorization tests before changing token or role behavior. Add new role permissions to seeded metadata and ensure existing sessions are invalidated during permission migrations.
 
+## Account profile
+
+Users edit their own display name, optional first/last names, photo, optional international phone number, language and time zone under Account (`/me`). Display names are limited to 120 characters; first and last names to 100 each. Phone numbers include a leading plus and country code, for example `+27821234567`, and are contact details only. Registration retains its existing small set of required fields.
+
+Photos accept JPEG, PNG or WebP up to 5 MiB and are centre-cropped to a 256-pixel square before upload. The API stores bounded PNGs separately from the optional Files module. Users can preview, replace or remove their photo; saving updates the account rail. Cancelling restores the saved profile. Version conflicts retain the draft and offer an explicit discard-and-reload action.
+
+`GET /api/v1/auth/profile/options` supplies allowed cultures and IANA time zones. `POST /api/v1/auth/profile` requires the current profile version and returns the new version. An omitted `avatarBase64` preserves the photo; `removeAvatar: true` removes it. Existing users start with UTC and can select their preferred zone; shared date formatting and audit details use that zone. Account exports and approved erasure include these additions. See [ADR 0026](adr/0026-account-profile-details.md) for storage, validation and extension boundaries.
+
 ## Public registration
 
 Administrators can enable public registration in Admin settings; it starts disabled. Signup collects email, display name, password and culture and creates an unconfirmed Reader account. The verification link activates sign-in with the chosen password. Duplicate submissions receive an accepted response without changing an existing account. Forgot-password resends verification for unconfirmed accounts under the existing cooldown.

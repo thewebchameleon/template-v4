@@ -1,6 +1,6 @@
 # ADR 0020: billing, entitlements and selectable payment providers
 
-Status: Accepted design; implementation pending.
+Status: Accepted; initial implementation follows [ADR 0026](0026-customer-billing-implementation.md).
 
 ## Context
 

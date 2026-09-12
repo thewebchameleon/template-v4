@@ -4,6 +4,8 @@
     "maintenance": true,
     "operations": true,
     "audit-history": true,
-    "support": true
+    "support": true,
+    "organizations": true,
+    "billing": true
   }
 }

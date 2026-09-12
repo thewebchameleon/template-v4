@@ -64,5 +64,24 @@
       "audit-recording",
       "delivery"
     ]
+  },
+  {
+    "id": "organizations",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": [
+      "identity",
+      "audit-recording",
+      "delivery"
+    ]
+  },
+  {
+    "id": "billing",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": [
+      "organizations",
+      "delivery"
+    ]
   }
 ]

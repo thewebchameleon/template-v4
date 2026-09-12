@@ -37,11 +37,11 @@ public static class ApiResults
         {
 
             "support.not_found" => af ? "Hierdie kaartjie is nie beskikbaar nie." : "This support ticket is unavailable.",
-            "support.category_invalid" => af ? "Kies ’n aktiewe kategorie." : "Choose an active category.",
-            "support.assignee_invalid" => af ? "Kies ’n aktiewe ondersteuningsagent." : "Choose an active support agent.",
+            "support.category_invalid" => af ? "Kies â€™n aktiewe kategorie." : "Choose an active category.",
+            "support.assignee_invalid" => af ? "Kies â€™n aktiewe ondersteuningsagent." : "Choose an active support agent.",
             "support.reopen_required" => af ? "Heropen die kaartjie om voort te gaan." : "Reopen the ticket before continuing.",
             "support.attachment_limit" => af ? "Die kaartjie se aanhangsellimiet is bereik." : "This ticket has reached its attachment limit.",
-            "support.category_limit" => af ? "Die limiet van 100 kategorieë is bereik." : "The limit of 100 categories has been reached.",
+            "support.category_limit" => af ? "Die limiet van 100 kategorieÃ« is bereik." : "The limit of 100 categories has been reached.",
             "support.last_category" => af ? "Hou minstens een aktiewe kategorie." : "Keep at least one active category.",
             "modules.conflict" => af ? "Module-instellings het verander. Herlaai die gestoorde instellings en probeer weer." : "Module settings changed. Reload the saved settings and try again.",
             "modules.unavailable" => af ? "Hierdie module is nie in hierdie ontplooiing beskikbaar nie." : "This module is unavailable in this deployment.",
@@ -110,6 +110,11 @@ public static class ApiResults
 
             "concurrency.conflict" => af ? "Die rekord het verander. Herlaai dit." : "The record changed. Reload it.",
 
+            "profile.name_invalid" => af ? "Voer 'n vertoonnaam van hoogstens 120 karakters en name van hoogstens 100 karakters in." : "Enter a display name up to 120 characters and names up to 100 characters.",
+            "profile.phone_invalid" => af ? "Gebruik 'n internasionale telefoonnommer, byvoorbeeld +27821234567." : "Use an international phone number, for example +27821234567.",
+            "profile.time_zone_invalid" => af ? "Kies 'n ondersteunde tydsone." : "Choose a supported time zone.",
+            "profile.avatar_invalid" => af ? "Kies 'n geldige profielfoto van hoogstens 256 by 256 pixels en 256 KiB." : "Choose a valid profile photo up to 256 by 256 pixels and 256 KiB.",
+            "culture.unsupported" => af ? "Kies 'n ondersteunde taal." : "Choose a supported language.",
             _ => af ? "Die versoek kon nie voltooi word nie." : "The request could not be completed."
 
         };

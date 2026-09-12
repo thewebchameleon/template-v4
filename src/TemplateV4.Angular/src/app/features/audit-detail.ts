@@ -104,6 +104,7 @@ export class AuditDetailPanel {
           ? new Intl.DateTimeFormat(this.i18n.culture(), {
               dateStyle: 'full',
               timeStyle: 'long',
+              timeZone: this.i18n.timeZone(),
             }).format(new Date(entry.at))
           : this.missing(),
       },

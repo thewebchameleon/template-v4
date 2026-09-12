@@ -11,6 +11,9 @@ public sealed class UserProfile : IDomainEventSource
     public Guid Id { get; private set; }
     public string DisplayName { get; private set; } = "";
     public string Culture { get; private set; } = "en-ZA";
+    public string? FirstName { get; private set; }
+    public string? LastName { get; private set; }
+    public string TimeZone { get; private set; } = "UTC";
     public bool Disabled { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
     public Guid Version { get; private set; } = Guid.NewGuid();
@@ -28,6 +31,17 @@ public sealed class UserProfile : IDomainEventSource
     public void SetDisabled(bool disabled) { Disabled = disabled; Version = Guid.NewGuid(); }
     public void SetCulture(string culture) { Culture = culture; Version = Guid.NewGuid(); }
     public void SoftDelete(DateTimeOffset now) { DeletedAt = now; SetDisabled(true); }
-    public void Anonymise(DateTimeOffset now) { DisplayName = "Deleted account"; Culture = "en-ZA"; SoftDelete(now); }
+    public void Update(string displayName, string? firstName, string? lastName, string culture, string timeZone)
+    {
+        if (string.IsNullOrWhiteSpace(displayName) || displayName.Trim().Length > 120 || firstName?.Trim().Length > 100 || lastName?.Trim().Length > 100)
+            throw new ArgumentException("Invalid profile name.");
+        if (string.IsNullOrWhiteSpace(culture) || culture.Length > 16 || string.IsNullOrWhiteSpace(timeZone) || timeZone.Length > 100)
+            throw new ArgumentException("Invalid regional preferences.");
+        DisplayName = displayName.Trim();
+        FirstName = string.IsNullOrWhiteSpace(firstName) ? null : firstName.Trim();
+        LastName = string.IsNullOrWhiteSpace(lastName) ? null : lastName.Trim();
+        Culture = culture; TimeZone = timeZone; Version = Guid.NewGuid();
+    }
+    public void Anonymise(DateTimeOffset now) { DisplayName = "Deleted account"; FirstName = null; LastName = null; Culture = "en-ZA"; TimeZone = "UTC"; SoftDelete(now); }
     public void ClearEvents() => _events.Clear();
 }

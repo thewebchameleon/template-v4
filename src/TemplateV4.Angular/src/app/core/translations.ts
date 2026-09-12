@@ -3,6 +3,12 @@ import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  organizations: ['Accounts & teams', 'Rekeninge en spanne'],
+  billingSettings: ['Billing settings', 'Faktureringinstellings'],
+  notificationOrganization: [
+    'You have an organization invitation.',
+    'Jy het ’n organisasie-uitnodiging.',
+  ],
   support: ['Support', 'Ondersteuning'],
   notificationSupport: [
     'A support ticket has been updated.',
@@ -358,6 +364,15 @@ export const dictionary: Record<string, [string, string]> = {
   emailMethod: ['Email code', 'E-poskode'],
   authenticatorMethod: ['Authenticator app', 'Verifikasie-app'],
   passkeyMethod: ['Passkey', 'Toegangsleutel'],
+  passkeyMethodDescription: [
+    'Use your fingerprint, face, or security key.',
+    'Gebruik jou vingerafdruk, gesig of sekuriteitsleutel.',
+  ],
+  authenticatorMethodDescription: [
+    'Enter a code from your authenticator app.',
+    'Voer ’n kode van jou verifikasie-app in.',
+  ],
+  emailMethodDescription: ['Receive a sign-in code by email.', 'Ontvang ’n aanmeldkode per e-pos.'],
   emailCode: ['Six-digit email code', 'Ses-syfer e-poskode'],
   emailCodeHelp: [
     'Enter the code sent to your verified email address. It expires after 10 minutes.',

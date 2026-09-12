@@ -172,10 +172,19 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.ToTable("users", "app"); entity.HasKey(x => x.Id);
             entity.Property(x => x.DisplayName).HasMaxLength(120);
             entity.Property(x => x.Culture).HasMaxLength(16);
+            entity.Property(x => x.FirstName).HasMaxLength(100);
+            entity.Property(x => x.LastName).HasMaxLength(100);
+            entity.Property(x => x.TimeZone).HasMaxLength(100).HasDefaultValue("UTC");
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.Ignore(x => x.Events); entity.HasQueryFilter(x => x.DeletedAt == null);
             entity.HasIndex(x => x.DisplayName);
             entity.HasOne<AppUser>().WithOne().HasForeignKey<UserProfile>(x => x.Id).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<UserAvatar>(entity =>
+        {
+            entity.ToTable("user_avatars", "app", table => table.HasCheckConstraint("CK_user_avatars_size", "octet_length(\"Png\") <= 262144"));
+            entity.HasKey(x => x.UserId);
+            entity.HasOne<AppUser>().WithOne().HasForeignKey<UserAvatar>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
         model.Entity<Session>(entity =>
         {
@@ -259,6 +268,14 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasData(new RuntimeModuleSettings { Id = "files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         SupportModel.Configure(model);
+        CustomerBillingModel.Configure(model);
+        model.Entity<TemplateV4.Infrastructure.Storage.OrganizationFileRow>(entity =>
+        {
+            entity.ToTable("organization_files", "files"); entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(180);
+            entity.HasIndex(x => new { x.CustomerId, x.CreatedAt });
+            entity.HasIndex(x => x.DeletedAt);
+        });
         model.Entity<DeletionRequest>(entity =>
         {
             entity.ToTable("deletion_requests", "app"); entity.Property(x => x.State).HasMaxLength(30);

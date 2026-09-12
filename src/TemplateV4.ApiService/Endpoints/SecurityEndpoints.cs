@@ -19,6 +19,11 @@ public static class SecurityEndpoints
         group.MapGet("/profile", async (SecurityService service, ClaimsPrincipal principal, CancellationToken ct) =>
                 await service.Profile(EndpointSecurity.Actor(principal), ct))
             .RequireAuthorization().WithName("GetProfile");
+        group.MapGet("/profile/options", (AccountService service) => service.GetProfileOptions())
+            .RequireAuthorization().WithName("GetProfileOptions");
+        group.MapPost("/profile", async (UpdateProfileRequest request, AccountService service, ClaimsPrincipal principal, CancellationToken ct) =>
+                (await service.UpdateProfile(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
+            .RequireAuthorization().WithName("UpdateProfile").Produces<Guid>();
         group.MapPost("/mfa/preference", async (MfaPreferenceRequest request, SecurityService service, ClaimsPrincipal principal, CancellationToken ct) =>
                 (await service.SetPreferredMethod(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("SetMfaPreference");

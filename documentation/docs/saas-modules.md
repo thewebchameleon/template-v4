@@ -9,13 +9,15 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Identity | Required | Authentication and authorization remain active |
 | Audit recording | Required | Security and business audit writes remain active |
 | Delivery | Required | Accepted messages, jobs and cleanup continue |
+| Organizations | `Modules:organizations` | New organization routes stop; memberships and data remain |
+| Billing | `Modules:billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
 | Files | `Modules:files` | File routes return 404; navigation is hidden; retention continues |
 | Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
 | Maintenance | `Modules:maintenance` | New HTTP and cron requests stop; accepted jobs drain |
 | Operations | `Modules:operations` | Queue browsing/replay APIs and navigation are unavailable; worker delivery continues |
 | Audit history | `Modules:audit-history` | Audit browsing API and navigation are unavailable; recording continues |
 
-Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the five optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable Files and Support application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
+Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the seven optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable Files and Support application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
 
 `node tools/framework.mjs modules minimal` prints a resolved JSON configuration suitable for merging into host settings. It does not mutate running hosts. `node tools/framework.mjs validate` validates the catalog and every preset, including unknown dependencies, cycles, required capabilities and disabled prerequisites. Hosts repeat those validations at startup. Invalid booleans and unknown module names fail startup.
 
@@ -36,13 +38,13 @@ Modules communicate through explicit Application contracts or versioned events. 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 1 | Catalog, validation, deployment switches, existing feature gates, presets, module scaffolding | Implemented; validation recorded in the change |
-| 2 | Personal/organization/both modes, memberships, invitations, switching, tenant roles/settings and ownership transfer | Planned |
-| 3 | Plans, entitlements, trials, seats, subscriptions, Stripe and PayFast checkout/callbacks/reconciliation | Planned |
+| 2 | Personal/organization/both modes, memberships, invitations, switching, fixed tenant roles and ownership transfer | Implemented; see customer billing guide |
+| 3 | Plans, storage entitlements, trials, purchased seats, subscriptions and Stripe/PayFast adapters | Implemented with documented limits; merchant sandbox verification pending |
 | 4 | Configurable onboarding, organization files/quotas, branding and customer self-service | Planned |
 | 5 | API keys, service accounts, signed webhooks, retries and usage metering | Planned |
 | 6 | Organization SSO, domain verification, SCIM, custom domains and audited support tools | Planned |
 
-Personal subscription, team SaaS and combined product presets will be added with their working account and billing modules. They are not advertised as usable presets yet. Stripe and PayFast are the approved payment-provider choices; no payment adapter is implemented by this foundation. Verify their current payment and subscription contracts against official provider documentation when implementing phase 3.
+Personal subscription, team SaaS and combined product presets will be added with their working account and billing modules. They are not advertised as usable presets yet. Stripe and PayFast are the approved payment-provider choices; both adapters are implemented; see [provider setup and limitations](customer-billing.md). Verify their current payment and subscription contracts against official provider documentation when implementing phase 3.
 
 See [module lifecycle](adr/0018-saas-module-lifecycle.md), [customer isolation](adr/0019-saas-customer-isolation.md), and [billing boundaries](adr/0020-saas-billing-providers.md).
 

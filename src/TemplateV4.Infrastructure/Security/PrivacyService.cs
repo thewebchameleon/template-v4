@@ -17,7 +17,7 @@ public sealed record DeletionItem(Guid Id, Guid UserId, string? DisplayName, str
 public sealed record PrivacyStatus(DeletionItem? Request, int DeletedFileRetentionDays, int NotificationRetentionDays, string ReviewPolicy = "AdministratorReview");
 internal sealed record EmailChangeState(string Email, string Token);
 
-public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time)
+public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, TemplateV4.Application.Billing.IStorageEntitlements entitlements)
 {
     private readonly IDataProtector _recipient = protection.CreateProtector("TemplateV4.email.recipient.v1");
     private readonly IDataProtector _action = protection.CreateProtector("TemplateV4.email.action.v1");
@@ -31,18 +31,22 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
     {
         // Explicit allowlist: never serialize Identity entities, credential material, challenges or message payloads.
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
-        var profile = await db.Profiles.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Id, x.DisplayName, x.Culture }).SingleAsync(ct);
-        var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.OptionalEmailEnabled }).SingleAsync(ct);
+        var profile = await db.Profiles.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Id, x.DisplayName, x.FirstName, x.LastName, x.Culture, x.TimeZone }).SingleAsync(ct);
+        var avatar = await db.Set<UserAvatar>().AsNoTracking().Where(x => x.UserId == actor).Select(x => x.Png).SingleOrDefaultAsync(ct);
+        var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.PhoneNumber, x.PhoneNumberConfirmed, x.OptionalEmailEnabled }).SingleAsync(ct);
         var sessions = await db.Sessions.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Device, x.CreatedAt, x.ExpiresAt, x.RevokedAt }).ToArrayAsync(ct);
         var notifications = await db.Notifications.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Kind, x.Link, x.CreatedAt, x.ReadAt }).ToArrayAsync(ct);
         var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);
+        var memberships = await db.Set<MembershipRow>().AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.CustomerId, x.Role }).ToArrayAsync(ct);
+        var personalBilling = await db.Set<SubscriptionRow>().AsNoTracking().Where(x => x.CustomerId == actor).Select(x => new { x.PlanId, x.TrialUntil, x.PaidUntil, x.Cancelled, x.Seats }).ToArrayAsync(ct);
+        var pendingInvitations = await db.Set<CustomerInviteRow>().AsNoTracking().Where(x => x.Email == account.Email!.ToUpper()).Select(x => new { x.CustomerId, x.Role, x.ExpiresAt }).ToArrayAsync(ct);
         var supportTickets = await db.Set<SupportTicketRow>().AsNoTracking().Where(x => x.RequesterId == actor).ToArrayAsync(ct);
         var ticketIds = supportTickets.Select(x => x.Id).ToArray();
         var supportMessages = await db.Set<SupportMessageRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId) && !x.Internal).ToArrayAsync(ct);
         var supportAttachments = await db.Set<SupportAttachmentRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId)).Select(x => new { x.Id, x.TicketId, x.Name, Size = x.Content.Length, x.At }).ToArrayAsync(ct);
-        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
+        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, AvatarPng = avatar, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity, Memberships = memberships, PersonalBilling = personalBilling, OrganizationInvitations = pendingInvitations, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.exported", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return result;
     }
@@ -140,6 +144,13 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
         if (command.Approve)
         {
+            await TemplateV4.Infrastructure.Customers.CustomerAccess.MutationLock(db, ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
+            if (await db.Set<MembershipRow>().AnyAsync(x => x.UserId == user.Id && x.Role == "Owner", ct) || await entitlements.HasObligations(user.Id, ct)) return Result.Fail("customers.deletion_obligations", ErrorKind.Conflict);
+            await db.Set<MembershipRow>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<CustomerInviteRow>().Where(x => x.Email == user.NormalizedEmail).ExecuteDeleteAsync(ct);
+            await db.Set<CustomerRow>().Where(x => x.PersonalUserId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(c => c.Name, "Deleted account").SetProperty(c => c.Version, Guid.NewGuid()), ct);
+            await db.Set<TemplateV4.Infrastructure.Storage.OrganizationFileRow>().Where(x => x.UploadedBy == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.UploadedBy, (Guid?)null), ct);
             if (await users.IsInRoleAsync(user, "Administrator"))
             {
                 var admins = (await users.GetUsersInRoleAsync("Administrator")).Where(x => x.EmailConfirmed && x.PasswordHash != null).Select(x => x.Id).ToArray();
@@ -151,6 +162,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             user.EmailConfirmed = false; user.EmailMfaEnabled = false; user.TwoFactorEnabled = false; user.OptionalEmailEnabled = false;
             user.SecurityStamp = Guid.NewGuid().ToString();
             profile.Anonymise(time.GetUtcNow());
+            await db.Set<UserAvatar>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             // Erasure runs even when Support is disabled. Remove requester conversations and files,
             // and erase contributions to other requesters' tickets without retaining content in audit.
             await db.Set<SupportTicketRow>().Where(x => x.RequesterId == user.Id).ExecuteDeleteAsync(ct);

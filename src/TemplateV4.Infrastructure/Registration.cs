@@ -6,6 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
+using TemplateV4.Application.Billing;
+using TemplateV4.Application.Customers;
+using TemplateV4.Infrastructure.Billing;
+using TemplateV4.Infrastructure.Customers;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Support;
@@ -27,6 +31,17 @@ public static class Registration
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
+        if ((config["Customers:Mode"] ?? "Both") is not ("Both" or "Personal" or "Organizations")) throw new InvalidOperationException("Invalid Customers:Mode.");
+        services.AddSingleton<PlanCatalog>();
+        services.AddScoped<CustomerAccess>();
+        services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());
+        services.AddScoped<ICustomers, CustomerStore>();
+        services.AddScoped<IStorageEntitlements, StorageEntitlements>();
+        services.AddScoped<BillingStore>();
+        services.AddScoped<IBilling>(p => p.GetRequiredService<BillingStore>());
+        services.AddScoped<PaymentCallbacks>();
+        services.AddHttpClient<StripeSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
+        services.AddHttpClient<PayFastSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
         services.AddSingleton(ModuleConfiguration.Load(config));
         services.AddHttpContextAccessor();
         var cultures = new CultureCatalog(config["Localisation:DefaultCulture"] ?? "en-ZA", (config.GetSection("Localisation:SupportedCultures").Get<string[]>() ?? ["en-ZA", "af-ZA"]).ToHashSet());
@@ -86,6 +101,7 @@ public static class Registration
         services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
         services.AddScoped<FileService>();
+        services.AddScoped<OrganizationFiles>();
         services.AddScoped<IRuntimeModules, RuntimeModuleStore>();
         services.AddScoped<IHandler<SaveRuntimeModule, RuntimeModule>, SaveRuntimeModuleHandler>();
         services.AddSingleton<IValidator<SaveRuntimeModule>, SaveRuntimeModuleValidator>();

@@ -32,6 +32,14 @@ public sealed class StorageRetention(IServiceScopeFactory scopes, ILogger<Storag
                     db.Audit.Add(new() { SubjectId = file.Id, Action = "file.purged", At = now });
                 }
                 var notificationCutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:NotificationRetentionDays", 90), 7, 365));
+                var organizationFiles = await db.Set<TemplateV4.Infrastructure.Storage.OrganizationFileRow>().Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < now.AddDays(-1))).OrderBy(x => x.CreatedAt).Take(20).ToArrayAsync(ct);
+                foreach (var file in organizationFiles)
+                {
+                    await storage.Delete(TemplateV4.Infrastructure.Storage.OrganizationFileRow.Key(file.CustomerId, file.Id), ct);
+                    file.PurgedAt = now; file.DeletedAt ??= now; file.Name = "Deleted file";
+                    db.Audit.Add(new() { SubjectId = file.CustomerId, Action = "customer.file_purged", At = now });
+                }
+                await db.Set<CustomerInviteRow>().Where(x => x.ExpiresAt < now).ExecuteDeleteAsync(ct);
                 await db.Notifications.Where(x => x.CreatedAt < notificationCutoff).ExecuteDeleteAsync(ct);
                 await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
             }

@@ -115,6 +115,7 @@ export class Auth {
     this.access.set(value);
     this.csrf = '';
     this.i18n.set(value.culture);
+    this.i18n.timeZone.set(value.timeZone ?? 'UTC');
   }
   refresh(): Promise<boolean> {
     if (this.pending) return this.pending;

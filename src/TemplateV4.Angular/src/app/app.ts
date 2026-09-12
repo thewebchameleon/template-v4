@@ -25,7 +25,7 @@ import {
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
-import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
+import { AccountAvatar } from './shared/account-avatar';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmTooltip } from '@spartan-ng/helm/tooltip';
@@ -50,7 +50,7 @@ import { NotificationDrawer } from './features/notification-drawer';
     HlmButtonImports,
     HlmToasterImports,
     HlmSidebarImports,
-    HlmAvatarImports,
+    AccountAvatar,
     HlmSeparatorImports,
     AppBreadcrumbs,
     HlmDrawerImports,
@@ -162,13 +162,7 @@ import { NotificationDrawer } from './features/notification-drawer';
                 [attr.data-active]="accountPanelActive()"
                 (click)="selectAccountPanel()"
               >
-                <hlm-avatar
-                  class="size-(--app-sidebar-rail-target-size) rounded-(--radius) after:rounded-(--radius)"
-                  ><span
-                    hlmAvatarFallback
-                    class="rounded-(--radius) bg-primary text-primary-foreground"
-                    ><ng-icon name="lucideUserRound" size="1.5rem" /></span
-                ></hlm-avatar>
+                <app-account-avatar />
               </button>
             </div>
           }
@@ -317,7 +311,11 @@ import { NotificationDrawer } from './features/notification-drawer';
               <app-breadcrumbs />
             </div>
             @if (!auth.access()?.setupRequired) {
-              <app-notification-drawer />
+              @defer (on immediate) {
+                <app-notification-drawer />
+              } @placeholder {
+                <span class="size-10 shrink-0" aria-hidden="true"></span>
+              }
             }
             <hlm-drawer
               direction="right"
@@ -482,6 +480,16 @@ export class App {
   });
   readonly railLinks = computed(() => [
     ...(!this.auth.access()?.setupRequired ? [{ ...this.dashboardLink, hasPanel: false }] : []),
+    ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('organizations')
+      ? [
+          {
+            path: '/organizations',
+            label: 'organizations',
+            icon: 'lucideUsersRound',
+            hasPanel: false,
+          },
+        ]
+      : []),
     ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('support')
       ? [{ path: '/support', label: 'support', icon: 'lucideLifeBuoy', hasPanel: false }]
       : []),

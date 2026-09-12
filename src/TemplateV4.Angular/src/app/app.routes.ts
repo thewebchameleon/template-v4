@@ -1,3 +1,4 @@
+import { customerTranslations } from './core/customer-resolver';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
 import { filesGuard, moduleGuard } from './core/features';
 import { Routes } from '@angular/router';
@@ -5,6 +6,36 @@ import { authGuard, permissionGuard, administratorRoleGuard } from './core/auth'
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
+  {
+    path: 'organizations',
+    resolve: { customerTranslations },
+    data: { breadcrumb: 'organizations' },
+    canActivate: [authGuard, moduleGuard('organizations')],
+    loadComponent: () => import('./features/organizations').then((m) => m.OrganizationsPage),
+  },
+  {
+    path: 'organizations/:id/billing',
+    resolve: { customerTranslations },
+    data: { breadcrumb: 'billing' },
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/billing').then((m) => m.BillingPage),
+  },
+  {
+    path: 'organizations/:id/files',
+    resolve: { customerTranslations },
+    data: { breadcrumb: 'organizationFiles' },
+    canActivate: [authGuard, moduleGuard('organizations'), filesGuard],
+    loadComponent: () =>
+      import('./features/organization-files').then((m) => m.OrganizationFilesPage),
+  },
+  {
+    path: 'organizations/:id',
+    resolve: { customerTranslations },
+    data: { breadcrumb: 'organizationWorkspace' },
+    canActivate: [authGuard, moduleGuard('organizations')],
+    loadComponent: () =>
+      import('./features/organization-detail').then((m) => m.OrganizationDetailPage),
+  },
   { path: '', pathMatch: 'full', canActivate: [bootstrapLandingGuard], children: [] },
   {
     path: 'dashboard',
@@ -201,6 +232,14 @@ export const routes: Routes = [
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, permissionGuard, administratorRoleGuard],
         loadComponent: () => import('./features/modules').then((m) => m.ModulesPage),
+      },
+      {
+        path: 'billing',
+        resolve: { customerTranslations },
+        data: { breadcrumb: 'billingSettings', permission: 'settings.manage' },
+        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        loadComponent: () =>
+          import('./features/billing-settings').then((m) => m.BillingSettingsPage),
       },
       {
         path: 'configuration',

@@ -189,6 +189,21 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasDefaultValue("UTC");
+
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
@@ -419,6 +434,115 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("auth_challenges", "identity");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.BillingSettingsRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultProvider")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("GraceDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Ownership")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PayFastEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("StripeEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("TrialDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("settings", "billing", t =>
+                        {
+                            t.HasCheckConstraint("CK_billing_singleton", "\"Id\" = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DefaultProvider = "payfast",
+                            GraceDays = 7,
+                            Ownership = "Both",
+                            PayFastEnabled = true,
+                            StripeEnabled = true,
+                            TrialDays = 14,
+                            Version = new Guid("701d0245-9cc1-4028-a909-380f43739f13")
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerInviteRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId", "Email")
+                        .IsUnique();
+
+                    b.ToTable("invitations", "organizations");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid?>("PersonalUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonalUserId")
+                        .IsUnique();
+
+                    b.ToTable("customers", "organizations");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.DeletionRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -562,6 +686,26 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("job_runs", "messaging");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MembershipRow", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("CustomerId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("memberships", "organizations");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -618,6 +762,87 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasFilter("\"CompletedAt\" IS NULL AND \"PoisonedAt\" IS NULL");
 
                     b.ToTable("outbox", "messaging");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Abandoned")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("CheckoutReference")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Interval")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ProtectedSubscription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("UnitMinor")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("orders", "billing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentReceiptRow", b =>
+                {
+                    b.Property<string>("Provider")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Id")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Provider", "Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("receipts", "billing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PlatformAppearanceSettings", b =>
@@ -858,6 +1083,48 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("files", "files");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SubscriptionRow", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("CancelRequested")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Cancelled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("NextCheckAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PaidUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Seats")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("TrialUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("TrialUsed")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("CustomerId");
+
+                    b.HasIndex("NextCheckAt");
+
+                    b.ToTable("subscriptions", "billing");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportAttachmentRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1024,6 +1291,23 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("tickets", "support");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserAvatar", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Png")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("user_avatars", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_user_avatars_size", "octet_length(\"Png\") <= 262144");
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserNotification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1054,6 +1338,47 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("notifications", "app");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Storage.OrganizationFileRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<DateTimeOffset?>("PurgedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Ready")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("UploadedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedAt");
+
+                    b.HasIndex("CustomerId", "CreatedAt");
+
+                    b.ToTable("organization_files", "files");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1167,11 +1492,52 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerInviteRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CustomerRow", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("PersonalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.DeletionRequest", b =>
                 {
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MembershipRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CustomerRow", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentReceiptRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -1255,6 +1621,15 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.UserAvatar", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("TemplateV4.Infrastructure.Persistence.UserAvatar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
