@@ -2,7 +2,7 @@
 
 ## Toolchain and dependency refresh
 
-The repository requires .NET SDK 10.0.401, Node.js 24.19.0, and npm 11.19.1. Run the database migrator before starting Quartz 4 workers so the additive scheduler schema update is applied. Do not run Quartz 3 and Quartz 4 workers against the same scheduler database during the rollout.
+The repository requires .NET SDK 10.0.401, Node.js 24.21.0, and npm 12.0.2. Run the database migrator before starting Quartz 4 workers so the additive scheduler schema update is applied. Do not run Quartz 3 and Quartz 4 workers against the same scheduler database during the rollout.
 
 ## 0.1.0 initial implementation
 

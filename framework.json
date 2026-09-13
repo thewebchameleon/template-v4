@@ -12,10 +12,10 @@
   },
   "toolchains": {
     "dotnet": "10.0.401",
-    "node": "24.19.0",
-    "npm": "11.19.1",
+    "node": "24.21.0",
+    "npm": "12.0.2",
     "docmd": "0.9.5",
-    "angular": "22.1.5",
+    "angular": "22.1.6",
     "spartan": "1.4.1"
   },
   "modules": [

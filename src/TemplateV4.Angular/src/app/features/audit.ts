@@ -126,31 +126,59 @@ class RelatedRecordHeader {}
                   <div class="grid gap-4">
                     <div hlmField>
                       <label hlmFieldLabel for="audit-from">{{ 'fromDate' | t }}</label>
-                      <hlm-date-picker
-                        [ngModel]="fromDraft()"
-                        (ngModelChange)="fromDraft.set($event)"
-                        [formatDate]="formatDate"
-                        [maxDate]="untilDraft() ?? undefined"
-                        [autoCloseOnSelect]="true"
-                      >
-                        <hlm-date-picker-trigger class="w-full" buttonId="audit-from">
-                          {{ 'fromDate' | t }}
-                        </hlm-date-picker-trigger>
-                      </hlm-date-picker>
+                      <div class="flex items-center gap-2">
+                        <hlm-date-picker
+                          class="min-w-0 flex-1"
+                          [ngModel]="fromDraft()"
+                          (ngModelChange)="fromDraft.set($event)"
+                          [formatDate]="formatDate"
+                          [maxDate]="untilDraft() ?? undefined"
+                          [autoCloseOnSelect]="true"
+                        >
+                          <hlm-date-picker-trigger class="w-full" buttonId="audit-from">
+                            {{ 'fromDate' | t }}
+                          </hlm-date-picker-trigger>
+                        </hlm-date-picker>
+                        <button
+                          hlmBtn
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          [disabled]="!fromDraft()"
+                          [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('fromDate')"
+                          (click)="fromDraft.set(null)"
+                        >
+                          <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
                     <div hlmField>
                       <label hlmFieldLabel for="audit-until">{{ 'untilDate' | t }}</label>
-                      <hlm-date-picker
-                        [ngModel]="untilDraft()"
-                        (ngModelChange)="untilDraft.set($event)"
-                        [formatDate]="formatDate"
-                        [minDate]="fromDraft() ?? undefined"
-                        [autoCloseOnSelect]="true"
-                      >
-                        <hlm-date-picker-trigger class="w-full" buttonId="audit-until">
-                          {{ 'untilDate' | t }}
-                        </hlm-date-picker-trigger>
-                      </hlm-date-picker>
+                      <div class="flex items-center gap-2">
+                        <hlm-date-picker
+                          class="min-w-0 flex-1"
+                          [ngModel]="untilDraft()"
+                          (ngModelChange)="untilDraft.set($event)"
+                          [formatDate]="formatDate"
+                          [minDate]="fromDraft() ?? undefined"
+                          [autoCloseOnSelect]="true"
+                        >
+                          <hlm-date-picker-trigger class="w-full" buttonId="audit-until">
+                            {{ 'untilDate' | t }}
+                          </hlm-date-picker-trigger>
+                        </hlm-date-picker>
+                        <button
+                          hlmBtn
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          [disabled]="!untilDraft()"
+                          [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('untilDate')"
+                          (click)="untilDraft.set(null)"
+                        >
+                          <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -166,7 +194,7 @@ class RelatedRecordHeader {}
                   <button
                     hlmBtn
                     type="button"
-                    variant="outline"
+                    variant="destructive"
                     [disabled]="!hasFilters()"
                     (click)="clear()"
                   >
@@ -182,48 +210,96 @@ class RelatedRecordHeader {}
         @if (filterCount()) {
           <div class="flex flex-wrap gap-2 py-3" aria-live="polite">
             @if (from) {
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                type="button"
-                (click)="removeFilter('from')"
-              >
-                {{ 'fromDate' | t }}: {{ formatDate(from) }} · {{ 'clear' | t }}
-              </button>
+              <div class="inline-flex items-center gap-1">
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="setFiltersOpen(true)"
+                >
+                  {{ 'fromDate' | t }}: {{ formatDate(from) }}
+                </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('fromDate')"
+                  (click)="removeFilter('from')"
+                >
+                  <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                </button>
+              </div>
             }
             @if (until) {
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                type="button"
-                (click)="removeFilter('until')"
-              >
-                {{ 'untilDate' | t }}: {{ formatDate(until) }} · {{ 'clear' | t }}
-              </button>
+              <div class="inline-flex items-center gap-1">
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="setFiltersOpen(true)"
+                >
+                  {{ 'untilDate' | t }}: {{ formatDate(until) }}
+                </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('untilDate')"
+                  (click)="removeFilter('until')"
+                >
+                  <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                </button>
+              </div>
             }
             @if (query.text('subjectId')) {
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                type="button"
-                (click)="removeFilter('subjectId')"
-              >
-                {{ query.text('subjectName', i18n.text('relatedRecord')) }} · {{ 'clear' | t }}
-              </button>
+              <div class="inline-flex items-center gap-1">
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="setFiltersOpen(true)"
+                >
+                  {{ query.text('subjectName', i18n.text('relatedRecord')) }}
+                </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('relatedRecord')"
+                  (click)="removeFilter('subjectId')"
+                >
+                  <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                </button>
+              </div>
             }
             @if (query.text('actorId')) {
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                type="button"
-                (click)="removeFilter('actorId')"
-              >
-                {{ query.text('actorName', i18n.text('performedBy')) }} · {{ 'clear' | t }}
-              </button>
+              <div class="inline-flex items-center gap-1">
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  (click)="setFiltersOpen(true)"
+                >
+                  {{ query.text('actorName', i18n.text('performedBy')) }}
+                </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="i18n.text('clear') + ' ' + i18n.text('performedBy')"
+                  (click)="removeFilter('actorId')"
+                >
+                  <ng-icon name="lucideFunnelX" aria-hidden="true" />
+                </button>
+              </div>
             }
           </div>
         }
@@ -349,6 +425,8 @@ export class AuditPage {
               link: row.original.actorId ? '/audit' : null,
 
               merge: true,
+              constrainWidth: false,
+              nowrap: true,
               params: row.original.actorId
                 ? {
                     actorId: row.original.actorId,

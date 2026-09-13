@@ -35,7 +35,10 @@ export class RowActions {
   selector: 'app-record-identity',
   imports: [RouterLink],
   template: `<div
-      class="whitespace-normal break-words font-medium"
+      class="font-medium"
+      [class.whitespace-normal]="!nowrap()"
+      [class.break-words]="!nowrap()"
+      [class.whitespace-nowrap]="nowrap()"
       [class.max-w-72]="constrainWidth()"
     >
       @if (link()) {
@@ -60,6 +63,7 @@ export class RecordIdentity {
   readonly label = input.required<string>();
   readonly description = input('');
   readonly constrainWidth = input(true);
+  readonly nowrap = input(false);
   readonly link = input<string | null>(null);
   readonly params = input<Record<string, string>>({});
   readonly merge = input(false);
