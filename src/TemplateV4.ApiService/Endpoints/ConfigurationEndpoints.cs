@@ -11,7 +11,8 @@ public static class ConfigurationEndpoints
         group.MapGet("/appearance", async (IPlatformAppearance appearance, HttpResponse response, CancellationToken ct) =>
         {
             response.Headers.CacheControl = "no-store";
-            return Results.Ok(new PublicAppearance((await appearance.Read(ct)).PrimaryColor));
+            var value = await appearance.Read(ct);
+            return Results.Ok(new PublicAppearance(value.PrimaryColor, value.LoginBackground));
         }).AllowAnonymous().WithName("GetPublicAppearance").Produces<PublicAppearance>();
 
         var admin = group.MapGroup("/configuration/appearance").RequireAuthorization(Permissions.Settings)

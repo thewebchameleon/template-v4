@@ -3,10 +3,15 @@ using TemplateV4.Application.Users;
 namespace TemplateV4.Application.Platform;
 
 public sealed record CustomBrandColor(Guid Id, string Name, string Color);
-public sealed record PlatformAppearance(string PrimaryColor, Guid Version, CustomBrandColor[] CustomColors, Guid? SelectedCustomColorId);
-public sealed record PublicAppearance(string PrimaryColor);
-public sealed record SavePlatformAppearance(string PrimaryColor, Guid Version, CustomBrandColor[]? CustomColors = null, Guid? SelectedCustomColorId = null) : ICommand<PlatformAppearance>, IAuthorizedRequest
+public sealed record PlatformAppearance(string PrimaryColor, Guid Version, CustomBrandColor[] CustomColors, Guid? SelectedCustomColorId, string LoginBackground = LoginBackgrounds.Default);
+public sealed record PublicAppearance(string PrimaryColor, string LoginBackground = LoginBackgrounds.Default);
+public sealed record SavePlatformAppearance(string PrimaryColor, Guid Version, CustomBrandColor[]? CustomColors = null, Guid? SelectedCustomColorId = null, string? LoginBackground = null) : ICommand<PlatformAppearance>, IAuthorizedRequest
 { public string Permission => Permissions.Settings; }
+public static class LoginBackgrounds
+{
+    public const string Default = "blue-sky";
+    public static bool Valid(string value) => LoginBackgroundCatalog.Ids.Contains(value);
+}
 public interface IPlatformAppearance
 {
     Task<PlatformAppearance> Read(CancellationToken ct);
@@ -19,6 +24,8 @@ public sealed class SavePlatformAppearanceValidator : IValidator<SavePlatformApp
     {
         Dictionary<string, string[]> errors = [];
         if (!ValidColor(request.PrimaryColor) || request.Version == Guid.Empty) errors["primaryColor"] = ["appearance.invalid"];
+        if (request.LoginBackground is { } background && !LoginBackgrounds.Valid(background))
+            errors["loginBackground"] = ["appearance.background_invalid"];
         if (request.CustomColors is { } colors &&
             (colors.Length > 24 || colors.Any(x => x is null || x.Id == Guid.Empty || !ValidColor(x.Color) ||
                 string.IsNullOrWhiteSpace(x.Name) || x.Name.Trim().Length > 40 || x.Name.Any(char.IsControl)) ||

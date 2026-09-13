@@ -82,10 +82,11 @@ public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorag
     {
         if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || sort is not ("name" or "email" or "role") || direction is not ("asc" or "desc")) return Result<Page<CustomerMember>>.Fail("validation.failed", ErrorKind.Validation);
         if (await Find(actor, customer, ct) is not { Kind: "Organization" }) return Result<Page<CustomerMember>>.Fail("customers.not_found", ErrorKind.NotFound);
-        var query = from member in db.Set<MembershipRow>().AsNoTracking() join profile in db.Profiles on member.UserId equals profile.Id join user in db.Users on member.UserId equals user.Id where member.CustomerId == customer select new CustomerMember(user.Id, profile.DisplayName, user.Email!, member.Role);
+        var query = from member in db.Set<MembershipRow>().AsNoTracking() join profile in db.Profiles on member.UserId equals profile.Id join user in db.Users on member.UserId equals user.Id where member.CustomerId == customer select new { UserId = user.Id, Name = profile.DisplayName, Email = user.Email!, member.Role };
         var total = await query.CountAsync(ct);
         var sorted = sort switch { "email" => direction == "asc" ? query.OrderBy(x => x.Email) : query.OrderByDescending(x => x.Email), "role" => direction == "asc" ? query.OrderBy(x => x.Role) : query.OrderByDescending(x => x.Role), _ => direction == "asc" ? query.OrderBy(x => x.Name) : query.OrderByDescending(x => x.Name) };
-        return Result<Page<CustomerMember>>.Success(new(await sorted.ThenBy(x => x.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(ct), total, pageNumber, pageSize));
+        var items = await sorted.ThenBy(x => x.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(x => new CustomerMember(x.UserId, x.Name, x.Email, x.Role)).ToArrayAsync(ct);
+        return Result<Page<CustomerMember>>.Success(new(items, total, pageNumber, pageSize));
     }
     public async Task<Result<Unit>> Invite(Guid actor, Guid customer, InviteMember request, CancellationToken ct)
     {

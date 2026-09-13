@@ -7,4 +7,5 @@ public sealed class PlatformAppearanceSettings
     public Guid Version { get; set; }
     public string CustomColorsJson { get; set; } = "[]";
     public Guid? SelectedCustomColorId { get; set; }
+    public string LoginBackground { get; set; } = "blue-sky";
 }

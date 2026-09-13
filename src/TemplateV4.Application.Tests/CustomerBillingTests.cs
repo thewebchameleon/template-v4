@@ -61,6 +61,12 @@ public sealed partial class SecurityAndMessagingTests
             Assert.False((await customers.Accept(other, invite.Id, default)).IsSuccess);
             Assert.True((await customers.Accept(member, invite.Id, default)).IsSuccess);
             Assert.False((await customers.Accept(member, invite.Id, default)).IsSuccess);
+            foreach (var sort in new[] { "name", "email", "role" })
+                foreach (var direction in new[] { "asc", "desc" })
+                {
+                    var members = await customers.Members(owner, organization, 1, 10, sort, direction, default);
+                    Assert.True(members.IsSuccess); Assert.Equal(2, members.Value!.Items.Count);
+                }
             Assert.False((await customers.Invite(member, organization, new(c.Email!, "Admin"), default)).IsSuccess);
             version = (await customers.Find(owner, organization, default))!.Version;
             Assert.Equal("customers.last_owner", (await customers.Remove(owner, organization, owner, version, default)).Error!.Code);

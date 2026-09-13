@@ -24,7 +24,18 @@ public static class Hosting
     public static T AddServiceDefaults<T>(this T builder) where T : IHostApplicationBuilder
     {
         builder.Logging.ClearProviders();
-        builder.Logging.AddJsonConsole();
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Logging.AddSimpleConsole(options =>
+            {
+                options.SingleLine = false;
+                options.TimestampFormat = "HH:mm:ss ";
+            });
+        }
+        else
+        {
+            builder.Logging.AddJsonConsole();
+        }
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http =>
         {

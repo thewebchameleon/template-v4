@@ -10,7 +10,7 @@ public sealed class PlatformAppearanceStore(FrameworkDb db, IExecutionContext co
     public async Task<PlatformAppearance> Read(CancellationToken ct)
     {
         var row = await db.PlatformAppearanceSettings.AsNoTracking().SingleAsync(x => x.Id == 1, ct);
-        return new(row.PrimaryColor, row.Version, JsonSerializer.Deserialize<CustomBrandColor[]>(row.CustomColorsJson)!, row.SelectedCustomColorId);
+        return new(row.PrimaryColor, row.Version, JsonSerializer.Deserialize<CustomBrandColor[]>(row.CustomColorsJson)!, row.SelectedCustomColorId, row.LoginBackground);
     }
 
     // The dispatcher owns the transaction, including this update and its audit entry.
@@ -34,13 +34,14 @@ public sealed class PlatformAppearanceStore(FrameworkDb db, IExecutionContext co
         }
         else if (previous.SelectedCustomColorId is { } oldId && colors.All(x => x.Id != oldId) && primary == previous.PrimaryColor)
             primary = "#2563EB";
-        var value = new PlatformAppearance(primary, Guid.NewGuid(), colors, selected);
+        var value = new PlatformAppearance(primary, Guid.NewGuid(), colors, selected, request.LoginBackground ?? previous.LoginBackground);
         var json = JsonSerializer.Serialize(colors);
         var changed = await db.PlatformAppearanceSettings.Where(x => x.Id == 1 && x.Version == request.Version)
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.PrimaryColor, value.PrimaryColor).SetProperty(s => s.Version, value.Version)
-                .SetProperty(s => s.CustomColorsJson, json).SetProperty(s => s.SelectedCustomColorId, value.SelectedCustomColorId), ct);
+                .SetProperty(s => s.CustomColorsJson, json).SetProperty(s => s.SelectedCustomColorId, value.SelectedCustomColorId)
+                .SetProperty(s => s.LoginBackground, value.LoginBackground), ct);
         if (changed == 0) return Result<PlatformAppearance>.Fail("appearance.conflict", ErrorKind.Conflict);
-        db.Audit.Add(new() { ActorId = context.ActorId, Action = "configuration.appearance_changed", SubjectType = "configuration", SubjectNameSnapshot = "appearance", ChangesJson = AuditCapture.Changes(new AuditChange("primaryColor", previous.PrimaryColor, value.PrimaryColor), new("customColors", JsonSerializer.Serialize(previous.CustomColors), json), new("selectedCustomColorId", previous.SelectedCustomColorId?.ToString(), selected?.ToString())), At = time.GetUtcNow(), TraceParent = context.TraceParent });
+        db.Audit.Add(new() { ActorId = context.ActorId, Action = "configuration.appearance_changed", SubjectType = "configuration", SubjectNameSnapshot = "appearance", ChangesJson = AuditCapture.Changes(new AuditChange("primaryColor", previous.PrimaryColor, value.PrimaryColor), new("customColors", JsonSerializer.Serialize(previous.CustomColors), json), new("selectedCustomColorId", previous.SelectedCustomColorId?.ToString(), selected?.ToString()), new("loginBackground", previous.LoginBackground, value.LoginBackground)), At = time.GetUtcNow(), TraceParent = context.TraceParent });
         return Result<PlatformAppearance>.Success(value);
     }
 }

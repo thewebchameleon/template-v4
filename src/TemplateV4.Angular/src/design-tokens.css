@@ -25,7 +25,6 @@
   --auth-form-width: 20rem;
   --auth-panel-padding: calc(var(--spacing) * 10);
   --auth-panel-padding-mobile: calc(var(--spacing) * 6);
-  --auth-artwork-drift-duration: 36s;
   --auth-title-size: var(--text-2xl);
   --brand-mark-size: 2rem;
   --auth-brand-mark-size: 1.5rem;
@@ -327,23 +326,9 @@
     overflow: hidden;
     background: var(--auth-sky-background);
   }
-  .auth-artwork::before {
-    content: '';
+  .auth-artwork > app-login-background {
     position: absolute;
-    inset: -8%;
-    background: url('/auth-sky.svg') center / cover;
-    animation: auth-sky-drift var(--auth-artwork-drift-duration) ease-in-out infinite alternate;
-  }
-  @keyframes auth-sky-drift {
-    from {
-      transform: translate(-2%, 1%) scale(1.04);
-    }
-    to {
-      transform: translate(2%, -1%) scale(1.08);
-    }
-  }
-  :root[data-motion='reduced'] .auth-artwork::before {
-    animation: none;
+    inset: 0;
   }
   .auth-heading {
     display: flex;

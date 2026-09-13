@@ -262,6 +262,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.ToTable("platform_appearance_settings", "app", table => table.HasCheckConstraint("CK_platform_appearance_singleton", "\"Id\" = 1"));
             entity.Property(x => x.CustomColorsJson).HasColumnType("jsonb").HasDefaultValue("[]");
             entity.Property(x => x.PrimaryColor).HasMaxLength(7);
+            entity.Property(x => x.LoginBackground).HasMaxLength(32).HasDefaultValue("blue-sky");
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasData(new PlatformAppearanceSettings { Id = 1, PrimaryColor = "#2563EB", Version = new Guid("06d9599a-a693-4d21-9745-152b0515b89b") });
         });

@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideGalleryVerticalEnd } from '@ng-icons/lucide';
 import { Translate } from '../core/i18n';
 import { Preferences } from '../core/preferences';
+import { PlatformAppearanceTheme } from '../core/platform-appearance';
+import { LoginBackgroundArtwork } from '../shared/login-background';
 
 @Component({
   selector: 'app-auth-layout',
-  imports: [RouterLink, NgIcon, Translate, Preferences],
+  imports: [RouterLink, NgIcon, Translate, Preferences, LoginBackgroundArtwork],
   providers: [provideIcons({ lucideGalleryVerticalEnd })],
   template: `
     <div class="auth-layout">
@@ -21,8 +23,12 @@ import { Preferences } from '../core/preferences';
         </div>
         <footer class="auth-preferences"><app-preferences /></footer>
       </div>
-      <div class="auth-artwork" aria-hidden="true"></div>
+      <div class="auth-artwork">
+        <app-login-background [value]="appearance.loginBackground()" />
+      </div>
     </div>
   `,
 })
-export class AuthLayout {}
+export class AuthLayout {
+  readonly appearance = inject(PlatformAppearanceTheme);
+}

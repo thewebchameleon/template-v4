@@ -12,4 +12,6 @@ Other dependencies retain their respective licenses in NuGet/npm packages. See p
 
 ## Authentication artwork
 
+The rendering functions and preset data in `src/TemplateV4.Angular/src/app/shared/gradient-engine.js` and `core/gradient-catalog.ts` are extracted from FeralUI Gradient Builder by Sarthak Navalekar, https://feralui.dev/gradients, retrieved 2026-09-13 from https://feralui.dev/assets/JapaneseGradients-CrhZ19t-.js using `tools/vendor-gradients.mjs`. They cover all 30 current types and 298 color presets, preserving the builder's native effects and motion parameters. The Angular canvas host, lifecycle, frame limits, reduced-motion handling and settings integration are project-owned. All rendering code is bundled locally; no third-party script, font or service is loaded at sign-in.
+
 `src/TemplateV4.Angular/public/auth-background.jpg` uses the Unsplash image referenced by Spartan's Login 2 and Signup 2 blocks: https://images.unsplash.com/photo-1604076850742-4c7221f3101b . Distributed under the Unsplash license (https://unsplash.com/license). Replace this local asset to customize template artwork.

@@ -18,43 +18,16 @@ import { WorkspaceApi } from '../core/workspace-api';
 import { Notifications } from '../core/notifications';
 import { PlatformAppearance, CustomBrandColor } from '../api/models';
 import { CustomColorEditor } from '../shared/custom-color-editor';
-import { DEFAULT_PRIMARY_COLOR, brandPalette, validPrimaryColor } from '../core/brand-palette';
+import { DEFAULT_PRIMARY_COLOR, validPrimaryColor } from '../core/brand-palette';
 import { PlatformAppearanceTheme } from '../core/platform-appearance';
+import { LoginBackgroundPicker } from '../shared/login-background-picker';
+import { DEFAULT_LOGIN_BACKGROUND, loginBackground } from '../core/login-backgrounds';
 
 @Component({
   selector: 'app-configuration',
-  imports: [WorkspaceUi, HlmToggleGroupImports, CustomColorEditor],
+  imports: [WorkspaceUi, HlmToggleGroupImports, CustomColorEditor, LoginBackgroundPicker],
   providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  styles: `
-    .appearance-preview-light {
-      color-scheme: light;
-      --background: #ffffff;
-      --foreground: #09090b;
-      --card: #ffffff;
-      --card-foreground: #18181b;
-      --muted: #f4f4f5;
-      --muted-foreground: #71717a;
-      --accent: var(--preview-accent);
-      --accent-foreground: var(--preview-accent-foreground);
-      --border: #e4e4e7;
-      --input: #e4e4e7;
-    }
-
-    .appearance-preview-dark {
-      color-scheme: dark;
-      --background: #09090b;
-      --foreground: #fafafa;
-      --card: #18181b;
-      --card-foreground: #fafafa;
-      --muted: #27272a;
-      --muted-foreground: #a1a1aa;
-      --accent: var(--preview-accent);
-      --accent-foreground: var(--preview-accent-foreground);
-      --border: rgb(255 255 255 / 10%);
-      --input: rgb(255 255 255 / 15%);
-    }
-  `,
   template: ` <app-page-header title="configuration" description="configurationHelp" />
     <app-page-state
       [state]="data.state()"
@@ -156,35 +129,10 @@ import { PlatformAppearanceTheme } from '../core/platform-appearance';
               }
               <p role="status" aria-live="polite" class="text-sm">{{ removalNotice() | t }}</p>
             </section>
-            <section aria-labelledby="appearance-preview-title">
-              <h3 id="appearance-preview-title" class="font-semibold mb-3">
-                {{ 'appearancePreview' | t }}
-              </h3>
-              <div class="grid gap-4 sm:grid-cols-2">
-                @for (dark of [false, true]; track dark) {
-                  <section
-                    hlmCard
-                    [class.appearance-preview-dark]="dark"
-                    [class.appearance-preview-light]="!dark"
-                    [attr.data-theme-preview]="dark ? 'dark' : 'light'"
-                    [style.--primary]="palette()[dark ? 400 : 600]"
-                    [style.--primary-foreground]="dark ? palette()[950] : '#ffffff'"
-                    [style.--ring]="palette()[dark ? 400 : 500]"
-                    [style.--preview-accent]="palette()[dark ? 950 : 50]"
-                    [style.--preview-accent-foreground]="palette()[dark ? 100 : 900]"
-                  >
-                    <div hlmCardHeader>
-                      <h4 hlmCardTitle>{{ (dark ? 'dark' : 'light') | t }}</h4>
-                    </div>
-                    <div hlmCardContent class="flex flex-wrap items-center gap-4">
-                      <button hlmBtn type="button">{{ 'previewButton' | t }}</button>
-                      <span class="text-primary font-medium">{{ 'previewAccent' | t }}</span>
-                    </div>
-                  </section>
-                }
-              </div>
-              <p class="text-muted-foreground text-sm mt-3">{{ 'appearancePreviewHelp' | t }}</p>
-            </section>
+            <app-login-background-picker
+              [(value)]="background"
+              [disabled]="busy() || data.refreshing()"
+            />
           </div>
           <div hlmCardFooter class="flex-wrap gap-2">
             <button
@@ -226,13 +174,13 @@ export class ConfigurationPage implements OnInit, OnDestroy {
   readonly data = new Resource<PlatformAppearance>();
   readonly busy = signal(false);
   readonly color = signal(DEFAULT_PRIMARY_COLOR);
+  readonly background = signal<string>(DEFAULT_LOGIN_BACKGROUND);
   readonly customColors = signal<CustomBrandColor[]>([]);
   readonly selectedId = signal<string | null>(null);
   readonly previewColor = signal<string | null>(null);
   readonly removalNotice = signal('');
   readonly defaultColor = DEFAULT_PRIMARY_COLOR;
   readonly valid = computed(() => validPrimaryColor(this.color()));
-  readonly palette = computed(() => brandPalette(this.previewColor() ?? this.color()));
   readonly presets = [
     { color: '#2563EB', label: 'colorBlue' },
     { color: '#7C3AED', label: 'colorViolet' },
@@ -306,6 +254,7 @@ export class ConfigurationPage implements OnInit, OnDestroy {
     return (
       this.data.value() !== null &&
       (this.color().toUpperCase() !== this.data.value()!.primaryColor.toUpperCase() ||
+        this.background() !== loginBackground(this.data.value()!.loginBackground).id ||
         this.selectedId() !== (this.data.value()!.selectedCustomColorId ?? null) ||
         JSON.stringify(this.customColors()) !==
           JSON.stringify(this.data.value()!.customColors ?? []))
@@ -325,6 +274,8 @@ export class ConfigurationPage implements OnInit, OnDestroy {
     return loaded;
   }
   private accept(value: PlatformAppearance) {
+    this.background.set(loginBackground(value.loginBackground).id);
+    this.appearance.loginBackground.set(this.background());
     this.savedColor = value.primaryColor;
     this.color.set(value.primaryColor);
     this.customColors.set(value.customColors ?? []);
@@ -348,6 +299,7 @@ export class ConfigurationPage implements OnInit, OnDestroy {
         version: this.data.value()!.version,
         customColors: this.customColors(),
         selectedCustomColorId: this.selectedId(),
+        loginBackground: this.background(),
       });
       this.data.value.set(saved);
       this.accept(saved);

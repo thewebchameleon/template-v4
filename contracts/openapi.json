@@ -6486,6 +6486,10 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "loginBackground": {
+            "type": "string",
+            "default": "blue-sky"
           }
         }
       },
@@ -6657,6 +6661,10 @@
         "properties": {
           "primaryColor": {
             "type": "string"
+          },
+          "loginBackground": {
+            "type": "string",
+            "default": "blue-sky"
           }
         }
       },
@@ -6895,6 +6903,12 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "loginBackground": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "permission": {
             "type": [

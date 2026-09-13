@@ -4,6 +4,7 @@
 import { CustomBrandColor } from '../models/custom-brand-color';
 export interface PlatformAppearance {
   customColors: Array<CustomBrandColor>;
+  loginBackground?: string;
   primaryColor: string;
   selectedCustomColorId: (string | null);
   version: string;

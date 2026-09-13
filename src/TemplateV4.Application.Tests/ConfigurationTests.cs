@@ -43,7 +43,8 @@ public sealed partial class SecurityAndMessagingTests
         using var initial = await client.GetAsync(publicPath);
         Assert.True(initial.Headers.CacheControl!.NoStore);
         var publicJson = (await initial.Content.ReadFromJsonAsync<JsonElement>());
-        Assert.Single(publicJson.EnumerateObject());
+        Assert.Equal(2, publicJson.EnumerateObject().Count());
+        Assert.Equal("blue-sky", publicJson.GetProperty("loginBackground").GetString());
         Assert.Equal("#2563EB", publicJson.GetProperty("primaryColor").GetString());
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(path)).StatusCode);
         client.DefaultRequestHeaders.Authorization = new("Bearer", delegatedToken.Access.AccessToken);
@@ -54,6 +55,9 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync(path, new SavePlatformAppearance("#7C3AED", Guid.NewGuid()))).StatusCode);
         client.DefaultRequestHeaders.Authorization = new("Bearer", adminToken.Access.AccessToken);
         var original = (await client.GetFromJsonAsync<PlatformAppearance>(path))!;
+        foreach (var invalid in new[] { "", "unknown", "BLUE-SKY", "sky:p44", "flow:unknown", "https://example.test/background.js" })
+            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync(path,
+                new SavePlatformAppearance(original.PrimaryColor, original.Version, LoginBackground: invalid))).StatusCode);
         foreach (var invalid in new[] { "", "#FFF", "#GGGGGG", "red", "#1234567", "#123456;", " #2563EB", null })
             Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync(path, new SavePlatformAppearance(invalid!, original.Version))).StatusCode);
         client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
@@ -61,8 +65,8 @@ public sealed partial class SecurityAndMessagingTests
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
 
         var attempts = await Task.WhenAll(
-            client.PostAsJsonAsync(path, new SavePlatformAppearance("#7c3aed", original.Version)),
-            client.PostAsJsonAsync(path, new SavePlatformAppearance("#e11d48", original.Version)));
+            client.PostAsJsonAsync(path, new SavePlatformAppearance("#7c3aed", original.Version, LoginBackground: "flow:p44")),
+            client.PostAsJsonAsync(path, new SavePlatformAppearance("#e11d48", original.Version, LoginBackground: "night-sky")));
         Assert.Single(attempts, x => x.StatusCode == HttpStatusCode.OK);
         Assert.Single(attempts, x => x.StatusCode == HttpStatusCode.Conflict);
         var saved = (await attempts.Single(x => x.IsSuccessStatusCode).Content.ReadFromJsonAsync<PlatformAppearance>())!;
@@ -72,14 +76,25 @@ public sealed partial class SecurityAndMessagingTests
         await using var fresh = _services.CreateAsyncScope();
         var db = fresh.ServiceProvider.GetRequiredService<FrameworkDb>();
         Assert.Equal(saved.PrimaryColor, (await db.PlatformAppearanceSettings.SingleAsync()).PrimaryColor);
+        Assert.Equal(saved.LoginBackground, (await db.PlatformAppearanceSettings.SingleAsync()).LoginBackground);
         var audit = Assert.Single(await db.Audit.Where(x => x.Action == "configuration.appearance_changed").ToArrayAsync());
         Assert.Equal(admin.Id, audit.ActorId);
+        Assert.Contains("loginBackground", audit.ChangesJson!);
+        Assert.Contains(saved.LoginBackground, audit.ChangesJson!);
         client.DefaultRequestHeaders.Authorization = null;
         Assert.Equal(saved.PrimaryColor, (await client.GetFromJsonAsync<PublicAppearance>(publicPath))!.PrimaryColor);
+        Assert.Equal(saved.LoginBackground, (await client.GetFromJsonAsync<PublicAppearance>(publicPath))!.LoginBackground);
         client.DefaultRequestHeaders.Authorization = new("Bearer", adminToken.Access.AccessToken);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(path, new SavePlatformAppearance("#2563EB", saved.Version))).StatusCode);
         Assert.Equal("#2563EB", (await client.GetFromJsonAsync<PublicAppearance>(publicPath))!.PrimaryColor);
+        // Older clients omitting the selection must retain the saved background.
+        Assert.Equal(saved.LoginBackground, (await client.GetFromJsonAsync<PublicAppearance>(publicPath))!.LoginBackground);
         foreach (var response in attempts) response.Dispose();
+        var current = (await client.GetFromJsonAsync<PlatformAppearance>(path))!;
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(path,
+            new SavePlatformAppearance(current.PrimaryColor, current.Version, LoginBackground: "flow:p44"))).StatusCode);
+        Assert.Equal("flow:p44", (await client.GetFromJsonAsync<PublicAppearance>(publicPath))!.LoginBackground);
+        Assert.Equal("flow:p44", (await db.PlatformAppearanceSettings.AsNoTracking().SingleAsync()).LoginBackground);
     }
 
     [Fact]
