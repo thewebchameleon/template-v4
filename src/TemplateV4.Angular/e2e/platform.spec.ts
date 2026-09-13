@@ -6,8 +6,7 @@ async function platform(page: Page, failFiles = false) {
     const path = new URL(route.request().url()).pathname;
     const empty = { items: [], total: 0, pageNumber: 1, pageSize: 25 };
     const responses: Record<string, unknown> = {
-      '/api/v1/modules': { 'my-files': true },
-      '/api/v1/features': { 'my-files': true, maintenance: false },
+      '/api/v1/capabilities': { 'my-files': true, maintenance: false },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': {

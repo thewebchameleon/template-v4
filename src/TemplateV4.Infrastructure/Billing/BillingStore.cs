@@ -22,13 +22,12 @@ public sealed class PlanCatalog
     public BillingPlan Free => Plans.Single(x => x.Id == "free");
 }
 
-public sealed class StorageEntitlements(FrameworkDb db, PlanCatalog plans, ModuleCatalog modules, TimeProvider time) : IStorageEntitlements
+public sealed class StorageEntitlements(FrameworkDb db, PlanCatalog plans, TimeProvider time) : IStorageEntitlements
 {
     public async Task<long?> Quota(Guid customer, CancellationToken ct)
     {
         var sub = await db.Set<SubscriptionRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
         // Existing contracts survive disabling checkout. Unsubscribed legacy personal libraries keep their configured quota.
-        if (sub is null && !modules.Enabled("billing")) return null;
         if (sub is null) return null;
         var grace = await db.Set<BillingSettingsRow>().Select(x => x.GraceDays).SingleAsync(ct);
         return CustomerRules.Paid(time.GetUtcNow(), sub.PaidUntil, sub.TrialUntil, grace, sub.Cancelled) ? (plans.Plans.SingleOrDefault(x => x.Id == sub.PlanId) ?? plans.Free).StorageBytes : plans.Free.StorageBytes;
@@ -44,7 +43,7 @@ public sealed class StorageEntitlements(FrameworkDb db, PlanCatalog plans, Modul
 }
 
 public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, PlanCatalog plans, StripeSubscriptions stripe, PayFastSubscriptions payfast,
-    IDataProtectionProvider protection, TimeProvider time, ModuleCatalog modules, IStorageEntitlements entitlements) : IBilling
+    IDataProtectionProvider protection, TimeProvider time, ICapabilities modules, IStorageEntitlements entitlements) : IBilling
 {
     private readonly IDataProtector _tokens = protection.CreateProtector("TemplateV4.billing.subscription.v1");
     public ISubscriptionProvider Provider(string id) => id switch { "stripe" => stripe, "payfast" => payfast, _ => throw new PaymentProviderException() };
@@ -72,7 +71,7 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
         var state = sub is null ? "Free" : sub.CancelRequested ? "CancellationPending" : sub.Cancelled ? "Cancelled" : sub.TrialUntil > time.GetUtcNow() ? "Trial" : sub.PaidUntil > time.GetUtcNow() ? "Active" : sub.PaidUntil?.AddDays(settings.GraceDays) > time.GetUtcNow() ? "Grace" : order != null && sub.PaidUntil == null ? "Pending" : order != null ? "PastDue" : "Free";
         // Expose only readiness booleans; credentials never leave Infrastructure.
         var available = settings with { StripeEnabled = settings.StripeEnabled && stripe.Configured, PayFastEnabled = settings.PayFastEnabled && payfast.Configured };
-        return Result<BillingSummary>.Success(new(customer, plans.Plans, available, order?.PlanId ?? sub?.PlanId ?? "free", state, order?.Provider, sub?.TrialUntil, sub?.PaidUntil, sub?.Seats ?? account.Members, await entitlements.Quota(customer, ct) ?? plans.Free.StorageBytes, account.Role == "Owner", modules.Enabled("billing") && Allowed(settings, account) && !(sub?.OrderId != null && (!sub.Cancelled || sub.PaidUntil > time.GetUtcNow())), order?.Interval,
+        return Result<BillingSummary>.Success(new(customer, plans.Plans, available, order?.PlanId ?? sub?.PlanId ?? "free", state, order?.Provider, sub?.TrialUntil, sub?.PaidUntil, sub?.Seats ?? account.Members, await entitlements.Quota(customer, ct) ?? plans.Free.StorageBytes, account.Role == "Owner", await modules.Enabled(CapabilityIds.Billing, ct) && Allowed(settings, account) && !(sub?.OrderId != null && (!sub.Cancelled || sub.PaidUntil > time.GetUtcNow())), order?.Interval,
             account.Role == "Owner" && sub != null && !sub.CancelRequested && !sub.Cancelled && (order != null || sub.TrialUntil > time.GetUtcNow()),
             sub != null && CustomerRules.Paid(time.GetUtcNow(), sub.PaidUntil, sub.TrialUntil, settings.GraceDays, sub.Cancelled) ? "Paid" : "Free"));
     }
@@ -81,7 +80,7 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
         var plan = plans.Plans.SingleOrDefault(x => x.Id == request.PlanId && x.Id != "free"); if (plan is null) return Result.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(customer, ct);
         var account = await customers.Find(actor, customer, ct); var settings = await Settings(ct);
-        if (account is null || account.Role != "Owner" || !Allowed(settings, account) || !modules.Enabled("billing")) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+        if (account is null || account.Role != "Owner" || !Allowed(settings, account) || !await modules.Enabled(CapabilityIds.Billing, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var sub = await db.Set<SubscriptionRow>().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
         if (settings.TrialDays == 0 || sub?.TrialUsed == true || sub?.OrderId != null) return Result.Fail("billing.trial_used", ErrorKind.Conflict);
         if (sub is null) { sub = new() { CustomerId = customer }; db.Set<SubscriptionRow>().Add(sub); }
@@ -96,7 +95,7 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
             await customers.Lock(customer, ct); var account = await customers.Find(actor, customer, ct); var settings = await Settings(ct);
-            if (account?.Role != "Owner" || !Allowed(settings, account) || !modules.Enabled("billing") || !(request.Provider == "stripe" ? settings.StripeEnabled : settings.PayFastEnabled)) return Result<CheckoutResponse>.Fail("authorization.denied", ErrorKind.Forbidden);
+            if (account?.Role != "Owner" || !Allowed(settings, account) || !await modules.Enabled(CapabilityIds.Billing, ct) || !(request.Provider == "stripe" ? settings.StripeEnabled : settings.PayFastEnabled)) return Result<CheckoutResponse>.Fail("authorization.denied", ErrorKind.Forbidden);
             if (!Provider(request.Provider).Configured) return Result<CheckoutResponse>.Fail("billing.not_configured", ErrorKind.Conflict);
             if (plan.Pricing == "PerSeat" && request.Seats < account.Members) return Result<CheckoutResponse>.Fail("billing.seats", ErrorKind.Conflict);
             var previous = await db.Set<PaymentOrderRow>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.RequestId, ct);

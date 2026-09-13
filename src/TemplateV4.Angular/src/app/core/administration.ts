@@ -1,3 +1,4 @@
+import { administrationDestinations, destinationAvailable } from './destinations';
 import { Injectable, computed, inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
@@ -8,69 +9,8 @@ export class AdministrationNavigation {
   private readonly auth = inject(Auth);
   private readonly features = inject(Features);
   readonly links = computed(() =>
-    [
-      {
-        path: '/administration/billing',
-        label: 'billingSettings',
-        icon: 'lucideSettings',
-        section: 'modules',
-        permissions: ['settings.manage'],
-        administratorOnly: true,
-      },
-      {
-        path: '/administration/users',
-        label: 'userManagement',
-        icon: 'lucideUsersRound',
-        section: 'administration',
-        permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
-      },
-      {
-        path: '/administration/configuration',
-        label: 'configuration',
-        icon: 'lucideSettings',
-        section: 'administration',
-        permissions: ['settings.manage'],
-        administratorOnly: true,
-      },
-      {
-        path: '/administration/modules',
-        label: 'modules',
-        icon: 'lucideSettings2',
-        section: 'administration',
-        permissions: ['settings.manage'],
-        administratorOnly: true,
-      },
-      {
-        path: '/administration/storage',
-        label: 'storageSettings',
-        icon: 'lucideFolderOpen',
-        section: 'modules',
-        permissions: ['settings.manage'],
-        feature: 'my-files',
-      },
-      {
-        path: '/administration/audit-history',
-        label: 'auditHistory',
-        icon: 'lucideHistory',
-        section: 'administration',
-        permissions: ['settings.manage'],
-        module: 'audit-history',
-      },
-      {
-        path: '/administration/system-health',
-        label: 'systemHealth',
-        icon: 'lucideActivity',
-        section: 'administration',
-        permissions: ['settings.manage', 'jobs.trigger'],
-        module: 'operations',
-      },
-    ].filter(
-      (item) =>
-        !this.auth.access()?.setupRequired &&
-        (!item.administratorOnly || this.auth.access()?.isAdministrator === true) &&
-        item.permissions.some((permission) => this.auth.has(permission)) &&
-        (!item.module || this.features.moduleEnabled(item.module)) &&
-        (!item.feature || this.features.enabled(item.feature)),
+    Object.values(administrationDestinations).filter((item) =>
+      destinationAvailable(item, this.auth, this.features),
     ),
   );
 }

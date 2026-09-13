@@ -3127,12 +3127,12 @@
         ]
       }
     },
-    "/api/v1/auth/administration/modules": {
+    "/api/v1/auth/administration/modules/activation": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListRuntimeModules",
+        "operationId": "ListModuleActivations",
         "responses": {
           "200": {
             "description": "OK",
@@ -3141,7 +3141,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/RuntimeModule"
+                    "$ref": "#/components/schemas/ModuleActivation"
                   }
                 }
               }
@@ -3158,7 +3158,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "SaveRuntimeModule",
+        "operationId": "SaveModuleActivation",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -3174,7 +3174,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveRuntimeModule"
+                "$ref": "#/components/schemas/SaveModuleActivation"
               }
             }
           },
@@ -3186,7 +3186,76 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RuntimeModule"
+                  "$ref": "#/components/schemas/ModuleActivation"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/modules/my-files/settings": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetMyFilesModuleSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyFilesModuleSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveMyFilesModuleSettings",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMyFilesModuleSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyFilesModuleSettings"
                 }
               }
             }
@@ -4139,183 +4208,6 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/billing": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetCustomerBilling",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BillingSummary"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/billing/trial": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "StartBillingTrial",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartTrial"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/billing/checkout": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "CreateSubscriptionCheckout",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CheckoutRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckoutResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/billing/cancel": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "CancelCustomerSubscription",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
     "/api/v1/auth/customers/{customer}/files": {
       "get": {
         "tags": [
@@ -4502,6 +4394,183 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCustomerBilling",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/trial": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "StartBillingTrial",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartTrial"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/checkout": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateSubscriptionCheckout",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/{customer}/billing/cancel": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CancelCustomerSubscription",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -4976,12 +5045,12 @@
         ]
       }
     },
-    "/api/v1/modules": {
+    "/api/v1/capabilities": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetModules",
+        "operationId": "GetCapabilities",
         "responses": {
           "200": {
             "description": "OK",
@@ -5010,24 +5079,6 @@
           "Framework"
         ],
         "operationId": "TriggerMaintenance",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/features": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetFeatures",
         "responses": {
           "200": {
             "description": "OK"
@@ -6676,6 +6727,64 @@
           }
         }
       },
+      "ModuleActivation": {
+        "required": [
+          "id",
+          "enabled",
+          "available",
+          "version",
+          "enableBlockers",
+          "disableBlockers"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "enableBlockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "disableBlockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MyFilesModuleSettings": {
+        "required": [
+          "demoMode",
+          "slowUploadMode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "demoMode": {
+            "type": "boolean"
+          },
+          "slowUploadMode": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "NotificationItem": {
         "required": [
           "id",
@@ -7590,11 +7699,10 @@
           }
         }
       },
-      "RuntimeModule": {
+      "SaveModuleActivation": {
         "required": [
           "id",
           "enabled",
-          "available",
           "version"
         ],
         "type": "object",
@@ -7605,20 +7713,41 @@
           "enabled": {
             "type": "boolean"
           },
-          "available": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SaveMyFilesModuleSettings": {
+        "required": [
+          "demoMode",
+          "slowUploadMode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "demoMode": {
+            "type": "boolean"
+          },
+          "slowUploadMode": {
             "type": "boolean"
           },
           "version": {
             "type": "string",
             "format": "uuid"
           },
-          "demoMode": {
-            "type": "boolean",
-            "default": false
-          },
-          "slowUploadMode": {
-            "type": "boolean",
-            "default": false
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -7687,44 +7816,6 @@
             }
           },
           "version": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "SaveRuntimeModule": {
-        "required": [
-          "id",
-          "enabled",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "demoMode": {
-            "type": [
-              "null",
-              "boolean"
-            ]
-          },
-          "slowUploadMode": {
-            "type": [
-              "null",
-              "boolean"
-            ]
-          },
-          "permission": {
             "type": [
               "null",
               "string"

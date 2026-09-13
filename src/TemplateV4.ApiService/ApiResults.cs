@@ -56,6 +56,7 @@ public static class ApiResults
             "support.category_limit" => af ? "Die limiet van 100 kategorieÃƒÂ« is bereik." : "The limit of 100 categories has been reached.",
             "support.last_category" => af ? "Hou minstens een aktiewe kategorie." : "Keep at least one active category.",
             "modules.conflict" => af ? "Module-instellings het verander. Herlaai die gestoorde instellings en probeer weer." : "Module settings changed. Reload the saved settings and try again.",
+            "modules.dependencies" => af ? "Module-afhanklikhede blokkeer hierdie verandering. Herlaai om die afhanklikhede te sien." : "Module dependencies block this change. Reload to see the dependencies.",
             "modules.unavailable" => af ? "Hierdie module is nie in hierdie ontplooiing beskikbaar nie." : "This module is unavailable in this deployment.",
             "modules.unknown" => af ? "Kies 'n ondersteunde module." : "Choose a supported module.",
             "appearance.conflict" => af ? "Konfigurasie het verander. Herlaai die gestoorde instellings en probeer weer." : "Configuration changed. Reload the saved settings and try again.",

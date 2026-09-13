@@ -10,7 +10,8 @@ public static class ModuleConfiguration
     {
         using var stream = typeof(ModuleConfiguration).Assembly.GetManifestResourceStream("TemplateV4.Modules.catalog.json")
             ?? throw new InvalidOperationException("The module catalog is missing.");
-        var definitions = JsonSerializer.Deserialize<ModuleDefinition[]>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web))
+        var definitions = JsonSerializer.Deserialize<ModuleDefinition[]>(stream, new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        { UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow })
             ?? throw new InvalidOperationException("The module catalog is empty.");
         var overrides = new Dictionary<string, bool>(StringComparer.Ordinal);
         var preset = configuration["ModulesPreset"] ?? "baseline";

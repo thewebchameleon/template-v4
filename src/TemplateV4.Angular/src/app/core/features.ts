@@ -1,4 +1,4 @@
-import { dictionary } from './translations';
+import { CapabilityId } from './capability-ids';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
 import { Injectable, inject, signal } from '@angular/core';
@@ -9,8 +9,7 @@ import { Runtime } from './runtime';
 export class Features {
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
-  readonly evaluated = signal<Record<string, boolean>>({});
-  readonly modules = signal<Record<string, boolean>>({});
+  readonly capabilities = signal<Partial<Record<CapabilityId, boolean>>>({});
   private generation = 0;
   private pending?: Promise<void>;
   load(): Promise<void> {
@@ -19,8 +18,7 @@ export class Features {
     const pending = this.fetch(generation)
       .catch(() => {
         if (generation === this.generation) {
-          this.evaluated.set({});
-          this.modules.set({});
+          this.capabilities.set({});
         }
       })
       // A sign-in reset can supersede a route guard's in-flight fetch. Wait for
@@ -34,50 +32,29 @@ export class Features {
   reset() {
     this.generation++;
     this.pending = undefined;
-    this.evaluated.set({});
-    this.modules.set({});
+    this.capabilities.set({});
   }
   private async fetch(generation: number) {
-    const [features, modules] = await Promise.all([
-      firstValueFrom(
-        this.http.get<Record<string, boolean>>(`${this.runtime.apiUrl}/api/v1/features`),
+    const capabilities = await firstValueFrom(
+      this.http.get<Partial<Record<CapabilityId, boolean>>>(
+        `${this.runtime.apiUrl}/api/v1/capabilities`,
       ),
-      firstValueFrom(
-        this.http.get<Record<string, boolean>>(`${this.runtime.apiUrl}/api/v1/modules`),
-      ),
-    ]);
+    );
     if (generation !== this.generation) return;
-    this.evaluated.set(features);
-    this.modules.set(modules);
+    this.capabilities.set(capabilities);
   }
-  moduleEnabled(name: string) {
-    return this.modules()[name] === true;
-  }
-  enabled(name: string) {
-    return this.evaluated()[name] === true;
+  enabled(name: CapabilityId) {
+    return this.capabilities()[name] === true;
   }
 }
 
-export const filesGuard: CanActivateFn = async () => {
-  const auth = inject(Auth);
-  const features = inject(Features);
-  const router = inject(Router);
-  if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
-  await features.load();
-  return features.enabled('my-files') || router.createUrlTree(['/me']);
-};
-
-export const moduleGuard =
-  (name: string): CanActivateFn =>
+export const capabilityGuard =
+  (name: CapabilityId): CanActivateFn =>
   async () => {
     const auth = inject(Auth);
     const features = inject(Features);
     const router = inject(Router);
     if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
     await features.load();
-    if (name === 'support') {
-      const translations = await import('./support-translations');
-      Object.assign(dictionary, translations.supportDictionary);
-    }
-    return features.moduleEnabled(name) || router.createUrlTree(['/me']);
+    return features.enabled(name) || router.createUrlTree(['/me']);
   };

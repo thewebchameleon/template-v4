@@ -242,7 +242,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
                 </ol>
               </div>
 
-              @if (features.moduleEnabled('audit-history')) {
+              @if (features.enabled('audit-history')) {
                 <div hlmCardFooter>
                   <a
                     hlmBtn

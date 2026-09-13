@@ -50,8 +50,7 @@ async function configurationApp(page: Page, administrator = true) {
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/modules': {},
-      '/api/v1/features': {},
+      '/api/v1/capabilities': {},
     };
     return route.fulfill({ json: responses[path] ?? {} });
   });

@@ -77,8 +77,7 @@ async function supportApp(page: Page, agent = false, enabled = true) {
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/modules': { support: enabled },
-      '/api/v1/features': {},
+      '/api/v1/capabilities': { support: enabled },
       '/api/v1/auth/support/options': {
         categories: [{ id: category, name: 'General', active: true, version: 'category' }],
         agents: [],

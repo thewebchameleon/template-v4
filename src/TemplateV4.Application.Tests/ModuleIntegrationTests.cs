@@ -31,9 +31,9 @@ public sealed partial class SecurityAndMessagingTests
         };
         await using var factory = new ApiFactory(configuration);
         using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost"), AllowAutoRedirect = false });
-        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/modules")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/capabilities")).StatusCode);
         client.DefaultRequestHeaders.Authorization = new("Bearer", tokens.Access.AccessToken);
-        var modules = await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/modules");
+        var modules = await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities");
         Assert.True(modules!["identity"]);
         Assert.False(modules["operations"]);
         foreach (var path in new[] { "/api/v1/auth/audit", "/api/v1/auth/audit/1", "/api/v1/auth/operations", "/api/v1/auth/operations/overview", "/api/v1/auth/my-files", "/api/v1/auth/support/", "/api/v1/auth/support/options" })

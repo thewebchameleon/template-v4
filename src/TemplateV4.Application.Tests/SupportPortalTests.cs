@@ -106,15 +106,15 @@ public sealed partial class SecurityAndMessagingTests
         var ticket = (await sp.GetRequiredService<ISupportTickets>().Get(new(id), default)).Value!.Ticket;
         Assert.True((await sp.GetRequiredService<Dispatcher<AttachTicket, Unit>>().Send(new(id, "private.txt", "private"u8.ToArray(), ticket.Version))).IsSuccess);
         context.ActorId = admin.Id; context.Permissions = Permissions.All.ToHashSet();
-        var runtime = sp.GetRequiredService<IRuntimeModules>(); var original = (await runtime.Read(default)).Single(x => x.Id == "support");
-        Assert.True((await sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>().Send(new("support", false, original.Version))).IsSuccess);
+        var runtime = sp.GetRequiredService<IModuleActivation>(); var original = (await runtime.Read(default)).Single(x => x.Id == "support");
+        Assert.True((await sp.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new("support", false, original.Version))).IsSuccess);
         Assert.Equal(ErrorKind.NotFound, (await sp.GetRequiredService<ISupportTickets>().Get(new(id), default)).Error!.Kind);
         var db = sp.GetRequiredService<FrameworkDb>(); Assert.True(await db.Set<SupportTicketRow>().AnyAsync(x => x.Id == id));
         var disabled = (await runtime.Read(default)).Single(x => x.Id == "support");
-        Assert.True((await sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>().Send(new("support", true, disabled.Version))).IsSuccess);
+        Assert.True((await sp.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new("support", true, disabled.Version))).IsSuccess);
         Assert.Equal("Personal information", (await sp.GetRequiredService<ISupportTickets>().Get(new(id), default)).Value!.Description);
         var enabled = (await runtime.Read(default)).Single(x => x.Id == "support");
-        Assert.True((await sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>().Send(new("support", false, enabled.Version))).IsSuccess);
+        Assert.True((await sp.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new("support", false, enabled.Version))).IsSuccess);
         db.ChangeTracker.Clear();
         var privacy = sp.GetRequiredService<PrivacyService>();
         Assert.True((await privacy.RequestDeletion(owner.Id, default)).IsSuccess);
@@ -173,9 +173,9 @@ public sealed partial class SecurityAndMessagingTests
         client.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
         var csrf = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         client.DefaultRequestHeaders.Add("Origin", "https://localhost"); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
-        var module = (await sp.GetRequiredService<IRuntimeModules>().Read(default)).Single(x => x.Id == "support");
-        Assert.True((await sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>().Send(new("support", false, module.Version))).IsSuccess);
-        Assert.False((await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/modules"))!["support"]);
+        var module = (await sp.GetRequiredService<IModuleActivation>().Read(default)).Single(x => x.Id == "support");
+        Assert.True((await sp.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new("support", false, module.Version))).IsSuccess);
+        Assert.False((await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["support"]);
         foreach (var path in new[] { "/", "/options", $"/{id}", $"/{id}/attachments/{Guid.NewGuid()}" })
             Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/auth/support" + path)).StatusCode);
         const string root = "/api/v1/auth/support";

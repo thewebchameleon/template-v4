@@ -1,6 +1,10 @@
 export const moduleDictionary: Record<string, [string, string]> = {
   'audit.module.my-files_enabled': ['My Files module enabled', 'Lêermodule geaktiveer'],
   'audit.module.my-files_disabled': ['My Files module disabled', 'Lêermodule gedeaktiveer'],
+  moduleDependencyBlockers: [
+    'Module dependencies block this change:',
+    'Module-afhanklikhede blokkeer hierdie verandering:',
+  ],
   modules: ['Modules', 'Modules'],
   modulesHelp: [
     'Enable or disable modules for everyone in this application.',

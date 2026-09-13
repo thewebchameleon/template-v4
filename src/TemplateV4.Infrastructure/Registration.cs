@@ -103,9 +103,13 @@ public static class Registration
         services.AddScoped<MyFilesService>();
         services.AddScoped<OrganizationFiles>();
         services.AddScoped<FileRetention>();
-        services.AddScoped<IRuntimeModules, RuntimeModuleStore>();
-        services.AddScoped<IHandler<SaveRuntimeModule, RuntimeModule>, SaveRuntimeModuleHandler>();
-        services.AddSingleton<IValidator<SaveRuntimeModule>, SaveRuntimeModuleValidator>();
+        services.AddScoped<ICapabilities, CapabilityEvaluator>();
+        services.AddScoped<IModuleActivation, ModuleActivationStore>();
+        services.AddScoped<IHandler<SaveModuleActivation, ModuleActivation>, SaveModuleActivationHandler>();
+        services.AddSingleton<IValidator<SaveModuleActivation>, SaveModuleActivationValidator>();
+        services.AddScoped<IMyFilesModuleSettings, MyFilesModuleSettingsStore>();
+        services.AddScoped<IHandler<SaveMyFilesModuleSettings, MyFilesModuleSettings>, SaveMyFilesModuleSettingsHandler>();
+        services.AddSingleton<IValidator<SaveMyFilesModuleSettings>, SaveMyFilesModuleSettingsValidator>();
         services.AddScoped<IPlatformAppearance, PlatformAppearanceStore>();
         services.AddScoped<IHandler<SavePlatformAppearance, PlatformAppearance>, SavePlatformAppearanceHandler>();
         services.AddSingleton<IValidator<SavePlatformAppearance>, SavePlatformAppearanceValidator>();
@@ -150,11 +154,10 @@ public sealed class BackgroundExecutionContext : IExecutionContext
     public string? TenantId { get; set; }
     public string? TraceParent { get; set; }
 }
-public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnvironment environment, ModuleCatalog modules) : IFeatureFlags
+public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnvironment environment) : IFeatureFlags
 {
     public bool Enabled(string feature, IExecutionContext context)
     {
-        if (feature is "my-files" or "maintenance" && !modules.Enabled(feature)) return false;
         var section = configuration.GetSection($"Features:{feature}");
         if (context.TenantId is not null && bool.TryParse(section[$"Tenants:{context.TenantId}"], out var tenant)) return tenant;
         if (context.ActorId is not null && bool.TryParse(section[$"Users:{context.ActorId}"], out var user)) return user;

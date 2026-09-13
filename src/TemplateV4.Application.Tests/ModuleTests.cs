@@ -57,7 +57,9 @@ public sealed class ModuleTests
             [$"Features:my-files:Users:{actor.ActorId}"] = "true",
             ["Features:my-files:Tenants:customer"] = "true"
         });
-        var flags = new ConfigurationFlags(builder.Configuration, builder.Environment, ModuleConfiguration.Load(builder.Configuration));
-        Assert.False(flags.Enabled("my-files", actor));
+        var flags = new ConfigurationFlags(builder.Configuration, builder.Environment);
+        var catalog = ModuleConfiguration.Load(builder.Configuration);
+        Assert.True(flags.Enabled("my-files", actor)); // The provider evaluates rollout; the catalog imposes hard bounds.
+        Assert.False(catalog.Evaluate(new Dictionary<string, bool> { ["my-files"] = true }, feature => flags.Enabled(feature, actor))["my-files"]);
     }
 }

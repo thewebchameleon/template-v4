@@ -22,6 +22,8 @@ For other features, select their ADR from the directory; do not load the entire 
 
 ## Implement and connect
 
+For new modules or gated features, use the repo-local [module-feature-development skill](../module-feature-development/SKILL.md) for catalog, dependency, lifecycle and navigation conventions. Keep this skill focused on cross-layer coordination.
+
 Follow the guide's Golden path for the affected layers. Register handlers, validators, permissions, and endpoint groups explicitly; scaffolding does not activate them. Commands own transaction boundaries, and state, audit, and outgoing events commit atomically. Keep expected failures in `Result<T>` and stable error codes; translated text is display-only.
 
 For new scaffolds, inspect the relevant `node tools/framework.mjs new` template before invoking it with the requested kind and PascalCase name. Review generated stubs and complete their registrations. For modules, also check catalog/preset entries, endpoint and route gates, and disable/drain behavior. Use current manifest paths rather than assuming every feature touches every project.

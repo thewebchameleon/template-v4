@@ -23,8 +23,12 @@
     "cultures"
   ],
   "properties": {
-    "moduleCatalog": { "type": "string" },
-    "modulePresets": { "$ref": "#/$defs/map" },
+    "moduleCatalog": {
+      "type": "string"
+    },
+    "modulePresets": {
+      "$ref": "#/$defs/map"
+    },
     "$schema": {
       "type": "string"
     },
@@ -46,7 +50,14 @@
     "toolchains": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dotnet", "node", "npm", "docmd", "angular", "spartan"],
+      "required": [
+        "dotnet",
+        "node",
+        "npm",
+        "docmd",
+        "angular",
+        "spartan"
+      ],
       "properties": {
         "dotnet": {
           "$ref": "#/$defs/version"
@@ -73,7 +84,8 @@
       "uniqueItems": true,
       "items": {
         "type": "string"
-      }
+      },
+      "description": "Technology and feature inventory only. Deployment activation and dependencies are defined by moduleCatalog."
     },
     "projects": {
       "$ref": "#/$defs/map"
@@ -96,7 +108,10 @@
     "cultures": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["default", "supported"],
+      "required": [
+        "default",
+        "supported"
+      ],
       "properties": {
         "default": {
           "type": "string"

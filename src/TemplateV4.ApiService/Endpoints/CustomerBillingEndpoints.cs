@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using TemplateV4.Application.Billing;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Billing;
 using TemplateV4.Infrastructure.Storage;
@@ -15,27 +16,23 @@ public static class CustomerBillingEndpoints
     private static Guid Actor(ClaimsPrincipal user) => Guid.Parse(user.FindFirstValue("sub")!);
     public static RouteGroupBuilder MapCustomerBillingEndpoints(this RouteGroupBuilder group)
     {
-        var accounts = group.MapGroup("/customers").RequireAuthorization();
-        accounts.MapGet("/", async (ClaimsPrincipal u, ICustomers store, CancellationToken ct) => (await store.Home(Actor(u), ct)).ToHttp()).RequireModule("organizations").WithName("GetCustomers").Produces<CustomerHome>();
-        accounts.MapPost("/", async (ClaimsPrincipal u, CreateOrganization r, ICustomers s, CancellationToken ct) => (await s.Create(Actor(u), r, ct)).ToHttp()).RequireModule("organizations").WithName("CreateOrganization").Produces<CustomerInfo>();
-        accounts.MapPost("/{customer:guid}/rename", async (Guid customer, ClaimsPrincipal u, RenameOrganization r, ICustomers s, CancellationToken ct) => (await s.Rename(Actor(u), customer, r, ct)).ToHttp()).RequireModule("organizations").WithName("RenameOrganization");
-        accounts.MapGet("/{customer:guid}/members", async (Guid customer, ClaimsPrincipal u, ICustomers s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.Members(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).RequireModule("organizations").WithName("GetOrganizationMembers").Produces<Page<CustomerMember>>();
-        accounts.MapPost("/{customer:guid}/invite", async (Guid customer, ClaimsPrincipal u, InviteMember r, ICustomers s, CancellationToken ct) => (await s.Invite(Actor(u), customer, r, ct)).ToHttp()).RequireModule("organizations").WithName("InviteOrganizationMember");
-        accounts.MapPost("/invitations/{invitation:guid}/accept", async (Guid invitation, ClaimsPrincipal u, ICustomers s, CancellationToken ct) => (await s.Accept(Actor(u), invitation, ct)).ToHttp()).RequireModule("organizations").WithName("AcceptOrganizationInvitation");
-        accounts.MapPost("/{customer:guid}/invitations/{invitation:guid}/revoke", async (Guid customer, Guid invitation, ClaimsPrincipal u, ICustomers s, CancellationToken ct) => (await s.RevokeInvitation(Actor(u), customer, invitation, ct)).ToHttp()).RequireModule("organizations").WithName("RevokeOrganizationInvitation");
-        accounts.MapPost("/{customer:guid}/members/role", async (Guid customer, ClaimsPrincipal u, ChangeMember r, ICustomers s, CancellationToken ct) => (await s.Member(Actor(u), customer, r, ct)).ToHttp()).RequireModule("organizations").WithName("ChangeOrganizationRole");
-        accounts.MapPost("/{customer:guid}/members/remove", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Remove(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).RequireModule("organizations").WithName("RemoveOrganizationMember");
-        accounts.MapPost("/{customer:guid}/transfer", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Transfer(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).RequireModule("organizations").WithName("TransferOrganizationOwnership");
-        accounts.MapPost("/{customer:guid}/close", async (Guid customer, ClaimsPrincipal u, CloseOrganization r, ICustomers s, CancellationToken ct) => (await s.Close(Actor(u), customer, r.Version, ct)).ToHttp()).WithName("CloseOrganization");
+        var accounts = group.MapGroup("/customers").OwnedByModule(ModuleIds.Organizations).RequireAuthorization();
+        var organizationEntries = accounts.MapGroup("").RequireCapability(CapabilityIds.Organizations);
+        organizationEntries.MapGet("/", async (ClaimsPrincipal u, ICustomers store, CancellationToken ct) => (await store.Home(Actor(u), ct)).ToHttp()).WithName("GetCustomers").Produces<CustomerHome>();
+        organizationEntries.MapPost("/", async (ClaimsPrincipal u, CreateOrganization r, ICustomers s, CancellationToken ct) => (await s.Create(Actor(u), r, ct)).ToHttp()).WithName("CreateOrganization").Produces<CustomerInfo>();
+        organizationEntries.MapPost("/{customer:guid}/rename", async (Guid customer, ClaimsPrincipal u, RenameOrganization r, ICustomers s, CancellationToken ct) => (await s.Rename(Actor(u), customer, r, ct)).ToHttp()).WithName("RenameOrganization");
+        organizationEntries.MapGet("/{customer:guid}/members", async (Guid customer, ClaimsPrincipal u, ICustomers s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.Members(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).WithName("GetOrganizationMembers").Produces<Page<CustomerMember>>();
+        organizationEntries.MapPost("/{customer:guid}/invite", async (Guid customer, ClaimsPrincipal u, InviteMember r, ICustomers s, CancellationToken ct) => (await s.Invite(Actor(u), customer, r, ct)).ToHttp()).WithName("InviteOrganizationMember");
+        organizationEntries.MapPost("/invitations/{invitation:guid}/accept", async (Guid invitation, ClaimsPrincipal u, ICustomers s, CancellationToken ct) => (await s.Accept(Actor(u), invitation, ct)).ToHttp()).WithName("AcceptOrganizationInvitation");
+        organizationEntries.MapPost("/{customer:guid}/invitations/{invitation:guid}/revoke", async (Guid customer, Guid invitation, ClaimsPrincipal u, ICustomers s, CancellationToken ct) => (await s.RevokeInvitation(Actor(u), customer, invitation, ct)).ToHttp()).WithName("RevokeOrganizationInvitation");
+        organizationEntries.MapPost("/{customer:guid}/members/role", async (Guid customer, ClaimsPrincipal u, ChangeMember r, ICustomers s, CancellationToken ct) => (await s.Member(Actor(u), customer, r, ct)).ToHttp()).WithName("ChangeOrganizationRole");
+        organizationEntries.MapPost("/{customer:guid}/members/remove", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Remove(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).WithName("RemoveOrganizationMember");
+        organizationEntries.MapPost("/{customer:guid}/transfer", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Transfer(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).WithName("TransferOrganizationOwnership");
+        accounts.MapPost("/{customer:guid}/close", async (Guid customer, ClaimsPrincipal u, CloseOrganization r, ICustomers s, CancellationToken ct) => (await s.Close(Actor(u), customer, r.Version, ct)).ToHttp()).ContinuesWhenDisabled(ModuleIds.Organizations, "Close an existing organization after obligation checks").WithName("CloseOrganization");
         // Existing customers can always inspect and cancel payment obligations when checkout is disabled.
         var billing = group.MapGroup("/customers/{customer:guid}/billing").RequireAuthorization();
-        var files = group.MapGroup("/customers/{customer:guid}/files").RequireAuthorization().AddEndpointFilter(async (invocation, next) =>
-        {
-            var flags = invocation.HttpContext.RequestServices.GetRequiredService<IFeatureFlags>();
-            var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
-            return flags.Enabled("my-files", actor) ? await next(invocation) : Results.NotFound();
-        });
-        files.MapGet("", async (Guid customer, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.List(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).RequireModule("organizations").RequireModule("my-files").WithName("GetOrganizationFiles").Produces<OrganizationFilePage>();
+        var files = accounts.MapGroup("/{customer:guid}/files").OwnedByModule(ModuleIds.Organizations).RequireCapability(CapabilityIds.OrganizationFiles);
+        files.MapGet("", async (Guid customer, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.List(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).WithName("GetOrganizationFiles").Produces<OrganizationFilePage>();
         files.MapPost("/upload", async (Guid customer, string name, ClaimsPrincipal u, HttpContext context, OrganizationFiles s, MyFilesService settings, CancellationToken ct) =>
         {
             var maxUploadBytes = (await settings.Settings(ct)).MaxUploadBytes;
@@ -43,24 +40,24 @@ public static class CustomerBillingEndpoints
             if (limit is { IsReadOnly: false }) limit.MaxRequestBodySize = maxUploadBytes == 0 ? null : maxUploadBytes;
             if (maxUploadBytes > 0 && context.Request.ContentLength > maxUploadBytes) return Results.StatusCode(413);
             return (await s.Upload(Actor(u), customer, name, context.Request.Body, ct)).ToHttp();
-        }).RequireModule("organizations").RequireModule("my-files").WithName("UploadOrganizationFile");
-        files.MapPost("/{id:guid}/delete", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct) => (await s.Delete(Actor(u), customer, id, ct)).ToHttp()).RequireModule("organizations").RequireModule("my-files").WithName("DeleteOrganizationFile");
+        }).WithName("UploadOrganizationFile");
+        files.MapPost("/{id:guid}/delete", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct) => (await s.Delete(Actor(u), customer, id, ct)).ToHttp()).WithName("DeleteOrganizationFile");
         files.MapGet("/{id:guid}", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, HttpResponse response, CancellationToken ct) =>
         {
             response.Headers.CacheControl = "no-store"; response.Headers.XContentTypeOptions = "nosniff";
             var result = await s.Download(Actor(u), customer, id, ct); return result.IsSuccess ? Results.File(result.Value!.Content, "application/octet-stream", result.Value.Name) : result.ToHttp();
-        }).RequireModule("organizations").RequireModule("my-files").WithName("DownloadOrganizationFile").Produces(200, contentType: "application/octet-stream");
-        billing.MapGet("", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Summary(Actor(u), customer, ct)).ToHttp()).WithName("GetCustomerBilling").Produces<BillingSummary>();
-        billing.MapPost("/trial", async (Guid customer, ClaimsPrincipal u, StartTrial r, IBilling s, CancellationToken ct) => (await s.Trial(Actor(u), customer, r, ct)).ToHttp()).RequireModule("billing").WithName("StartBillingTrial");
+        }).WithName("DownloadOrganizationFile").Produces(200, contentType: "application/octet-stream");
+        billing.MapGet("", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Summary(Actor(u), customer, ct)).ToHttp()).ContinuesWhenDisabled(ModuleIds.Billing, "Read existing subscription obligations").WithName("GetCustomerBilling").Produces<BillingSummary>();
+        billing.MapPost("/trial", async (Guid customer, ClaimsPrincipal u, StartTrial r, IBilling s, CancellationToken ct) => (await s.Trial(Actor(u), customer, r, ct)).ToHttp()).OwnedByModule(ModuleIds.Billing).RequireCapability(CapabilityIds.Billing).WithName("StartBillingTrial");
         billing.MapPost("/checkout", async (Guid customer, ClaimsPrincipal u, CheckoutRequest r, IBilling s, CancellationToken ct) =>
         {
             try { return (await s.Checkout(Actor(u), customer, r, ct)).ToHttp(); }
             catch (Exception ex) when (ex is PaymentProviderException or HttpRequestException or TaskCanceledException) { return Results.Problem(statusCode: 503, title: ApiResults.Message("billing.provider_unavailable"), extensions: new Dictionary<string, object?> { ["code"] = "billing.provider_unavailable" }); }
-        }).RequireModule("billing").WithName("CreateSubscriptionCheckout").Produces<CheckoutResponse>();
-        billing.MapPost("/cancel", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Cancel(Actor(u), customer, ct)).ToHttp()).WithName("CancelCustomerSubscription");
+        }).OwnedByModule(ModuleIds.Billing).RequireCapability(CapabilityIds.Billing).WithName("CreateSubscriptionCheckout").Produces<CheckoutResponse>();
+        billing.MapPost("/cancel", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Cancel(Actor(u), customer, ct)).ToHttp()).ContinuesWhenDisabled(ModuleIds.Billing, "Cancel an existing subscription").WithName("CancelCustomerSubscription");
         var settings = group.MapGroup("/configuration/billing").RequireAuthorization(Permissions.Settings).RequireAuthorization(p => p.RequireRole("Administrator"));
-        settings.MapGet("", async (IBilling s, CancellationToken ct) => Results.Ok(await s.Settings(ct))).WithName("GetBillingSettings").Produces<BillingSettings>();
-        settings.MapPost("", async (ClaimsPrincipal u, BillingSettings r, IBilling s, CancellationToken ct) => (await s.SaveSettings(Actor(u), r, ct)).ToHttp()).WithName("SaveBillingSettings");
+        settings.MapGet("", async (IBilling s, CancellationToken ct) => Results.Ok(await s.Settings(ct))).ContinuesWhenDisabled(ModuleIds.Billing, "Inspect provider configuration").WithName("GetBillingSettings").Produces<BillingSettings>();
+        settings.MapPost("", async (ClaimsPrincipal u, BillingSettings r, IBilling s, CancellationToken ct) => (await s.SaveSettings(Actor(u), r, ct)).ToHttp()).ContinuesWhenDisabled(ModuleIds.Billing, "Maintain providers for accepted obligations").WithName("SaveBillingSettings");
         return group;
     }
     public static WebApplication MapPaymentCallbacks(this WebApplication app)
@@ -90,7 +87,7 @@ public static class CustomerBillingEndpoints
             }
             catch (Exception ex) when (ex is JsonException or KeyNotFoundException or FormatException or InvalidOperationException) { return Results.BadRequest(); }
             catch (Exception ex) when (ex is PaymentProviderException or HttpRequestException or TaskCanceledException) { return Results.StatusCode(503); }
-        }).AllowAnonymous().DisableAntiforgery().WithTags("Framework").WithName("ReceivePaymentCallback");
+        }).AllowAnonymous().DisableAntiforgery().WithTags("Framework").ContinuesWhenDisabled(ModuleIds.Billing, "Reconcile accepted payments").WithName("ReceivePaymentCallback");
         return app;
     }
 }

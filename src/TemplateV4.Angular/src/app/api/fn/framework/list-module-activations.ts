@@ -7,14 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
+import { ModuleActivation } from '../../models/module-activation';
 
-export interface GetModules$Params {
+export interface ListModuleActivations$Params {
 }
 
-export function getModules(http: HttpClient, rootUrl: string, params?: GetModules$Params, context?: HttpContext): Observable<StrictHttpResponse<{
-[key: string]: boolean;
-}>> {
-  const rb = new RequestBuilder(rootUrl, getModules.PATH, 'get');
+export function listModuleActivations(http: HttpClient, rootUrl: string, params?: ListModuleActivations$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ModuleActivation>>> {
+  const rb = new RequestBuilder(rootUrl, listModuleActivations.PATH, 'get');
   if (params) {
   }
 
@@ -23,11 +22,9 @@ export function getModules(http: HttpClient, rootUrl: string, params?: GetModule
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<{
-      [key: string]: boolean;
-      }>;
+      return r as StrictHttpResponse<Array<ModuleActivation>>;
     })
   );
 }
 
-getModules.PATH = '/api/v1/modules';
+listModuleActivations.PATH = '/api/v1/auth/administration/modules/activation';

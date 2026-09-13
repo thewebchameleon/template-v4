@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { resolveModules, inspectModules } from './modules.mjs';
+import { resolveModules, inspectModules, generateModuleIds } from './modules.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 test('scaffolding is deterministic, bounded and never overwrites existing work', () => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'templatev4-cli-'));
@@ -12,23 +12,37 @@ test('scaffolding is deterministic, bounded and never overwrites existing work',
     fs.mkdirSync(path.join(temporary, 'tools'));
     fs.copyFileSync(path.join(root, 'tools/framework.mjs'), path.join(temporary, 'tools/framework.mjs'));
     fs.copyFileSync(path.join(root, 'framework.json'), path.join(temporary, 'framework.json'));
+    fs.mkdirSync(path.join(temporary, 'modules'));
+    fs.copyFileSync(path.join(root, 'modules/catalog.json'), path.join(temporary, 'modules/catalog.json'));
     const run = (...args) => spawnSync(process.execPath, ['tools/framework.mjs', ...args], { cwd: temporary, encoding: 'utf8' });
-    assert.equal(run('new', 'feature', 'Reports').status, 0);
+    assert.equal(run('new', 'feature', 'Reports', '--module', 'support').status, 0);
     assert.ok(fs.existsSync(path.join(temporary, 'src/TemplateV4.ApiService/Endpoints/ReportsEndpoints.cs')));
+    assert.notEqual(run('new', 'feature', 'Unowned').status, 0);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(temporary, 'modules/scaffolds/reports.feature.json'), 'utf8')).module, 'support');
     const before = fs.readFileSync(path.join(temporary, 'src/TemplateV4.Application/Reports/Reports.cs'), 'utf8');
-    assert.notEqual(run('new', 'feature', 'Reports').status, 0);
+    assert.notEqual(run('new', 'feature', 'Reports', '--module', 'support').status, 0);
     assert.equal(fs.readFileSync(path.join(temporary, 'src/TemplateV4.Application/Reports/Reports.cs'), 'utf8'), before);
     assert.notEqual(run('new', 'entity', '../Escape').status, 0);
     assert.notEqual(run('new', 'unknown', 'Example').status, 0);
     assert.equal(run('new', 'command', 'ArchiveUser').status, 0);
     assert.equal(run('new', 'module', 'Invoices').status, 0);
-    assert.match(fs.readFileSync(path.join(temporary, 'src/TemplateV4.ApiService/Endpoints/InvoicesEndpoints.cs'), 'utf8'), /RequireModule\("invoices"\)/);
+    assert.match(fs.readFileSync(path.join(temporary, 'src/TemplateV4.ApiService/Endpoints/InvoicesEndpoints.cs'), 'utf8'), /RequireCapability\("invoices"\)/);
     assert.equal(JSON.parse(fs.readFileSync(path.join(temporary, 'modules/scaffolds/invoices.json'), 'utf8')).enabledByDefault, false);
     assert.notEqual(run('new', 'module', 'Invoices').status, 0);
   } finally {
     if (!temporary.startsWith(path.join(os.tmpdir(), 'templatev4-cli-'))) throw new Error('Invalid temporary cleanup target');
     fs.rmSync(temporary, { recursive: true, force: true });
   }
+});
+
+test('capability graphs reject unknown references, cycles and required runtime switches; generated IDs are current', () => {
+  const core = { id: 'identity', required: true, enabledByDefault: true, dependencies: [] };
+  assert.throws(() => resolveModules([{ ...core, runtimeConfigurable: true }]));
+  assert.throws(() => resolveModules([{ ...core, capabilities: [{ id: 'reports', requires: ['missing'] }] }]));
+  assert.throws(() => resolveModules([{ ...core, capabilities: [{ id: 'reports', requires: ['charts'] }, { id: 'charts', requires: ['reports'] }] }]));
+  assert.throws(() => resolveModules([{ ...core, capabilities: [{ id: 'identity', requires: [] }] }]));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'framework.json'), 'utf8'));
+  generateModuleIds(root, manifest, true);
 });
 
 test('module catalog validates dependencies, required modules and every shipped preset', () => {

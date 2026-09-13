@@ -1,9 +1,15 @@
 import { customerTranslations } from './core/customer-resolver';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
-import { filesGuard, moduleGuard } from './core/features';
+import { capabilityGuard } from './core/features';
+import {
+  destinationGuard,
+  workspaceDestinations,
+  administrationDestinations,
+} from './core/destinations';
+import { supportTranslations } from './core/support-resolver';
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
-import { authGuard, permissionGuard, administratorRoleGuard } from './core/auth';
+import { authGuard, permissionGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
@@ -22,7 +28,7 @@ export const routes: Routes = [
     canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizations' },
-    canActivate: [authGuard, moduleGuard('organizations')],
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.organizations)],
     loadComponent: () => import('./features/organizations').then((m) => m.OrganizationsPage),
   },
   {
@@ -38,7 +44,7 @@ export const routes: Routes = [
     canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizationFiles' },
-    canActivate: [authGuard, moduleGuard('organizations'), filesGuard],
+    canActivate: [authGuard, capabilityGuard('organization-files')],
     loadComponent: () =>
       import('./features/organization-files').then((m) => m.OrganizationFilesPage),
   },
@@ -47,7 +53,7 @@ export const routes: Routes = [
     canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizationWorkspace' },
-    canActivate: [authGuard, moduleGuard('organizations')],
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.organizations)],
     loadComponent: () =>
       import('./features/organization-detail').then((m) => m.OrganizationDetailPage),
   },
@@ -125,9 +131,10 @@ export const routes: Routes = [
   },
   {
     path: 'support',
+    resolve: { supportTranslations },
     runGuardsAndResolvers: 'always',
     data: { breadcrumb: 'support' },
-    canActivate: [authGuard, moduleGuard('support')],
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.support)],
     children: [
       {
         path: '',
@@ -159,7 +166,7 @@ export const routes: Routes = [
   {
     path: 'my-files',
     data: { breadcrumb: 'files' },
-    canActivate: [authGuard, filesGuard],
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.myFiles)],
     canDeactivate: [unsavedGuard],
     loadComponent: () => import('./features/my-files').then((m) => m.MyFilesPage),
   },
@@ -238,7 +245,7 @@ export const routes: Routes = [
           {
             path: ':ownerId/my-files',
             data: { breadcrumb: 'files', permission: 'settings.manage' },
-            canActivate: [permissionGuard, filesGuard],
+            canActivate: [permissionGuard, capabilityGuard('my-files')],
             canDeactivate: [unsavedGuard],
             loadComponent: () => import('./features/my-files').then((m) => m.MyFilesPage),
           },
@@ -254,7 +261,7 @@ export const routes: Routes = [
       {
         path: 'modules',
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.modules)],
         loadComponent: () => import('./features/modules').then((m) => m.ModulesPage),
       },
       {
@@ -262,21 +269,21 @@ export const routes: Routes = [
         canDeactivate: [unsavedGuard],
         resolve: { customerTranslations },
         data: { breadcrumb: 'billingSettings', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.billing)],
         loadComponent: () =>
           import('./features/billing-settings').then((m) => m.BillingSettingsPage),
       },
       {
         path: 'configuration',
         data: { breadcrumb: 'configuration', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, administratorRoleGuard],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.configuration)],
         canDeactivate: [unsavedGuard],
         loadComponent: () => import('./features/configuration').then((m) => m.ConfigurationPage),
       },
       {
         path: 'storage',
         data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, filesGuard],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.storage)],
         canDeactivate: [unsavedGuard],
         loadComponent: () =>
           import('./features/storage-settings').then((m) => m.StorageSettingsPage),
@@ -284,13 +291,13 @@ export const routes: Routes = [
       {
         path: 'audit-history',
         data: { breadcrumb: 'auditHistory', permission: 'settings.manage' },
-        canActivate: [authGuard, permissionGuard, moduleGuard('audit-history')],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.auditHistory)],
         loadComponent: () => import('./features/audit').then((m) => m.AuditPage),
       },
       {
         path: 'system-health',
         data: { breadcrumb: 'systemHealth', permissions: ['settings.manage', 'jobs.trigger'] },
-        canActivate: [authGuard, permissionGuard, moduleGuard('operations')],
+        canActivate: [authGuard, destinationGuard(administrationDestinations.operations)],
         loadComponent: () => import('./features/operations').then((m) => m.OperationsPage),
       },
     ],

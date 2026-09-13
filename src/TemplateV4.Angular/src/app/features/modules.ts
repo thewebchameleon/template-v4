@@ -1,7 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideIcons } from '@ng-icons/core';
 import { lucideFolderOpen, lucideLifeBuoy } from '@ng-icons/lucide';
-import { RuntimeModule } from '../api/models';
+import { ModuleActivation, MyFilesModuleSettings } from '../api/models';
+type ModuleEditor = ModuleActivation & { demoMode: boolean; slowUploadMode: boolean };
 import { Features } from '../core/features';
 import { Notifications } from '../core/notifications';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -127,6 +129,17 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
                 </a>
               </div>
             }
+            @if ((module.enabled ? module.disableBlockers : module.enableBlockers).length) {
+              <div hlmAlert>
+                <p hlmAlertDescription>{{ 'moduleDependencyBlockers' | t }}</p>
+                @for (
+                  blocker of module.enabled ? module.disableBlockers : module.enableBlockers;
+                  track blocker
+                ) {
+                  <p>{{ blocker | t }}</p>
+                }
+              </div>
+            }
             @if (!module.available) {
               <div hlmAlert>
                 <p hlmAlertDescription>{{ 'moduleUnavailable' | t }}</p>
@@ -138,11 +151,12 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
     </app-page-state>`,
 })
 export class ModulesPage implements OnInit {
-  readonly data = new Resource<RuntimeModule[]>();
+  readonly data = new Resource<ModuleEditor[]>();
   readonly busy = signal(false);
   readonly api = inject(WorkspaceApi);
   readonly features = inject(Features);
   readonly toast = inject(Notifications);
+  private fileSettings?: MyFilesModuleSettings;
   enabled: Record<string, boolean> = {};
   demoModes: Record<string, boolean> = {};
   slowUploadModes: Record<string, boolean> = {};
@@ -150,25 +164,36 @@ export class ModulesPage implements OnInit {
     void this.load();
   }
   async load() {
-    if (await this.data.load((signal) => this.api.get('administration/modules', {}, signal))) {
+    if (
+      await this.data.load((signal) =>
+        Promise.all([
+          this.api.get<ModuleActivation[]>('administration/modules/activation', {}, signal),
+          this.api.get<MyFilesModuleSettings>(
+            'administration/modules/my-files/settings',
+            {},
+            signal,
+          ),
+        ]).then(([modules, settings]) => {
+          this.fileSettings = settings;
+          return modules.map((module) => ({
+            ...module,
+            demoMode: module.id === 'my-files' && settings.demoMode,
+            slowUploadMode: module.id === 'my-files' && settings.slowUploadMode,
+          }));
+        }),
+      )
+    ) {
       this.enabled = Object.fromEntries((this.data.value() ?? []).map((m) => [m.id, m.enabled]));
-      this.demoModes = Object.fromEntries(
-        (this.data.value() ?? []).map((m) => [m.id, m.demoMode ?? false]),
-      );
+      this.demoModes = Object.fromEntries((this.data.value() ?? []).map((m) => [m.id, m.demoMode]));
       this.slowUploadModes = Object.fromEntries(
-        (this.data.value() ?? []).map((m) => [m.id, m.slowUploadMode ?? false]),
+        (this.data.value() ?? []).map((m) => [m.id, m.slowUploadMode]),
       );
     }
   }
   async reload() {
     await this.load();
   }
-  async save(
-    module: RuntimeModule,
-    enabled: boolean,
-    demoMode?: boolean,
-    slowUploadMode?: boolean,
-  ) {
+  async save(module: ModuleEditor, enabled: boolean, demoMode?: boolean, slowUploadMode?: boolean) {
     if (
       !module?.available ||
       this.busy() ||
@@ -179,21 +204,41 @@ export class ModulesPage implements OnInit {
     )
       return;
     this.enabled[module.id] = enabled;
-    this.demoModes[module.id] = demoMode ?? module.demoMode ?? false;
-    this.slowUploadModes[module.id] = slowUploadMode ?? module.slowUploadMode ?? false;
+    this.demoModes[module.id] = demoMode ?? module.demoMode;
+    this.slowUploadModes[module.id] = slowUploadMode ?? module.slowUploadMode;
     this.busy.set(true);
     try {
-      const saved = await this.api.post<RuntimeModule>('administration/modules', {
-        id: module.id,
-        enabled,
-        version: module.version,
-        ...(demoMode === undefined ? {} : { demoMode }),
-        ...(slowUploadMode === undefined ? {} : { slowUploadMode }),
-      });
+      let saved: ModuleEditor;
+      if (demoMode !== undefined || slowUploadMode !== undefined) {
+        if (!this.fileSettings) return;
+        this.fileSettings = await this.api.post<MyFilesModuleSettings>(
+          'administration/modules/my-files/settings',
+          {
+            demoMode: demoMode ?? this.fileSettings.demoMode,
+            slowUploadMode: slowUploadMode ?? this.fileSettings.slowUploadMode,
+            version: this.fileSettings.version,
+          },
+        );
+        saved = {
+          ...module,
+          demoMode: this.fileSettings.demoMode,
+          slowUploadMode: this.fileSettings.slowUploadMode,
+        };
+      } else {
+        const activation = await this.api.post<ModuleActivation>(
+          'administration/modules/activation',
+          {
+            id: module.id,
+            enabled,
+            version: module.version,
+          },
+        );
+        saved = { ...activation, demoMode: module.demoMode, slowUploadMode: module.slowUploadMode };
+      }
       this.data.value.update((items) => (items ?? []).map((m) => (m.id === saved.id ? saved : m)));
       this.enabled[saved.id] = saved.enabled;
-      this.demoModes[saved.id] = saved.demoMode ?? false;
-      this.slowUploadModes[saved.id] = saved.slowUploadMode ?? false;
+      this.demoModes[saved.id] = saved.demoMode;
+      this.slowUploadModes[saved.id] = saved.slowUploadMode;
       this.features.reset();
       await this.features.load();
       this.toast.success(
@@ -207,10 +252,28 @@ export class ModulesPage implements OnInit {
                 : 'filesModuleDisabled'
               : 'supportSaved',
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        const blockers: unknown = error.error?.errors?.dependencies;
+        if (
+          Array.isArray(blockers) &&
+          blockers.every((id): id is string => typeof id === 'string')
+        ) {
+          this.data.value.update((items) =>
+            (items ?? []).map((item) =>
+              item.id === module.id
+                ? {
+                    ...item,
+                    ...(enabled ? { enableBlockers: blockers } : { disableBlockers: blockers }),
+                  }
+                : item,
+            ),
+          );
+        }
+      }
       this.enabled[module.id] = module.enabled;
-      this.demoModes[module.id] = module.demoMode ?? false;
-      this.slowUploadModes[module.id] = module.slowUploadMode ?? false;
+      this.demoModes[module.id] = module.demoMode;
+      this.slowUploadModes[module.id] = module.slowUploadMode;
     } finally {
       this.busy.set(false);
     }

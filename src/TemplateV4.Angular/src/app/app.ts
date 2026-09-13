@@ -1,3 +1,4 @@
+import { workspaceDestinations, destinationAvailable } from './core/destinations';
 import { MyFilesTree } from './features/my-files-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -516,42 +517,13 @@ export class App {
           },
         ]
       : []),
-    ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('organizations')
-      ? [
-          {
-            path: '/organizations',
-            label: 'organizations',
-            icon: 'lucideUsersRound',
-            hasPanel: false,
-            destination: '/organizations',
-            destinationQueryParams: null,
-          },
-        ]
-      : []),
-    ...(!this.auth.access()?.setupRequired && this.features.enabled('my-files')
-      ? [
-          {
-            path: '/my-files',
-            label: 'files',
-            icon: 'lucideFolderOpen',
-            hasPanel: true,
-            destination: '/my-files',
-            destinationQueryParams: { group: 'my-files' },
-          },
-        ]
-      : []),
-    ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('support')
-      ? [
-          {
-            path: '/support',
-            label: 'support',
-            icon: 'lucideLifeBuoy',
-            hasPanel: false,
-            destination: '/support',
-            destinationQueryParams: null,
-          },
-        ]
-      : []),
+    ...Object.values(workspaceDestinations)
+      .filter((item) => destinationAvailable(item, this.auth, this.features))
+      .map((item) => ({
+        ...item,
+        destination: item.path,
+        destinationQueryParams: item.capability === 'my-files' ? { group: 'my-files' } : null,
+      })),
     ...(this.availableAdminLinks().length
       ? [
           {

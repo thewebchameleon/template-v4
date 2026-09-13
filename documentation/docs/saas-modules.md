@@ -1,6 +1,6 @@
 # Configurable SaaS modules
 
-The starter is evolving into a modular monolith. Business modules own vertical slices across Domain, Application, Infrastructure, API, Angular and BackgroundWorker while preserving the existing assembly dependency rules. The deployment catalog is `modules/catalog.json`; `framework.json` links that catalog and its presets. The legacy `framework.modules` list remains a technology/feature inventory, not an activation contract.
+The starter is evolving into a modular monolith. Business modules own vertical slices across Domain, Application, Infrastructure, API, Angular and BackgroundWorker while preserving the existing assembly dependency rules. The deployment catalog is `modules/catalog.json`; `framework.json` links that catalog and its presets. The `framework.modules` list remains a technology/feature inventory, not an activation contract.
 
 ## Available now
 
@@ -23,15 +23,33 @@ Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `min
 
 File and maintenance feature flags remain additional restrictions. For example, setting `Modules:my-files=true` still requires runtime activation and the `Features:my-files:Enabled` flag (both enabled by default) to expose files. User, tenant or environment feature overrides cannot enable a disabled deployment or runtime module. Permissions remain mandatory.
 
-`GET /api/v1/modules` requires authentication and returns only boolean module capabilities, never provider settings or secrets. The frontend uses it to hide destinations and guard direct routes. Failed loads clear capabilities; responses from a previous signed-in actor are discarded. Backend gates remain authoritative.
+`GET /api/v1/capabilities` requires authentication and returns only effective boolean capabilities, never provider settings or secrets. The frontend uses this single response to hide destinations and guard direct routes. The former `/modules` and `/features` endpoints are removed. Failed loads clear capabilities; responses from a previous signed-in actor are discarded. Backend gates remain authoritative.
 
 ## Add a vertical slice
 
 Run `node tools/framework.mjs new module Reports`. This creates an Application query, an API endpoint with a module gate, an Angular page, a disabled descriptor for review, ownership folders for Domain/Infrastructure/Worker, and extension documentation. It never overwrites existing files or automatically registers an incomplete slice.
 
-Implement the use cases and explicit registrations; add the reviewed descriptor to the catalog. Register permission policies, gate navigation and lazy routes with the shared capability service and `moduleGuard`, and regenerate OpenAPI clients. A substantial module that owns persistent data uses a module-named PostgreSQL schema in the shared `FrameworkDb` and migration stream. Files owns `files.files` and `files.file_storage_settings`, and Support owns its tables in `support`; platform, Identity, messaging and audit data retain their cross-cutting schemas. Capability modules that expose another foundation's data, such as Operations and Audit History, do not duplicate that data in their own schemas. A module's mappings and migrations remain present when disabled so retained data stays readable by approved recovery and cleanup paths. Do not conditionally change the EF model based on module activation.
+Implement the use cases and explicit registrations; add the reviewed descriptor to the catalog. Register permission policies, mark endpoint groups with `OwnedByModule` and `RequireCapability`, declare shared Angular destination requirements in `core/destinations.ts`, use `destinationGuard` or `capabilityGuard`, and regenerate OpenAPI clients. A substantial module that owns persistent data uses a module-named PostgreSQL schema in the shared `FrameworkDb` and migration stream. Files owns `files.files` and `files.file_storage_settings`, and Support owns its tables in `support`; platform, Identity, messaging and audit data retain their cross-cutting schemas. Capability modules that expose another foundation's data, such as Operations and Audit History, do not duplicate that data in their own schemas. A module's mappings and migrations remain present when disabled so retained data stays readable by approved recovery and cleanup paths. Do not conditionally change the EF model based on module activation.
 
 Modules communicate through explicit Application contracts or versioned events. They do not query another module's tables. Domain stays BCL-only; Application references only Domain and SharedKernel. Scheduling stays in BackgroundWorker. Scaffolds must describe pending-work behavior and data retention before activation. Physical source removal and hot-loaded plugins are outside this initial module system.
+
+## Capability definitions and runtime dependencies
+
+See [ADR 0031](adr/0031-declarative-capabilities.md) for the complete evaluation and concurrency contract. Each module declares a base capability with the same ID. Set `runtimeConfigurable: true` only for a supported administrator switch, and optionally associate a contextual `featureFlag`. Additional `capabilities` declare `id`, `requires`, and optional `featureFlag`; they automatically require their owning module.
+
+For example, Organizations declares `organization-files` requiring `my-files`. Disabling My Files hides organization file access without disabling Organizations. A module-level `dependencies` entry is appropriate only when the whole module needs that prerequisite.
+
+Run `node tools/framework.mjs module-ids` after changing the catalog. It generates C# `ModuleIds`/`CapabilityIds` and TypeScript `ModuleId`/`CapabilityId`; `validate` checks the catalog schema, graphs, presets and generated-file drift. Do not edit generated identifiers.
+
+To add a feature to an existing module, run `node tools/framework.mjs new feature Reports --module support`. Review the generated capability fragment before merging it into the owner descriptor. Both feature and module scaffolds have explicit ownership/gates and stay unregistered until implemented. Consult the repo-local `.agents/skills/module-feature-development/SKILL.md` workflow.
+
+Generic runtime activation is exposed at `/api/v1/auth/administration/modules/activation`. It reports versioned activation plus enable/disable blockers. My Files and Support are the current switches. Enabling requires available prerequisites; disabling with enabled dependents is rejected, never cascaded. Adding a runtime switch requires a new migration seeding its row, localized presentation and a disable policy. Missing rows fail closed.
+
+Runtime updates serialize on runtime rows in stable ID order within the dispatcher transaction before acquiring module-settings locks. Preserve this order in every activation/settings writer. Audit and updates commit together; stale versions return 409. Typed My Files demo/slow-upload settings use `/api/v1/auth/administration/modules/my-files/settings` and their own file-settings version. Activation and file settings have independent versions; the original combined API and its contracts are removed.
+
+Give accepted-obligation HTTP operations `ContinuesWhenDisabled` metadata and a concrete reason outside entry-point gates. Callbacks, cancellation, closure, retained-data cleanup and accepted delivery preserve their existing rules. New module URLs must extend the independent endpoint-boundary assertions in `CapabilityTests`. Do not apply the HTTP maintenance feature flag to cron: scheduled admission retains its separate `Maintenance:Enabled` setting.
+
+`node --test tools/capabilities.test.mjs` verifies browser-free capability loading, request coalescing, failure and actor-switch behavior. PostgreSQL capability tests cover runtime dependency races, typed settings and version conflicts. Browser tests still require explicit permission.
 
 ## Approved implementation roadmap
 

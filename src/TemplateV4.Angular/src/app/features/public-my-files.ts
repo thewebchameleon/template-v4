@@ -16,7 +16,10 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
   selector: 'app-public-my-files',
   imports: [WorkspaceUi, DataTable, MyFilesDemoBanner],
   template: `<app-page-header title="sharedFiles" description="publicFilesHelp" />
-    <app-my-files-demo-banner [enabled]="item.value()?.demoMode ?? false" [minutes]="item.value()?.demoExpiryMinutes ?? 60" />
+    <app-my-files-demo-banner
+      [enabled]="item.value()?.demoMode ?? false"
+      [minutes]="item.value()?.demoExpiryMinutes ?? 60"
+    />
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ item.value()?.name || ('sharedFiles' | t) }}</h2>

@@ -25,25 +25,25 @@ public sealed partial class SecurityAndMessagingTests
         var actor = await User(sp);
         var context = sp.GetRequiredService<BackgroundExecutionContext>();
         context.ActorId = actor.Id; context.Permissions = new HashSet<string> { Permissions.Settings };
-        var modules = sp.GetRequiredService<IRuntimeModules>();
-        var original = (await modules.Read(default)).Single(x => x.Id == "my-files");
+        var modules = sp.GetRequiredService<IMyFilesModuleSettings>();
+        var original = await modules.Read(default);
         Assert.False(original.SlowUploadMode);
-        var dispatcher = sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>();
-        var enabled = await dispatcher.Send(new("my-files", true, original.Version, SlowUploadMode: true));
+        var dispatcher = sp.GetRequiredService<Dispatcher<SaveMyFilesModuleSettings, MyFilesModuleSettings>>();
+        var enabled = await dispatcher.Send(new(false, true, original.Version));
         Assert.True(enabled.IsSuccess); Assert.True(enabled.Value!.SlowUploadMode);
-        Assert.Equal(ErrorKind.Conflict, (await dispatcher.Send(new("my-files", true, original.Version, SlowUploadMode: false))).Error!.Kind);
-        Assert.Equal(ErrorKind.Validation, (await dispatcher.Send(new("support", true, Guid.NewGuid(), SlowUploadMode: true))).Error!.Kind);
+        Assert.Equal(ErrorKind.Conflict, (await dispatcher.Send(new(false, false, original.Version))).Error!.Kind);
+        Assert.Equal(ErrorKind.Validation, (await dispatcher.Send(new(false, true, Guid.Empty))).Error!.Kind);
         await using var fresh = _services.CreateAsyncScope();
-        Assert.True((await fresh.ServiceProvider.GetRequiredService<IRuntimeModules>().Read(default)).Single(x => x.Id == "my-files").SlowUploadMode);
+        Assert.True((await fresh.ServiceProvider.GetRequiredService<IMyFilesModuleSettings>().Read(default)).SlowUploadMode);
         var listing = await fresh.ServiceProvider.GetRequiredService<MyFilesService>().List(actor.Id, 1, 10, null, "updatedAt", "desc", default);
         Assert.True(listing.Value!.SlowUploadMode);
         var audit = Assert.Single(await fresh.ServiceProvider.GetRequiredService<FrameworkDb>().Audit.Where(x => x.Action == "module.my-files_slow_upload_changed").ToArrayAsync());
         Assert.Equal(actor.Id, audit.ActorId);
-        var disabled = await dispatcher.Send(new("my-files", true, enabled.Value.Version, SlowUploadMode: false));
+        var disabled = await dispatcher.Send(new(false, false, enabled.Value.Version));
         Assert.True(disabled.IsSuccess); Assert.False(disabled.Value!.SlowUploadMode);
         actor = (await sp.GetRequiredService<UserManager<AppUser>>().FindByIdAsync(actor.Id.ToString()))!;
         await sp.GetRequiredService<UserManager<AppUser>>().RemoveFromRoleAsync(actor, "Administrator");
-        Assert.Equal(ErrorKind.Forbidden, (await dispatcher.Send(new("my-files", true, disabled.Value.Version, SlowUploadMode: true))).Error!.Kind);
+        Assert.Equal(ErrorKind.Forbidden, (await dispatcher.Send(new(false, true, disabled.Value.Version))).Error!.Kind);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed partial class SecurityAndMessagingTests
         await sp.GetRequiredService<FrameworkDb>().SaveChangesAsync();
         await using var factory = new ApiFactory(_configuration);
         using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost"), AllowAutoRedirect = false });
-        const string path = "/api/v1/auth/administration/modules";
+        var path = "/api/v1/auth/administration/modules/activation";
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(path)).StatusCode);
         var csrf = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         client.DefaultRequestHeaders.Add("Origin", "https://localhost");
@@ -75,25 +75,26 @@ public sealed partial class SecurityAndMessagingTests
         {
             client.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
             Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync(path)).StatusCode);
-            Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync(path, new SaveRuntimeModule("my-files", false, Guid.NewGuid()))).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync(path, new SaveModuleActivation("my-files", false, Guid.NewGuid()))).StatusCode);
         }
         client.DefaultRequestHeaders.Authorization = new("Bearer", adminToken.Access.AccessToken);
-        var original = (await client.GetFromJsonAsync<RuntimeModule[]>(path))!.Single(x => x.Id == "my-files");
+        var original = (await client.GetFromJsonAsync<ModuleActivation[]>(path))!.Single(x => x.Id == "my-files");
         Assert.Equal("my-files", original.Id); Assert.True(original.Enabled); Assert.True(original.Available);
-        foreach (var request in new[] { new SaveRuntimeModule("unknown", false, original.Version), new SaveRuntimeModule("my-files", false, Guid.Empty) })
+        foreach (var request in new[] { new SaveModuleActivation("unknown", false, original.Version), new SaveModuleActivation("my-files", false, Guid.Empty) })
             Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync(path, request)).StatusCode);
         client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
-        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync(path, new SaveRuntimeModule("my-files", false, original.Version))).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync(path, new SaveModuleActivation("my-files", false, original.Version))).StatusCode);
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
         var attempts = await Task.WhenAll(
-            client.PostAsJsonAsync(path, new SaveRuntimeModule("my-files", false, original.Version)),
-            client.PostAsJsonAsync(path, new SaveRuntimeModule("my-files", false, original.Version)));
+            client.PostAsJsonAsync(path, new SaveModuleActivation("my-files", false, original.Version)),
+            client.PostAsJsonAsync(path, new SaveModuleActivation("my-files", false, original.Version)));
         Assert.Single(attempts, x => x.StatusCode == HttpStatusCode.OK);
         Assert.Single(attempts, x => x.StatusCode == HttpStatusCode.Conflict);
-        var saved = (await attempts.Single(x => x.IsSuccessStatusCode).Content.ReadFromJsonAsync<RuntimeModule>())!;
+        var saved = (await attempts.Single(x => x.IsSuccessStatusCode).Content.ReadFromJsonAsync<ModuleActivation>())!;
         Assert.False(saved.Enabled); Assert.NotEqual(original.Version, saved.Version);
         await using var fresh = _services.CreateAsyncScope();
-        Assert.Equal(saved, (await fresh.ServiceProvider.GetRequiredService<IRuntimeModules>().Read(default)).Single(x => x.Id == "my-files"));
+        var observed = (await fresh.ServiceProvider.GetRequiredService<IModuleActivation>().Read(default)).Single(x => x.Id == "my-files");
+        Assert.Equal(saved.Version, observed.Version); Assert.Equal(saved.Enabled, observed.Enabled);
         var audit = Assert.Single(await fresh.ServiceProvider.GetRequiredService<FrameworkDb>().Audit.Where(x => x.Action.StartsWith("module.")).ToArrayAsync());
         Assert.Equal("module.my-files_disabled", audit.Action); Assert.Equal(admin.Id, audit.ActorId);
         foreach (var response in attempts) response.Dispose();
@@ -115,7 +116,7 @@ public sealed partial class SecurityAndMessagingTests
         await using var first = new ApiFactory(config); await using var second = new ApiFactory(config);
         using var writer = first.CreateClient(new() { BaseAddress = new("https://localhost") });
         using var observer = second.CreateClient(new() { BaseAddress = new("https://localhost") });
-        const string modulePath = "/api/v1/auth/administration/modules";
+        const string modulePath = "/api/v1/auth/administration/modules/activation";
         const string files = "/api/v1/auth/my-files";
         writer.DefaultRequestHeaders.Authorization = new("Bearer", adminToken.Access.AccessToken);
         observer.DefaultRequestHeaders.Authorization = new("Bearer", adminToken.Access.AccessToken);
@@ -125,16 +126,18 @@ public sealed partial class SecurityAndMessagingTests
             client.DefaultRequestHeaders.Add("Origin", "https://localhost");
             client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
         }
-        var original = (await writer.GetFromJsonAsync<RuntimeModule[]>(modulePath))!.Single(x => x.Id == "my-files");
-        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/features"))!["my-files"]);
-        using var disabledResponse = await writer.PostAsJsonAsync(modulePath, new SaveRuntimeModule("my-files", false, original.Version));
+        var original = (await writer.GetFromJsonAsync<ModuleActivation[]>(modulePath))!.Single(x => x.Id == "my-files");
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
+        using var disabledResponse = await writer.PostAsJsonAsync(modulePath, new SaveModuleActivation("my-files", false, original.Version));
         Assert.Equal(HttpStatusCode.OK, disabledResponse.StatusCode);
-        var disabled = (await disabledResponse.Content.ReadFromJsonAsync<RuntimeModule>())!;
-        Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/modules"))!["my-files"]);
+        var disabled = (await disabledResponse.Content.ReadFromJsonAsync<ModuleActivation>())!;
+        Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
+        Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
         foreach (var token in new[] { adminToken, ownerToken })
         {
             observer.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
-            Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/features"))!["my-files"]);
+            Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
             Assert.Equal(HttpStatusCode.NotFound, (await observer.GetAsync(files)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await observer.GetAsync($"{files}/{file.Id}/download")).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await observer.PostAsJsonAsync($"{files}/{file.Id}/delete", new { })).StatusCode);
@@ -150,9 +153,10 @@ public sealed partial class SecurityAndMessagingTests
             Assert.Equal(HttpStatusCode.NotFound, (await observer.GetAsync(path)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await observer.PostAsJsonAsync(ownerPath + "/quota", new FileQuotaRequest(0))).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await observer.PostAsJsonAsync(files + "/admin/settings", new StorageSettingsRequest(0, MyFilesService.DefaultMaxUploadBytes, Guid.NewGuid()))).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await writer.PostAsJsonAsync(modulePath, new SaveRuntimeModule("my-files", true, disabled.Version))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await writer.PostAsJsonAsync(modulePath, new SaveModuleActivation("my-files", true, disabled.Version))).StatusCode);
         observer.DefaultRequestHeaders.Authorization = new("Bearer", ownerToken.Access.AccessToken);
-        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/features"))!["my-files"]);
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
         Assert.Equal("preserved content", await observer.GetStringAsync($"{files}/{file.Id}/download"));
         var listing = (await observer.GetFromJsonAsync<FilePage>(files))!;
         Assert.Equal("original.txt", Assert.Single(listing.Page.Items).Name);
@@ -170,12 +174,12 @@ public sealed partial class SecurityAndMessagingTests
         var actor = await User(sp);
         var context = sp.GetRequiredService<BackgroundExecutionContext>();
         context.ActorId = actor.Id; context.Permissions = new HashSet<string> { Permissions.Settings };
-        var modules = sp.GetRequiredService<IRuntimeModules>();
+        var modules = sp.GetRequiredService<IModuleActivation>();
         var original = (await modules.Read(default)).Single(x => x.Id == "my-files");
         await sp.GetRequiredService<UserManager<AppUser>>().RemoveFromRoleAsync(actor, "Administrator");
-        var dispatcher = sp.GetRequiredService<Dispatcher<SaveRuntimeModule, RuntimeModule>>();
+        var dispatcher = sp.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>();
         Assert.Equal(ErrorKind.Forbidden, (await dispatcher.Send(new("my-files", false, original.Version))).Error!.Kind);
-        Assert.Equal(original, (await modules.Read(default)).Single(x => x.Id == "my-files"));
+        Assert.Equal(original.Version, (await modules.Read(default)).Single(x => x.Id == "my-files").Version);
         Assert.Empty(await sp.GetRequiredService<FrameworkDb>().Audit.Where(x => x.Action.StartsWith("module.")).ToArrayAsync());
 
         actor = (await sp.GetRequiredService<UserManager<AppUser>>().FindByIdAsync(actor.Id.ToString()))!;
@@ -185,13 +189,13 @@ public sealed partial class SecurityAndMessagingTests
         await using var factory = new ApiFactory(new Dictionary<string, string?>(_configuration) { ["Modules:my-files"] = "false" });
         using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost") });
         client.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
-        const string path = "/api/v1/auth/administration/modules";
-        Assert.False((await client.GetFromJsonAsync<RuntimeModule[]>(path))!.Single(x => x.Id == "my-files").Available);
+        const string path = "/api/v1/auth/administration/modules/activation";
+        Assert.False((await client.GetFromJsonAsync<ModuleActivation[]>(path))!.Single(x => x.Id == "my-files").Available);
         var csrf = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         client.DefaultRequestHeaders.Add("Origin", "https://localhost");
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());
-        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync(path, new SaveRuntimeModule("my-files", true, original.Version))).StatusCode);
-        Assert.False((await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/modules"))!["my-files"]);
+        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync(path, new SaveModuleActivation("my-files", true, original.Version))).StatusCode);
+        Assert.False((await client.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/auth/my-files")).StatusCode);
     }
 }

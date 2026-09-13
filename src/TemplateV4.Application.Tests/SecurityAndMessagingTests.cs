@@ -680,6 +680,10 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
             var parameters = parsed.RootElement.GetProperty("paths").GetProperty(path).GetProperty("get").GetProperty("parameters").EnumerateArray().Select(x => x.GetProperty("name").GetString()!.ToLowerInvariant()).ToArray();
             Assert.Contains("pagenumber", parameters); Assert.Contains("pagesize", parameters); Assert.Contains("sort", parameters); Assert.Contains("direction", parameters);
         }
+        foreach (var removed in new[] { "/api/v1/modules", "/api/v1/features", "/api/v1/auth/administration/modules" })
+            Assert.False(parsed.RootElement.GetProperty("paths").TryGetProperty(removed, out _));
+        foreach (var removed in new[] { "RuntimeModule", "SaveRuntimeModule" })
+            Assert.False(parsed.RootElement.GetProperty("components").GetProperty("schemas").TryGetProperty(removed, out _));
         if (Environment.GetEnvironmentVariable("TEMPLATEV4_EXPORT_OPENAPI") is { Length: > 0 } output)
         { Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); await File.WriteAllTextAsync(output, contract.Replace("\r\n", "\n") + "\n"); }
     }

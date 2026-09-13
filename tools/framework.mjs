@@ -22,6 +22,10 @@ const write = (relative, content) => {
   console.log(relative);
 };
 switch (command) {
+  case 'module-ids': {
+    const { generateModuleIds } = await import('./modules.mjs');
+    generateModuleIds(root, manifest); break;
+  }
   case 'inspect': console.log(JSON.stringify(manifest, null, 2)); break;
   case 'modules': {
     const { inspectModules } = await import('./modules.mjs');
@@ -32,8 +36,11 @@ switch (command) {
     const { default: Ajv } = await import('../src/TemplateV4.Angular/node_modules/ajv/dist/2020.js');
     const validate = new Ajv().compile(JSON.parse(fs.readFileSync(path.join(root, 'framework.schema.json'), 'utf8')));
     if (!validate(manifest)) throw new Error(JSON.stringify(validate.errors));
-    const { inspectModules } = await import('./modules.mjs');
+    const validateCatalog = new Ajv().compile(JSON.parse(fs.readFileSync(path.join(root, 'modules/catalog.schema.json'), 'utf8')));
+    if (!validateCatalog(JSON.parse(fs.readFileSync(path.join(root, manifest.moduleCatalog), 'utf8')))) throw new Error(JSON.stringify(validateCatalog.errors));
+    const { inspectModules, generateModuleIds } = await import('./modules.mjs');
     for (const preset of Object.keys(manifest.modulePresets)) inspectModules(root, manifest, preset);
+    generateModuleIds(root, manifest, true);
     const sdk = JSON.parse(fs.readFileSync(path.join(root, 'global.json'), 'utf8')).sdk.version;
     if (sdk !== manifest.toolchains.dotnet) throw new Error('SDK manifest mismatch.');
     const frontend = JSON.parse(fs.readFileSync(path.join(root, manifest.projects.Web, 'package.json'), 'utf8'));
@@ -71,6 +78,13 @@ switch (command) {
   case 'new': {
     if (!kind || !name || !/^[A-Z][A-Za-z0-9]{1,63}$/.test(name)) throw new Error('Usage: new <kind> <PascalCaseName>');
     const app = manifest.projects.Application;
+    let featureOwner;
+    if (kind === 'feature') {
+      const index = process.argv.indexOf('--module');
+      featureOwner = index < 0 ? undefined : process.argv[index + 1];
+      const definitions = JSON.parse(fs.readFileSync(path.join(root, manifest.moduleCatalog), 'utf8'));
+      if (!definitions.some(module => module.id === featureOwner)) throw new Error('Features require --module <existing-module-id>.');
+    }
     console.log('Scaffold: review its behavior and explicitly register it before use.');
     const header = `using TemplateV4.SharedKernel;\n\nnamespace TemplateV4.Application.${name};\n\n`;
     if (kind === 'feature' || kind === 'module') {
@@ -81,14 +95,21 @@ switch (command) {
         [`${manifest.projects.Web}/src/app/features/${name.toLowerCase()}.ts`, `import { Component } from '@angular/core';\nimport { WorkspaceUi } from '../shared/workspace';\n@Component({selector:'app-${name.toLowerCase()}',imports:[WorkspaceUi],template:'<app-page-header title="${name.toLowerCase()}.title" description="${name.toLowerCase()}.description" /><section hlmCard><div hlmCardHeader><h2 hlmCardTitle>${name}</h2></div><div hlmCardContent></div></section>'})\nexport class ${name}Page {}\n`],
         [`${folder}/README.md`, `# ${name}\n\nThis read-only starter returns its feature name. Replace that behavior with your Application contract.\n\nRegister IHandler<${name}Query, string> with ${name}Handler, seed ${name.toLowerCase()}.read and its authorization policy, call api.Map${name}(), and add the lazy Angular route. Regenerate API clients, replace the page text with localisation keys, and add behavioral tests. For writes follow documentation/docs/user-management.md: explicit validator, transaction, domain event, outbox and BackgroundWorker consumer.\n`]
       ];
+      if (kind === 'feature') {
+        files[1][1] = 'using TemplateV4.Application.Modules;\n' + files[1][1]
+          .replace('        group.MapGet(', `        var entries = group.MapGroup("").OwnedByModule("${featureOwner}").RequireCapability("${name.toLowerCase()}");\n        entries.MapGet(`);
+        files.push([`modules/scaffolds/${name.toLowerCase()}.feature.json`, JSON.stringify({ module: featureOwner, capability: { id: name.toLowerCase(), requires: [] } }, null, 2) + '\n']);
+        files[3][1] += `\nMerge the reviewed capability from modules/scaffolds/${name.toLowerCase()}.feature.json into its owning module in modules/catalog.json, regenerate IDs with node tools/framework.mjs module-ids, and use generated identifiers in the gate. Add shared destination metadata and destinationGuard. The scaffold stays unavailable until its capability is declared and its implementation registered. Follow .agents/skills/module-feature-development/SKILL.md.\n`;
+      }
       if (kind === 'module') {
-        files[1][1] = files[1][1].replace('.RequireAuthorization(', `.RequireModule("${name.toLowerCase()}").RequireAuthorization(`);
+        files[1][1] = 'using TemplateV4.Application.Modules;\n' + files[1][1]
+          .replace('        group.MapGet(', `        var entries = group.MapGroup("").OwnedByModule("${name.toLowerCase()}").RequireCapability("${name.toLowerCase()}");\n        entries.MapGet(`);
         files.push(
-          [`modules/scaffolds/${name.toLowerCase()}.json`, JSON.stringify({ id: name.toLowerCase(), required: false, enabledByDefault: false, dependencies: ['identity'] }, null, 2) + '\n'],
+          [`modules/scaffolds/${name.toLowerCase()}.json`, JSON.stringify({ id: name.toLowerCase(), required: false, enabledByDefault: false, dependencies: ['identity'], runtimeConfigurable: false, capabilities: [] }, null, 2) + '\n'],
           [`${manifest.projects.Domain}/${name}/README.md`, `# ${name} domain\n\nOwn business invariants here. Keep this layer BCL-only.\n`],
           [`${manifest.projects.Infrastructure}/${name}/README.md`, `# ${name} infrastructure\n\nOwn focused persistence, provider adapters and explicit registration here. Do not access other module tables directly.\n`],
           [`${manifest.projects.Worker}/${name}/README.md`, `# ${name} worker\n\nOwn scheduling and consumers here. Define disable/drain behavior before registering a job.\n`],
-          [`${manifest.documentation}/modules/${name.toLowerCase()}.md`, `# ${name}\n\nStatus: Scaffold, disabled and unregistered.\n\nReview modules/scaffolds/${name.toLowerCase()}.json and explicitly merge its descriptor into modules/catalog.json after implementing the slice. Register handlers and permissions, gate endpoints with RequireModule, and guard UI routes with moduleGuard. Define settings, migration ownership, retention, event contracts and disable behavior. Add focused behavioral tests before activation.\n`],
+          [`${manifest.documentation}/modules/${name.toLowerCase()}.md`, `# ${name}\n\nStatus: Scaffold, disabled and unregistered.\n\nReview modules/scaffolds/${name.toLowerCase()}.json and explicitly merge its descriptor into modules/catalog.json after implementing the slice. Register handlers and permissions, gate endpoint groups with OwnedByModule and RequireCapability, and add shared destination metadata and destinationGuard. Run node tools/framework.mjs module-ids after merging the descriptor, then replace scaffold IDs with the generated identifiers. Use .agents/skills/module-feature-development/SKILL.md for the module/feature workflow. Define settings, migration ownership, retention, event contracts and disable behavior. Add focused behavioral tests before activation.\n`],
         );
       }
       if (files.some(([file]) => fs.existsSync(path.join(root, file)))) throw new Error('Feature target already exists; no files written.');
@@ -120,5 +141,5 @@ switch (command) {
     }
     break;
   }
-  default: console.log('templatev4 CLI: inspect | modules [baseline|minimal] | validate | doctor | dev-init | dev | clients | upgrade | new <kind|module> <Name>');
+  default: console.log('templatev4 CLI: inspect | module-ids | modules [baseline|minimal] | validate | doctor | dev-init | dev | clients | upgrade | new <kind|module> <Name>');
 }

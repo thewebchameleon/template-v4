@@ -2,11 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 async function modulesApp(page: Page, administrator = true, available = true) {
-  let saved = { id: 'my-files', enabled: true, available, version: 'initial' };
+  let saved = {
+    id: 'my-files',
+    enabled: true,
+    available,
+    version: 'initial',
+    enableBlockers: [] as string[],
+    disableBlockers: [] as string[],
+  };
   let failSave = false;
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
-    if (path === '/api/v1/auth/administration/modules') {
+    if (path === '/api/v1/auth/administration/modules/activation') {
       if (!administrator) return route.fulfill({ status: 403, json: {} });
       if (route.request().method() === 'POST') {
         if (failSave)
@@ -19,6 +26,10 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       }
       return route.fulfill({ json: [saved] });
     }
+    if (path === '/api/v1/auth/administration/modules/my-files/settings')
+      return route.fulfill({
+        json: { demoMode: false, slowUploadMode: false, version: 'file-settings' },
+      });
     const responses: Record<string, unknown> = {
       '/api/v1/auth/appearance': { primaryColor: '#2563EB' },
       '/api/v1/auth/refresh': {
@@ -33,8 +44,7 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/modules': { 'my-files': saved.enabled && available },
-      '/api/v1/features': { 'my-files': saved.enabled && available },
+      '/api/v1/capabilities': { 'my-files': saved.enabled && available },
     };
     return route.fulfill({ json: responses[path] ?? {} });
   });

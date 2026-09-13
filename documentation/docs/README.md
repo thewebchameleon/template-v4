@@ -39,6 +39,8 @@ The [customer support portal](support.md) adds requester tickets, a delegated ag
 
 Audit events and the Audit History detail drawer follow [ADR 0024](adr/0024-audit-event-details.md). Services author stable actions and allowlisted field changes; the persistence interceptor captures historical names and execution context within the operation's transaction. Extend the privacy redaction path when adding personally identifying audit details.
 
+See [declarative capabilities](adr/0031-declarative-capabilities.md) for catalog-defined gates, runtime dependencies, typed settings and the module/feature extension workflow.
+
 Administrators manage application-wide module activation under Modules. My Files is enabled by default and retains its data when disabled. See [ADR 0023](adr/0023-runtime-module-administration.md) for persistence, endpoint gates, deployment restrictions and adding future runtime modules.
 
 Platform-wide appearance is managed by Administrators under Configuration. See [ADR 0022](adr/0022-platform-configuration.md) for typed configuration sections, public branding, contrast generation and migration requirements.
@@ -79,7 +81,7 @@ The desktop sidebar has a permanent 4rem destination rail and a separate label p
 
 ## CLI
 
-`node tools/framework.mjs inspect|validate|doctor|dev|clients|upgrade` inspects the manifest, verifies its schema, reports toolchains, starts development, regenerates clients, or explains supported upgrades. `new <kind> <PascalCaseName>` creates deterministic files without overwriting existing work. Supported kinds are command, query, entity, permission, event, consumer, endpoint, job, email, localisation, page, adr, feature, migration. Scaffolds require explicit implementation/registration review; they are not automatically enabled endpoints or jobs.
+`node tools/framework.mjs inspect|validate|doctor|dev|clients|upgrade` inspects the manifest, verifies its schema, reports toolchains, starts development, regenerates clients, or explains supported upgrades. `new <kind> <PascalCaseName>` creates deterministic files without overwriting existing work. Supported kinds are command, query, entity, permission, event, consumer, endpoint, job, email, localisation, page, adr, feature, migration. Feature scaffolds require `--module <existing-module-id>`. Scaffolds require explicit implementation/registration review; they are not automatically enabled endpoints or jobs.
 
 ## Production and security settings
 

@@ -1,3 +1,4 @@
+import { workspaceDestinations, destinationAvailable } from '../core/destinations';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
@@ -54,15 +55,9 @@ export class DashboardPage {
   readonly unread = inject(UnreadNotifications);
   readonly administration = inject(AdministrationNavigation);
   readonly actions = computed(() => [
-    ...(this.features.enabled('my-files')
-      ? [{ path: '/my-files', label: 'files', help: 'dashboardFilesHelp' }]
-      : []),
-    ...(this.features.moduleEnabled('organizations')
-      ? [{ path: '/organizations', label: 'organizations', help: 'dashboardTeamsHelp' }]
-      : []),
-    ...(this.features.moduleEnabled('support')
-      ? [{ path: '/support', label: 'support', help: 'dashboardSupportHelp' }]
-      : []),
+    ...Object.values(workspaceDestinations).filter((item) =>
+      destinationAvailable(item, this.auth, this.features),
+    ),
     ...(this.administration.links().length
       ? [{ path: '/administration', label: 'administration', help: 'dashboardAdministrationHelp' }]
       : []),

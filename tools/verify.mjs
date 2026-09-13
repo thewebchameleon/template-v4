@@ -10,7 +10,7 @@ const commands = [
   ['npm', ['run', 'lint', '--prefix', 'src/TemplateV4.Angular']],
   ['npm', ['run', 'build', '--prefix', 'src/TemplateV4.Angular']],
   ['npm', ['audit', '--prefix', 'src/TemplateV4.Angular', '--audit-level=moderate']],
-  ['node', ['--test', 'tools/auth-retry.test.mjs', 'tools/ui-sounds.test.mjs']],
+  ['node', ['--test', 'tools/auth-retry.test.mjs', 'tools/capabilities.test.mjs', 'tools/ui-sounds.test.mjs']],
   ['dotnet', ['test', 'src/TemplateV4.slnx', '--no-build']]
 ];
 const start = performance.now();

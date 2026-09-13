@@ -12,7 +12,7 @@ using TemplateV4.Infrastructure.Security;
 namespace TemplateV4.Infrastructure.Support;
 
 public sealed class SupportTicketStore(FrameworkDb db, IExecutionContext context, TimeProvider time,
-    AccessManagementService access, IRuntimeModules modules, IEventOutbox outbox,
+    AccessManagementService access, ICapabilities modules, IEventOutbox outbox,
     IDataProtectionProvider protection, IConfiguration config) : ISupportTickets
 {
     private async Task<bool> Available(CancellationToken ct)
@@ -21,7 +21,7 @@ public sealed class SupportTicketStore(FrameworkDb db, IExecutionContext context
         // Match account erasure's actor lock before accepting new personally identifying content.
         if (db.Database.CurrentTransaction != null)
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({actor.ToString()}, 0))", ct);
-        return await modules.Enabled("support", ct) && await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct);
+        return await modules.Enabled(CapabilityIds.Support, ct) && await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct);
     }
     private async Task<bool> Agent(CancellationToken ct) => (await access.ActorPermissions(ct)).Any(p => p is Permissions.SupportAgent or Permissions.SupportAdmin);
     private IQueryable<SupportTicketRow> Visible(bool agent) => db.Set<SupportTicketRow>().Where(x => agent || x.RequesterId == context.ActorId);
@@ -30,10 +30,12 @@ public sealed class SupportTicketStore(FrameworkDb db, IExecutionContext context
         x.CategoryId, db.Set<SupportCategoryRow>().Where(c => c.Id == x.CategoryId).Select(c => c.Name).First(),
         x.Status, x.Priority, x.AssigneeId, db.Profiles.Where(p => p.Id == x.AssigneeId).Select(p => p.DisplayName).FirstOrDefault(),
         x.CreatedAt, x.UpdatedAt, x.Version));
-    private IQueryable<Guid> Agents() => (from m in db.UserRoles join c in db.RoleClaims on m.RoleId equals c.RoleId
-        join p in db.Profiles on m.UserId equals p.Id join u in db.Users on p.Id equals u.Id
-        where c.ClaimType == "permission" && (c.ClaimValue == Permissions.SupportAgent || c.ClaimValue == Permissions.SupportAdmin) && !p.Disabled && u.EmailConfirmed && u.PasswordHash != null
-        select m.UserId).Distinct();
+    private IQueryable<Guid> Agents() => (from m in db.UserRoles
+                                          join c in db.RoleClaims on m.RoleId equals c.RoleId
+                                          join p in db.Profiles on m.UserId equals p.Id
+                                          join u in db.Users on p.Id equals u.Id
+                                          where c.ClaimType == "permission" && (c.ClaimValue == Permissions.SupportAgent || c.ClaimValue == Permissions.SupportAdmin) && !p.Disabled && u.EmailConfirmed && u.PasswordHash != null
+                                          select m.UserId).Distinct();
 
     public async Task<Result<SupportOptions>> Options(string search, CancellationToken ct)
     {

@@ -8,22 +8,26 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface GetFeatures$Params {
+export interface GetCapabilities$Params {
 }
 
-export function getFeatures(http: HttpClient, rootUrl: string, params?: GetFeatures$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, getFeatures.PATH, 'get');
+export function getCapabilities(http: HttpClient, rootUrl: string, params?: GetCapabilities$Params, context?: HttpContext): Observable<StrictHttpResponse<{
+[key: string]: boolean;
+}>> {
+  const rb = new RequestBuilder(rootUrl, getCapabilities.PATH, 'get');
   if (params) {
   }
 
   return http.request(
-    rb.build({ responseType: 'text', accept: '*/*', context })
+    rb.build({ responseType: 'json', accept: 'application/json', context })
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return (r as HttpResponse<any>).clone({ body: undefined }) as StrictHttpResponse<void>;
+      return r as StrictHttpResponse<{
+      [key: string]: boolean;
+      }>;
     })
   );
 }
 
-getFeatures.PATH = '/api/v1/features';
+getCapabilities.PATH = '/api/v1/capabilities';

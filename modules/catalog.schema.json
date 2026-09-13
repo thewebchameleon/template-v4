@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "required",
+      "enabledByDefault",
+      "dependencies"
+    ],
+    "properties": {
+      "id": {
+        "$ref": "#/$defs/id"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "enabledByDefault": {
+        "type": "boolean"
+      },
+      "dependencies": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/id"
+        },
+        "uniqueItems": true
+      },
+      "runtimeConfigurable": {
+        "type": "boolean"
+      },
+      "featureFlag": {
+        "$ref": "#/$defs/id"
+      },
+      "capabilities": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "requires"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/id"
+            },
+            "requires": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              },
+              "uniqueItems": true
+            },
+            "featureFlag": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    }
+  }
+}

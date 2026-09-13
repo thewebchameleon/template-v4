@@ -7,20 +7,20 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { RuntimeModule } from '../../models/runtime-module';
-import { SaveRuntimeModule } from '../../models/save-runtime-module';
+import { ModuleActivation } from '../../models/module-activation';
+import { SaveModuleActivation } from '../../models/save-module-activation';
 
-export interface SaveRuntimeModule$Params {
+export interface SaveModuleActivation$Params {
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
  */
   'X-CSRF-TOKEN': string;
-      body: SaveRuntimeModule
+      body: SaveModuleActivation
 }
 
-export function saveRuntimeModule(http: HttpClient, rootUrl: string, params: SaveRuntimeModule$Params, context?: HttpContext): Observable<StrictHttpResponse<RuntimeModule>> {
-  const rb = new RequestBuilder(rootUrl, saveRuntimeModule.PATH, 'post');
+export function saveModuleActivation(http: HttpClient, rootUrl: string, params: SaveModuleActivation$Params, context?: HttpContext): Observable<StrictHttpResponse<ModuleActivation>> {
+  const rb = new RequestBuilder(rootUrl, saveModuleActivation.PATH, 'post');
   if (params) {
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -31,9 +31,9 @@ export function saveRuntimeModule(http: HttpClient, rootUrl: string, params: Sav
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<RuntimeModule>;
+      return r as StrictHttpResponse<ModuleActivation>;
     })
   );
 }
 
-saveRuntimeModule.PATH = '/api/v1/auth/administration/modules';
+saveModuleActivation.PATH = '/api/v1/auth/administration/modules/activation';

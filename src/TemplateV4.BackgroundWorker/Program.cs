@@ -1,5 +1,6 @@
 using Quartz;
 using TemplateV4.Application;
+using TemplateV4.Application.Modules;
 using TemplateV4.BackgroundWorker;
 using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Modules;
@@ -9,7 +10,7 @@ if (await Hosting.HandleHealthProbe(args)) return;
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
-var maintenanceEnabled = ModuleConfiguration.Load(builder.Configuration).Enabled("maintenance") && builder.Configuration.GetValue("Maintenance:Enabled", true);
+var maintenanceEnabled = ModuleConfiguration.Load(builder.Configuration).Enabled(ModuleIds.Maintenance) && builder.Configuration.GetValue("Maintenance:Enabled", true);
 builder.Services.AddScoped<BackgroundExecutionContext>();
 builder.Services.AddScoped<IExecutionContext>(provider => provider.GetRequiredService<BackgroundExecutionContext>());
 builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();

@@ -7,13 +7,13 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { RuntimeModule } from '../../models/runtime-module';
+import { MyFilesModuleSettings } from '../../models/my-files-module-settings';
 
-export interface ListRuntimeModules$Params {
+export interface GetMyFilesModuleSettings$Params {
 }
 
-export function listRuntimeModules(http: HttpClient, rootUrl: string, params?: ListRuntimeModules$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RuntimeModule>>> {
-  const rb = new RequestBuilder(rootUrl, listRuntimeModules.PATH, 'get');
+export function getMyFilesModuleSettings(http: HttpClient, rootUrl: string, params?: GetMyFilesModuleSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<MyFilesModuleSettings>> {
+  const rb = new RequestBuilder(rootUrl, getMyFilesModuleSettings.PATH, 'get');
   if (params) {
   }
 
@@ -22,9 +22,9 @@ export function listRuntimeModules(http: HttpClient, rootUrl: string, params?: L
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<RuntimeModule>>;
+      return r as StrictHttpResponse<MyFilesModuleSettings>;
     })
   );
 }
 
-listRuntimeModules.PATH = '/api/v1/auth/administration/modules';
+getMyFilesModuleSettings.PATH = '/api/v1/auth/administration/modules/my-files/settings';

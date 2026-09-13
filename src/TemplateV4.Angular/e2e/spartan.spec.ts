@@ -20,7 +20,7 @@ async function mockApp(
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/v1/auth/culture') return route.fulfill({ status: 204 });
     const responses: Record<string, unknown> = {
-      '/api/v1/modules': modules,
+      '/api/v1/capabilities': modules,
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': access,
@@ -56,7 +56,6 @@ async function mockApp(
         version: 'v1',
       },
       '/api/v1/auth/operations': [],
-      '/api/v1/features': {},
       '/api/v1/users': {
         items: [
           {

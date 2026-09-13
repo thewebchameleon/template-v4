@@ -10,10 +10,14 @@ public static class RuntimeModuleEndpoints
     {
         var admin = group.MapGroup("/administration/modules").RequireAuthorization(Permissions.Settings)
             .RequireAuthorization(policy => policy.RequireRole("Administrator"));
-        admin.MapGet("", async (IRuntimeModules modules, CancellationToken ct) => Results.Ok(await modules.Read(ct)))
-            .WithName("ListRuntimeModules").Produces<RuntimeModule[]>();
-        admin.MapPost("", async (SaveRuntimeModule request, Dispatcher<SaveRuntimeModule, RuntimeModule> dispatcher, CancellationToken ct) =>
-            (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveRuntimeModule").Produces<RuntimeModule>();
+        admin.MapGet("/activation", async (IModuleActivation modules, CancellationToken ct) => Results.Ok(await modules.Read(ct)))
+            .WithName("ListModuleActivations").Produces<ModuleActivation[]>();
+        admin.MapPost("/activation", async (SaveModuleActivation request, Dispatcher<SaveModuleActivation, ModuleActivation> dispatcher, CancellationToken ct) =>
+            (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveModuleActivation").Produces<ModuleActivation>();
+        admin.MapGet("/my-files/settings", async (IMyFilesModuleSettings settings, CancellationToken ct) => Results.Ok(await settings.Read(ct)))
+            .WithName("GetMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
+        admin.MapPost("/my-files/settings", async (SaveMyFilesModuleSettings request, Dispatcher<SaveMyFilesModuleSettings, MyFilesModuleSettings> dispatcher, CancellationToken ct) =>
+            (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
         return group;
     }
 }

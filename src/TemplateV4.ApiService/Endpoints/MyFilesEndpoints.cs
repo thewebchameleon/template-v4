@@ -12,14 +12,7 @@ public static class MyFilesEndpoints
 {
     public static RouteGroupBuilder MapMyFilesEndpoints(this RouteGroupBuilder group)
     {
-        var files = group.MapGroup("/my-files").AddEndpointFilter(async (invocation, next) =>
-        {
-            var flags = invocation.HttpContext.RequestServices.GetRequiredService<IFeatureFlags>();
-            var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
-            var modules = invocation.HttpContext.RequestServices.GetRequiredService<IRuntimeModules>();
-            return flags.Enabled("my-files", actor) && await modules.Enabled("my-files", invocation.HttpContext.RequestAborted)
-                ? await next(invocation) : Results.NotFound();
-        });
+        var files = group.MapGroup("/my-files").OwnedByModule(ModuleIds.MyFiles).RequireCapability(CapabilityIds.MyFiles);
         files.MapGet("", async (MyFilesService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string? search = null, string sort = "createdAt", string direction = "desc", Guid? parentId = null, string group = "my-files") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, pageSize, search, sort, direction, ct, parentId, group)).ToHttp())
             .RequireAuthorization().WithName("ListMyFiles").Produces<FilePage>();
         files.MapPost("/upload", async (string name, HttpContext context, MyFilesService service, CancellationToken ct, Guid? parentId = null) =>
