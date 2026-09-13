@@ -130,3 +130,22 @@
 
 @import './design-tokens.css';
 @import './workspace.css';
+
+/* CDK overlays are body siblings of app-root, so only the page is scaled. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion='reduced']) body {
+    overflow-x: clip;
+  }
+
+  :root:not([data-motion='reduced']) app-root {
+    display: block;
+    transform-origin: center center;
+    transition: transform var(--app-modal-background-duration) ease-out;
+  }
+
+  :root:not([data-motion='reduced'])
+    body:has(> .cdk-overlay-container .cdk-overlay-backdrop[data-state='open'])
+    app-root {
+    transform: scale(var(--app-modal-background-scale));
+  }
+}
