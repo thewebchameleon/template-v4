@@ -28,4 +28,10 @@ Run the PostgreSQL suite, independent package consumer and isolated browser harn
 
 ## Delegated access upgrade
 
-Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:files:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:my-files:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+
+## My Files upgrade
+
+Apply `MyFilesLibrary` and `RenameMyFilesModule` with the DatabaseMigrator before starting the updated API and Worker. Existing file objects keep their keys, and the module rename preserves the stored activation setting. Change deployment overrides from `Modules:files` to `Modules:my-files` and feature overrides from `Features:files:*` to `Features:my-files:*`, including environment-specific/user/tenant settings. The browser redirects `/files` and old administrator file URLs with their query state. API clients must regenerate against `/api/v1/auth/my-files`; old personal API paths are retired. Organization file API paths remain unchanged.
+
+The `files` PostgreSQL schema remains in place because it also contains organization storage. New personal versions and shares are mapped there. Downgrading after users create new versions or shares would lose their metadata; restore a coordinated database/object-store backup instead of dropping these tables on an active library.

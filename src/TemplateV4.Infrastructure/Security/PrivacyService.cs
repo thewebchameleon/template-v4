@@ -36,7 +36,8 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.PhoneNumber, x.PhoneNumberConfirmed, x.OptionalEmailEnabled }).SingleAsync(ct);
         var sessions = await db.Sessions.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Device, x.CreatedAt, x.ExpiresAt, x.RevokedAt }).ToArrayAsync(ct);
         var notifications = await db.Notifications.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Kind, x.Link, x.CreatedAt, x.ReadAt }).ToArrayAsync(ct);
-        var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId }).ToArrayAsync(ct);
+        var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId, x.Description, x.Tags, x.Important, x.Starred, x.UpdatedAt }).ToArrayAsync(ct);
+        var fileShares = await db.Set<MyFileShare>().AsNoTracking().Where(x => x.RecipientId == actor || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == actor)).Select(x => new { x.FileId, x.RecipientId, x.Permission, x.ExpiresAt }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);
         var memberships = await db.Set<MembershipRow>().AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.CustomerId, x.Role }).ToArrayAsync(ct);
@@ -46,7 +47,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var ticketIds = supportTickets.Select(x => x.Id).ToArray();
         var supportMessages = await db.Set<SupportMessageRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId) && !x.Internal).ToArrayAsync(ct);
         var supportAttachments = await db.Set<SupportAttachmentRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId)).Select(x => new { x.Id, x.TicketId, x.Name, Size = x.Content.Length, x.At }).ToArrayAsync(ct);
-        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, AvatarPng = avatar, Account = account, Sessions = sessions, Notifications = notifications, Files = files, DeletionRequests = requests, Activity = activity, Memberships = memberships, PersonalBilling = personalBilling, OrganizationInvitations = pendingInvitations, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
+        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, AvatarPng = avatar, Account = account, Sessions = sessions, Notifications = notifications, Files = files, FileShares = fileShares, DeletionRequests = requests, Activity = activity, Memberships = memberships, PersonalBilling = personalBilling, OrganizationInvitations = pendingInvitations, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.exported", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return result;
     }
@@ -192,6 +193,8 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             // stale workers committing completion; an SMTP call already in flight cannot be recalled.
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE messaging.outbox SET \"Payload\" = '{{}}', \"CompletedAt\" = {time.GetUtcNow()}, \"PoisonedAt\" = NULL, \"LeaseId\" = NULL, \"LeaseUntil\" = NULL WHERE \"Type\" = 'email.requested.v1' AND \"Payload\"::jsonb->>'UserId' = {user.Id.ToString()}", ct);
             await db.Files.Where(x => x.OwnerId == user.Id && x.DeletedAt == null).ExecuteUpdateAsync(x => x.SetProperty(f => f.DeletedAt, time.GetUtcNow()), ct);
+            await db.Set<MyFileShare>().Where(x => x.RecipientId == user.Id || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == user.Id)).ExecuteDeleteAsync(ct);
+            await db.Files.Where(x => x.OwnerId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.Description, "").SetProperty(f => f.Tags, ""), ct);
             request.State = "Approved";
         }
         else

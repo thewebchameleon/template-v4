@@ -100,7 +100,7 @@ public static class Registration
         services.AddScoped<IHandler<AttachTicket, Unit>, AttachTicketHandler>();
         services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
-        services.AddScoped<FileService>();
+        services.AddScoped<MyFilesService>();
         services.AddScoped<OrganizationFiles>();
         services.AddScoped<FileRetention>();
         services.AddScoped<IRuntimeModules, RuntimeModuleStore>();
@@ -154,7 +154,7 @@ public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnviro
 {
     public bool Enabled(string feature, IExecutionContext context)
     {
-        if (feature is "files" or "maintenance" && !modules.Enabled(feature)) return false;
+        if (feature is "my-files" or "maintenance" && !modules.Enabled(feature)) return false;
         var section = configuration.GetSection($"Features:{feature}");
         if (context.TenantId is not null && bool.TryParse(section[$"Tenants:{context.TenantId}"], out var tenant)) return tenant;
         if (context.ActorId is not null && bool.TryParse(section[$"Users:{context.ActorId}"], out var user)) return user;

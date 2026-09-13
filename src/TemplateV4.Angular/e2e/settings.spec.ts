@@ -22,7 +22,7 @@ test('administrator changes registration with the current settings version', asy
       },
     }),
   );
-  await page.route('**/api/v1/features', (route) => route.fulfill({ json: { files: false } }));
+  await page.route('**/api/v1/features', (route) => route.fulfill({ json: { 'my-files': false } }));
   await page.route('**/api/v1/auth/notifications/summary', (route) =>
     route.fulfill({ json: { unread: 0 } }),
   );

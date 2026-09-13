@@ -46,7 +46,7 @@ export class AdministrationNavigation {
         icon: 'lucideFolderOpen',
         section: 'modules',
         permissions: ['settings.manage'],
-        feature: 'files',
+        feature: 'my-files',
       },
       {
         path: '/administration/audit-history',

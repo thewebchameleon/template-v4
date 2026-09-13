@@ -132,6 +132,7 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal(1, (await retention.Run(default)).Count);
         Assert.Empty(await db.Notifications.ToArrayAsync()); Assert.NotNull((await db.Files.FindAsync(good))!.PurgedAt);
         Assert.NotNull((await db.Files.FindAsync(bad))!.PurgeRetryAt);
+        Assert.False((await sp.GetRequiredService<MyFilesService>().Trash(owner.Id, bad, true, false, default)).IsSuccess);
         Assert.Equal(1, (await retention.Run(default)).Count); Assert.Equal(1, storage.Failures);
     }
     [Fact]
@@ -208,7 +209,7 @@ public sealed partial class SecurityAndMessagingTests
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var owner = await User(sp);
         var customer = (await sp.GetRequiredService<ICustomers>().Create(owner.Id, new("Flag test"), default)).Value!;
         var token = await sp.GetRequiredService<AuthService>().CreateSession(owner, "flag-test", true, default); await sp.GetRequiredService<FrameworkDb>().SaveChangesAsync();
-        _configuration["Features:files:Enabled"] = "false";
+        _configuration["Features:my-files:Enabled"] = "false";
         await using var factory = new ApiFactory(_configuration); using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost") });
         client.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/v1/auth/customers/{customer.Id}/files")).StatusCode);

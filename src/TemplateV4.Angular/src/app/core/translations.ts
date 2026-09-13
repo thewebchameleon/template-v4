@@ -1,3 +1,4 @@
+import { myFilesDictionary } from './my-files-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
@@ -165,6 +166,11 @@ export const dictionary: Record<string, [string, string]> = {
   standard: ['Standard', 'Standaard'],
   high: ['High', 'Hoog'],
   motion: ['Motion', 'Beweging'],
+  muteSounds: ['Mute interface sounds', 'Demp koppelvlakklanke'],
+  muteSoundsHelp: [
+    'Silence feedback for completed actions, errors and new notifications on this browser.',
+    'Demp terugvoer vir voltooide aksies, foute en nuwe kennisgewings in hierdie blaaier.',
+  ],
   reduced: ['Reduced', 'Verminder'],
   motionHelp: [
     'Reduced motion disables non-essential transitions and animations.',
@@ -440,3 +446,5 @@ export const dictionary: Record<string, [string, string]> = {
   accountDisabled: ['Account disabled.', 'Rekening gedeaktiveer.'],
   rolesSaved: ['Roles saved.', 'Rolle gestoor.'],
 };
+
+Object.assign(dictionary, myFilesDictionary);

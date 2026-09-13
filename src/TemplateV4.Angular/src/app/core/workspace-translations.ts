@@ -323,8 +323,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   manageUserFiles: ['Files and storage quota', 'Lêers en bergingkwota'],
   storageSettings: ['File storage', 'Lêerberging'],
   storageSettingsHelp: [
-    'Set the default allowance. Open a user’s details to browse their files and change their individual quota.',
-    'Stel die verstektoelaag. Maak ’n gebruiker se besonderhede oop om hul lêers te sien en individuele kwota te verander.',
+    'Set the default allowance and maximum upload size. Open a user’s details to browse their files and change their individual quota.',
+    'Stel die verstektoelaag en maksimum oplaaigrootte. Maak ’n gebruiker se besonderhede oop om hul lêers te sien en individuele kwota te verander.',
   ],
   userQuota: ['User quota (MB)', 'Gebruikerkwota (MB)'],
   defaultQuota: ['Default quota per user (MB)', 'Verstekkwota per gebruiker (MB)'],
@@ -333,8 +333,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Laat leeg om die verstek te gebruik. Nul blokkeer berging. Maksimum 102 400 MB.',
   ],
   defaultQuotaHelp: [
-    'Applies to every user without an individual override. Starts at 100 MB. Maximum 102,400 MB.',
-    'Geld vir elke gebruiker sonder ’n individuele kwota. Begin by 100 MB. Maksimum 102 400 MB.',
+    'Applies to every user without an individual override.',
+    'Geld vir elke gebruiker sonder ’n individuele kwota.',
   ],
   quotaValidation: [
     'Enter a number from 0 to 102,400 MB.',

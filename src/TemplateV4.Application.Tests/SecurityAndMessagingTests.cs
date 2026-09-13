@@ -675,7 +675,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         var profileGet = parsed.RootElement.GetProperty("paths").GetProperty("/api/v1/auth/profile").GetProperty("get");
         Assert.True(profileGet.TryGetProperty("security", out var profileSecurity));
         Assert.NotEmpty(profileSecurity.EnumerateArray());
-        foreach (var path in new[] { "/api/v1/users", "/api/v1/roles", "/api/v1/auth/audit", "/api/v1/auth/invitations", "/api/v1/auth/notifications", "/api/v1/auth/files", "/api/v1/auth/privacy/requests", "/api/v1/auth/operations" })
+        foreach (var path in new[] { "/api/v1/users", "/api/v1/roles", "/api/v1/auth/audit", "/api/v1/auth/invitations", "/api/v1/auth/notifications", "/api/v1/auth/my-files", "/api/v1/auth/privacy/requests", "/api/v1/auth/operations" })
         {
             var parameters = parsed.RootElement.GetProperty("paths").GetProperty(path).GetProperty("get").GetProperty("parameters").EnumerateArray().Select(x => x.GetProperty("name").GetString()!.ToLowerInvariant()).ToArray();
             Assert.Contains("pagenumber", parameters); Assert.Contains("pagesize", parameters); Assert.Contains("sort", parameters); Assert.Contains("direction", parameters);

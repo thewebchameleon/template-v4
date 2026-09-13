@@ -35,7 +35,7 @@ public sealed partial class SecurityAndMessagingTests
         var user = await User(sp); var db = sp.GetRequiredService<FrameworkDb>();
         var context = sp.GetRequiredService<BackgroundExecutionContext>();
         context.TraceParent = "00-12345678901234567890123456789012-1234567890123456-01";
-        var files = sp.GetRequiredService<FileService>();
+        var files = sp.GetRequiredService<MyFilesService>();
         using var content = new MemoryStream("audit test"u8.ToArray());
         var uploaded = (await files.Upload(user.Id, "original.txt", content, default)).Value!;
         Assert.True((await files.Rename(user.Id, uploaded.Id, new("renamed.txt"), default)).IsSuccess);
@@ -92,7 +92,7 @@ public sealed partial class SecurityAndMessagingTests
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         var reviewer = await User(sp); var user = await User(sp); var db = sp.GetRequiredService<FrameworkDb>();
-        var files = sp.GetRequiredService<FileService>();
+        var files = sp.GetRequiredService<MyFilesService>();
         using var content = new MemoryStream("private"u8.ToArray());
         var file = (await files.Upload(user.Id, "private-name.txt", content, default)).Value!;
         await files.Rename(user.Id, file.Id, new("private-renamed.txt"), default);

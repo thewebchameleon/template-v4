@@ -12,8 +12,8 @@ public sealed class ModuleTests
     [Theory]
     [InlineData("Modules:unknown", "true")]
     [InlineData("Modules:identity", "false")]
-    [InlineData("Modules:files", "yes")]
-    [InlineData("Modules:files:Enabled", "true")]
+    [InlineData("Modules:my-files", "yes")]
+    [InlineData("Modules:my-files:Enabled", "true")]
     [InlineData("ModulesPreset", "combined")]
     public void Invalid_deployment_configuration_fails_closed(string key, string value)
         => Assert.Throws<InvalidOperationException>(() => ModuleConfiguration.Load(
@@ -25,15 +25,15 @@ public sealed class ModuleTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ModulesPreset"] = "minimal",
-            ["Modules:files"] = "true"
+            ["Modules:my-files"] = "true"
         }).Build();
         var modules = ModuleConfiguration.Load(configuration);
         Assert.True(modules.Enabled("identity"));
-        Assert.True(modules.Enabled("files"));
+        Assert.True(modules.Enabled("my-files"));
         Assert.False(modules.Enabled("operations"));
         Assert.False(modules.Enabled("billing"));
-        configuration["Modules:files"] = "false";
-        Assert.True(modules.Enabled("files")); // Activation is a startup snapshot.
+        configuration["Modules:my-files"] = "false";
+        Assert.True(modules.Enabled("my-files")); // Activation is a startup snapshot.
     }
 
     [Fact]
@@ -53,11 +53,11 @@ public sealed class ModuleTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ModulesPreset"] = "minimal",
-            ["Features:files:Enabled"] = "true",
-            [$"Features:files:Users:{actor.ActorId}"] = "true",
-            ["Features:files:Tenants:customer"] = "true"
+            ["Features:my-files:Enabled"] = "true",
+            [$"Features:my-files:Users:{actor.ActorId}"] = "true",
+            ["Features:my-files:Tenants:customer"] = "true"
         });
         var flags = new ConfigurationFlags(builder.Configuration, builder.Environment, ModuleConfiguration.Load(builder.Configuration));
-        Assert.False(flags.Enabled("files", actor));
+        Assert.False(flags.Enabled("my-files", actor));
     }
 }

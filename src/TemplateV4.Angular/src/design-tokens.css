@@ -7,7 +7,7 @@
   --app-sidebar-rail-target-size: 2.75rem;
   --app-sidebar-rail-gap: 0.75rem;
   --app-sidebar-panel-width: 16rem;
-  --app-sidebar-panel-max-width: 20rem;
+  --app-sidebar-panel-max-width: 32rem;
   --app-sidebar-total-width: calc(var(--app-sidebar-rail-width) + var(--app-sidebar-panel-width));
   --app-sidebar-mobile-width: 18rem;
   --app-header-height: 4rem;
@@ -15,6 +15,9 @@
   --app-content-padding: calc(var(--spacing) * 6);
   --app-content-enter-distance: 2rem;
   --app-content-enter-duration: 500ms;
+  --sidebar-item-enter-duration: 220ms;
+  --sidebar-item-enter-distance: 0.375rem;
+  --sidebar-item-enter-stagger: 35ms;
   --app-section-gap: calc(var(--spacing) * 6);
   --panel-radius: 1.25rem;
   --panel-content-radius: 0.875rem;
@@ -59,6 +62,22 @@
     /* Alternating names replay the entrance without remounting routed content. */
     :root:not([data-motion='reduced']) .app-content-enter-alternate {
       animation-name: app-content-enter-alternate;
+    }
+    :root:not([data-motion='reduced']) .sidebar-item-enter {
+      animation: sidebar-item-enter var(--sidebar-item-enter-duration) ease-out backwards;
+      animation-delay: calc(
+        min(var(--sidebar-item-index, 0), 6) * var(--sidebar-item-enter-stagger)
+      );
+    }
+  }
+  @keyframes sidebar-item-enter {
+    from {
+      opacity: 0;
+      transform: translateY(var(--sidebar-item-enter-distance));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
   @keyframes app-content-enter {

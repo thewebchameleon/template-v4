@@ -9,7 +9,7 @@ import { RequestBuilder } from '../../request-builder';
 
 import { FileItem } from '../../models/file-item';
 
-export interface UploadFile$Params {
+export interface UploadMyFile$Params {
   name: string;
   parentId?: string;
 
@@ -20,8 +20,8 @@ export interface UploadFile$Params {
       body: string
 }
 
-export function uploadFile(http: HttpClient, rootUrl: string, params: UploadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
-  const rb = new RequestBuilder(rootUrl, uploadFile.PATH, 'post');
+export function uploadMyFile(http: HttpClient, rootUrl: string, params: UploadMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+  const rb = new RequestBuilder(rootUrl, uploadMyFile.PATH, 'post');
   if (params) {
     rb.query('name', params.name, {});
     rb.query('parentId', params.parentId, {});
@@ -39,4 +39,4 @@ export function uploadFile(http: HttpClient, rootUrl: string, params: UploadFile
   );
 }
 
-uploadFile.PATH = '/api/v1/auth/files/upload';
+uploadMyFile.PATH = '/api/v1/auth/my-files/upload';

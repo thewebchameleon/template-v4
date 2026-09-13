@@ -54,8 +54,8 @@ export class DashboardPage {
   readonly unread = inject(UnreadNotifications);
   readonly administration = inject(AdministrationNavigation);
   readonly actions = computed(() => [
-    ...(this.features.enabled('files')
-      ? [{ path: '/files', label: 'files', help: 'dashboardFilesHelp' }]
+    ...(this.features.enabled('my-files')
+      ? [{ path: '/my-files', label: 'files', help: 'dashboardFilesHelp' }]
       : []),
     ...(this.features.moduleEnabled('organizations')
       ? [{ path: '/organizations', label: 'organizations', help: 'dashboardTeamsHelp' }]

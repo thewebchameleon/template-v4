@@ -229,12 +229,12 @@ test('desktop rail stays fixed while the label panel resizes, persists and colla
   await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
   await expect.poll(panelWidth).toBeCloseTo(12, 1);
   await expect(separator).toHaveAttribute('aria-valuemin', '0');
-  await expect(separator).toHaveAttribute('aria-valuemax', '20');
+  await expect(separator).toHaveAttribute('aria-valuemax', '32');
 
   await separator.press('ArrowRight');
   await expect.poll(panelWidth).toBeCloseTo(12.5, 1);
   await separator.press('End');
-  await expect.poll(panelWidth).toBeCloseTo(20, 1);
+  await expect.poll(panelWidth).toBeCloseTo(32, 1);
   await expect.poll(railWidth).toBeCloseTo(4 * rootSize, 1);
   await separator.press('Home');
   await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
@@ -321,7 +321,7 @@ test('settings reset restores every display preference and the sidebar default',
     .poll(() =>
       page.locator('#sidebar-label-panel').evaluate((el) => el.getBoundingClientRect().width),
     )
-    .toBeCloseTo(20 * rootSize, 1);
+    .toBeCloseTo(32 * rootSize, 1);
   await drawer.getByRole('button', { name: 'Hoog', exact: true }).click();
   await drawer.getByRole('button', { name: 'Verminder', exact: true }).click();
   await drawer.getByRole('button', { name: 'Kompak', exact: true }).click();
@@ -519,18 +519,18 @@ test('dashboard retains required security setup and authentication guards', asyn
   await expect(page).toHaveURL(/\/login\?returnUrl=%2Fdashboard$/);
 });
 
-test('administration groups destinations and retains active state on nested routes', async ({
+test('rail submenu icons navigate to their first item and retain active state on nested routes', async ({
   page,
 }) => {
   await mockApp(page);
   await page.goto('/dashboard');
   const rail = page.locator('[data-slot="sidebar-destination-rail"]');
-  const administration = rail.getByRole('button', { name: 'Administration', exact: true });
-  const account = rail.getByRole('button', { name: 'Account', exact: true });
+  const administration = rail.getByRole('link', { name: 'Administration', exact: true });
+  const account = rail.getByRole('link', { name: 'Account', exact: true });
   const panel = page.locator('#sidebar-label-panel');
   await administration.focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/administration\/users$/);
   await expect(administration).toHaveAttribute('aria-expanded', 'true');
   const menu = panel.getByRole('navigation', { name: 'Administration', exact: true });
   await expect(menu.getByRole('link')).toHaveText([
@@ -541,11 +541,13 @@ test('administration groups destinations and retains active state on nested rout
   await administration.click();
   await expect(panel).not.toHaveAttribute('inert');
   await account.click();
+  await expect(page).toHaveURL(/\/me$/);
   await expect(panel.getByRole('navigation', { name: 'Account', exact: true })).toBeVisible();
   await administration.click();
+  await expect(page).toHaveURL(/\/administration\/users$/);
   await expect(menu).toBeVisible();
   await expect(panel).not.toHaveAttribute('inert');
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/administration\/users$/);
   await expect(rail.getByRole('link', { name: 'System Health', exact: true })).toHaveCount(0);
   await menu.getByRole('link', { name: 'System Health', exact: true }).click();
   await expect(page).toHaveURL(/\/administration\/system-health$/);

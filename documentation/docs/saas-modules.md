@@ -11,17 +11,17 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Delivery | Required | Accepted messages, jobs and cleanup continue |
 | Organizations | `Modules:organizations` | New organization routes stop; memberships and data remain |
 | Billing | `Modules:billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
-| Files | `Modules:files` | File routes return 404; navigation is hidden; retention continues |
+| My Files | `Modules:my-files` | File routes return 404; navigation is hidden; retention continues |
 | Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
 | Maintenance | `Modules:maintenance` | New HTTP and cron requests stop; accepted jobs drain |
 | Operations | `Modules:operations` | Queue browsing/replay APIs and navigation are unavailable; worker delivery continues |
 | Audit history | `Modules:audit-history` | Audit browsing API and navigation are unavailable; recording continues |
 
-Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the seven optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable Files and Support application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
+Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `minimal` (disables the seven optional modules). Explicit boolean `Modules:<id>` values override the preset. For environment variables use double underscores, for example `Modules__my-files=false`. Apply identical deployment settings to API, Worker and Migrator, then restart them together. Deployment activation is a startup snapshot. Administrators can additionally disable or re-enable My Files and Support application-wide under **Administration → Modules**, without restarting workloads. The PostgreSQL setting defaults to enabled and cannot override a deployment restriction. See [ADR 0023](adr/0023-runtime-module-administration.md).
 
 `node tools/framework.mjs modules minimal` prints a resolved JSON configuration suitable for merging into host settings. It does not mutate running hosts. `node tools/framework.mjs validate` validates the catalog and every preset, including unknown dependencies, cycles, required capabilities and disabled prerequisites. Hosts repeat those validations at startup. Invalid booleans and unknown module names fail startup.
 
-File and maintenance feature flags remain additional restrictions. For example, setting `Modules:files=true` still requires runtime activation and the `Features:files:Enabled` flag (both enabled by default) to expose files. User, tenant or environment feature overrides cannot enable a disabled deployment or runtime module. Permissions remain mandatory.
+File and maintenance feature flags remain additional restrictions. For example, setting `Modules:my-files=true` still requires runtime activation and the `Features:my-files:Enabled` flag (both enabled by default) to expose files. User, tenant or environment feature overrides cannot enable a disabled deployment or runtime module. Permissions remain mandatory.
 
 `GET /api/v1/modules` requires authentication and returns only boolean module capabilities, never provider settings or secrets. The frontend uses it to hide destinations and guard direct routes. Failed loads clear capabilities; responses from a previous signed-in actor are discarded. Backend gates remain authoritative.
 

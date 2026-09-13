@@ -6,11 +6,14 @@ import { Auth } from './auth';
 import { Runtime } from './runtime';
 import { QUIET_REQUEST } from './interceptors';
 import { NotificationSummary } from '../api/models';
+import { UiSounds } from './ui-sounds';
 @Injectable({ providedIn: 'root' })
 export class UnreadNotifications {
   private readonly auth = inject(Auth);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
+  private readonly sounds = inject(UiSounds);
+  private hasSummary = false;
   readonly count = signal(0);
   readonly changes = new Subject<void>();
   private revision = 0;
@@ -27,6 +30,7 @@ export class UnreadNotifications {
     effect(() => {
       const actor = this.actor();
       this.set(0);
+      this.hasSummary = false;
       this.nextAt = 0;
       untracked(() => {
         void this.refresh();
@@ -91,7 +95,11 @@ export class UnreadNotifications {
           { context: new HttpContext().set(QUIET_REQUEST, true) },
         ),
       );
-      if (actor === this.actor() && revision === this.revision) this.count.set(value.unread);
+      if (actor === this.actor() && revision === this.revision) {
+        if (this.hasSummary && value.unread > this.count()) this.sounds.play('ping');
+        this.count.set(value.unread);
+        this.hasSummary = true;
+      }
       this.failures = 0;
     } catch {
       this.failures = Math.min(this.failures + 1, 4);

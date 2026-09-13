@@ -42,6 +42,12 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
 
   providers: [workspaceIcons],
 
+  styles: `
+    .operations-stat-card {
+      --panel-header-padding-block: calc(var(--spacing) * 2);
+    }
+  `,
+
   template: ` <app-page-header
       eyebrow="administration"
       title="systemHealth"
@@ -73,10 +79,15 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
         @if (overview.value(); as value) {
           <div class="workspace-stats">
             @for (stat of stats(); track stat.label) {
-              <section hlmCard>
+              <section hlmCard class="operations-stat-card">
                 <div hlmCardHeader>
-                  <p hlmCardDescription class="flex items-center gap-2">
-                    <ng-icon [name]="stat.icon" [class]="stat.iconClass" aria-hidden="true" />
+                  <p hlmCardDescription class="-ms-4 flex items-center gap-1">
+                    <ng-icon
+                      [name]="stat.icon"
+                      size="20"
+                      [class]="stat.iconClass"
+                      aria-hidden="true"
+                    />
                     <span>{{ stat.label | t }}</span>
                   </p>
                 </div>

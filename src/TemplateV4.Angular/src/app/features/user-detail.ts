@@ -44,11 +44,11 @@ import { AccessCatalog, UserAccessDetail } from '../api/models';
             <div hlmCardHeader>
               <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
               <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
-              @if (auth.has('settings.manage') && features.enabled('files')) {
+              @if (auth.has('settings.manage') && features.enabled('my-files')) {
                 <a
                   hlmBtn
                   variant="outline"
-                  [routerLink]="['/administration/users', detail.user.id, 'files']"
+                  [routerLink]="['/administration/users', detail.user.id, 'my-files']"
                   >{{ 'manageUserFiles' | t }}</a
                 >
               }

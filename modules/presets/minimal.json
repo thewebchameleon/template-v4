@@ -1,6 +1,6 @@
 {
   "Modules": {
-    "files": false,
+    "my-files": false,
     "maintenance": false,
     "operations": false,
     "audit-history": false,

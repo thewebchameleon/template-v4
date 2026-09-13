@@ -9,7 +9,7 @@ public static class ModuleEndpoints
         group.MapGet("/modules", async (ModuleCatalog modules, IRuntimeModules runtime, CancellationToken ct) =>
         {
             var enabled = modules.Definitions.ToDictionary(x => x.Id, x => modules.Enabled(x.Id));
-            enabled["files"] = await runtime.Enabled("files", ct);
+            enabled["my-files"] = await runtime.Enabled("my-files", ct);
             enabled["support"] = await runtime.Enabled("support", ct);
             return Results.Ok(enabled);
         })
@@ -19,7 +19,7 @@ public static class ModuleEndpoints
 
     public static RouteHandlerBuilder RequireModule(this RouteHandlerBuilder endpoint, string module)
         => endpoint.AddEndpointFilter(async (invocation, next) =>
-            (module is "files" or "support"
+            (module is "my-files" or "support"
                 ? await invocation.HttpContext.RequestServices.GetRequiredService<IRuntimeModules>().Enabled(module, invocation.HttpContext.RequestAborted)
                 : invocation.HttpContext.RequestServices.GetRequiredService<ModuleCatalog>().Enabled(module))
                 ? await next(invocation) : Results.NotFound());

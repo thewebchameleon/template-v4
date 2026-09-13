@@ -29,7 +29,7 @@ public static class WorkspaceEndpoints
             .RequireAuthorization().WithName("ReadNotifications");
         group.MapPost("/notifications/preferences", async (NotificationPreference request, NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Preferences(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("SaveNotificationPreferences");
-        group.MapFileEndpoints();
+        group.MapMyFilesEndpoints();
         group.MapGet("/privacy", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.Ok(await service.Status(EndpointSecurity.Actor(principal), ct)))
             .RequireAuthorization().WithName("GetPrivacyStatus").Produces<PrivacyStatus>();
         group.MapGet("/privacy/export", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.File(await service.Export(EndpointSecurity.Actor(principal), ct), "application/json", "account-data.json"))

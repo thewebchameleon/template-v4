@@ -9,24 +9,26 @@ import { RequestBuilder } from '../../request-builder';
 
 import { FilePage } from '../../models/file-page';
 
-export interface ListFiles$Params {
+export interface ListPublicMyFiles$Params {
+  id: string;
+  'X-File-Share'?: string;
   pageNumber?: number;
   pageSize?: number;
   search?: string;
   sort?: string;
   direction?: string;
-  parentId?: string;
 }
 
-export function listFiles(http: HttpClient, rootUrl: string, params?: ListFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
-  const rb = new RequestBuilder(rootUrl, listFiles.PATH, 'get');
+export function listPublicMyFiles(http: HttpClient, rootUrl: string, params: ListPublicMyFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<FilePage>> {
+  const rb = new RequestBuilder(rootUrl, listPublicMyFiles.PATH, 'get');
   if (params) {
+    rb.path('id', params.id, {});
+    rb.header('X-File-Share', params['X-File-Share'], {});
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
     rb.query('sort', params.sort, {});
     rb.query('direction', params.direction, {});
-    rb.query('parentId', params.parentId, {});
   }
 
   return http.request(
@@ -39,4 +41,4 @@ export function listFiles(http: HttpClient, rootUrl: string, params?: ListFiles$
   );
 }
 
-listFiles.PATH = '/api/v1/auth/files';
+listPublicMyFiles.PATH = '/api/v1/auth/my-files/public/{id}/children';

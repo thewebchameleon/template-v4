@@ -64,7 +64,7 @@ export const filesGuard: CanActivateFn = async () => {
   const router = inject(Router);
   if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
   await features.load();
-  return features.enabled('files') || router.createUrlTree(['/me']);
+  return features.enabled('my-files') || router.createUrlTree(['/me']);
 };
 
 export const moduleGuard =

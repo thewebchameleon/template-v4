@@ -17,10 +17,19 @@ import { I18n, Translate } from './i18n';
 import { Runtime } from './runtime';
 import { Theme } from './theme';
 import { UiPreferences } from './ui-preferences';
+import { UiSounds } from './ui-sounds';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 
 @Component({
   selector: 'app-preferences',
-  imports: [NgIcon, HlmFieldImports, HlmSelectImports, HlmToggleGroupImports, Translate],
+  imports: [
+    NgIcon,
+    HlmFieldImports,
+    HlmSelectImports,
+    HlmToggleGroupImports,
+    HlmSwitchImports,
+    Translate,
+  ],
   providers: [
     provideIcons({
       lucideAccessibility,
@@ -177,6 +186,21 @@ import { UiPreferences } from './ui-preferences';
             <button hlmToggleGroupItem value="compact">{{ 'compact' | t }}</button>
           </hlm-toggle-group>
         </div>
+
+        <label hlmFieldLabel for="settings-mute-sounds" class="cursor-pointer">
+          <div hlmField orientation="horizontal">
+            <div hlmFieldContent>
+              <span hlmFieldTitle>{{ 'muteSounds' | t }}</span>
+              <p hlmFieldDescription id="settings-mute-sounds-help">{{ 'muteSoundsHelp' | t }}</p>
+            </div>
+            <hlm-switch
+              inputId="settings-mute-sounds"
+              [checked]="sounds.muted()"
+              (checkedChange)="sounds.setMuted($event)"
+              aria-describedby="settings-mute-sounds-help"
+            />
+          </div>
+        </label>
       </div>
     }
   `,
@@ -188,6 +212,7 @@ export class Preferences {
   readonly i18n = inject(I18n);
   readonly theme = inject(Theme);
   readonly ui = inject(UiPreferences);
+  readonly sounds = inject(UiSounds);
   readonly sidebar = inject(HlmSidebarService);
   readonly resetting = signal(false);
 
@@ -213,6 +238,7 @@ export class Preferences {
     try {
       this.theme.set('system');
       this.ui.reset();
+      this.sounds.reset();
       this.sidebar.reset();
       await this.language(this.runtime.defaultCulture);
     } finally {

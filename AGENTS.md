@@ -21,6 +21,7 @@ Before changes spanning layers, contracts, dependencies, or conventions, read [f
 - Domain and SharedKernel are BCL-only. Application references only Domain and SharedKernel; no generic repositories or runtime service location. Register handlers explicitly.
 - Infrastructure owns EF, Identity, providers, and transactions. ApiService adapts HTTP and never references Quartz; BackgroundWorker owns scheduling.
 - Regenerate OpenAPI contracts/clients and EF-generated files through their owning tools. Never hand-edit generated clients, migration designers, or model snapshots.
+- Never delete and regenerate an existing EF migration. Treat every generated migration name, ID, and file set as permanent migration history; make later schema corrections with a new forward migration so retained databases remain aligned with the migration history table.
 - Never log secrets, authorization headers, email action URLs, refresh tokens, or message payloads.
 
 ## Validation

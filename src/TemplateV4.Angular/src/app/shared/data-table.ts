@@ -22,6 +22,10 @@ export interface ServerSort {
   column: string;
   direction: SortDirection;
 }
+export interface DataTableRowDragEvent<TData> {
+  event: DragEvent;
+  row: TData;
+}
 
 @Component({
   selector: 'app-data-table',
@@ -100,8 +104,16 @@ export interface ServerSort {
               <tr
                 hlmTr
                 [class.cursor-pointer]="!!rowActionLabel()"
+                [attr.draggable]="rowDraggable()?.(row.original) ? 'true' : null"
+                [class.opacity-50]="rowDragging()?.(row.original)"
+                [class.my-files-drop-target]="rowDropActive()?.(row.original)"
                 (click)="activateRow($event, row.original)"
                 (keydown)="rowKeydown($event, row.original)"
+                (dragstart)="rowDragStart.emit({ event: $event, row: row.original })"
+                (dragend)="rowDragEnd.emit({ event: $event, row: row.original })"
+                (dragover)="rowDragOver.emit({ event: $event, row: row.original })"
+                (dragleave)="rowDragLeave.emit({ event: $event, row: row.original })"
+                (drop)="rowDrop.emit({ event: $event, row: row.original })"
               >
                 @for (cell of row.getAllCells(); track cell.id; let first = $first) {
                   <td
@@ -181,6 +193,14 @@ export class DataTable<TData extends RowData> {
   readonly sortChange = output<ServerSort>();
   readonly rowActionLabel = input<(row: TData) => string>();
   readonly rowAction = output<TData>();
+  readonly rowDraggable = input<(row: TData) => boolean>();
+  readonly rowDragging = input<(row: TData) => boolean>();
+  readonly rowDropActive = input<(row: TData) => boolean>();
+  readonly rowDragStart = output<DataTableRowDragEvent<TData>>();
+  readonly rowDragEnd = output<DataTableRowDragEvent<TData>>();
+  readonly rowDragOver = output<DataTableRowDragEvent<TData>>();
+  readonly rowDragLeave = output<DataTableRowDragEvent<TData>>();
+  readonly rowDrop = output<DataTableRowDragEvent<TData>>();
 
   protected activateRow(event: MouseEvent, row: TData) {
     if (

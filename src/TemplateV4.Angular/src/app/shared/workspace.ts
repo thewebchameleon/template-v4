@@ -42,6 +42,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { I18n, Translate } from '../core/i18n';
+import { ViewModeToggle } from './view-mode-toggle';
 
 export const workspaceIcons = provideIcons({
   lucideArrowDownToLine,
@@ -113,7 +114,10 @@ export class ListQuery {
   private readonly router = inject(Router);
   private readonly params = toSignal(this.route.queryParamMap, { requireSync: true });
   private readonly changes = this.route.queryParamMap.pipe(takeUntilDestroyed());
-  constructor(private readonly namespace = '') {}
+  constructor(
+    private readonly namespace = '',
+    private readonly preserveFragment = false,
+  ) {}
   private key(key: string) {
     return this.namespace ? this.namespace + key.charAt(0).toUpperCase() + key.slice(1) : key;
   }
@@ -150,6 +154,7 @@ export class ListQuery {
         queryParams: { [this.key('page')]: page },
         queryParamsHandling: 'merge',
         replaceUrl: true,
+        preserveFragment: this.preserveFragment,
       });
   }
   set(values: Record<string, string | number | null>) {
@@ -160,6 +165,7 @@ export class ListQuery {
       relativeTo: this.route,
       queryParams,
       queryParamsHandling: 'merge',
+      preserveFragment: this.preserveFragment,
     });
   }
 }
@@ -376,6 +382,7 @@ export const WorkspaceUi = [
   PageHeader,
   PageState,
   ListPager,
+  ViewModeToggle,
   Translate,
   FormsModule,
   RouterLink,

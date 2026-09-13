@@ -49,7 +49,8 @@
       "@spartan-ng/helm/textarea": ["./libs/ui/textarea/src/index.ts"],
       "@spartan-ng/helm/alert-dialog": ["./libs/ui/alert-dialog/src/index.ts"],
       "@spartan-ng/helm/tabs": ["./libs/ui/tabs/src/index.ts"],
-      "@spartan-ng/helm/slider": ["./libs/ui/slider/src/index.ts"]
+      "@spartan-ng/helm/slider": ["./libs/ui/slider/src/index.ts"],
+      "@spartan-ng/helm/context-menu": ["./libs/ui/context-menu/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

@@ -7,22 +7,21 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { StorageSettingsRequest } from '../../models/storage-settings-request';
 
-export interface SaveFileStorageSettings$Params {
+export interface PurgeMyFile$Params {
+  id: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
  */
   'X-CSRF-TOKEN': string;
-      body: StorageSettingsRequest
 }
 
-export function saveFileStorageSettings(http: HttpClient, rootUrl: string, params: SaveFileStorageSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, saveFileStorageSettings.PATH, 'post');
+export function purgeMyFile(http: HttpClient, rootUrl: string, params: PurgeMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, purgeMyFile.PATH, 'post');
   if (params) {
+    rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -35,4 +34,4 @@ export function saveFileStorageSettings(http: HttpClient, rootUrl: string, param
   );
 }
 
-saveFileStorageSettings.PATH = '/api/v1/auth/files/admin/settings';
+purgeMyFile.PATH = '/api/v1/auth/my-files/{id}/purge';

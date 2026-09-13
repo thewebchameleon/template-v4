@@ -33,16 +33,23 @@ public static class CustomerBillingEndpoints
         {
             var flags = invocation.HttpContext.RequestServices.GetRequiredService<IFeatureFlags>();
             var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
-            return flags.Enabled("files", actor) ? await next(invocation) : Results.NotFound();
+            return flags.Enabled("my-files", actor) ? await next(invocation) : Results.NotFound();
         });
-        files.MapGet("", async (Guid customer, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.List(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).RequireModule("organizations").RequireModule("files").WithName("GetOrganizationFiles").Produces<OrganizationFilePage>();
-        files.MapPost("/upload", async (Guid customer, string name, ClaimsPrincipal u, HttpRequest r, OrganizationFiles s, CancellationToken ct) => (await s.Upload(Actor(u), customer, name, r.Body, ct)).ToHttp()).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(FileService.MaxUploadBytes + 1)).RequireModule("organizations").RequireModule("files").WithName("UploadOrganizationFile");
-        files.MapPost("/{id:guid}/delete", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct) => (await s.Delete(Actor(u), customer, id, ct)).ToHttp()).RequireModule("organizations").RequireModule("files").WithName("DeleteOrganizationFile");
+        files.MapGet("", async (Guid customer, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.List(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).RequireModule("organizations").RequireModule("my-files").WithName("GetOrganizationFiles").Produces<OrganizationFilePage>();
+        files.MapPost("/upload", async (Guid customer, string name, ClaimsPrincipal u, HttpContext context, OrganizationFiles s, MyFilesService settings, CancellationToken ct) =>
+        {
+            var maxUploadBytes = (await settings.Settings(ct)).MaxUploadBytes;
+            var limit = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>();
+            if (limit is { IsReadOnly: false }) limit.MaxRequestBodySize = maxUploadBytes == 0 ? null : maxUploadBytes;
+            if (maxUploadBytes > 0 && context.Request.ContentLength > maxUploadBytes) return Results.StatusCode(413);
+            return (await s.Upload(Actor(u), customer, name, context.Request.Body, ct)).ToHttp();
+        }).RequireModule("organizations").RequireModule("my-files").WithName("UploadOrganizationFile");
+        files.MapPost("/{id:guid}/delete", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct) => (await s.Delete(Actor(u), customer, id, ct)).ToHttp()).RequireModule("organizations").RequireModule("my-files").WithName("DeleteOrganizationFile");
         files.MapGet("/{id:guid}", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, HttpResponse response, CancellationToken ct) =>
         {
             response.Headers.CacheControl = "no-store"; response.Headers.XContentTypeOptions = "nosniff";
             var result = await s.Download(Actor(u), customer, id, ct); return result.IsSuccess ? Results.File(result.Value!.Content, "application/octet-stream", result.Value.Name) : result.ToHttp();
-        }).RequireModule("organizations").RequireModule("files").WithName("DownloadOrganizationFile").Produces(200, contentType: "application/octet-stream");
+        }).RequireModule("organizations").RequireModule("my-files").WithName("DownloadOrganizationFile").Produces(200, contentType: "application/octet-stream");
         billing.MapGet("", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Summary(Actor(u), customer, ct)).ToHttp()).WithName("GetCustomerBilling").Produces<BillingSummary>();
         billing.MapPost("/trial", async (Guid customer, ClaimsPrincipal u, StartTrial r, IBilling s, CancellationToken ct) => (await s.Trial(Actor(u), customer, r, ct)).ToHttp()).RequireModule("billing").WithName("StartBillingTrial");
         billing.MapPost("/checkout", async (Guid customer, ClaimsPrincipal u, CheckoutRequest r, IBilling s, CancellationToken ct) =>
@@ -87,4 +94,3 @@ public static class CustomerBillingEndpoints
         return app;
     }
 }
-

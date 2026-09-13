@@ -2021,12 +2021,12 @@
         }
       }
     },
-    "/api/v1/auth/files": {
+    "/api/v1/auth/my-files": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListFiles",
+        "operationId": "ListMyFiles",
         "parameters": [
           {
             "name": "pageNumber",
@@ -2043,7 +2043,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 25
+              "default": 10
             }
           },
           {
@@ -2076,6 +2076,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "my-files"
+            }
           }
         ],
         "responses": {
@@ -2097,12 +2105,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/upload": {
+    "/api/v1/auth/my-files/upload": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "UploadFile",
+        "operationId": "UploadMyFile",
         "parameters": [
           {
             "name": "name",
@@ -2160,12 +2168,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/{id}/download": {
+    "/api/v1/auth/my-files/{id}/download": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DownloadFile",
+        "operationId": "DownloadMyFile",
         "parameters": [
           {
             "name": "id",
@@ -2189,12 +2197,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/{id}/delete": {
+    "/api/v1/auth/my-files/{id}/delete": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DeleteFile",
+        "operationId": "DeleteMyFile",
         "parameters": [
           {
             "name": "id",
@@ -2227,12 +2235,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/folders": {
+    "/api/v1/auth/my-files/folders": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "CreateFileFolder",
+        "operationId": "CreateMyFilesFolder",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -2273,12 +2281,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/{id}/rename": {
+    "/api/v1/auth/my-files/{id}/rename": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "RenameFile",
+        "operationId": "RenameMyFile",
         "parameters": [
           {
             "name": "id",
@@ -2321,12 +2329,500 @@
         ]
       }
     },
-    "/api/v1/auth/files/admin/settings": {
+    "/api/v1/auth/my-files/{id}/metadata": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UpdateMyFileMetadata",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileMetadataRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/{id}/move": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "MoveMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileMoveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/{id}/restore": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RestoreMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/{id}/purge": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "PurgeMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/trash/empty": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "EmptyMyFilesTrash",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/{id}/shares": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetFileStorageSettings",
+        "operationId": "ListMyFileShares",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileShareItem"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ShareMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileShareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileShareItem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/{id}/shares/{shareId}/revoke": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RevokeMyFileShare",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/my-files/public/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetPublicMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-File-Share",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/my-files/public/{id}/download": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DownloadPublicMyFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-File-Share",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/my-files/public/{id}/children": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListPublicMyFiles",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-File-Share",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilePage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/my-files/admin/settings": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetMyFilesStorageSettings",
         "responses": {
           "200": {
             "description": "OK",
@@ -2349,7 +2845,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "SaveFileStorageSettings",
+        "operationId": "SaveMyFilesStorageSettings",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -2383,12 +2879,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/admin/users/{owner}": {
+    "/api/v1/auth/my-files/admin/users/{owner}": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListUserFiles",
+        "operationId": "ListUserMyFiles",
         "parameters": [
           {
             "name": "owner",
@@ -2447,6 +2943,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "my-files"
+            }
           }
         ],
         "responses": {
@@ -2468,12 +2972,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/admin/users/{owner}/quota": {
+    "/api/v1/auth/my-files/admin/users/{owner}/quota": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "SetUserFileQuota",
+        "operationId": "SetUserMyFilesQuota",
         "parameters": [
           {
             "name": "owner",
@@ -2516,12 +3020,12 @@
         ]
       }
     },
-    "/api/v1/auth/files/admin/users/{owner}/{id}/download": {
+    "/api/v1/auth/my-files/admin/users/{owner}/{id}/download": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DownloadUserFile",
+        "operationId": "DownloadUserMyFile",
         "parameters": [
           {
             "name": "owner",
@@ -5593,6 +6097,98 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "default": ""
+          },
+          "tags": {
+            "type": "string",
+            "default": ""
+          },
+          "important": {
+            "type": "boolean",
+            "default": false
+          },
+          "starred": {
+            "type": "boolean",
+            "default": false
+          },
+          "permission": {
+            "type": "string",
+            "default": "owner"
+          },
+          "category": {
+            "type": "string",
+            "default": "other"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "fileCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "demoMode": {
+            "type": "boolean",
+            "default": false
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
+          }
+        }
+      },
+      "FileMetadataRequest": {
+        "required": [
+          "name",
+          "description",
+          "tags",
+          "important",
+          "starred"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "important": {
+            "type": "boolean"
+          },
+          "starred": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FileMoveRequest": {
+        "required": [
+          "parentId"
+        ],
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -5615,7 +6211,10 @@
           "maxUploadBytes",
           "folder",
           "quotaOverrideBytes",
-          "ownerName"
+          "ownerName",
+          "recent",
+          "folders",
+          "usage"
         ],
         "type": "object",
         "properties": {
@@ -5653,6 +6252,42 @@
           },
           "ownerName": {
             "type": "string"
+          },
+          "recent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileItem"
+            }
+          },
+          "folders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileItem"
+            }
+          },
+          "usage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileUsageSegment"
+            }
+          },
+          "fileCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "demoMode": {
+            "type": "boolean",
+            "default": false
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
+          },
+          "slowUploadMode": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -5671,6 +6306,69 @@
           }
         }
       },
+      "FileShareItem": {
+        "required": [
+          "id",
+          "recipient",
+          "permission",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipient": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permission": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "token": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FileShareRequest": {
+        "required": [
+          "email",
+          "permission",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permission": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "FileStorageSettings": {
         "type": "object",
         "properties": {
@@ -5682,9 +6380,51 @@
             "type": "integer",
             "format": "int64"
           },
+          "maxUploadBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "demoMode": {
+            "type": "boolean"
+          },
+          "slowUploadMode": {
+            "type": "boolean"
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "demoStartedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
           "version": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "FileUsageSegment": {
+        "required": [
+          "category",
+          "bytes",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -6871,6 +7611,14 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "demoMode": {
+            "type": "boolean",
+            "default": false
+          },
+          "slowUploadMode": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -6963,6 +7711,18 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "demoMode": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "slowUploadMode": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           },
           "permission": {
             "type": [
@@ -7115,6 +7875,7 @@
       "StorageSettingsRequest": {
         "required": [
           "defaultQuotaBytes",
+          "maxUploadBytes",
           "version"
         ],
         "type": "object",
@@ -7123,9 +7884,18 @@
             "type": "integer",
             "format": "int64"
           },
+          "maxUploadBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
           }
         }
       },

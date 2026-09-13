@@ -40,8 +40,9 @@ public sealed class OrganizationFiles(FrameworkDb db, ICustomerAccess customers,
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 180 || name.Any(c => char.IsControl(c) || c is '/' or '\\')) return Result.Fail("files.invalid_name", ErrorKind.Validation);
         if (!await Access(actor, customer, ct)) return Result.Fail("customers.not_found", ErrorKind.NotFound);
-        using var content = new MemoryStream(); var buffer = new byte[81920]; int read;
-        while ((read = await input.ReadAsync(buffer, ct)) > 0) { if (content.Length + read > FileService.MaxUploadBytes) return Result.Fail("files.too_large", ErrorKind.Validation); await content.WriteAsync(buffer.AsMemory(0, read), ct); }
+        var maxUploadBytes = await db.FileStorageSettings.Where(x => x.Id == 1).Select(x => x.MaxUploadBytes).SingleAsync(ct);
+        await using var content = new FileStream(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, 81920, FileOptions.Asynchronous | FileOptions.DeleteOnClose | FileOptions.SequentialScan); var buffer = new byte[81920]; int read;
+        while ((read = await input.ReadAsync(buffer, ct)) > 0) { if (maxUploadBytes > 0 && content.Length + read > maxUploadBytes) return Result.Fail("files.too_large", ErrorKind.Validation); await content.WriteAsync(buffer.AsMemory(0, read), ct); }
         var file = new OrganizationFileRow { CustomerId = customer, UploadedBy = actor, Name = name.Trim(), Size = content.Length, CreatedAt = time.GetUtcNow() };
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {

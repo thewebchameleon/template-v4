@@ -3,5 +3,7 @@
 
 export interface StorageSettingsRequest {
   defaultQuotaBytes: number;
+  demoExpiryMinutes?: number;
+  maxUploadBytes: number;
   version: string;
 }

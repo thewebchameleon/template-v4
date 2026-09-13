@@ -8,20 +8,16 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface DeleteFile$Params {
+export interface DownloadUserMyFile$Params {
+  owner: string;
   id: string;
-
-/**
- * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
- */
-  'X-CSRF-TOKEN': string;
 }
 
-export function deleteFile(http: HttpClient, rootUrl: string, params: DeleteFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, deleteFile.PATH, 'post');
+export function downloadUserMyFile(http: HttpClient, rootUrl: string, params: DownloadUserMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, downloadUserMyFile.PATH, 'get');
   if (params) {
+    rb.path('owner', params.owner, {});
     rb.path('id', params.id, {});
-    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 
   return http.request(
@@ -34,4 +30,4 @@ export function deleteFile(http: HttpClient, rootUrl: string, params: DeleteFile
   );
 }
 
-deleteFile.PATH = '/api/v1/auth/files/{id}/delete';
+downloadUserMyFile.PATH = '/api/v1/auth/my-files/admin/users/{owner}/{id}/download';

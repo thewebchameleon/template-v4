@@ -34,7 +34,7 @@ test('scaffolding is deterministic, bounded and never overwrites existing work',
 test('module catalog validates dependencies, required modules and every shipped preset', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'framework.json'), 'utf8'));
   for (const preset of Object.keys(manifest.modulePresets)) assert.equal(inspectModules(root, manifest, preset).Modules.identity, true);
-  assert.equal(inspectModules(root, manifest, 'minimal').Modules.files, false);
+  assert.equal(inspectModules(root, manifest, 'minimal').Modules['my-files'], false);
   assert.throws(() => inspectModules(root, manifest, '../escape'));
   const core = { id: 'identity', required: true, enabledByDefault: true, dependencies: [] };
   assert.throws(() => resolveModules([core], { identity: false }));

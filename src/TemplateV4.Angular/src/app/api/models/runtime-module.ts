@@ -3,7 +3,9 @@
 
 export interface RuntimeModule {
   available: boolean;
+  demoMode?: boolean;
   enabled: boolean;
   id: string;
+  slowUploadMode?: boolean;
   version: string;
 }

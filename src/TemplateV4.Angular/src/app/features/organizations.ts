@@ -48,7 +48,7 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
                     'openWorkspace' | t
                   }}</a>
                 } @else {
-                  <a hlmBtn routerLink="/files">{{ 'files' | t }}</a>
+                  <a hlmBtn routerLink="/my-files">{{ 'files' | t }}</a>
                 }
                 <a
                   hlmBtn

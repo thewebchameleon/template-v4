@@ -22,7 +22,7 @@
     ]
   },
   {
-    "id": "files",
+    "id": "my-files",
     "required": false,
     "enabledByDefault": true,
     "dependencies": [

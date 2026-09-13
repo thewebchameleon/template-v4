@@ -88,7 +88,7 @@ public sealed partial class SecurityAndMessagingTests
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var owner = await User(sp); var other = await User(sp);
         var customers = sp.GetRequiredService<ICustomers>(); await customers.Home(owner.Id, default);
-        var billing = sp.GetRequiredService<IBilling>(); var entitlements = sp.GetRequiredService<IStorageEntitlements>(); var files = sp.GetRequiredService<FileService>();
+        var billing = sp.GetRequiredService<IBilling>(); var entitlements = sp.GetRequiredService<IStorageEntitlements>(); var files = sp.GetRequiredService<MyFilesService>();
         Assert.False((await billing.Trial(other.Id, owner.Id, new("standard"), default)).IsSuccess);
         Assert.True((await billing.Trial(owner.Id, owner.Id, new("standard"), default)).IsSuccess);
         Assert.Equal(10L * 1024 * 1024 * 1024, await entitlements.Quota(owner.Id, default));

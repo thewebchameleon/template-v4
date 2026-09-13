@@ -14,7 +14,7 @@ public static class PlatformEndpoints
                     : (await dispatcher.Send(new(context.Request.Headers["Idempotency-Key"].FirstOrDefault()), ct)).ToHttp())
             .RequireAuthorization(Permissions.Jobs).WithName("TriggerMaintenance");
         group.MapGet("/features", async (IFeatureFlags flags, IExecutionContext context, IRuntimeModules modules, CancellationToken ct) =>
-                Results.Ok(new { maintenance = flags.Enabled("maintenance", context), files = flags.Enabled("files", context) && await modules.Enabled("files", ct) }))
+                Results.Ok(new Dictionary<string, bool> { ["maintenance"] = flags.Enabled("maintenance", context), ["my-files"] = flags.Enabled("my-files", context) && await modules.Enabled("my-files", ct) }))
             .WithName("GetFeatures");
 
         return group;

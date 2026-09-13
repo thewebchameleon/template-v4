@@ -1,6 +1,6 @@
 {
   "Modules": {
-    "files": true,
+    "my-files": true,
     "maintenance": true,
     "operations": true,
     "audit-history": true,

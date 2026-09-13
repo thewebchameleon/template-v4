@@ -17,6 +17,7 @@ import { Auth } from '../core/auth';
 import { Passkeys } from '../core/passkeys';
 import { Translate } from '../core/i18n';
 import { Notifications } from '../core/notifications';
+import { UiSounds } from '../core/ui-sounds';
 
 @Component({
   selector: 'app-login',
@@ -277,6 +278,7 @@ export class LoginPage implements OnInit, OnDestroy {
   password = '';
   readonly busy = signal(false);
   private readonly notifications = inject(Notifications);
+  private readonly sounds = inject(UiSounds);
 
   async ngOnInit() {
     try {
@@ -403,6 +405,8 @@ export class LoginPage implements OnInit, OnDestroy {
       }, 1000);
   }
   private async navigateAfterAuthentication() {
+    if (!this.auth.access()) return;
+    this.sounds.play('success');
     const requested = this.route.snapshot.queryParamMap.get('returnUrl');
     const safe =
       requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/login')

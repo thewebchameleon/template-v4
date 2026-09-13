@@ -46,4 +46,4 @@ See [ADR 0015](adr/0015-platform-baseline-workflows.md) for transaction and prov
 
 ## Administration-focused starter
 
-[ADR 0016](adr/0016-administration-and-delegated-access.md) consolidates invitations under Users, moves email changes into Account, and places maintenance in System Health. Files are optional and disabled by default (`Features:files:Enabled`). Existing objects and retention cleanup remain intact. See [administration](administration.md).
+[ADR 0016](adr/0016-administration-and-delegated-access.md) consolidates invitations under Users, moves email changes into Account, and places maintenance in System Health. My Files is optional and enabled by default (`Features:my-files:Enabled`). Existing objects and retention cleanup remain intact. See [administration](administration.md).

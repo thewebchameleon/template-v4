@@ -594,6 +594,25 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<long>("DefaultQuotaBytes")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("DemoExpiryMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(60);
+
+                    b.Property<bool>("DemoMode")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("DemoStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("MaxUploadBytes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(20971520L);
+
+                    b.Property<bool>("SlowUploadMode")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
@@ -607,6 +626,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         {
                             Id = 1,
                             DefaultQuotaBytes = 104857600L,
+                            DemoExpiryMinutes = 60,
+                            DemoMode = false,
+                            MaxUploadBytes = 20971520L,
+                            SlowUploadMode = false,
                             Version = new Guid("df8c4bbd-18fb-45f8-8f13-a4c58a334660")
                         });
                 });
@@ -723,6 +746,45 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("memberships", "organizations");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<Guid?>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("my_file_shares", "files");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.OutboxMessage", b =>
@@ -983,7 +1045,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = "files",
+                            Id = "my-files",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
                         });
@@ -1080,6 +1142,14 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<bool>("Important")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsFolder")
                         .HasColumnType("boolean");
 
@@ -1094,6 +1164,9 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("PurgeRequested")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset?>("PurgeRetryAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1105,6 +1178,20 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("Starred")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid?>("TrashBatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -1570,6 +1657,20 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentReceiptRow", b =>

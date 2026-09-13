@@ -7,24 +7,19 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { FileQuotaRequest } from '../../models/file-quota-request';
 
-export interface SetUserFileQuota$Params {
-  owner: string;
+export interface EmptyMyFilesTrash$Params {
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
  */
   'X-CSRF-TOKEN': string;
-      body: FileQuotaRequest
 }
 
-export function setUserFileQuota(http: HttpClient, rootUrl: string, params: SetUserFileQuota$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, setUserFileQuota.PATH, 'post');
+export function emptyMyFilesTrash(http: HttpClient, rootUrl: string, params: EmptyMyFilesTrash$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, emptyMyFilesTrash.PATH, 'post');
   if (params) {
-    rb.path('owner', params.owner, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
-    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -37,4 +32,4 @@ export function setUserFileQuota(http: HttpClient, rootUrl: string, params: SetU
   );
 }
 
-setUserFileQuota.PATH = '/api/v1/auth/files/admin/users/{owner}/quota';
+emptyMyFilesTrash.PATH = '/api/v1/auth/my-files/trash/empty';

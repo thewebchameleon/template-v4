@@ -1,3 +1,4 @@
+import { MyFilesTree } from './features/my-files-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -56,6 +57,7 @@ import { NotificationDrawer } from './features/notification-drawer';
     HlmDrawerImports,
     HlmTooltip,
     Preferences,
+    MyFilesTree,
     Translate,
     Confirmation,
     NotificationDrawer,
@@ -114,21 +116,22 @@ import { NotificationDrawer } from './features/notification-drawer';
                   }
                   @for (item of railLinks(); track item.path) {
                     @if (item.hasPanel) {
-                      <button
+                      <a
                         hlmBtn
-                        type="button"
                         variant="ghost"
                         size="icon"
+                        [routerLink]="item.destination"
+                        [queryParams]="item.destinationQueryParams"
                         [attr.data-active]="railPanelActive(item.path)"
                         [attr.aria-expanded]="railPanelActive(item.path) && sidebar.open()"
                         aria-controls="sidebar-label-panel"
                         [attr.aria-label]="item.label | t"
                         [hlmTooltip]="item.label | t"
                         position="right"
-                        (click)="selectRailPanel(item.path)"
+                        (click)="selectRailPanel($event, item.path)"
                       >
                         <ng-icon [name]="item.icon" size="1.5rem" />
-                      </button>
+                      </a>
                     } @else {
                       <a
                         hlmBtn
@@ -150,20 +153,21 @@ import { NotificationDrawer } from './features/notification-drawer';
                   }
                 </div>
               </nav>
-              <button
+              <a
                 hlmBtn
                 variant="ghost"
                 size="icon"
+                [routerLink]="accountMenuLinks()[0].path"
                 [attr.aria-label]="'accountSettings' | t"
                 [hlmTooltip]="'accountSettings' | t"
                 position="right"
                 [attr.aria-expanded]="accountPanelActive() && sidebar.open()"
                 aria-controls="sidebar-label-panel"
                 [attr.data-active]="accountPanelActive()"
-                (click)="selectAccountPanel()"
+                (click)="selectAccountPanel($event)"
               >
                 <app-account-avatar />
-              </button>
+              </a>
             </div>
           }
           <div
@@ -204,6 +208,11 @@ import { NotificationDrawer } from './features/notification-drawer';
                   </ul>
                 </nav>
               }
+              @if (features.enabled('my-files') && (sidebar.isMobile() || myFilesPanelActive())) {
+                @defer (on immediate) {
+                  <app-my-files-tree />
+                }
+              }
               @if (sidebar.isMobile() || accountPanelActive()) {
                 <nav
                   hlmSidebarGroup
@@ -212,8 +221,12 @@ import { NotificationDrawer } from './features/notification-drawer';
                 >
                   <div hlmSidebarGroupLabel>{{ 'accountNavigation' | t }}</div>
                   <ul hlmSidebarMenu>
-                    @for (item of accountMenuLinks(); track item.path) {
-                      <li hlmSidebarMenuItem>
+                    @for (item of accountMenuLinks(); track item.path; let itemIndex = $index) {
+                      <li
+                        hlmSidebarMenuItem
+                        animate.enter="sidebar-item-enter"
+                        [style.--sidebar-item-index]="itemIndex"
+                      >
                         <a
                           hlmSidebarMenuButton
                           [routerLink]="item.path"
@@ -233,7 +246,11 @@ import { NotificationDrawer } from './features/notification-drawer';
                         </a>
                       </li>
                     }
-                    <li hlmSidebarMenuItem>
+                    <li
+                      hlmSidebarMenuItem
+                      animate.enter="sidebar-item-enter"
+                      [style.--sidebar-item-index]="accountMenuLinks().length"
+                    >
                       <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
                         <ng-icon name="lucideSettings2" aria-hidden="true" /><span>{{
                           'themeAccessibility' | t
@@ -257,8 +274,12 @@ import { NotificationDrawer } from './features/notification-drawer';
                         {{ section.label | t }}
                       </div>
                       <ul hlmSidebarMenu>
-                        @for (item of section.links; track item.path) {
-                          <li hlmSidebarMenuItem>
+                        @for (item of section.links; track item.path; let itemIndex = $index) {
+                          <li
+                            hlmSidebarMenuItem
+                            animate.enter="sidebar-item-enter"
+                            [style.--sidebar-item-index]="itemIndex"
+                          >
                             <a
                               hlmSidebarMenuButton
                               [routerLink]="item.path"
@@ -446,7 +467,9 @@ export class App {
     );
   });
 
-  selectAccountPanel(): void {
+  selectAccountPanel(event: MouseEvent): void {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
+      return;
     this.selectedPanel.set('account');
     this.sidebar.setPanelAvailable(true);
     this.sidebar.openPanel();
@@ -483,7 +506,16 @@ export class App {
     );
   });
   readonly railLinks = computed(() => [
-    ...(!this.auth.access()?.setupRequired ? [{ ...this.dashboardLink, hasPanel: false }] : []),
+    ...(!this.auth.access()?.setupRequired
+      ? [
+          {
+            ...this.dashboardLink,
+            hasPanel: false,
+            destination: this.dashboardLink.path,
+            destinationQueryParams: null,
+          },
+        ]
+      : []),
     ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('organizations')
       ? [
           {
@@ -491,14 +523,34 @@ export class App {
             label: 'organizations',
             icon: 'lucideUsersRound',
             hasPanel: false,
+            destination: '/organizations',
+            destinationQueryParams: null,
+          },
+        ]
+      : []),
+    ...(!this.auth.access()?.setupRequired && this.features.enabled('my-files')
+      ? [
+          {
+            path: '/my-files',
+            label: 'files',
+            icon: 'lucideFolderOpen',
+            hasPanel: true,
+            destination: '/my-files',
+            destinationQueryParams: { group: 'my-files' },
           },
         ]
       : []),
     ...(!this.auth.access()?.setupRequired && this.features.moduleEnabled('support')
-      ? [{ path: '/support', label: 'support', icon: 'lucideLifeBuoy', hasPanel: false }]
-      : []),
-    ...(!this.auth.access()?.setupRequired && this.features.enabled('files')
-      ? [{ path: '/files', label: 'files', icon: 'lucideFolderOpen', hasPanel: false }]
+      ? [
+          {
+            path: '/support',
+            label: 'support',
+            icon: 'lucideLifeBuoy',
+            hasPanel: false,
+            destination: '/support',
+            destinationQueryParams: null,
+          },
+        ]
       : []),
     ...(this.availableAdminLinks().length
       ? [
@@ -507,6 +559,8 @@ export class App {
             label: 'administration',
             icon: 'lucideSettings',
             hasPanel: true,
+            destination: this.administrationSections()[0]?.links[0]?.path ?? '/administration',
+            destinationQueryParams: null,
           },
         ]
       : []),
@@ -526,8 +580,10 @@ export class App {
     );
   });
 
+  readonly myFilesPanelActive = computed(() => this.railPanelActive('/my-files'));
   readonly hasSecondaryNavigation = computed(
-    () => this.accountPanelActive() || this.administrationPanelActive(),
+    () =>
+      this.accountPanelActive() || this.administrationPanelActive() || this.myFilesPanelActive(),
   );
 
   railPanelActive(path: string): boolean {
@@ -556,7 +612,9 @@ export class App {
     );
   }
 
-  selectRailPanel(path: string): void {
+  selectRailPanel(event: MouseEvent, path: string): void {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
+      return;
     this.selectedPanel.set(path);
     this.sidebar.setPanelAvailable(true);
     this.sidebar.openPanel();

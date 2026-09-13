@@ -9,7 +9,7 @@ import { RequestBuilder } from '../../request-builder';
 
 import { FileNameRequest } from '../../models/file-name-request';
 
-export interface RenameFile$Params {
+export interface RenameMyFile$Params {
   id: string;
 
 /**
@@ -19,8 +19,8 @@ export interface RenameFile$Params {
       body: FileNameRequest
 }
 
-export function renameFile(http: HttpClient, rootUrl: string, params: RenameFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, renameFile.PATH, 'post');
+export function renameMyFile(http: HttpClient, rootUrl: string, params: RenameMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, renameMyFile.PATH, 'post');
   if (params) {
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
@@ -37,4 +37,4 @@ export function renameFile(http: HttpClient, rootUrl: string, params: RenameFile
   );
 }
 
-renameFile.PATH = '/api/v1/auth/files/{id}/rename';
+renameMyFile.PATH = '/api/v1/auth/my-files/{id}/rename';

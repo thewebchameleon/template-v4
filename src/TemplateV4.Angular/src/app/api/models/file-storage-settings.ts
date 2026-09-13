@@ -3,6 +3,11 @@
 
 export interface FileStorageSettings {
   defaultQuotaBytes?: number;
+  demoExpiryMinutes?: number;
+  demoMode?: boolean;
+  demoStartedAt?: (string | null);
   id?: number;
+  maxUploadBytes?: number;
+  slowUploadMode?: boolean;
   version?: string;
 }

@@ -9,11 +9,11 @@ import { RequestBuilder } from '../../request-builder';
 
 import { FileStorageSettings } from '../../models/file-storage-settings';
 
-export interface GetFileStorageSettings$Params {
+export interface GetMyFilesStorageSettings$Params {
 }
 
-export function getFileStorageSettings(http: HttpClient, rootUrl: string, params?: GetFileStorageSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<FileStorageSettings>> {
-  const rb = new RequestBuilder(rootUrl, getFileStorageSettings.PATH, 'get');
+export function getMyFilesStorageSettings(http: HttpClient, rootUrl: string, params?: GetMyFilesStorageSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<FileStorageSettings>> {
+  const rb = new RequestBuilder(rootUrl, getMyFilesStorageSettings.PATH, 'get');
   if (params) {
   }
 
@@ -27,4 +27,4 @@ export function getFileStorageSettings(http: HttpClient, rootUrl: string, params
   );
 }
 
-getFileStorageSettings.PATH = '/api/v1/auth/files/admin/settings';
+getMyFilesStorageSettings.PATH = '/api/v1/auth/my-files/admin/settings';

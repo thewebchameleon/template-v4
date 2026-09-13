@@ -14,22 +14,42 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var now = time.GetUtcNow();
         var cutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:DeletedFileRetentionDays", 30), 1, 365));
         var abandoned = now.AddDays(-1);
-        var personal = db.Files.Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
+        var personal = db.Files.Where(x => x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
         var organizations = db.Set<OrganizationFileRow>().Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
         // Independent housekeeping commits even if every object provider call fails.
         await db.Set<CustomerInviteRow>().Where(x => x.ExpiresAt < now).ExecuteDeleteAsync(ct);
         var notificationCutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:NotificationRetentionDays", 90), 7, 365));
         await db.Notifications.Where(x => x.CreatedAt < notificationCutoff).ExecuteDeleteAsync(ct);
         var batch = Math.Clamp(config.GetValue("Privacy:FilePurgeBatchSize", 100), 1, 1000);
+        await ClaimDemoExpiry(now, batch, ct);
         var ids = await personal.Where(x => x.PurgeRetryAt == null || x.PurgeRetryAt <= now).OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => x.Id).ToArrayAsync(ct);
         foreach (var id in ids)
         {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
-            var row = await db.Files.FromSqlInterpolated($"SELECT * FROM files.files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
-            if (row is null || row.PurgedAt != null || row.PurgeRetryAt > now || !(row.DeletedAt < cutoff || !row.Ready && row.CreatedAt < abandoned)) continue;
-            if (row.IsFolder || await Delete(row.Id.ToString("N"), ct))
+            // Publish an irreversible purge decision before touching object storage. A crash or
+            // partial provider failure must never leave a partly removed entry restorable.
+            var owner = await db.Files.Where(x => x.Id == id).Select(x => x.OwnerId).SingleAsync(ct);
+            await using (var claim = await db.Database.BeginTransactionAsync(ct))
             {
-                row.PurgedAt = now; row.DeletedAt ??= now; row.Name = "Deleted file"; row.PurgeRetryAt = null;
+                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+                var claimed = await db.Files.Where(x => x.Id == id && x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned))
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.PurgeRequested, true).SetProperty(x => x.DeletedAt, x => x.DeletedAt ?? now), ct);
+                if (claimed == 0) continue;
+                await claim.CommitAsync(ct);
+            }
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+            var row = await db.Files.FromSqlInterpolated($"SELECT * FROM files.files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
+            if (row != null) await db.Entry(row).ReloadAsync(ct);
+            if (row is null || row.PurgedAt != null || row.PurgeRetryAt > now || !(row.PurgeRequested || row.DeletedAt < cutoff || !row.Ready && row.CreatedAt < abandoned)) continue;
+            var removed = true;
+            if (!row.IsFolder)
+            {
+                if (!await Delete(row.Id.ToString("N"), ct)) removed = false;
+            }
+            if (removed)
+            {
+                row.PurgedAt = now; row.DeletedAt ??= now; row.Name = "Deleted file"; row.Description = ""; row.Tags = ""; row.PurgeRetryAt = null;
+                await db.Set<MyFileShare>().Where(x => x.FileId == id).ExecuteDeleteAsync(ct);
                 db.Audit.Add(new() { SubjectId = row.Id, Action = "file.purged", At = now });
             }
             else row.PurgeRetryAt = now.AddHours(1);
@@ -53,6 +73,24 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var backlog = new RetentionBacklog(await dates.CountAsync(ct), await dates.MinAsync(ct));
         if (backlog.Count > 0) logger.LogWarning("File retention backlog: {Count}; oldest object created at {OldestCreatedAt}", backlog.Count, backlog.OldestCreatedAt);
         return backlog;
+    }
+    private async Task ClaimDemoExpiry(DateTimeOffset now, int batch, CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM files.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
+        var cutoff = now.AddMinutes(-settings.DemoExpiryMinutes);
+        if (!settings.DemoMode || settings.DemoStartedAt is null || settings.DemoStartedAt > cutoff) return;
+        // max(CreatedAt, DemoStartedAt) gives each new item its own lifetime and
+        // restarts all existing timers without rewriting file creation timestamps.
+        var eligible = db.Files.Where(x => x.PurgedAt == null && !x.PurgeRequested && x.CreatedAt <= cutoff &&
+            (!x.IsFolder || !db.Files.Any(child => child.ParentId == x.Id && child.PurgedAt == null)));
+        var candidates = await eligible.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => new { x.Id, x.OwnerId }).ToArrayAsync(ct);
+        // Stable lock order across owners; all folder mutations use these same locks.
+        foreach (var owner in candidates.Select(x => x.OwnerId).Distinct().Order())
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+        var ids = candidates.Select(x => x.Id).ToArray();
+        await eligible.Where(x => ids.Contains(x.Id)).ExecuteUpdateAsync(s => s.SetProperty(x => x.PurgeRequested, true).SetProperty(x => x.DeletedAt, x => x.DeletedAt ?? now), ct);
+        await tx.CommitAsync(ct);
     }
     private async Task<bool> Delete(string key, CancellationToken ct)
     {

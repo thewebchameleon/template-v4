@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 async function modulesApp(page: Page, administrator = true, available = true) {
-  let saved = { id: 'files', enabled: true, available, version: 'initial' };
+  let saved = { id: 'my-files', enabled: true, available, version: 'initial' };
   let failSave = false;
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -33,8 +33,8 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/modules': { files: saved.enabled && available },
-      '/api/v1/features': { files: saved.enabled && available },
+      '/api/v1/modules': { 'my-files': saved.enabled && available },
+      '/api/v1/features': { 'my-files': saved.enabled && available },
     };
     return route.fulfill({ json: responses[path] ?? {} });
   });
@@ -46,44 +46,65 @@ async function modulesApp(page: Page, administrator = true, available = true) {
   };
 }
 
+const myFilesModuleControl = (page: Page) =>
+  page.getByRole('switch', { name: /^My Files Personal file libraries/ });
+
 test('modules save application-wide Files state, refresh navigation and guard disabled routes', async ({
   page,
 }) => {
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = page.getByRole('switch', { name: 'Enable Files' });
+  const control = myFilesModuleControl(page);
+  const features = page.getByRole('heading', { name: 'Features', exact: true });
+  const storageSettings = page
+    .locator('#my-files-module-content')
+    .getByRole('link', { name: 'File storage', exact: true });
   await expect(control).toBeChecked();
-  await page.getByText('Disabling Files hides file pages', { exact: false }).click();
+  await expect(features).toBeVisible();
+  await expect(storageSettings).toHaveAttribute('href', '/administration/storage');
+  await control.click();
   await expect(control).not.toBeChecked();
+  await expect(features).toBeHidden();
+  await expect(storageSettings).toBeHidden();
   await expect.poll(app.enabled).toBe(false);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Reload saved settings' })).toHaveCount(0);
-  await expect(page.locator('a[href="/files"]')).toHaveCount(0);
-  await expect(page.locator('a[href="/administration/storage"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/my-files"]')).toHaveCount(0);
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Administration', exact: true })
+      .getByRole('link', { name: 'File storage', exact: true }),
+  ).toHaveCount(0);
   await page.reload();
   await expect(control).not.toBeChecked();
-  for (const path of ['/files', '/administration/storage', '/administration/users/owner/files']) {
+  for (const path of [
+    '/my-files',
+    '/administration/storage',
+    '/administration/users/owner/files',
+  ]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/me$/);
   }
   await page.goto('/administration/modules');
   await control.click();
   await expect.poll(app.enabled).toBe(true);
+  await expect(features).toBeVisible();
+  await expect(storageSettings).toBeVisible();
   const modulesNavigation = page
     .getByRole('navigation', { name: 'Administration', exact: true })
     .getByRole('group', { name: 'Modules', exact: true });
   await expect(modulesNavigation.getByRole('link', { name: 'File storage' })).toBeVisible();
   await page
     .getByRole('navigation', { name: 'Destinations' })
-    .getByRole('link', { name: 'Files', exact: true })
+    .getByRole('link', { name: 'My Files', exact: true })
     .click();
-  await expect(page).toHaveURL(/\/files$/);
+  await expect(page).toHaveURL(/\/my-files\?group=my-files$/);
 });
 
 test('modules restore the saved state when an immediate update fails', async ({ page }) => {
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = page.getByRole('switch', { name: 'Enable Files' });
+  const control = myFilesModuleControl(page);
   app.fail();
   await control.click();
   await expect(
@@ -103,7 +124,7 @@ test('modules deny delegated settings operators and explain unavailable deployme
   await page.unrouteAll();
   await modulesApp(page, true, false);
   await page.goto('/administration/modules');
-  await expect(page.getByRole('switch', { name: 'Enable Files' })).toBeDisabled();
+  await expect(myFilesModuleControl(page)).toBeDisabled();
   await expect(
     page.getByText('This module is unavailable in this deployment.', { exact: false }),
   ).toBeVisible();
@@ -114,7 +135,7 @@ test('modules are accessible in both themes and reflow at enlarged text on mobil
 }) => {
   await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = page.getByRole('switch', { name: 'Enable Files' });
+  const control = myFilesModuleControl(page);
   await expect(control).toBeVisible();
   for (const dark of [false, true]) {
     await page.evaluate((value) => document.documentElement.classList.toggle('dark', value), dark);

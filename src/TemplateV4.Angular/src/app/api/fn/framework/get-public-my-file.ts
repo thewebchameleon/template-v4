@@ -7,23 +7,18 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { CreateFolderRequest } from '../../models/create-folder-request';
 import { FileItem } from '../../models/file-item';
 
-export interface CreateFileFolder$Params {
-
-/**
- * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
- */
-  'X-CSRF-TOKEN': string;
-      body: CreateFolderRequest
+export interface GetPublicMyFile$Params {
+  id: string;
+  'X-File-Share'?: string;
 }
 
-export function createFileFolder(http: HttpClient, rootUrl: string, params: CreateFileFolder$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
-  const rb = new RequestBuilder(rootUrl, createFileFolder.PATH, 'post');
+export function getPublicMyFile(http: HttpClient, rootUrl: string, params: GetPublicMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+  const rb = new RequestBuilder(rootUrl, getPublicMyFile.PATH, 'get');
   if (params) {
-    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
-    rb.body(params.body, 'application/json');
+    rb.path('id', params.id, {});
+    rb.header('X-File-Share', params['X-File-Share'], {});
   }
 
   return http.request(
@@ -36,4 +31,4 @@ export function createFileFolder(http: HttpClient, rootUrl: string, params: Crea
   );
 }
 
-createFileFolder.PATH = '/api/v1/auth/files/folders';
+getPublicMyFile.PATH = '/api/v1/auth/my-files/public/{id}';

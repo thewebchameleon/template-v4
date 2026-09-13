@@ -48,7 +48,7 @@ async function administration(
         culture: 'en-ZA',
         setupRequired: false,
       },
-      '/api/v1/features': { files: false, maintenance: false },
+      '/api/v1/features': { 'my-files': false, maintenance: false },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/roles': {
         roles: { items: roles, total: roles.length, pageNumber: 1, pageSize: 100 },

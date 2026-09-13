@@ -146,3 +146,25 @@
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
 }
+
+/* File format identity, paired for readable icon contrast in each theme. */
+:root {
+  --file-images: #1d4ed8;
+  --file-documents: #b91c1c;
+  --file-spreadsheets: #047857;
+  --file-presentations: #c2410c;
+  --file-video: #6d28d9;
+  --file-audio: #a21caf;
+  --file-archives: #854d0e;
+  --file-folders: #b45309;
+}
+.dark {
+  --file-images: #93c5fd;
+  --file-documents: #fca5a5;
+  --file-spreadsheets: #6ee7b7;
+  --file-presentations: #fdba74;
+  --file-video: #c4b5fd;
+  --file-audio: #f0abfc;
+  --file-archives: #fde047;
+  --file-folders: #fde047;
+}

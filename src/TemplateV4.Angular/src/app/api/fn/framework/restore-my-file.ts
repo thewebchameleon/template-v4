@@ -8,14 +8,20 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface DownloadFile$Params {
+export interface RestoreMyFile$Params {
   id: string;
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
 }
 
-export function downloadFile(http: HttpClient, rootUrl: string, params: DownloadFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, downloadFile.PATH, 'get');
+export function restoreMyFile(http: HttpClient, rootUrl: string, params: RestoreMyFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, restoreMyFile.PATH, 'post');
   if (params) {
     rb.path('id', params.id, {});
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 
   return http.request(
@@ -28,4 +34,4 @@ export function downloadFile(http: HttpClient, rootUrl: string, params: Download
   );
 }
 
-downloadFile.PATH = '/api/v1/auth/files/{id}/download';
+restoreMyFile.PATH = '/api/v1/auth/my-files/{id}/restore';

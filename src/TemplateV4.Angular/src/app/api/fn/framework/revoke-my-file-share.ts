@@ -8,16 +8,22 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 
-export interface DownloadUserFile$Params {
-  owner: string;
+export interface RevokeMyFileShare$Params {
   id: string;
+  shareId: string;
+
+/**
+ * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
+ */
+  'X-CSRF-TOKEN': string;
 }
 
-export function downloadUserFile(http: HttpClient, rootUrl: string, params: DownloadUserFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-  const rb = new RequestBuilder(rootUrl, downloadUserFile.PATH, 'get');
+export function revokeMyFileShare(http: HttpClient, rootUrl: string, params: RevokeMyFileShare$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+  const rb = new RequestBuilder(rootUrl, revokeMyFileShare.PATH, 'post');
   if (params) {
-    rb.path('owner', params.owner, {});
     rb.path('id', params.id, {});
+    rb.path('shareId', params.shareId, {});
+    rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 
   return http.request(
@@ -30,4 +36,4 @@ export function downloadUserFile(http: HttpClient, rootUrl: string, params: Down
   );
 }
 
-downloadUserFile.PATH = '/api/v1/auth/files/admin/users/{owner}/{id}/download';
+revokeMyFileShare.PATH = '/api/v1/auth/my-files/{id}/shares/{shareId}/revoke';

@@ -1,11 +1,22 @@
 import { customerTranslations } from './core/customer-resolver';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
 import { filesGuard, moduleGuard } from './core/features';
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Routes, Router } from '@angular/router';
 import { authGuard, permissionGuard, administratorRoleGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
+  {
+    path: 'files',
+    pathMatch: 'full',
+    redirectTo: ({ queryParams }) => inject(Router).createUrlTree(['/my-files'], { queryParams }),
+  },
+  {
+    path: 'shared-files/:id',
+    data: { breadcrumb: 'sharedWithMe' },
+    loadComponent: () => import('./features/public-my-files').then((m) => m.PublicMyFilesPage),
+  },
   {
     path: 'organizations',
     canDeactivate: [unsavedGuard],
@@ -146,11 +157,11 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'files',
+    path: 'my-files',
     data: { breadcrumb: 'files' },
     canActivate: [authGuard, filesGuard],
     canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/files').then((m) => m.FilesPage),
+    loadComponent: () => import('./features/my-files').then((m) => m.MyFilesPage),
   },
   {
     path: 'privacy',
@@ -217,10 +228,19 @@ export const routes: Routes = [
           },
           {
             path: ':ownerId/files',
+            pathMatch: 'full',
+            redirectTo: ({ params, queryParams }) =>
+              inject(Router).createUrlTree(
+                ['/administration/users', params['ownerId'], 'my-files'],
+                { queryParams },
+              ),
+          },
+          {
+            path: ':ownerId/my-files',
             data: { breadcrumb: 'files', permission: 'settings.manage' },
             canActivate: [permissionGuard, filesGuard],
             canDeactivate: [unsavedGuard],
-            loadComponent: () => import('./features/files').then((m) => m.FilesPage),
+            loadComponent: () => import('./features/my-files').then((m) => m.MyFilesPage),
           },
           {
             path: ':id',

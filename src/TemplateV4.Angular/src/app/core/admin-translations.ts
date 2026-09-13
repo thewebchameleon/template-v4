@@ -67,6 +67,11 @@ export const adminDictionary: Record<string, [string, string]> = {
   'auditValue.selectedCustomColorId': ['Selected colour ID', 'Gekose kleur-ID'],
   'auditValue.enabled': ['Enabled', 'Geaktiveer'],
   'auditValue.defaultQuotaBytes': ['Default quota (bytes)', 'Verstekkwota (grepe)'],
+  'auditValue.maxUploadBytes': ['Maximum upload size (bytes)', 'Maksimum oplaaigrootte (grepe)'],
+  'audit.file.max_upload_changed': [
+    'Maximum upload size changed',
+    'Maksimum oplaaigrootte verander',
+  ],
   'auditValue.quotaBytes': ['Quota override (bytes)', 'Kwota-oorskrywing (grepe)'],
   'auditValue.sizeBytes': ['Size (bytes)', 'Grootte (grepe)'],
   'auditValue.contentType': ['Content type', 'Inhoudtipe'],

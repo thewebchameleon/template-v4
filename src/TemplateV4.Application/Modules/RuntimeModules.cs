@@ -2,8 +2,8 @@ using TemplateV4.Application.Users;
 
 namespace TemplateV4.Application.Modules;
 
-public sealed record RuntimeModule(string Id, bool Enabled, bool Available, Guid Version);
-public sealed record SaveRuntimeModule(string Id, bool Enabled, Guid Version) : ICommand<RuntimeModule>, IAuthorizedRequest
+public sealed record RuntimeModule(string Id, bool Enabled, bool Available, Guid Version, bool DemoMode = false, bool SlowUploadMode = false);
+public sealed record SaveRuntimeModule(string Id, bool Enabled, Guid Version, bool? DemoMode = null, bool? SlowUploadMode = null) : ICommand<RuntimeModule>, IAuthorizedRequest
 { public string Permission => Permissions.Settings; }
 
 public interface IRuntimeModules
@@ -18,8 +18,10 @@ public sealed class SaveRuntimeModuleValidator : IValidator<SaveRuntimeModule>
     public Dictionary<string, string[]> Validate(SaveRuntimeModule request)
     {
         Dictionary<string, string[]> errors = [];
-        if (request.Id is not ("files" or "support")) errors["id"] = ["modules.unknown"];
+        if (request.Id is not ("my-files" or "support")) errors["id"] = ["modules.unknown"];
         if (request.Version == Guid.Empty) errors["version"] = ["validation.failed"];
+        if (request.DemoMode != null && request.Id != "my-files") errors["demoMode"] = ["validation.failed"];
+        if (request.SlowUploadMode != null && request.Id != "my-files") errors["slowUploadMode"] = ["validation.failed"];
         return errors;
     }
 }

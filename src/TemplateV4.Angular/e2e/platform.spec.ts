@@ -6,7 +6,8 @@ async function platform(page: Page, failFiles = false) {
     const path = new URL(route.request().url()).pathname;
     const empty = { items: [], total: 0, pageNumber: 1, pageSize: 25 };
     const responses: Record<string, unknown> = {
-      '/api/v1/features': { files: true, maintenance: false },
+      '/api/v1/modules': { 'my-files': true },
+      '/api/v1/features': { 'my-files': true, maintenance: false },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/refresh': {
@@ -31,8 +32,11 @@ async function platform(page: Page, failFiles = false) {
         checkedAt: '2026-09-06T10:00:00Z',
         backlogWarningSeconds: 300,
       },
-      '/api/v1/auth/files': {
+      '/api/v1/auth/my-files': {
         page: empty,
+        recent: [],
+        folders: [],
+        usage: [],
         usedBytes: 0,
         quotaBytes: 1073741824,
         maxUploadBytes: 20971520,
@@ -46,7 +50,7 @@ async function platform(page: Page, failFiles = false) {
       },
       '/api/v1/auth/privacy/requests': empty,
     };
-    if (failFiles && path === '/api/v1/auth/files')
+    if (failFiles && path === '/api/v1/auth/my-files')
       return route.fulfill({ status: 503, json: { title: 'Please try again' } });
     if (path in responses) return route.fulfill({ json: responses[path] });
     return route.fulfill({ status: 404, json: { title: 'Unexpected test request' } });
@@ -62,7 +66,7 @@ for (const width of [390, 1440]) {
       ['invitations', 'Invitations'],
       ['administration/system-health', 'System Health'],
       ['notifications', 'Notifications'],
-      ['files', 'Files'],
+      ['my-files', 'My Files'],
       ['privacy', 'Privacy & data'],
       ['administration/users/privacy-requests', 'User Management'],
     ]) {
@@ -88,7 +92,7 @@ for (const width of [390, 1440]) {
 
 test('a selected upload is protected and filters survive reload', async ({ page }) => {
   await platform(page);
-  await page.goto('/files?search=report&sort=name');
+  await page.goto('/my-files?search=report&sort=name');
   await expect(page.getByLabel('Search', { exact: true })).toHaveValue('report');
   await page
     .getByLabel('Choose a file', { exact: true })
@@ -104,7 +108,9 @@ test('a selected upload is protected and filters survive reload', async ({ page 
 
 test('file failures retain search and offer recovery', async ({ page }) => {
   await platform(page, true);
-  await page.goto('/files?search=retained');
+  await page.goto('/my-files?search=retained');
   await expect(page.getByLabel('Search', { exact: true })).toHaveValue('retained');
-  await expect(page.getByRole('button', { name: 'Retry', exact: true })).toBeVisible();
+  await expect(
+    page.locator('main').getByRole('button', { name: 'Retry', exact: true }),
+  ).toBeVisible();
 });

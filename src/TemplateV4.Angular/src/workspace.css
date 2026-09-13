@@ -1,5 +1,6 @@
 @layer components {
-  [data-slot='card']:has(app-data-table) {
+  [data-slot='card']:has(app-data-table),
+  [data-slot='card']:has(.my-files-controls) {
     --panel-content-spacing: calc(var(--spacing) * 4);
     --panel-header-padding-inline: var(--card-spacing);
   }
@@ -237,4 +238,262 @@
       align-items: stretch;
     }
   }
+}
+
+/* Shared My Files surfaces consume semantic file-category tokens. */
+[data-category='images'] {
+  --file-color: var(--file-images);
+}
+[data-category='documents'] {
+  --file-color: var(--file-documents);
+}
+[data-category='spreadsheets'] {
+  --file-color: var(--file-spreadsheets);
+}
+[data-category='presentations'] {
+  --file-color: var(--file-presentations);
+}
+[data-category='video'] {
+  --file-color: var(--file-video);
+}
+[data-category='audio'] {
+  --file-color: var(--file-audio);
+}
+[data-category='archives'] {
+  --file-color: var(--file-archives);
+}
+[data-category='folders'] {
+  --file-color: var(--file-folders);
+}
+[data-category='other'],
+[data-category='pending'] {
+  --file-color: var(--muted-foreground);
+}
+[data-category='trash'] {
+  --file-color: var(--destructive);
+}
+[data-category='remaining'] {
+  --file-color: var(--muted);
+}
+.my-file-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 2.5rem;
+  block-size: 2.75rem;
+  color: var(--file-color, var(--muted-foreground));
+}
+.my-files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 0.75rem;
+  padding-block: var(--card-spacing);
+}
+.my-files-grid-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-inline-size: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+.my-files-grid-card:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.my-files-tree .my-file-icon {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  background: transparent;
+}
+.my-files-tree {
+  margin-block: 0.25rem;
+}
+.my-files-recent-content {
+  --card-spacing: calc(var(--spacing) * 4);
+}
+.my-files-recent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 0.75rem;
+}
+.my-files-quota {
+  display: flex;
+  inline-size: 100%;
+  block-size: 0.875rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+.my-files-quota > span {
+  display: block;
+  background: var(--file-color);
+}
+.my-files-quota-legend {
+  display: grid;
+  gap: 0.75rem;
+  margin-block-start: 1rem;
+}
+.my-files-quota-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+.my-files-quota-legend strong {
+  margin-inline-start: auto;
+  font-weight: 500;
+}
+.my-files-swatch {
+  display: inline-block;
+  inline-size: 0.65rem;
+  block-size: 0.65rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--file-color);
+  border: 1px solid var(--border);
+}
+
+.my-files-nav-count {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+.my-files-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.my-files-search {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+  max-inline-size: 24rem;
+}
+.my-files-filter-toolbar {
+  flex-basis: 28rem;
+}
+.my-files-grid-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline: calc(-1 * var(--card-spacing));
+  padding: 0.25rem var(--card-spacing);
+  border-block: 1px solid var(--border);
+  background: var(--table-header);
+}
+@media (max-width: 40rem) {
+  .my-files-controls,
+  .my-files-filter-toolbar {
+    align-items: stretch;
+  }
+  .my-files-view-controls,
+  .my-files-filter-toolbar {
+    inline-size: 100%;
+  }
+  .my-files-search {
+    max-inline-size: none;
+  }
+}
+.my-files-card-open {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-inline-size: 0;
+  text-align: start;
+  border-radius: var(--radius);
+}
+.my-files-card-open:disabled {
+  opacity: 0.5;
+}
+.my-files-card-open:focus-visible,
+.my-files-dropzone:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.my-files-upload-content {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.my-files-upload-content > :not(.my-files-upload-progress) {
+  position: relative;
+}
+.my-files-dropzone {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 8rem;
+  block-size: 8rem;
+  overflow: auto;
+  flex-shrink: 0;
+  padding: 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  background: var(--card);
+  text-align: center;
+}
+.my-files-dropzone:disabled {
+  color: var(--muted-foreground);
+}
+button.my-files-dropzone:hover:not(:disabled),
+.my-files-drop-target {
+  background: var(--accent);
+  border-color: var(--primary);
+}
+.my-files-upload-progress {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  pointer-events: none;
+  background-color: var(--primary);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-foreground) 20%, transparent) 25%,
+    transparent 25%,
+    transparent 50%,
+    color-mix(in srgb, var(--primary-foreground) 20%, transparent) 50%,
+    color-mix(in srgb, var(--primary-foreground) 20%, transparent) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 2rem 2rem;
+  animation: my-files-upload-stripes 1s linear infinite;
+  transition: width 200ms ease-out;
+}
+@keyframes my-files-upload-stripes {
+  to {
+    background-position: 2rem 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .my-files-upload-progress {
+    animation: none;
+    transition: none;
+  }
+}
+.my-files-metadata {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 0.75rem 1rem;
+}
+.my-files-metadata dt {
+  color: var(--muted-foreground);
+}
+.my-files-metadata dd {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }

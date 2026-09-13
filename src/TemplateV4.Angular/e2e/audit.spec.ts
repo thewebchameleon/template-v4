@@ -24,7 +24,7 @@ async function audit(page: Page, failFirst = false, legacy = false) {
         culture: 'en-ZA',
         setupRequired: false,
       },
-      '/api/v1/features': { files: false },
+      '/api/v1/features': { 'my-files': false },
       '/api/v1/modules': { 'audit-history': true },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/auth/audit': { items: [entry], total: 1, pageNumber: 1, pageSize: 10 },

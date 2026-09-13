@@ -9,8 +9,8 @@ import { FileQuotaEditor } from './file-quota-editor';
   template: `<app-page-header title="storageSettings" description="storageSettingsHelp" />
     <section hlmCard>
       <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'defaultQuota' | t }}</h2>
-        <p hlmCardDescription>{{ 'defaultQuotaHelp' | t }}</p>
+        <h2 hlmCardTitle>{{ 'storageSettings' | t }}</h2>
+        <p hlmCardDescription>{{ 'myFilesStorageHelp' | t }}</p>
       </div>
       <div hlmCardContent><app-file-quota-editor /></div>
     </section>
