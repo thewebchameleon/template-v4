@@ -8,12 +8,12 @@ using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
 using TemplateV4.Application.Billing;
 using TemplateV4.Application.Customers;
-using TemplateV4.Infrastructure.Billing;
-using TemplateV4.Infrastructure.Customers;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
+using TemplateV4.Infrastructure.Billing;
+using TemplateV4.Infrastructure.Customers;
 using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
@@ -102,6 +102,7 @@ public static class Registration
         services.AddScoped<NotificationService>();
         services.AddScoped<FileService>();
         services.AddScoped<OrganizationFiles>();
+        services.AddScoped<FileRetention>();
         services.AddScoped<IRuntimeModules, RuntimeModuleStore>();
         services.AddScoped<IHandler<SaveRuntimeModule, RuntimeModule>, SaveRuntimeModuleHandler>();
         services.AddSingleton<IValidator<SaveRuntimeModule>, SaveRuntimeModuleValidator>();
@@ -166,8 +167,7 @@ public sealed class LocalFileStorage(IConfiguration config) : IFileStorage
     private readonly string _root = Path.GetFullPath(config["Storage:Path"] ?? ".local/storage");
     private string Resolve(string key)
     {
-        if (string.IsNullOrWhiteSpace(key) || key.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not ('-' or '_' or '.')) || key is "." or "..")
-            throw new ArgumentException("Storage keys must be flat, opaque names.", nameof(key));
+        Storage.StorageKey.Validate(key);
         Directory.CreateDirectory(_root);
         var path = Path.Combine(_root, key);
         if (File.Exists(path) && File.GetAttributes(path).HasFlag(FileAttributes.ReparsePoint)) throw new IOException("Symbolic links are not storage objects.");

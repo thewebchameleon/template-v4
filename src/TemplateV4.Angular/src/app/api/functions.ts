@@ -173,6 +173,8 @@ export type { RemoveOrganizationMember$Params as RemoveOrganizationMember$Params
 export { removeOrganizationMember as removeOrganizationMember } from './fn/framework/remove-organization-member';
 export type { TransferOrganizationOwnership$Params as TransferOrganizationOwnership$Params } from './fn/framework/transfer-organization-ownership';
 export { transferOrganizationOwnership as transferOrganizationOwnership } from './fn/framework/transfer-organization-ownership';
+export type { CloseOrganization$Params as CloseOrganization$Params } from './fn/framework/close-organization';
+export { closeOrganization as closeOrganization } from './fn/framework/close-organization';
 export type { GetCustomerBilling$Params as GetCustomerBilling$Params } from './fn/framework/get-customer-billing';
 export { getCustomerBilling as getCustomerBilling } from './fn/framework/get-customer-billing';
 export type { StartBillingTrial$Params as StartBillingTrial$Params } from './fn/framework/start-billing-trial';

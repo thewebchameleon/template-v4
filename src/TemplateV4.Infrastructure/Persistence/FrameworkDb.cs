@@ -69,6 +69,8 @@ public sealed class Session
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
     public bool MfaVerified { get; set; }
+    public DateTimeOffset? MfaVerifiedAt { get; set; }
+    public bool PasskeyVerified { get; set; }
     public bool SetupOnly { get; set; }
 }
 public sealed class RefreshToken
@@ -104,6 +106,9 @@ public sealed class IdempotencyRecord
 {
     public string Key { get; set; } = "";
     public string Fingerprint { get; set; } = "";
+    public Guid? ActorId { get; set; }
+    public Guid? SubjectId { get; set; }
+    public bool Erased { get; set; }
     public string Response { get; set; } = "";
     public DateTimeOffset ExpiresAt { get; set; }
 }
@@ -207,6 +212,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         model.Entity<InboxReceipt>().ToTable("inbox", "messaging");
         model.Entity<IdempotencyRecord>(entity =>
         {
+            entity.HasIndex(x => x.ActorId); entity.HasIndex(x => x.SubjectId);
             entity.ToTable("idempotency", "messaging"); entity.HasKey(x => x.Key); entity.Property(x => x.Key).HasMaxLength(200);
             entity.HasIndex(x => x.ExpiresAt);
         });

@@ -4,9 +4,11 @@
 import { BillingPlan } from '../models/billing-plan';
 import { BillingSettings } from '../models/billing-settings';
 export interface BillingSummary {
+  canCancel: boolean;
   canCheckout: boolean;
   canManage: boolean;
   customerId: string;
+  entitlementState: string;
   interval: (string | null);
   paidUntil: (string | null);
   planId: string;

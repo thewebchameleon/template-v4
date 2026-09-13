@@ -17,6 +17,7 @@ export type { ChangeEmailRequest } from './models/change-email-request';
 export type { ChangeMember } from './models/change-member';
 export type { CheckoutRequest } from './models/checkout-request';
 export type { CheckoutResponse } from './models/checkout-response';
+export type { CloseOrganization } from './models/close-organization';
 export type { ConfirmEmailChangeRequest } from './models/confirm-email-change-request';
 export type { ConfirmEmailRequest } from './models/confirm-email-request';
 export type { CreateFolderRequest } from './models/create-folder-request';

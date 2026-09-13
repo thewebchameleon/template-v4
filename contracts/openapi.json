@@ -3587,6 +3587,54 @@
         ]
       }
     },
+    "/api/v1/auth/customers/{customer}/close": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CloseOrganization",
+        "parameters": [
+          {
+            "name": "customer",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseOrganization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/customers/{customer}/billing": {
       "get": {
         "tags": [
@@ -4927,7 +4975,9 @@
           "storageBytes",
           "canManage",
           "canCheckout",
-          "interval"
+          "interval",
+          "canCancel",
+          "entitlementState"
         ],
         "type": "object",
         "properties": {
@@ -4989,6 +5039,12 @@
               "null",
               "string"
             ]
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "entitlementState": {
+            "type": "string"
           }
         }
       },
@@ -5086,6 +5142,18 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "CloseOrganization": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -6003,7 +6071,8 @@
           "id",
           "name",
           "size",
-          "createdAt"
+          "createdAt",
+          "canDelete"
         ],
         "type": "object",
         "properties": {
@@ -6021,6 +6090,9 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "canDelete": {
+            "type": "boolean"
           }
         }
       },
@@ -6489,7 +6561,8 @@
           "phoneNumber",
           "timeZone",
           "avatarDataUrl",
-          "version"
+          "version",
+          "passkeyRequired"
         ],
         "type": "object",
         "properties": {
@@ -6570,6 +6643,9 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "passkeyRequired": {
+            "type": "boolean"
           }
         }
       },

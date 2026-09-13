@@ -14,6 +14,7 @@ export interface ProfileResponse {
   mfaEnabled: boolean;
   mfaMethods: Array<string>;
   mfaRequired: boolean;
+  passkeyRequired: boolean;
   passkeys: Array<PasskeySummary>;
   phoneNumber: (string | null);
   preferredMfaMethod: string;

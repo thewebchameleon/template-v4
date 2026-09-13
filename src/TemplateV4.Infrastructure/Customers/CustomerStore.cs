@@ -1,11 +1,15 @@
 using System.Net.Mail;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using TemplateV4.Application;
 using TemplateV4.Application.Billing;
 using TemplateV4.Application.Customers;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Customers;
+using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure.Persistence;
+using TemplateV4.Infrastructure.Security;
 
 namespace TemplateV4.Infrastructure.Customers;
 
@@ -17,7 +21,7 @@ public sealed class CustomerAccess(FrameworkDb db, IConfiguration configuration)
     public async Task<CustomerInfo?> Find(Guid actor, Guid customer, CancellationToken ct)
     {
         if (!await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct)) return null;
-        var row = await db.Set<CustomerRow>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer, ct);
+        var row = await db.Set<CustomerRow>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == customer && x.ClosedAt == null, ct);
         if (row is null || row.PersonalUserId != null && (Mode == "Organizations" || row.PersonalUserId != actor) || row.PersonalUserId == null && Mode == "Personal") return null;
         var role = row.PersonalUserId == actor ? "Owner" : await db.Set<MembershipRow>().Where(x => x.CustomerId == customer && x.UserId == actor).Select(x => x.Role).SingleOrDefaultAsync(ct);
         return role is null ? null : new(row.Id, row.Name, row.PersonalUserId == null ? "Organization" : "Personal", role, row.PersonalUserId == null ? await db.Set<MembershipRow>().CountAsync(x => x.CustomerId == customer, ct) : 1, row.Version);
@@ -25,7 +29,7 @@ public sealed class CustomerAccess(FrameworkDb db, IConfiguration configuration)
     public static Task MutationLock(FrameworkDb db, CancellationToken ct) => db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
 }
 
-public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorageEntitlements entitlements, TimeProvider time) : ICustomers
+public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorageEntitlements entitlements, TimeProvider time, UserManager<AppUser> users, AccountService accounts, IEventOutbox outbox) : ICustomers
 {
     public Task Lock(Guid customer, CancellationToken ct) => access.Lock(customer, ct);
     public Task<Guid?> Personal(Guid actor, CancellationToken ct) => access.Personal(actor, ct);
@@ -45,7 +49,7 @@ public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorag
         {
             db.Set<CustomerRow>().Add(new() { Id = actor, PersonalUserId = actor, Name = profile.DisplayName }); await db.SaveChangesAsync(ct);
         }
-        var ids = await db.Set<CustomerRow>().Where(x => x.PersonalUserId == actor || db.Set<MembershipRow>().Any(m => m.CustomerId == x.Id && m.UserId == actor)).OrderBy(x => x.Name).ThenBy(x => x.Id).Select(x => x.Id).ToArrayAsync(ct);
+        var ids = await db.Set<CustomerRow>().Where(x => x.ClosedAt == null && (x.PersonalUserId == actor || db.Set<MembershipRow>().Any(m => m.CustomerId == x.Id && m.UserId == actor))).OrderBy(x => x.Name).ThenBy(x => x.Id).Select(x => x.Id).ToArrayAsync(ct);
         var accounts = new List<CustomerInfo>();
         foreach (var id in ids) if (await Find(actor, id, ct) is { } account) accounts.Add(account);
         var email = await db.Users.Where(x => x.Id == actor && x.EmailConfirmed).Select(x => x.NormalizedEmail).SingleOrDefaultAsync(ct);
@@ -86,16 +90,36 @@ public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorag
     public async Task<Result<Unit>> Invite(Guid actor, Guid customer, InviteMember request, CancellationToken ct)
     {
         if (request.Email is null or { Length: > 256 } || !MailAddress.TryCreate(request.Email, out var parsed) || parsed.Address != request.Email.Trim() || request.Role is not ("Admin" or "Member")) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await CustomerAccess.MutationLock(db, ct); await Lock(customer, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Account provisioning shares the registration/erasure lock before organization locks.
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
+        await CustomerAccess.MutationLock(db, ct); await Lock(customer, ct);
         var info = await Find(actor, customer, ct);
         if (info is null || info.Kind != "Organization" || !CustomerRules.Manage(info.Role) || info.Role == "Admin" && request.Role == "Admin") return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var email = request.Email.Trim().ToUpperInvariant();
-        if (await db.Set<CustomerInviteRow>().CountAsync(x => x.CustomerId == customer, ct) >= 100) return Result.Fail("customers.limit", ErrorKind.Conflict);
+        await db.Set<CustomerInviteRow>().Where(x => x.CustomerId == customer && x.ExpiresAt <= time.GetUtcNow()).ExecuteDeleteAsync(ct);
         var invitation = await db.Set<CustomerInviteRow>().SingleOrDefaultAsync(x => x.CustomerId == customer && x.Email == email, ct);
+        if (invitation is null && await db.Set<CustomerInviteRow>().CountAsync(x => x.CustomerId == customer, ct) >= 100) return Result.Fail("customers.limit", ErrorKind.Conflict);
         if (invitation is null) { invitation = new() { CustomerId = customer, Email = email }; db.Set<CustomerInviteRow>().Add(invitation); }
-        invitation.Role = request.Role; invitation.ExpiresAt = time.GetUtcNow().AddDays(7);
-        var recipient = await db.Users.Where(x => x.NormalizedEmail == email).Select(x => (Guid?)x.Id).SingleOrDefaultAsync(ct);
-        if (recipient != null) db.Notifications.Add(new() { UserId = recipient.Value, Kind = "notificationOrganization", Link = "/organizations", CreatedAt = time.GetUtcNow() });
+        if (invitation.SentAt > time.GetUtcNow().AddMinutes(-2)) return Result.Fail("invitation.wait", ErrorKind.Conflict);
+        invitation.Role = request.Role; invitation.ExpiresAt = time.GetUtcNow().AddDays(7); invitation.SentAt = time.GetUtcNow();
+        var recipient = await users.FindByEmailAsync(email);
+        if (recipient is null)
+        {
+            recipient = new() { Id = Guid.NewGuid(), Email = request.Email.Trim(), UserName = request.Email.Trim() };
+            if (!(await users.CreateAsync(recipient)).Succeeded) return Result.Fail("resource.exists", ErrorKind.Conflict);
+            if (!(await users.AddToRoleAsync(recipient, "Reader")).Succeeded) throw new InvalidOperationException("Seeded role assignment failed.");
+            db.Profiles.Add(UserProfile.Create(recipient.Id, "Invited member", "en-ZA", invitationRequired: false));
+            await db.SaveChangesAsync(ct);
+        }
+        var recipientProfile = await db.Profiles.SingleAsync(x => x.Id == recipient.Id, ct);
+        if (!recipientProfile.Disabled && recipient.InvitationCancelledAt == null)
+        {
+            if (recipient.PasswordHash == null || !recipient.EmailConfirmed)
+                await accounts.QueueAction(recipient, recipient.EmailConfirmed ? EmailTemplate.PasswordReset : EmailTemplate.Verification, recipientProfile.Culture, ct);
+            outbox.Add(new EmailRequest(recipient.Id, EmailTemplate.OrganizationInvitation, recipientProfile.Culture));
+            db.Notifications.Add(new() { UserId = recipient.Id, Kind = "notificationOrganization", Link = "/organizations", CreatedAt = time.GetUtcNow() });
+        }
         await Complete(actor, customer, "customer.invited", ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public async Task<Result<Unit>> Accept(Guid actor, Guid invitation, CancellationToken ct)
@@ -117,6 +141,21 @@ public sealed class CustomerStore(FrameworkDb db, CustomerAccess access, IStorag
         if (await Find(actor, customer, ct) is not { Role: "Owner" or "Admin", Kind: "Organization" }) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         await db.Set<CustomerInviteRow>().Where(x => x.Id == invitation && x.CustomerId == customer).ExecuteDeleteAsync(ct);
         await Complete(actor, customer, "customer.invitation_revoked", ct); await tx.CommitAsync(ct); return Result.Success();
+    }
+    public async Task<Result<Unit>> Close(Guid actor, Guid customer, Guid version, CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(ct); await CustomerAccess.MutationLock(db, ct); await Lock(customer, ct);
+        var info = await Find(actor, customer, ct);
+        if (info is not { Kind: "Organization", Role: "Owner" }) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+        if (info.Version != version) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
+        if (await entitlements.HasObligations(customer, ct)) return Result.Fail("customers.deletion_obligations", ErrorKind.Conflict);
+        var now = time.GetUtcNow();
+        await db.Set<MembershipRow>().Where(x => x.CustomerId == customer).ExecuteDeleteAsync(ct);
+        await db.Set<CustomerInviteRow>().Where(x => x.CustomerId == customer).ExecuteDeleteAsync(ct);
+        await db.Set<TemplateV4.Infrastructure.Storage.OrganizationFileRow>().Where(x => x.CustomerId == customer && x.DeletedAt == null)
+            .ExecuteUpdateAsync(x => x.SetProperty(f => f.DeletedAt, now), ct);
+        await db.Set<CustomerRow>().Where(x => x.Id == customer).ExecuteUpdateAsync(x => x.SetProperty(c => c.ClosedAt, now).SetProperty(c => c.Name, "Closed organization"), ct);
+        await Complete(actor, customer, "customer.closed", ct); await tx.CommitAsync(ct); return Result.Success();
     }
     public Task<Result<Unit>> Member(Guid actor, Guid customer, ChangeMember request, CancellationToken ct) => Change(actor, customer, request.UserId, request.Role, request.Version, false, ct);
     public Task<Result<Unit>> Remove(Guid actor, Guid customer, Guid user, Guid version, CancellationToken ct) => Change(actor, customer, user, null, version, false, ct);

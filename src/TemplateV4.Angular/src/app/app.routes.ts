@@ -8,6 +8,7 @@ import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
   {
     path: 'organizations',
+    canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizations' },
     canActivate: [authGuard, moduleGuard('organizations')],
@@ -15,6 +16,7 @@ export const routes: Routes = [
   },
   {
     path: 'organizations/:id/billing',
+    canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'billing' },
     canActivate: [authGuard],
@@ -22,6 +24,7 @@ export const routes: Routes = [
   },
   {
     path: 'organizations/:id/files',
+    canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizationFiles' },
     canActivate: [authGuard, moduleGuard('organizations'), filesGuard],
@@ -30,6 +33,7 @@ export const routes: Routes = [
   },
   {
     path: 'organizations/:id',
+    canDeactivate: [unsavedGuard],
     resolve: { customerTranslations },
     data: { breadcrumb: 'organizationWorkspace' },
     canActivate: [authGuard, moduleGuard('organizations')],
@@ -235,6 +239,7 @@ export const routes: Routes = [
       },
       {
         path: 'billing',
+        canDeactivate: [unsavedGuard],
         resolve: { customerTranslations },
         data: { breadcrumb: 'billingSettings', permission: 'settings.manage' },
         canActivate: [authGuard, permissionGuard, administratorRoleGuard],

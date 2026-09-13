@@ -27,6 +27,8 @@ import { CancelCustomerSubscription$Params } from '../fn/framework/cancel-custom
 import { changeOrganizationRole } from '../fn/framework/change-organization-role';
 import { ChangeOrganizationRole$Params } from '../fn/framework/change-organization-role';
 import { CheckoutResponse } from '../models/checkout-response';
+import { closeOrganization } from '../fn/framework/close-organization';
+import { CloseOrganization$Params } from '../fn/framework/close-organization';
 import { completeMfa } from '../fn/framework/complete-mfa';
 import { CompleteMfa$Params } from '../fn/framework/complete-mfa';
 import { completePasskeyMfa } from '../fn/framework/complete-passkey-mfa';
@@ -2590,6 +2592,33 @@ export class FrameworkService extends BaseService {
    */
   transferOrganizationOwnership(params: TransferOrganizationOwnership$Params, context?: HttpContext): Observable<void> {
     const resp = this.transferOrganizationOwnership$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `closeOrganization()` */
+  static readonly CloseOrganizationPath = '/api/v1/auth/customers/{customer}/close';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `closeOrganization()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  closeOrganization$Response(params: CloseOrganization$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = closeOrganization(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `closeOrganization$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  closeOrganization(params: CloseOrganization$Params, context?: HttpContext): Observable<void> {
+    const resp = this.closeOrganization$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

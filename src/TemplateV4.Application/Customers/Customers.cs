@@ -20,6 +20,7 @@ public interface ICustomers : ICustomerAccess
 {
     Task<Result<CustomerHome>> Home(Guid actor, CancellationToken ct);
     Task<Result<CustomerInfo>> Create(Guid actor, CreateOrganization request, CancellationToken ct);
+    Task<Result<Unit>> Close(Guid actor, Guid customer, Guid version, CancellationToken ct);
     Task<Result<Unit>> Rename(Guid actor, Guid customer, RenameOrganization request, CancellationToken ct);
     Task<Result<Page<CustomerMember>>> Members(Guid actor, Guid customer, int pageNumber, int pageSize, string sort, string direction, CancellationToken ct);
     Task<Result<Unit>> Invite(Guid actor, Guid customer, InviteMember request, CancellationToken ct);

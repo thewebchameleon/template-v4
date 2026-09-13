@@ -8,6 +8,7 @@ using TemplateV4.Infrastructure.Storage;
 
 namespace TemplateV4.ApiService.Endpoints;
 
+public sealed record CloseOrganization(Guid Version);
 public sealed record MemberAction(Guid UserId, Guid Version);
 public static class CustomerBillingEndpoints
 {
@@ -25,9 +26,15 @@ public static class CustomerBillingEndpoints
         accounts.MapPost("/{customer:guid}/members/role", async (Guid customer, ClaimsPrincipal u, ChangeMember r, ICustomers s, CancellationToken ct) => (await s.Member(Actor(u), customer, r, ct)).ToHttp()).RequireModule("organizations").WithName("ChangeOrganizationRole");
         accounts.MapPost("/{customer:guid}/members/remove", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Remove(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).RequireModule("organizations").WithName("RemoveOrganizationMember");
         accounts.MapPost("/{customer:guid}/transfer", async (Guid customer, ClaimsPrincipal u, MemberAction r, ICustomers s, CancellationToken ct) => (await s.Transfer(Actor(u), customer, r.UserId, r.Version, ct)).ToHttp()).RequireModule("organizations").WithName("TransferOrganizationOwnership");
+        accounts.MapPost("/{customer:guid}/close", async (Guid customer, ClaimsPrincipal u, CloseOrganization r, ICustomers s, CancellationToken ct) => (await s.Close(Actor(u), customer, r.Version, ct)).ToHttp()).WithName("CloseOrganization");
         // Existing customers can always inspect and cancel payment obligations when checkout is disabled.
         var billing = group.MapGroup("/customers/{customer:guid}/billing").RequireAuthorization();
-        var files = group.MapGroup("/customers/{customer:guid}/files").RequireAuthorization();
+        var files = group.MapGroup("/customers/{customer:guid}/files").RequireAuthorization().AddEndpointFilter(async (invocation, next) =>
+        {
+            var flags = invocation.HttpContext.RequestServices.GetRequiredService<IFeatureFlags>();
+            var actor = invocation.HttpContext.RequestServices.GetRequiredService<IExecutionContext>();
+            return flags.Enabled("files", actor) ? await next(invocation) : Results.NotFound();
+        });
         files.MapGet("", async (Guid customer, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string sort = "name", string direction = "asc") => (await s.List(Actor(u), customer, pageNumber, pageSize, sort, direction, ct)).ToHttp()).RequireModule("organizations").RequireModule("files").WithName("GetOrganizationFiles").Produces<OrganizationFilePage>();
         files.MapPost("/upload", async (Guid customer, string name, ClaimsPrincipal u, HttpRequest r, OrganizationFiles s, CancellationToken ct) => (await s.Upload(Actor(u), customer, name, r.Body, ct)).ToHttp()).WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(FileService.MaxUploadBytes + 1)).RequireModule("organizations").RequireModule("files").WithName("UploadOrganizationFile");
         files.MapPost("/{id:guid}/delete", async (Guid customer, Guid id, ClaimsPrincipal u, OrganizationFiles s, CancellationToken ct) => (await s.Delete(Actor(u), customer, id, ct)).ToHttp()).RequireModule("organizations").RequireModule("files").WithName("DeleteOrganizationFile");
@@ -41,7 +48,7 @@ public static class CustomerBillingEndpoints
         billing.MapPost("/checkout", async (Guid customer, ClaimsPrincipal u, CheckoutRequest r, IBilling s, CancellationToken ct) =>
         {
             try { return (await s.Checkout(Actor(u), customer, r, ct)).ToHttp(); }
-            catch (Exception ex) when (ex is PaymentProviderException or HttpRequestException or TaskCanceledException) { return Results.Problem(statusCode: 503, title: "billing.provider_unavailable"); }
+            catch (Exception ex) when (ex is PaymentProviderException or HttpRequestException or TaskCanceledException) { return Results.Problem(statusCode: 503, title: ApiResults.Message("billing.provider_unavailable"), extensions: new Dictionary<string, object?> { ["code"] = "billing.provider_unavailable" }); }
         }).RequireModule("billing").WithName("CreateSubscriptionCheckout").Produces<CheckoutResponse>();
         billing.MapPost("/cancel", async (Guid customer, ClaimsPrincipal u, IBilling s, CancellationToken ct) => (await s.Cancel(Actor(u), customer, ct)).ToHttp()).WithName("CancelCustomerSubscription");
         var settings = group.MapGroup("/configuration/billing").RequireAuthorization(Permissions.Settings).RequireAuthorization(p => p.RequireRole("Administrator"));

@@ -29,7 +29,7 @@ public sealed class S3FileStorage : IFileStorage, IDisposable
                 ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED
             });
     }
-    private static string Key(string key) => Guid.TryParseExact(key, "N", out _) ? key : throw new ArgumentException("Storage keys must be opaque identifiers.", nameof(key));
+    private static string Key(string key) => StorageKey.Validate(key);
     public async Task Write(string key, Stream content, CancellationToken cancellationToken) =>
         await _client.PutObjectAsync(new PutObjectRequest { BucketName = _bucket, Key = Key(key), InputStream = content, AutoCloseStream = false, ContentType = "application/octet-stream", IfNoneMatch = "*" }, cancellationToken);
     public async Task<Stream> Read(string key, CancellationToken cancellationToken)

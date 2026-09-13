@@ -38,7 +38,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
     {
         await _postgres.StartAsync(); Directory.CreateDirectory(_directory);
         using var rsa = RSA.Create(3072); await File.WriteAllTextAsync(Path.Combine(_directory, "jwt.pem"), rsa.ExportRSAPrivateKeyPem());
-        _configuration = new() { ["ConnectionStrings:app"] = _postgres.GetConnectionString(), ["DataProtection:KeyPath"] = _directory, ["Jwt:PrivateKeyPath"] = Path.Combine(_directory, "jwt.pem"), ["Jwt:KeyId"] = "tests", ["Web:PublicUrl"] = "https://localhost", ["Web:AllowedOrigins:0"] = "https://localhost" };
+        _configuration = new() { ["Security:RequireAdministratorPasskey"] = "false", ["ConnectionStrings:app"] = _postgres.GetConnectionString(), ["DataProtection:KeyPath"] = _directory, ["Jwt:PrivateKeyPath"] = Path.Combine(_directory, "jwt.pem"), ["Jwt:KeyId"] = "tests", ["Web:PublicUrl"] = "https://localhost", ["Web:AllowedOrigins:0"] = "https://localhost" };
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         builder.Configuration.AddInMemoryCollection(_configuration);
         builder.Configuration["Storage:Path"] = Path.Combine(_directory, "files");

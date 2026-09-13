@@ -1,6 +1,6 @@
 # ADR 0026: customer accounts and subscription implementation
 
-Status: Accepted
+Status: Accepted; lifecycle and reconciliation updated by [ADR 0028](0028-review-hardening.md).
 
 ## Decision
 

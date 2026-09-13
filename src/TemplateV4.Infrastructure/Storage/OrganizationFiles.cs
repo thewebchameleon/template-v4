@@ -17,9 +17,10 @@ public sealed class OrganizationFileRow
     public bool Ready { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public DateTimeOffset? PurgedAt { get; set; }
+    public DateTimeOffset? PurgeRetryAt { get; set; }
     public static string Key(Guid customer, Guid id) => customer.ToString("N") + "-" + id.ToString("N");
 }
-public sealed record OrganizationFileItem(Guid Id, string Name, long Size, DateTimeOffset CreatedAt);
+public sealed record OrganizationFileItem(Guid Id, string Name, long Size, DateTimeOffset CreatedAt, bool CanDelete);
 public sealed record OrganizationFilePage(Page<OrganizationFileItem> Page, long UsedBytes, long QuotaBytes);
 public sealed class OrganizationFiles(FrameworkDb db, ICustomerAccess customers, IStorageEntitlements entitlements, IFileStorage storage, TimeProvider time)
 {
@@ -27,11 +28,12 @@ public sealed class OrganizationFiles(FrameworkDb db, ICustomerAccess customers,
     public async Task<Result<OrganizationFilePage>> List(Guid actor, Guid customer, int page, int size, string sort, string direction, CancellationToken ct)
     {
         if (page is < 1 or > 10000 || size is < 1 or > 100 || sort is not ("name" or "size" or "createdAt") || direction is not ("asc" or "desc")) return Result<OrganizationFilePage>.Fail("validation.failed", ErrorKind.Validation);
-        if (!await Access(actor, customer, ct)) return Result<OrganizationFilePage>.Fail("customers.not_found", ErrorKind.NotFound);
+        var account = await customers.Find(actor, customer, ct);
+        if (account is not { Kind: "Organization" }) return Result<OrganizationFilePage>.Fail("customers.not_found", ErrorKind.NotFound);
         var all = db.Set<OrganizationFileRow>().AsNoTracking().Where(x => x.CustomerId == customer && x.Ready && x.DeletedAt == null);
         var total = await all.CountAsync(ct);
         var ordered = sort switch { "name" => direction == "asc" ? all.OrderBy(x => x.Name) : all.OrderByDescending(x => x.Name), "size" => direction == "asc" ? all.OrderBy(x => x.Size) : all.OrderByDescending(x => x.Size), _ => direction == "asc" ? all.OrderBy(x => x.CreatedAt) : all.OrderByDescending(x => x.CreatedAt) };
-        var items = await ordered.ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).Select(x => new OrganizationFileItem(x.Id, x.Name, x.Size, x.CreatedAt)).ToArrayAsync(ct);
+        var items = await ordered.ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).Select(x => new OrganizationFileItem(x.Id, x.Name, x.Size, x.CreatedAt, account.Role != "Member" || x.UploadedBy == actor)).ToArrayAsync(ct);
         return Result<OrganizationFilePage>.Success(new(new(items, total, page, size), await db.Set<OrganizationFileRow>().Where(x => x.CustomerId == customer && x.PurgedAt == null).SumAsync(x => x.Size, ct), await entitlements.Quota(customer, ct) ?? 100L * 1024 * 1024));
     }
     public async Task<Result<Unit>> Upload(Guid actor, Guid customer, string name, Stream input, CancellationToken ct)

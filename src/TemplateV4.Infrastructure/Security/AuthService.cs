@@ -154,10 +154,10 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         return false;
     }
 
-    public async Task<AuthTokens> CreateSession(AppUser user, string? device, bool verified, CancellationToken ct)
+    public async Task<AuthTokens> CreateSession(AppUser user, string? device, bool verified, CancellationToken ct, bool passkeyVerified = false)
     {
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
-        var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, Device = (device ?? "Browser")[..Math.Min(device?.Length ?? 7, 200)], CreatedAt = time.GetUtcNow(), ExpiresAt = time.GetUtcNow().AddDays(30), MfaVerified = verified, SetupOnly = !verified && await security.Required(user, ct) };
+        var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, Device = (device ?? "Browser")[..Math.Min(device?.Length ?? 7, 200)], CreatedAt = time.GetUtcNow(), ExpiresAt = time.GetUtcNow().AddDays(30), MfaVerified = verified, MfaVerifiedAt = verified ? time.GetUtcNow() : null, PasskeyVerified = passkeyVerified, SetupOnly = !verified && await security.Required(user, ct) || await security.PasskeyRequired(user, ct) && !passkeyVerified };
         db.Sessions.Add(session); Audit("auth.login", user.Id);
         return await Issue(user, session, profile.Culture);
     }
@@ -201,7 +201,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         if (!valid) return false;
         var live = await db.Sessions.AsNoTracking().SingleAsync(x => x.Id == sessionId, ct);
         var owner = await users.FindByIdAsync(userId.ToString());
-        if (live.SetupOnly || (!live.MfaVerified && await security.Required(owner!, ct)))
+        if (await security.PasskeyRequired(owner!, ct) && !live.PasskeyVerified || live.SetupOnly || (!live.MfaVerified && await security.Required(owner!, ct)))
             ((ClaimsIdentity)principal.Identity!).AddClaim(new("setup_only", "true"));
         return true;
     }
@@ -231,7 +231,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
     {
         var roles = await users.GetRolesAsync(user);
         var mfaConfigured = (await security.ConfiguredMethods(user)).Length > 0;
-        var setup = session.SetupOnly || (!session.MfaVerified && await security.Required(user, default));
+        var setup = await security.PasskeyRequired(user, default) && !session.PasskeyVerified || session.SetupOnly || (!session.MfaVerified && await security.Required(user, default));
         var permissions = await (from membership in db.UserRoles
                                  join claim in db.RoleClaims on membership.RoleId equals claim.RoleId
                                  where membership.UserId == user.Id && claim.ClaimType == "permission"

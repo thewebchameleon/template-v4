@@ -30,7 +30,10 @@ export class Auth {
     this.channel?.addEventListener('message', () => {
       this.generation++;
       this.access.set(null);
-      void this.router.navigateByUrl('/login');
+      this.csrf = '';
+      this.resetChallenge();
+      // Discard all identity-bound page and service state, including pending drafts.
+      location.assign('/login');
     });
   }
   private async serial<T>(work: () => Promise<T>): Promise<T> {
@@ -111,21 +114,29 @@ export class Auth {
       this.resetChallenge();
     });
   }
-  private accept(value: Access) {
+  private accept(value: Access, broadcast = true) {
     this.access.set(value);
     this.csrf = '';
     this.i18n.set(value.culture);
     this.i18n.timeZone.set(value.timeZone ?? 'UTC');
+    if (broadcast) this.channel?.postMessage('login');
   }
   refresh(): Promise<boolean> {
     if (this.pending) return this.pending;
     const generation = this.generation;
+    const actor = this.access()?.userId;
     const execute = async () => {
       try {
         this.csrf = '';
         const value = await this.action<Access>('refresh');
         if (generation !== this.generation) return false;
-        this.accept(value);
+        if (actor && actor !== value.userId) {
+          this.generation++;
+          this.access.set(null);
+          location.assign('/login');
+          return false;
+        }
+        this.accept(value, false);
         return true;
       } catch (error) {
         if (!(error instanceof HttpErrorResponse) || error.status !== 401) throw error;

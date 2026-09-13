@@ -50,7 +50,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         return throwError(() => error);
       return from(auth.refresh()).pipe(
         switchMap((ok) =>
-          ok
+          ok && access != null && auth.access()?.userId === access.userId
             ? next(
                 request.clone({
                   setHeaders: { ...headers, Authorization: `Bearer ${auth.access()!.accessToken}` },

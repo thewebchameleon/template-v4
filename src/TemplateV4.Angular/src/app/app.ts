@@ -338,20 +338,24 @@ import { NotificationDrawer } from './features/notification-drawer';
                   <h2 hlmDrawerTitle>{{ 'themeDrawer' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'themeDrawerDescription' | t }}</p>
                 </hlm-drawer-header>
-                <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
-                  <app-preferences #preferences [expanded]="true" />
-                </div>
-                <hlm-drawer-footer>
-                  <button
-                    hlmBtn
-                    type="button"
-                    variant="warning"
-                    [disabled]="preferences.resetting()"
-                    (click)="preferences.reset()"
-                  >
-                    {{ 'resetSettings' | t }}
-                  </button>
-                </hlm-drawer-footer>
+                @defer (when themeDrawerOpen()) {
+                  <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                    <app-preferences #preferences [expanded]="true" />
+                  </div>
+                  <hlm-drawer-footer>
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="warning"
+                      [disabled]="preferences.resetting()"
+                      (click)="preferences.reset()"
+                    >
+                      {{ 'resetSettings' | t }}
+                    </button>
+                  </hlm-drawer-footer>
+                } @placeholder {
+                  <div hlmDrawerBody role="status">{{ 'loading' | t }}</div>
+                }
               </hlm-drawer-content>
             </hlm-drawer>
             <button

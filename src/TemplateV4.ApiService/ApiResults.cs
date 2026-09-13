@@ -26,7 +26,7 @@ public static class ApiResults
 
     }
 
-    private static string Message(string code)
+    public static string Message(string code)
 
     {
 
@@ -36,33 +36,45 @@ public static class ApiResults
 
         {
 
+            "customers.not_found" => af ? "Hierdie rekening of uitnodiging is nie meer beskikbaar nie. Herlaai Rekeninge en spanne." : "This account or invitation is no longer available. Refresh Accounts & teams.",
+            "customers.limit" => af ? "Die rekening- of uitnodigingslimiet is bereik. Verwyder ongebruikte lidmaatskappe of uitnodigings." : "The account or invitation limit has been reached. Remove unused memberships or invitations.",
+            "customers.last_owner" => af ? "Dra eienaarskap oor voordat jy die organisasie verlaat, of sluit dit." : "Transfer ownership before leaving this organization, or close it.",
+            "customers.deletion_obligations" => af ? "Sluit organisasies wat jy besit en kanselleer intekeninge eers. Wag tot betaalde tydperke eindig voor verwydering." : "Close owned organizations and cancel subscriptions first. Wait for paid periods to end before deletion.",
+            "billing.trial_used" => af ? "’n Proeftydperk is nie beskikbaar nie of is reeds gebruik. Kies ’n betaalde intekening." : "A trial is unavailable or has already been used. Choose a paid subscription.",
+            "billing.not_configured" => af ? "Betalings is nie opgestel nie. Kontak die rekeningadministrateur." : "Payments are not configured. Contact the account administrator.",
+            "billing.seats" => af ? "Verhoog die intekening se sitplektelling voordat meer lede bygevoeg word." : "Increase the subscription seat count before adding more members.",
+            "billing.request_conflict" => af ? "Betaalbesonderhede het verander. Herlaai fakturering voordat jy weer betaal." : "Checkout details changed. Refresh billing before starting a new checkout.",
+            "billing.subscription_exists" => af ? "Kanselleer die bestaande intekening of betaling en wag tot die betaalde tydperk eindig." : "An existing subscription or checkout must be cancelled and its paid period must end first.",
+            "billing.checkout_expired" => af ? "Hierdie betaling het verval. Herlaai fakturering en begin weer." : "This checkout expired. Refresh billing and start a new checkout.",
+            "billing.provider_unavailable" => af ? "Die betalingsverskaffer is nie beskikbaar nie. Probeer binnekort weer; jou bestaande intekening bly behoue." : "The payment provider is unavailable. Retry shortly; your existing subscription is preserved.",
+            "idempotency.erased" => af ? "Hierdie gestoorde handeling is vir privaatheid uitgevee. Herlaai voordat jy voortgaan." : "This saved operation was erased for privacy. Refresh before continuing.",
             "support.not_found" => af ? "Hierdie kaartjie is nie beskikbaar nie." : "This support ticket is unavailable.",
-            "support.category_invalid" => af ? "Kies ’n aktiewe kategorie." : "Choose an active category.",
-            "support.assignee_invalid" => af ? "Kies ’n aktiewe ondersteuningsagent." : "Choose an active support agent.",
+            "support.category_invalid" => af ? "Kies â€™n aktiewe kategorie." : "Choose an active category.",
+            "support.assignee_invalid" => af ? "Kies â€™n aktiewe ondersteuningsagent." : "Choose an active support agent.",
             "support.reopen_required" => af ? "Heropen die kaartjie om voort te gaan." : "Reopen the ticket before continuing.",
             "support.attachment_limit" => af ? "Die kaartjie se aanhangsellimiet is bereik." : "This ticket has reached its attachment limit.",
-            "support.category_limit" => af ? "Die limiet van 100 kategorieë is bereik." : "The limit of 100 categories has been reached.",
+            "support.category_limit" => af ? "Die limiet van 100 kategorieÃ« is bereik." : "The limit of 100 categories has been reached.",
             "support.last_category" => af ? "Hou minstens een aktiewe kategorie." : "Keep at least one active category.",
             "modules.conflict" => af ? "Module-instellings het verander. Herlaai die gestoorde instellings en probeer weer." : "Module settings changed. Reload the saved settings and try again.",
             "modules.unavailable" => af ? "Hierdie module is nie in hierdie ontplooiing beskikbaar nie." : "This module is unavailable in this deployment.",
             "modules.unknown" => af ? "Kies 'n ondersteunde module." : "Choose a supported module.",
             "appearance.conflict" => af ? "Konfigurasie het verander. Herlaai die gestoorde instellings en probeer weer." : "Configuration changed. Reload the saved settings and try again.",
-            "files.invalid_name" => af ? "Gebruik 'n naam van 1–180 karakters sonder skuinsstrepe of beheertekens." : "Use a name of 1–180 characters without slashes or control characters.",
+            "files.invalid_name" => af ? "Gebruik 'n naam van 1â€“180 karakters sonder skuinsstrepe of beheertekens." : "Use a name of 1â€“180 characters without slashes or control characters.",
             "files.folder_not_empty" => af ? "Verwyder eers die inhoud van hierdie vouer." : "Delete the contents of this folder first.",
             "files.settings_conflict" => af ? "Berginginstellings het verander. Herlaai en probeer weer." : "Storage settings changed. Reload and try again.",
-            "files.invalid_type" => af ? "Kies ’n ondersteunde lêer waarvan die inhoud by die lêertipe pas." : "Choose a supported file whose content matches its file type.",
+            "files.invalid_type" => af ? "Kies â€™n ondersteunde lÃªer waarvan die inhoud by die lÃªertipe pas." : "Choose a supported file whose content matches its file type.",
 
-            "files.too_large" => af ? "Lêers mag nie groter as 20 MB wees nie." : "Files must be 20 MB or smaller.",
+            "files.too_large" => af ? "LÃªers mag nie groter as 20 MB wees nie." : "Files must be 20 MB or smaller.",
 
-            "files.empty" => af ? "Kies ’n lêer wat nie leeg is nie." : "Choose a file that is not empty.",
+            "files.empty" => af ? "Kies â€™n lÃªer wat nie leeg is nie." : "Choose a file that is not empty.",
 
             "files.quota" => af ? "Jou bergingtoelaag is vol." : "Your storage allowance is full. Deleted files count until retention cleanup completes.",
 
             "audit.not_found" => af ? "Hierdie ouditinskrywing is nie beskikbaar nie." : "This audit entry is no longer available.",
 
-            "files.not_found" => af ? "Hierdie lêer is nie beskikbaar nie." : "This file is no longer available.",
+            "files.not_found" => af ? "Hierdie lÃªer is nie beskikbaar nie." : "This file is no longer available.",
 
-            "privacy.same_email" => af ? "Kies ’n ander e-posadres." : "Choose a different email address.",
+            "privacy.same_email" => af ? "Kies â€™n ander e-posadres." : "Choose a different email address.",
 
             "privacy.email_unavailable" => af ? "Hierdie e-posadres is nie beskikbaar nie." : "This email address is not available.",
 
@@ -72,9 +84,9 @@ public static class ApiResults
 
             "auth.action_invalid" => af ? "Hierdie skakel is ongeldig of het verval." : "This link is invalid or expired. Request a new link.",
 
-            "user.last_administrator" => af ? "Voeg ’n ander aktiewe administrateur by." : "Add another active administrator before continuing.",
+            "user.last_administrator" => af ? "Voeg â€™n ander aktiewe administrateur by." : "Add another active administrator before continuing.",
 
-            "user.self_lockout" => af ? "’n Ander administrateur moet hierdie verandering hersien." : "Another administrator must review this account change.",
+            "user.self_lockout" => af ? "â€™n Ander administrateur moet hierdie verandering hersien." : "Another administrator must review this account change.",
 
             "auth.invalid_credentials" => af ? "Die aanmeldbesonderhede is ongeldig." : "The sign-in details are invalid.",
 
@@ -98,7 +110,7 @@ public static class ApiResults
 
             "role.protected" => af ? "Ingeboude rolle kan nie verander word nie." : "Built-in roles cannot be changed.",
 
-            "role.invalid" => af ? "Gebruik ’n geldige rolnaam en toestemmings. Bestuur gebruikers vereis Bekyk gebruikers." : "Use a valid role name and permissions. Manage users requires View users.",
+            "role.invalid" => af ? "Gebruik â€™n geldige rolnaam en toestemmings. Bestuur gebruikers vereis Bekyk gebruikers." : "Use a valid role name and permissions. Manage users requires View users.",
 
             "role.exists" => af ? "Hierdie rolnaam bestaan reeds." : "A role with this name already exists.",
 
@@ -106,7 +118,7 @@ public static class ApiResults
 
             "role.delegation_denied" => af ? "Jy kan slegs toegang bestuur wat binne jou eie toestemmings val." : "You can manage only access within your own permissions.",
 
-            "role.self_edit" => af ? "’n Ander administrateur moet ’n rol wat aan jou toegeken is, wysig." : "Another administrator must edit a role assigned to you.",
+            "role.self_edit" => af ? "â€™n Ander administrateur moet â€™n rol wat aan jou toegeken is, wysig." : "Another administrator must edit a role assigned to you.",
 
             "concurrency.conflict" => af ? "Die rekord het verander. Herlaai dit." : "The record changed. Reload it.",
 

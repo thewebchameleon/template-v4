@@ -22,6 +22,7 @@ public sealed class StoredFile
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public DateTimeOffset? PurgedAt { get; set; }
+    public DateTimeOffset? PurgeRetryAt { get; set; }
     public bool Ready { get; set; }
 }
 

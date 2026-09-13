@@ -69,10 +69,12 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
         var account = await customers.Find(actor, customer, ct); if (account is null) return Result<BillingSummary>.Fail("customers.not_found", ErrorKind.NotFound);
         var settings = await Settings(ct); var sub = await db.Set<SubscriptionRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
         var order = sub?.OrderId is null ? null : await db.Set<PaymentOrderRow>().AsNoTracking().SingleAsync(x => x.Id == sub.OrderId, ct);
-        var state = sub is null ? "Free" : sub.CancelRequested ? "CancellationPending" : sub.Cancelled ? "Cancelled" : sub.TrialUntil > time.GetUtcNow() ? "Trial" : sub.PaidUntil > time.GetUtcNow() ? "Active" : sub.PaidUntil?.AddDays(settings.GraceDays) > time.GetUtcNow() ? "Grace" : order != null && sub.PaidUntil == null ? "Pending" : "Free";
+        var state = sub is null ? "Free" : sub.CancelRequested ? "CancellationPending" : sub.Cancelled ? "Cancelled" : sub.TrialUntil > time.GetUtcNow() ? "Trial" : sub.PaidUntil > time.GetUtcNow() ? "Active" : sub.PaidUntil?.AddDays(settings.GraceDays) > time.GetUtcNow() ? "Grace" : order != null && sub.PaidUntil == null ? "Pending" : order != null ? "PastDue" : "Free";
         // Expose only readiness booleans; credentials never leave Infrastructure.
         var available = settings with { StripeEnabled = settings.StripeEnabled && stripe.Configured, PayFastEnabled = settings.PayFastEnabled && payfast.Configured };
-        return Result<BillingSummary>.Success(new(customer, plans.Plans, available, order?.PlanId ?? sub?.PlanId ?? "free", state, order?.Provider, sub?.TrialUntil, sub?.PaidUntil, sub?.Seats ?? account.Members, await entitlements.Quota(customer, ct) ?? plans.Free.StorageBytes, account.Role == "Owner", modules.Enabled("billing") && Allowed(settings, account), order?.Interval));
+        return Result<BillingSummary>.Success(new(customer, plans.Plans, available, order?.PlanId ?? sub?.PlanId ?? "free", state, order?.Provider, sub?.TrialUntil, sub?.PaidUntil, sub?.Seats ?? account.Members, await entitlements.Quota(customer, ct) ?? plans.Free.StorageBytes, account.Role == "Owner", modules.Enabled("billing") && Allowed(settings, account) && !(sub?.OrderId != null && (!sub.Cancelled || sub.PaidUntil > time.GetUtcNow())), order?.Interval,
+            account.Role == "Owner" && sub != null && !sub.CancelRequested && !sub.Cancelled && (order != null || sub.TrialUntil > time.GetUtcNow()),
+            sub != null && CustomerRules.Paid(time.GetUtcNow(), sub.PaidUntil, sub.TrialUntil, settings.GraceDays, sub.Cancelled) ? "Paid" : "Free"));
     }
     public async Task<Result<Unit>> Trial(Guid actor, Guid customer, StartTrial request, CancellationToken ct)
     {
@@ -123,12 +125,12 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
         await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(customer, ct);
         if (await customers.Find(actor, customer, ct) is not { Role: "Owner" }) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var sub = await db.Set<SubscriptionRow>().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
-        if (sub is null) return Result.Success();
+        if (sub is null || sub.Cancelled || sub.CancelRequested) return Result.Success();
         sub.CancelRequested = sub.OrderId != null; sub.TrialUntil = null; sub.NextCheckAt = time.GetUtcNow();
         if (sub.OrderId is null) sub.Cancelled = true;
         Audit(actor, customer, "billing.cancellation_requested"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
-    public async Task Apply(Guid orderId, string provider, string receiptId, ProviderSubscription snapshot, CancellationToken ct)
+    public async Task Apply(Guid orderId, string provider, string receiptId, ProviderSubscription snapshot, CancellationToken ct, bool reconciliation = false)
     {
         var order = await db.Set<PaymentOrderRow>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == orderId && x.Provider == provider, ct);
         if (order is null || snapshot.AmountMinor != order.UnitMinor * order.Quantity || snapshot.Currency != order.Currency || receiptId.Length > 128) throw new PaymentProviderException();
@@ -138,17 +140,19 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
             await Provider(provider).Cancel(snapshot.Id, ct); return;
         }
         await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(order.CustomerId, ct);
-        if (await db.Set<PaymentReceiptRow>().AnyAsync(x => x.Provider == provider && x.Id == receiptId, ct)) return;
+        if (!reconciliation && await db.Set<PaymentReceiptRow>().AnyAsync(x => x.Provider == provider && x.Id == receiptId, ct)) return;
         var sub = await db.Set<SubscriptionRow>().SingleAsync(x => x.CustomerId == order.CustomerId, ct);
         if (sub.OrderId != order.Id) throw new PaymentProviderException();
         var stored = await db.Set<PaymentOrderRow>().SingleAsync(x => x.Id == order.Id, ct);
         if (stored.ProtectedSubscription != null && _tokens.Unprotect(stored.ProtectedSubscription) != snapshot.Id) throw new PaymentProviderException();
+        var changed = stored.ProtectedSubscription == null || snapshot.PaidUntil > sub.PaidUntil || sub.PaidUntil == null && snapshot.PaidUntil != null || !sub.Cancelled && snapshot.State is "canceled" or "cancelled";
         stored.ProtectedSubscription ??= _tokens.Protect(snapshot.Id);
         if (snapshot.PaidUntil != null && (sub.PaidUntil == null || snapshot.PaidUntil > sub.PaidUntil)) { sub.PaidUntil = snapshot.PaidUntil; sub.PlanId = order.PlanId; sub.TrialUntil = null; }
         sub.Cancelled |= snapshot.State is "canceled" or "cancelled";
-        sub.NextCheckAt = time.GetUtcNow().AddMinutes(15);
-        db.Set<PaymentReceiptRow>().Add(new() { Provider = provider, Id = receiptId, OrderId = order.Id, At = time.GetUtcNow() });
-        Audit(null, order.CustomerId, "billing.reconciled"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
+        sub.NextCheckAt = sub.Cancelled && (sub.PaidUntil == null || sub.PaidUntil <= time.GetUtcNow()) ? DateTimeOffset.MaxValue : time.GetUtcNow().AddMinutes(15);
+        if (sub.Cancelled) sub.CancelRequested = false;
+        if (!reconciliation) db.Set<PaymentReceiptRow>().Add(new() { Provider = provider, Id = receiptId, OrderId = order.Id, At = time.GetUtcNow() });
+        if (changed) Audit(null, order.CustomerId, "billing.reconciled"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
     }
     public async Task Reconcile(Guid customer, CancellationToken ct)
     {
@@ -183,7 +187,6 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
             return;
         }
         if (cancel && snapshot.State is not ("canceled" or "cancelled")) { await provider.Cancel(snapshot.Id, ct); snapshot = snapshot with { State = "canceled" }; }
-        await Apply(order.Id, order.Provider, "reconcile-" + Guid.NewGuid().ToString("N"), snapshot, ct);
-        if (cancel) await db.Set<SubscriptionRow>().Where(x => x.CustomerId == customer).ExecuteUpdateAsync(x => x.SetProperty(s => s.CancelRequested, false), ct);
+        await Apply(order.Id, order.Provider, "", snapshot, ct, reconciliation: true);
     }
 }

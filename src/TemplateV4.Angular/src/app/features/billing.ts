@@ -1,5 +1,7 @@
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { Component, inject, signal } from '@angular/core';
+import { HostListener } from '@angular/core';
+import { protectUnload } from '../shared/confirmation';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BillingSummary, CheckoutResponse } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -12,7 +14,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
   imports: [HlmSelectImports, WorkspaceUi, RouterLink],
   template: `<app-page-header title="billing" description="billingHelp"
       ><a hlmBtn variant="outline" routerLink="/organizations">{{ 'switchAccount' | t }}</a
-      ><button hlmBtn variant="outline" [disabled]="busy()" (click)="load()">
+      ><button hlmBtn variant="outline" [disabled]="busy()" (click)="refresh()">
         {{ 'refresh' | t }}
       </button></app-page-header
     >
@@ -37,8 +39,9 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
             @if (billing.paidUntil) {
               <p>{{ 'paidUntil' | t }}: {{ i18n.date(billing.paidUntil) }}</p>
             }
+            <p>{{ 'billingEntitlement' | t }}: {{ 'billing.' + billing.entitlementState | t }}</p>
             <p>{{ 'billingRetentionHelp' | t }}</p>
-            @if (billing.canManage && billing.state !== 'Free' && billing.state !== 'Cancelled') {
+            @if (billing.canCancel) {
               <button
                 hlmBtn
                 variant="destructive"
@@ -75,7 +78,8 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
               <div hlmField>
                 <label hlmFieldLabel for="billing-plan">{{ 'billingPlan' | t }}</label
                 ><hlm-select name="plan" [(ngModel)]="planId" required
-                  ><hlm-select-trigger id="billing-plan"><hlm-select-value /></hlm-select-trigger
+                  ><hlm-select-trigger buttonId="billing-plan"
+                    ><hlm-select-value /></hlm-select-trigger
                   ><hlm-select-content *hlmSelectPortal>
                     @for (plan of billing.plans; track plan.id) {
                       @if (plan.id !== 'free') {
@@ -88,7 +92,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
               <div hlmField>
                 <label hlmFieldLabel for="billing-interval">{{ 'billingInterval' | t }}</label
                 ><hlm-select name="interval" [(ngModel)]="interval"
-                  ><hlm-select-trigger id="billing-interval"
+                  ><hlm-select-trigger buttonId="billing-interval"
                     ><hlm-select-value /></hlm-select-trigger
                   ><hlm-select-content *hlmSelectPortal
                     ><hlm-select-item value="month">{{ 'billing.month' | t }}</hlm-select-item
@@ -116,7 +120,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
               <div hlmField>
                 <label hlmFieldLabel for="billing-provider">{{ 'paymentProvider' | t }}</label
                 ><hlm-select name="provider" [(ngModel)]="provider"
-                  ><hlm-select-trigger id="billing-provider"
+                  ><hlm-select-trigger buttonId="billing-provider"
                     ><hlm-select-value /></hlm-select-trigger
                   ><hlm-select-content *hlmSelectPortal>
                     @if (billing.settings.payFastEnabled) {
@@ -169,7 +173,18 @@ export class BillingPage {
   interval = 'month';
   provider = '';
   seats = 1;
+  private baseline = '';
+  private selection() {
+    return JSON.stringify([this.planId, this.interval, this.provider, this.seats]);
+  }
   private requestId: string = crypto.randomUUID();
+  hasUnsavedChanges() {
+    return this.busy() || (!!this.baseline && this.selection() !== this.baseline);
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   constructor() {
     try {
       this.requestId = sessionStorage.getItem('billing-checkout-' + this.id) ?? this.requestId;
@@ -177,6 +192,14 @@ export class BillingPage {
       /* Storage may be unavailable. */
     }
     void this.load();
+  }
+  async refresh() {
+    if (
+      this.hasUnsavedChanges() &&
+      !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
+    )
+      return;
+    await this.load();
   }
   async load() {
     if (
@@ -198,6 +221,7 @@ export class BillingPage {
             : b.settings.payFastEnabled
               ? 'payfast'
               : '');
+      this.baseline = this.selection();
     }
   }
   price(minor: number, currency: string) {
@@ -264,6 +288,8 @@ export class BillingPage {
         )
       )
         throw new Error('Invalid payment destination');
+      this.baseline = this.selection();
+      this.busy.set(false);
       if (result.fields) {
         const form = document.createElement('form');
         form.method = 'POST';

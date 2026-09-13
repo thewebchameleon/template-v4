@@ -17,10 +17,30 @@ public sealed class S3StorageTests : IAsyncLifetime
         .WithEnvironment("AWS_SECRET_ACCESS_KEY", "integration-secret")
         .WithPortBinding(8333, true)
         .WithWaitStrategy(Wait.ForUnixContainer().UntilExternalTcpPortIsAvailable(8333)).Build();
-    public Task InitializeAsync() => _storage.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _storage.StartAsync();
+        using var client = new AmazonS3Client(new BasicAWSCredentials("integration-key", "integration-secret"), new AmazonS3Config { ServiceURL = $"http://{_storage.Hostname}:{_storage.GetMappedPublicPort(8333)}", ForcePathStyle = true, AuthenticationRegion = "us-east-1" });
+        using var ready = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        while (true)
+        {
+            try { await client.ListObjectsV2Async(new() { BucketName = "templatev4", MaxKeys = 1 }, ready.Token); break; }
+            catch (Exception ex) when (ex is AmazonS3Exception or HttpRequestException or IOException && !ready.IsCancellationRequested) { await Task.Delay(500, ready.Token); }
+        }
+    }
     public async Task DisposeAsync() => await _storage.DisposeAsync();
-    [Fact]
-    public async Task S3_roundtrip_conditional_create_and_repeated_delete_work_with_SeaweedFS()
+    internal S3FileStorage Provider()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
+        builder.Configuration["Storage:S3:Endpoint"] = $"http://{_storage.Hostname}:{_storage.GetMappedPublicPort(8333)}";
+        builder.Configuration["Storage:S3:Bucket"] = "templatev4";
+        builder.Configuration["Storage:S3:AccessKey"] = "integration-key"; builder.Configuration["Storage:S3:SecretKey"] = "integration-secret";
+        return new(builder.Configuration, builder.Environment);
+    }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task S3_roundtrip_conditional_create_and_repeated_delete_work_with_SeaweedFS(bool scoped)
     {
         var endpoint = $"http://{_storage.Hostname}:{_storage.GetMappedPublicPort(8333)}";
         using var client = new AmazonS3Client(new BasicAWSCredentials("integration-key", "integration-secret"), new AmazonS3Config { ServiceURL = endpoint, ForcePathStyle = true, AuthenticationRegion = "us-east-1" });
@@ -34,7 +54,7 @@ public sealed class S3StorageTests : IAsyncLifetime
         builder.Configuration["Storage:S3:Endpoint"] = endpoint; builder.Configuration["Storage:S3:Bucket"] = "templatev4";
         builder.Configuration["Storage:S3:AccessKey"] = "integration-key"; builder.Configuration["Storage:S3:SecretKey"] = "integration-secret";
         using var provider = new S3FileStorage(builder.Configuration, builder.Environment);
-        var key = Guid.NewGuid().ToString("N"); using var content = new MemoryStream("stored in SeaweedFS"u8.ToArray());
+        var key = scoped ? OrganizationFileRow.Key(Guid.NewGuid(), Guid.NewGuid()) : Guid.NewGuid().ToString("N"); using var content = new MemoryStream("stored in SeaweedFS"u8.ToArray());
         await provider.Write(key, content, default);
         await using (var stream = await provider.Read(key, default))
         using (var reader = new StreamReader(stream)) Assert.Equal("stored in SeaweedFS", await reader.ReadToEndAsync());

@@ -82,7 +82,7 @@ export const bootstrapLoginGuard: CanActivateFn = async () => {
   const auth = inject(Auth);
   const router = inject(Router);
   try {
-    if (auth.access()) return router.createUrlTree([auth.landing()]);
+    if (auth.access() || (await auth.refresh())) return router.createUrlTree([auth.landing()]);
     return (await bootstrap.available()).available ? router.createUrlTree(['/bootstrap']) : true;
   } catch {
     errors.problem.set(null);

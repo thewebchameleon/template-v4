@@ -1,4 +1,17 @@
 export const customerDictionary: Record<string, [string, string]> = {
+  closeOrganization: ['Close organization', 'Sluit organisasie'],
+  leaveOrganization: ['Leave organization', 'Verlaat organisasie'],
+  closeOrganizationHelp: [
+    'All members will lose access and files will be deleted under the retention policy. Cancel subscriptions and wait for paid periods to end first. This cannot be undone.',
+    'Alle lede verloor toegang en l�ers word volgens die bewaringsbeleid verwyder. Kanselleer intekeninge en wag tot betaalde tydperke eindig. Dit kan nie ongedaan gemaak word nie.',
+  ],
+  leaveOrganizationHelp: [
+    'You will lose access to this organization and its files.',
+    'Jy sal toegang tot hierdie organisasie en sy l�ers verloor.',
+  ],
+  billingEntitlement: ['Current access', 'Huidige toegang'],
+  'billing.Paid': ['Paid access', 'Betaalde toegang'],
+  'billing.PastDue': ['Payment overdue', 'Betaling agterstallig'],
   organizations: ['Accounts & teams', 'Rekeninge en spanne'],
   organizationsHelp: [
     'Choose a personal account or an organization workspace.',

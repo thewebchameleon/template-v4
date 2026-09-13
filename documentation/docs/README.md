@@ -83,7 +83,7 @@ See [production deployment](production.md), [MFA and passkey policy](adr/0005-co
 
 ## UI customization
 
-The authenticated Dashboard at `/dashboard` reuses System Health's summary-card and two-column layout. Extend `src/TemplateV4.Angular/src/app/features/dashboard.ts` with application-specific metrics, charts and activity. Its initial content is explicitly labelled as placeholders and makes no privileged API requests. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
+The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard.ts` with actual application metrics when available. It makes no privileged API requests. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
 
 When a data table is the first content in a card (directly or through `app-page-state`), shared styles remove the top content padding and round the table's top corners to the inner card radius. Column headers then meet the card border without a blank strip. Cards with filters or status messages above the table retain their content spacing.
 

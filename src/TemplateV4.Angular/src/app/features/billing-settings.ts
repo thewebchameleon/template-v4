@@ -1,5 +1,7 @@
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { Component, inject, signal } from '@angular/core';
+import { HostListener } from '@angular/core';
+import { protectUnload } from '../shared/confirmation';
 import { BillingSettings } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Notifications } from '../core/notifications';
@@ -18,7 +20,8 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
             <div hlmField>
               <label hlmFieldLabel for="billing-ownership">{{ 'billingOwnership' | t }}</label
               ><hlm-select name="ownership" [(ngModel)]="s.ownership"
-                ><hlm-select-trigger id="billing-ownership"><hlm-select-value /></hlm-select-trigger
+                ><hlm-select-trigger buttonId="billing-ownership"
+                  ><hlm-select-value /></hlm-select-trigger
                 ><hlm-select-content *hlmSelectPortal>
                   @for (value of ['Both', 'Personal', 'Organization']; track value) {
                     <hlm-select-item [value]="value">{{ 'customer.' + value | t }}</hlm-select-item>
@@ -41,7 +44,8 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
             <div hlmField>
               <label hlmFieldLabel for="default-provider">{{ 'defaultPaymentProvider' | t }}</label
               ><hlm-select name="default" [(ngModel)]="s.defaultProvider"
-                ><hlm-select-trigger id="default-provider"><hlm-select-value /></hlm-select-trigger
+                ><hlm-select-trigger buttonId="default-provider"
+                  ><hlm-select-value /></hlm-select-trigger
                 ><hlm-select-content *hlmSelectPortal
                   ><hlm-select-item value="payfast">PayFast</hlm-select-item
                   ><hlm-select-item value="stripe">Stripe</hlm-select-item></hlm-select-content
@@ -88,6 +92,16 @@ export class BillingSettingsPage {
   readonly data = new Resource<BillingSettings>();
   readonly busy = signal(false);
   settings: BillingSettings | null = null;
+  hasUnsavedChanges() {
+    return (
+      this.busy() ||
+      (this.settings != null && JSON.stringify(this.settings) !== JSON.stringify(this.data.value()))
+    );
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   constructor() {
     void this.load();
   }

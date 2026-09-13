@@ -36,7 +36,7 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized); }
         if (!(await users.AddOrUpdatePasskeyAsync(user, result.Passkey!)).Succeeded) throw new InvalidOperationException("Passkey update failed.");
         await users.ResetAccessFailedCountAsync(user);
-        var tokens = await auth.CreateSession(user, challenge.Row.Device, true, ct);
+        var tokens = await auth.CreateSession(user, challenge.Row.Device, true, ct, passkeyVerified: true);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Success(tokens);
     }
     public async Task<Result<PasskeyOptions>> MfaOptions(PasskeyChallengeRequest request, HttpContext http, CancellationToken ct)
@@ -71,7 +71,7 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         db.AuthChallenges.Remove(loginChallenge.Row);
         if (!(await users.AddOrUpdatePasskeyAsync(user, result.Passkey!)).Succeeded) throw new InvalidOperationException("Passkey update failed.");
         await users.ResetAccessFailedCountAsync(user);
-        var tokens = await auth.CreateSession(user, challenge.Row.Device, true, ct);
+        var tokens = await auth.CreateSession(user, challenge.Row.Device, true, ct, passkeyVerified: true);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Success(tokens);
     }
     public async Task<Result<PasskeyOptions>> RegistrationOptions(Guid id, SecurityProof proof, HttpContext http, CancellationToken ct)
@@ -115,7 +115,7 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         if (await security.RequiresRecentVerification(user, sessionId, ct))
             return Result.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await security.Proof(user, request.Proof, ct)) { await tx.CommitAsync(ct); return Result.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
-        if (!user.EmailMfaEnabled && !user.TwoFactorEnabled && await security.GloballyRequired(user, ct) && (await users.GetPasskeysAsync(user)).Count <= 1) return Result.Fail("auth.mfa_required", ErrorKind.Conflict);
+        if ((await security.PasskeyRequired(user, ct) || !user.EmailMfaEnabled && !user.TwoFactorEnabled && await security.GloballyRequired(user, ct)) && (await users.GetPasskeysAsync(user)).Count <= 1) return Result.Fail("auth.mfa_required", ErrorKind.Conflict);
         if (!(await users.RemovePasskeyAsync(user, key)).Succeeded) return Result.Fail("auth.passkey_missing", ErrorKind.NotFound);
         await security.Changed(user, sessionId, "auth.passkey_removed", ct);
         await tx.CommitAsync(ct); return Result.Success();

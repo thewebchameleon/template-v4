@@ -33,6 +33,11 @@ import { Notifications } from '../core/notifications';
         <h2 hlmCardTitle>{{ 'security' | t }}</h2>
         <p hlmCardDescription>{{ 'policyHelp' | t }}</p>
       </div>
+      @if (reauthenticationRequired()) {
+        <div hlmAlert role="status">
+          <p hlmAlertDescription>{{ 'reauthenticationRequired' | t }}</p>
+        </div>
+      }
       <form
         hlmCardContent
         #form="ngForm"
@@ -154,6 +159,7 @@ export class AccountSecurityPanel {
     this.requireEveryone = value === 'Everyone';
     this.requireAdministrators = value !== 'Optional';
   }
+  readonly reauthenticationRequired = signal(false);
   registrationEnabled = false;
   constructor() {
     void this.load();
@@ -187,9 +193,15 @@ export class AccountSecurityPanel {
         }),
       );
       this.settingsConflict.set(false);
+      this.reauthenticationRequired.set(false);
       this.notifications.success('securitySaved');
       await this.auth.refresh();
     } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.error?.code === 'auth.reauthentication_required'
+      )
+        this.reauthenticationRequired.set(true);
       if (error instanceof HttpErrorResponse && error.status === 409) {
         this.settingsConflict.set(true);
         await this.load(false);

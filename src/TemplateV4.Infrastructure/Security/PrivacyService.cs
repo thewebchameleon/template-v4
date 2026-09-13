@@ -177,6 +177,9 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
                 .ExecuteUpdateAsync(x => x.SetProperty(a => a.SubjectNameSnapshot, (string?)null)
                     .SetProperty(a => a.ChangesJson, (string?)null).SetProperty(a => a.MetadataJson, (string?)null)
                     .SetProperty(a => a.RelatedEntitiesJson, (string?)null).SetProperty(a => a.Reason, (string?)null), ct);
+            // Keep a payload-free tombstone until expiry, preventing recreation by an old command key.
+            await db.Idempotency.Where(x => x.ActorId == user.Id || x.SubjectId == user.Id)
+                .ExecuteUpdateAsync(x => x.SetProperty(r => r.Response, "").SetProperty(r => r.Erased, true), ct);
             await db.Sessions.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.AuthChallenges.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.UserTokens.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);

@@ -1,4 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HostListener } from '@angular/core';
+import { protectUnload } from '../shared/confirmation';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -35,7 +37,13 @@ const column = createColumnHelper<DataTableFeatures, OrganizationFileItem>();
       <form hlmCardContent class="grid gap-4" (ngSubmit)="upload()">
         <div hlmField>
           <label hlmFieldLabel for="organization-file">{{ 'chooseFile' | t }}</label
-          ><input hlmInput id="organization-file" type="file" (change)="choose($event)" />
+          ><input
+            hlmInput
+            id="organization-file"
+            type="file"
+            [disabled]="busy()"
+            (change)="choose($event)"
+          />
         </div>
         <button hlmBtn [disabled]="busy() || !file()">{{ 'uploadFile' | t }}</button>
       </form>
@@ -110,18 +118,29 @@ export class OrganizationFilesPage {
                       row.original.name,
                     ),
                 },
-                {
-                  label: 'delete',
-                  destructive: true,
-                  disabled: this.busy(),
-                  run: () => void this.remove(row.original),
-                },
+                ...(row.original.canDelete
+                  ? [
+                      {
+                        label: 'delete',
+                        destructive: true,
+                        disabled: this.busy(),
+                        run: () => void this.remove(row.original),
+                      },
+                    ]
+                  : []),
               ],
             },
           }),
       }),
     ]);
   });
+  hasUnsavedChanges() {
+    return this.busy() || this.file() != null;
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   constructor() {
     this.query.connect(() => void this.load());
   }
@@ -156,8 +175,10 @@ export class OrganizationFilesPage {
   sort(s: ServerSort) {
     void this.query.set({ sort: s.column, direction: s.direction, page: 1 });
   }
+  private fileInput: HTMLInputElement | null = null;
   choose(e: Event) {
-    this.file.set((e.target as HTMLInputElement).files?.[0] ?? null);
+    this.fileInput = e.target as HTMLInputElement;
+    this.file.set(this.fileInput.files?.[0] ?? null);
   }
   async upload() {
     const file = this.file();
@@ -177,6 +198,7 @@ export class OrganizationFilesPage {
         ),
       );
       this.file.set(null);
+      if (this.fileInput) this.fileInput.value = '';
       await this.load();
     } finally {
       this.busy.set(false);

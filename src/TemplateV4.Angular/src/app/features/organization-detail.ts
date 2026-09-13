@@ -1,10 +1,13 @@
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HostListener } from '@angular/core';
+import { protectUnload } from '../shared/confirmation';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { CustomerHome, CustomerMember, PageOfCustomerMember } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
+import { Auth } from '../core/auth';
 import { Notifications } from '../core/notifications';
 import {
   Resource,
@@ -33,6 +36,11 @@ const column = createColumnHelper<DataTableFeatures, CustomerMember>();
     <app-page-state [state]="home.state()" [refreshError]="home.refreshError()" (retry)="reload()">
       @if (account(); as account) {
         <h2 class="page-title mb-6">{{ account.name }}</h2>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <button hlmBtn variant="destructive" [disabled]="busy()" (click)="leaveOrClose()">
+            {{ (account.role === 'Owner' ? 'closeOrganization' : 'leaveOrganization') | t }}
+          </button>
+        </div>
         <section hlmCard class="mb-6">
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ 'organizationMembers' | t }}</h2>
@@ -88,7 +96,8 @@ const column = createColumnHelper<DataTableFeatures, CustomerMember>();
               <div hlmField>
                 <label hlmFieldLabel for="member-role">{{ 'role' | t }}</label
                 ><hlm-select name="role" [(ngModel)]="role"
-                  ><hlm-select-trigger id="member-role"><hlm-select-value /></hlm-select-trigger
+                  ><hlm-select-trigger buttonId="member-role"
+                    ><hlm-select-value /></hlm-select-trigger
                   ><hlm-select-content *hlmSelectPortal
                     ><hlm-select-item value="Member">{{ 'customer.Member' | t }}</hlm-select-item>
                     @if (account.role === 'Owner') {
@@ -133,6 +142,8 @@ const column = createColumnHelper<DataTableFeatures, CustomerMember>();
 })
 export class OrganizationDetailPage {
   readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  readonly auth = inject(Auth);
+  readonly router = inject(Router);
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
@@ -193,13 +204,25 @@ export class OrganizationDetailPage {
       }),
     ]);
   });
+  hasUnsavedChanges() {
+    return (
+      this.busy() ||
+      !!this.email.trim() ||
+      (this.account() != null && this.name !== this.account()!.name)
+    );
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   constructor() {
     void this.reload();
     this.query.connect(() => void this.loadMembers());
   }
-  async reload() {
+  async reload(preserveDraft = true) {
+    const dirty = this.account() != null && this.name !== this.account()!.name;
     if (await this.home.load((signal) => this.api.get('customers/', {}, signal)))
-      this.name = this.account()?.name ?? '';
+      if (!preserveDraft || !dirty) this.name = this.account()?.name ?? '';
   }
   pageSize() {
     const n = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
@@ -230,9 +253,42 @@ export class OrganizationDetailPage {
     this.busy.set(true);
     try {
       await this.api.post(`customers/${this.id}/${path}`, body);
-      await this.reload();
+      if (path === 'invite') {
+        this.email = '';
+        this.role = 'Member';
+      }
+      await this.reload(path !== 'rename');
       await this.loadMembers();
       this.toast.success('customerSaved');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async leaveOrClose() {
+    const account = this.account();
+    if (!account || this.busy()) return;
+    const close = account.role === 'Owner';
+    if (
+      !(await this.confirm.ask(
+        close ? 'closeOrganization' : 'leaveOrganization',
+        close ? 'closeOrganizationHelp' : 'leaveOrganizationHelp',
+        account.name,
+        true,
+      ))
+    )
+      return;
+    this.busy.set(true);
+    try {
+      if (close) await this.api.post(`customers/${this.id}/close`, { version: account.version });
+      else
+        await this.api.post(`customers/${this.id}/members/remove`, {
+          userId: this.auth.access()!.userId,
+          version: account.version,
+        });
+      this.email = '';
+      this.name = account.name;
+      this.busy.set(false);
+      await this.router.navigateByUrl('/organizations');
     } finally {
       this.busy.set(false);
     }

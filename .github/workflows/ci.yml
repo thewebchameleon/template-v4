@@ -61,7 +61,7 @@ jobs:
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.BackgroundWorker -t templatev4-worker:ci .
           docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.DatabaseMigrator -t templatev4-databasemigrator:ci .
           docker build -f src/TemplateV4.Angular/Dockerfile -t templatev4-web:ci .
-      - run: node --test tools/cli.test.mjs tools/appearance.test.mjs
+      - run: node --test tools/cli.test.mjs tools/appearance.test.mjs tools/auth-retry.test.mjs
       - name: Test independent package consumer
         shell: pwsh
         run: ./tools/test-packages.ps1

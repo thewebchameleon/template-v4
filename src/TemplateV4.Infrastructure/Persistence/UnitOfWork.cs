@@ -19,10 +19,12 @@ public sealed class UnitOfWork(FrameworkDb db, IEnumerable<IDomainEventHandler> 
         {
             if (scopedKey is not null)
             {
+                // Serialize replay/response creation with account erasure.
+                await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", cancellationToken);
                 await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({scopedKey}, 0))", cancellationToken);
                 var existing = await db.Idempotency.FindAsync([scopedKey], cancellationToken);
                 if (existing is not null && existing.ExpiresAt > time.GetUtcNow())
-                    return existing.Fingerprint == hash ? JsonSerializer.Deserialize<Result<T>>(existing.Response)!
+                    return existing.Erased ? Result<T>.Fail("idempotency.erased", ErrorKind.Conflict) : existing.Fingerprint == hash ? JsonSerializer.Deserialize<Result<T>>(existing.Response)!
                         : Result<T>.Fail("idempotency.conflict", ErrorKind.Conflict);
                 if (existing is not null) db.Idempotency.Remove(existing);
             }
@@ -42,7 +44,7 @@ public sealed class UnitOfWork(FrameworkDb db, IEnumerable<IDomainEventHandler> 
             {
                 // Delete an expired key before replacing it in the identity map.
                 await db.SaveChangesAsync(cancellationToken);
-                db.Idempotency.Add(new() { Key = scopedKey, Fingerprint = hash, Response = JsonSerializer.Serialize(result), ExpiresAt = time.GetUtcNow().AddHours(24) });
+                db.Idempotency.Add(new() { Key = scopedKey, ActorId = context.ActorId, SubjectId = result.Value is TemplateV4.Application.Users.UserDto subject ? subject.Id : null, Fingerprint = hash, Response = JsonSerializer.Serialize(result), ExpiresAt = time.GetUtcNow().AddHours(24) });
             }
             await db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

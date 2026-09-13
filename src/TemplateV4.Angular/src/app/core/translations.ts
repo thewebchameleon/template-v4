@@ -34,6 +34,31 @@ export const dictionary: Record<string, [string, string]> = {
   ...configurationDictionary,
   ...workspaceDictionary,
   ...adminDictionary,
+  dashboardActionsHelp: [
+    'Continue with your account, notifications and available workspaces.',
+    'Gaan voort met jou rekening, kennisgewings en beskikbare werkruimtes.',
+  ],
+  dashboardAccountHelp: [
+    'Update your profile and manage your sign-in methods.',
+    'Werk jou profiel by en bestuur jou aanmeldmetodes.',
+  ],
+  dashboardUnread: ['Unread notifications', 'Ongeleesde kennisgewings'],
+  dashboardFilesHelp: [
+    'Upload, download and organize your personal files.',
+    'Laai jou persoonlike l�ers op of af en organiseer hulle.',
+  ],
+  dashboardTeamsHelp: [
+    'Accept invitations and manage your organization workspaces.',
+    'Aanvaar uitnodigings en bestuur jou organisasiewerkruimtes.',
+  ],
+  dashboardSupportHelp: [
+    'Follow your support requests or open a new ticket.',
+    'Volg jou ondersteuningsversoeke of skep �n nuwe kaartjie.',
+  ],
+  dashboardAdministrationHelp: [
+    'Open the administration tools available to your role.',
+    'Maak die administrasienutsmiddels vir jou rol oop.',
+  ],
   dashboard: ['Dashboard', 'Kontrolepaneel'],
   dashboardIntro: [
     'Your workspace at a glance. These placeholders are ready for your own data.',
@@ -243,6 +268,10 @@ export const dictionary: Record<string, [string, string]> = {
   verifyPasskey: ['Verify with your passkey', 'Verifieer met jou toegangsleutel'],
   chooseAnotherMethod: ['Choose another method', 'Kies ’n ander metode'],
   startAgain: ['Start again', 'Begin weer'],
+  passkeySetupRequired: [
+    'Privileged accounts require a passkey. Add one below, then keep a second passkey on a separate device for recovery.',
+    'Bevoorregte rekeninge vereis �n toegangssleutel. Voeg een hieronder by en hou �n tweede op �n aparte toestel vir herstel.',
+  ],
   setupRequired: [
     'Your account requires MFA. Enroll an authenticator or add a passkey to continue.',
     'Jou rekening vereis MFA. Stel ’n verifikasie-app op of voeg ’n toegangsleutel by om voort te gaan.',

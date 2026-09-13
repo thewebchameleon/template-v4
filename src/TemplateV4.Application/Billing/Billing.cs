@@ -3,7 +3,7 @@ namespace TemplateV4.Application.Billing;
 public sealed record BillingPlan(string Id, string Name, string Pricing, string Currency, long MonthlyMinor, long YearlyMinor, long StorageBytes);
 public sealed record BillingSettings(string Ownership, bool StripeEnabled, bool PayFastEnabled, string DefaultProvider, int TrialDays, int GraceDays, Guid Version);
 public sealed record BillingSummary(Guid CustomerId, BillingPlan[] Plans, BillingSettings Settings, string PlanId, string State, string? Provider,
-    DateTimeOffset? TrialUntil, DateTimeOffset? PaidUntil, int Seats, long StorageBytes, bool CanManage, bool CanCheckout, string? Interval);
+    DateTimeOffset? TrialUntil, DateTimeOffset? PaidUntil, int Seats, long StorageBytes, bool CanManage, bool CanCheckout, string? Interval, bool CanCancel, string EntitlementState);
 public sealed record StartTrial(string PlanId);
 public sealed record CheckoutRequest(string PlanId, string Interval, string Provider, int Seats, Guid RequestId);
 public sealed record CheckoutResponse(Guid Id, string Url, Dictionary<string, string>? Fields, string? Reference = null);

@@ -30,7 +30,7 @@ The production app Compose file requires:
 | `${SECRETS_DIR}/s3_access_key` | App access key |
 | `${SECRETS_DIR}/s3_secret_key` | App secret key |
 
-API/Worker load keys through key-per-file configuration. The migrator does not instantiate the storage provider. Production rejects plaintext HTTP S3 endpoints. The SDK uses path-style requests, required checksums and conditional object creation, with a bounded timeout and no automatic write retries. Object keys are GUIDs; filenames stay in PostgreSQL. Custom providers must implement `Write`, `Read` and idempotent `Delete`. Retention cleanup makes repeated deletes safe after crashes.
+API/Worker load keys through key-per-file configuration. The migrator does not instantiate the storage provider. Production rejects plaintext HTTP S3 endpoints. The SDK uses path-style requests, required checksums and conditional object creation, with a bounded timeout and no automatic write retries. Both local and S3 providers accept exactly a GUID in `N` format or two such GUIDs joined by a hyphen (`customer-file`); filenames stay in PostgreSQL. Custom providers must implement `Write`, `Read` and idempotent `Delete`. Retention cleanup makes repeated deletes safe after crashes.
 
 A single-node deployment is a practical baseline, not high availability. For production resilience, follow [SeaweedFS replication guidance](https://github.com/seaweedfs/seaweedfs/wiki/Replication) across separate hosts and maintain encrypted off-host backups of data and filer metadata. Do not treat replicas on the same machine as disaster recovery. Test restoring both database metadata and the referenced objects before claiming recovery targets.
 
@@ -39,3 +39,7 @@ The file library accepts all file types and always downloads them as attachments
 ## File library extension points
 
 [ADR 0021](adr/0021-user-file-library.md) defines folder ownership and administrator quota management. Folder metadata stays in PostgreSQL; object keys never contain user names or folder paths. `FileService.MaxUploadBytes` defines the 20 MiB cap enforced while reading the request and advertised to the UI. Keep reverse-proxy body limits aligned when changing it. The old `Storage:QuotaBytes` configuration is replaced by database settings: configure the default through Administration â†’ File storage and individual overrides through user details. Run the migrator before restarting API and Worker. Existing files migrate into the root folder.
+
+## Retention processing
+
+`Privacy:DeletedFileRetentionDays` defaults to 30 (range 1–365); `Privacy:NotificationRetentionDays` defaults to 90 (range 7–365). Unfinished uploads become eligible after one day. `Privacy:FilePurgeBatchSize` defaults to 100 per library per runner (range 1–1000). Four bounded runners scan every minute using individual `FOR UPDATE SKIP LOCKED` transactions. Each delete has a 65-second timeout. A failed object receives a persisted one-hour retry delay; other files and independent invitation/notification cleanup can commit. Quota is released only after successful object deletion. The worker logs backlog count and the oldest eligible object's creation time without names or payloads. Alert on sustained backlog growth.

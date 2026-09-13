@@ -59,7 +59,9 @@ type MfaProfile = ProfileResponse & {
       <p class="mt-3 break-words">{{ user.displayName }} · {{ user.email }}</p>
       @if (auth.access()?.setupRequired) {
         <div hlmAlert role="status" class="my-4">
-          <p hlmAlertDescription>{{ 'setupRequired' | t }}</p>
+          <p hlmAlertDescription>
+            {{ (user.passkeyRequired ? 'passkeySetupRequired' : 'setupRequired') | t }}
+          </p>
         </div>
       }
       <section hlmCard class="mt-6 max-w-(--form-content-width)">

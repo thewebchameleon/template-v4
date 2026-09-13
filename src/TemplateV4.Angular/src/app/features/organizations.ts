@@ -1,4 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
+import { HostListener } from '@angular/core';
+import { protectUnload } from '../shared/confirmation';
 import { RouterLink } from '@angular/router';
 import { CustomerHome } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
@@ -90,6 +92,13 @@ export class OrganizationsPage {
   readonly toast = inject(Notifications);
   readonly busy = signal(false);
   name = '';
+  hasUnsavedChanges() {
+    return this.busy() || !!this.name.trim();
+  }
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent) {
+    protectUnload(event, this.hasUnsavedChanges());
+  }
   constructor() {
     void this.load();
   }
