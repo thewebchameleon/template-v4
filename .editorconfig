@@ -10,3 +10,6 @@ trim_trailing_whitespace = true
 indent_size = 4
 csharp_style_namespace_declarations = file_scoped:warning
 dotnet_sort_system_directives_first = true
+[src/TemplateV4.Infrastructure/Persistence/Migrations/*.cs]
+charset = utf-8-bom
+csharp_style_namespace_declarations = block_scoped:silent
