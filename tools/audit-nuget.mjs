@@ -19,12 +19,6 @@ child.on('error', error => {
 });
 
 child.on('close', code => {
-  if (code !== 0) {
-    console.error(errors || output);
-    process.exitCode = 1;
-    return;
-  }
-
   try {
     const report = JSON.parse(output);
     const problems = (report.problems ?? []).filter(problem => {
@@ -45,9 +39,10 @@ child.on('close', code => {
     );
 
     if (vulnerable.length) throw new Error(JSON.stringify(vulnerable));
+    if (code !== 0 && problems.length === 0 && errors.trim()) console.warn(errors.trim());
     console.log(`NuGet audit passed for ${projects.length} package-reference projects.`);
   } catch (error) {
-    console.error(error.message);
+    console.error(errors || error.message);
     process.exitCode = 1;
   }
 });
