@@ -1,0 +1,17 @@
+{
+  "release": "run-34887766344-1",
+  "foundationCommit": "5190c0bca7381a647b411547eec6bdd4aecdb184",
+  "businessCommit": null,
+  "components": null,
+  "images": {
+    "api": "ghcr.io/thewebchameleon/template-v4/api@sha256:f3779821c9e4b5dedbea8500d1fd0ed213044e0e2b8a5bd5dcff3cf09d67776e",
+    "worker": "ghcr.io/thewebchameleon/template-v4/worker@sha256:3bbf7249cc7c0a4f16325327825b364a22a092c231f0d9154696eb0d3563d832",
+    "migrator": "ghcr.io/thewebchameleon/template-v4/migrator@sha256:d68af1602c96a95d8751dc929094940f77c4ac80d798e8dd0c27ab0cb06bddfd",
+    "web": "ghcr.io/thewebchameleon/template-v4/web@sha256:3b1f172147d958fe510216a2eef68eabc83a234ad00b85edb8a484202dada99c"
+  },
+  "selection": {
+    "schemaVersion": 1,
+    "foundation": {},
+    "privateModules": []
+  }
+}
