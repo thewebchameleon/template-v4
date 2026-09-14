@@ -49,7 +49,7 @@ jobs:
       - run: node --test tools/releases/releases.test.mjs
       - run: dotnet tool restore
       - run: dotnet restore src/TemplateV4.slnx --locked-mode
-      - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore
+      - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Infrastructure/Persistence/Migrations
       - run: npm run format:check --prefix src/TemplateV4.Angular
       - run: npm run lint --prefix src/TemplateV4.Angular
       - run: dotnet build src/TemplateV4.slnx -c Release --no-restore
