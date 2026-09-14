@@ -4,7 +4,7 @@ x-runtime: &runtime
   DataProtection__CertificatePath: /run/secrets/dp_certificate
   Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
   Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
-  Deployment__Version: run-34887766344-1
+  Deployment__Version: run-34891727830-1
   Updates__Enabled: ${UPDATES_ENABLED:-false}
   Updates__FeedUrl: ${UPDATES_FEED_URL:-}
   Storage__Provider: S3
@@ -44,7 +44,7 @@ services:
       retries: 20
     stop_grace_period: 60s
   migrator:
-    image: ghcr.io/thewebchameleon/template-v4/migrator@sha256:d68af1602c96a95d8751dc929094940f77c4ac80d798e8dd0c27ab0cb06bddfd
+    image: ghcr.io/thewebchameleon/template-v4/migrator@sha256:ae571b77b19ac6041c010aca7cd948ed0dc8d181c7d4e2c2e798fb9496e45b25
     pull_policy: always
     environment:
       <<: *runtime
@@ -58,7 +58,7 @@ services:
       postgres: { condition: service_healthy }
       key-permissions: { condition: service_completed_successfully }
   api:
-    image: ghcr.io/thewebchameleon/template-v4/api@sha256:f3779821c9e4b5dedbea8500d1fd0ed213044e0e2b8a5bd5dcff3cf09d67776e
+    image: ghcr.io/thewebchameleon/template-v4/api@sha256:37988c6b500c5ffb0c6d271324d5a9e81c15727eed013de9ccd7dd9bb957eea6
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -78,7 +78,7 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   worker:
-    image: ghcr.io/thewebchameleon/template-v4/worker@sha256:3bbf7249cc7c0a4f16325327825b364a22a092c231f0d9154696eb0d3563d832
+    image: ghcr.io/thewebchameleon/template-v4/worker@sha256:17f4d3e38135e90367ea1a16b4e2a473bfab37233a81252229b0ef0d7f58273d
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -100,7 +100,7 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   web:
-    image: ghcr.io/thewebchameleon/template-v4/web@sha256:3b1f172147d958fe510216a2eef68eabc83a234ad00b85edb8a484202dada99c
+    image: ghcr.io/thewebchameleon/template-v4/web@sha256:74dfb3cf6bb8f6738ed169e55b57798cbd7f944267410794db58497a6e3b2be5
     pull_policy: always
     restart: unless-stopped
     expose: ["8080"]
