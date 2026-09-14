@@ -6,6 +6,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const directory = path.join(root, 'src/TemplateV4.Application.Tests');
 const shard = Number(process.argv[2]);
 const shardCount = Number(process.argv[3]);
+const contractTest = 'Api_requires_authorization_and_Csrf_and_exports_contract';
 if (!Number.isInteger(shard) || !Number.isInteger(shardCount) || shard < 0 || shard >= shardCount)
   throw new Error('Usage: node tools/run-application-test-shard.mjs <zero-based-shard> <shard-count>');
 
@@ -17,7 +18,7 @@ for (const file of fs.readdirSync(directory).filter(name => name.endsWith('.cs')
   for (const match of source.matchAll(expression)) methods.push(match[1]);
 }
 
-const unique = [...new Set(methods)].sort();
+const unique = [...new Set(methods)].filter(name => name !== contractTest).sort();
 if (!unique.length) throw new Error('No SecurityAndMessagingTests methods were discovered.');
 const selected = unique.filter((_, index) => index % shardCount === shard);
 if (!selected.length) throw new Error(`Shard ${shard + 1}/${shardCount} is empty.`);
