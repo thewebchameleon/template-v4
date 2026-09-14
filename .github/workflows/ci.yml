@@ -61,7 +61,7 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             git fetch origin "$BASE_SHA" --depth=1
-            mapfile -t files < <(git diff --name-only "$BASE_SHA"...HEAD -- '*.cs' | grep -v '^src/TemplateV4.Infrastructure/Persistence/Migrations/' || true)
+            mapfile -t files < <(git diff --name-only "$BASE_SHA" HEAD -- '*.cs' | grep -v '^src/TemplateV4.Infrastructure/Persistence/Migrations/' || true)
             if [ "${#files[@]}" -gt 0 ]; then
               dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --include "${files[@]}"
             fi
