@@ -147,7 +147,7 @@ jobs:
             project="${item#*:}"
             dockerfile=deploy/Dockerfile.dotnet
             if [ "$service" = web ]; then dockerfile=src/TemplateV4.Angular/Dockerfile; fi
-            docker buildx build --push --file "$dockerfile" \
+            docker buildx build --push --platform "linux/amd64,linux/arm64" --file "$dockerfile" \
               --build-arg "PROJECT=TemplateV4.$project" \
               --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
               --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
