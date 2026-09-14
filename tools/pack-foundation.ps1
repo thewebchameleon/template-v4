@@ -9,6 +9,8 @@ foreach ($package in $manifest.packages.PSObject.Properties) {
     dotnet pack (Join-Path $repo $package.Value) -c Release -o $output "-p:Version=$Version" --no-restore
     if ($LASTEXITCODE -ne 0) { throw "Packing $($package.Name) failed" }
 }
+node (Join-Path $repo 'tools/discover-business-modules.mjs')
+if ($LASTEXITCODE -ne 0) { throw 'Business module discovery failed' }
 $env:FOUNDATION_PACKAGE_VERSION = $Version
 try {
     node (Join-Path $repo 'tools/build-frontend-package.mjs')
