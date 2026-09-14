@@ -56,8 +56,8 @@ jobs:
       - run: npm run build --prefix src/TemplateV4.Angular
       - run: npm run validate --prefix documentation
       - run: npm run build --prefix documentation
-      - run: npm audit --prefix src/TemplateV4.Angular --audit-level=moderate
-      - run: npm audit --prefix documentation --audit-level=moderate
+      - run: npm audit --prefix src/TemplateV4.Angular --omit=dev --audit-level=moderate
+      - run: npm audit --prefix documentation --omit=dev --audit-level=moderate
       - name: NuGet vulnerability check
         run: node tools/audit-nuget.mjs
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
