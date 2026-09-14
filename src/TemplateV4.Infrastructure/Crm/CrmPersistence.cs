@@ -4,13 +4,24 @@ using TemplateV4.Application.Customers;
 
 namespace TemplateV4.Infrastructure.Crm;
 
-public sealed class OrganisationOperations(ICustomerAccess access) : IOrganisationOperations
+public sealed class OrganisationOperations(ICustomerAccess access, TemplateV4.Infrastructure.Persistence.FrameworkDb db) : IOrganisationOperations
 {
     public async Task<bool> Allowed(Guid actor, Guid organisation, OrganisationOperation operation, CancellationToken ct)
     {
         var member = await access.Find(actor, organisation, ct);
-        return Enum.IsDefined(operation) && member is { Kind: "Organisation" } &&
-            (operation != OrganisationOperation.Configure || member.Role is "Owner" or "Admin");
+        if (!Enum.IsDefined(operation) || member is not { Kind: "Organisation" }) return false;
+        if (operation == OrganisationOperation.Configure) return member.Role is "Owner" or "Admin";
+        var permission = operation switch
+        {
+            OrganisationOperation.Issue => TemplateV4.Application.Users.Permissions.InvoiceIssue,
+            OrganisationOperation.Settle => TemplateV4.Application.Users.Permissions.InvoiceSettle,
+            OrganisationOperation.Correct => TemplateV4.Application.Users.Permissions.InvoiceCorrect,
+            _ => null
+        };
+        return permission is null || await (from membership in db.UserRoles
+                                            join claim in db.RoleClaims on membership.RoleId equals claim.RoleId
+                                            where membership.UserId == actor && claim.ClaimType == "permission" && claim.ClaimValue == permission
+                                            select claim).AnyAsync(ct);
     }
 }
 public sealed class CrmRecordRow

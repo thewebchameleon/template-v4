@@ -6,8 +6,50 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { discover, backend, frontend } from "./discover-business-modules.mjs";
 import { scaffoldBusiness } from "./scaffold-business.mjs";
+import {
+  readClientModules,
+  checkGeneratedSelection,
+} from "./client-modules.mjs";
 
 const repository = path.resolve(import.meta.dirname, "..");
+test("client settings reject core overrides, unavailable prerequisites and stale generated selection", (t) => {
+  const root = fixture(t);
+  scaffoldBusiness(root, "Reports");
+  const file = path.join(root, "client-modules.json");
+  const save = (foundation) =>
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        schemaVersion: 1,
+        foundation,
+        privateModules: ["reports"],
+      }),
+    );
+  save({ identity: false });
+  assert.throws(() => readClientModules(root), /optional foundation/);
+  save({ crm: false, invoicing: false });
+  assert.throws(() => discover(root), /requires crm/);
+  save({ support: false });
+  const modules = discover(root);
+  const generated = backend(
+    modules,
+    "TemplateV4.ApiService",
+    readClientModules(root).foundation,
+  );
+  assert.match(generated, /ClientModules:support/);
+  assert.match(generated, /Category: "private"/);
+  assert.throws(() => checkGeneratedSelection(root, ["reports"]), /Stale/);
+});
+function select(root, ids) {
+  fs.writeFileSync(
+    path.join(root, "client-modules.json"),
+    JSON.stringify({ schemaVersion: 1, foundation: {}, privateModules: ids }),
+  );
+  fs.writeFileSync(
+    path.join(root, "business-modules.enabled"),
+    ids.length ? ids.join("\n") + "\n" : "",
+  );
+}
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "templatev4-discovery-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -22,7 +64,7 @@ test("scaffold is discovered without host edits, and removal clears registration
   const root = fixture(t);
   assert.deepEqual(discover(root), []);
   scaffoldBusiness(root, "Reports");
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "reports\n");
+  select(root, ["reports"]);
   const modules = discover(root);
   assert.equal(modules[0].id, "reports");
   assert.equal(modules[0].enabledByDefault, false);
@@ -44,7 +86,7 @@ test("scaffold is discovered without host edits, and removal clears registration
     path.join(root, "removed-modules"),
   );
   assert.throws(() => discover(root), /missing/);
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "");
+  select(root, []);
   assert.doesNotMatch(frontend(discover(root)), /reports/);
   assert.match(
     backend(discover(root), "TemplateV4.ApiService"),
@@ -54,7 +96,7 @@ test("scaffold is discovered without host edits, and removal clears registration
 test("rejects invalid entry points and dependency graphs before generating code", (t) => {
   const root = fixture(t);
   scaffoldBusiness(root, "Reports");
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "reports\n");
+  select(root, ["reports"]);
   const file = path.join(root, "business-modules/reports/module.json");
   const descriptor = JSON.parse(fs.readFileSync(file));
   fs.writeFileSync(
@@ -84,7 +126,7 @@ test("MSBuild discovers project references at evaluation, before restore", (t) =
   );
   scaffoldBusiness(root, "Reports");
   scaffoldBusiness(root, "Excluded");
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "reports\n");
+  select(root, ["reports"]);
   const project = path.join(root, "TemplateV4.ApiService.csproj");
   fs.writeFileSync(
     project,
@@ -99,7 +141,7 @@ test("MSBuild discovers project references at evaluation, before restore", (t) =
   const references = JSON.parse(result.stdout).Items.ProjectReference;
   assert.equal(references.length, 1);
   assert.match(references[0].Identity, /Reports.Api.csproj$/);
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "");
+  select(root, []);
   const empty = spawnSync(
     "dotnet",
     ["msbuild", project, "-getItem:ProjectReference"],
@@ -114,19 +156,17 @@ test("selection is explicit, bounded, and rejects missing dependencies", (t) => 
   scaffoldBusiness(root, "Reports");
   scaffoldBusiness(root, "Excluded");
   assert.deepEqual(discover(root), []);
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "reports\r\n");
+  select(root, ["reports"]);
   assert.deepEqual(
     discover(root).map((module) => module.id),
     ["reports"],
   );
   assert.doesNotMatch(frontend(discover(root)), /excluded/);
-  fs.writeFileSync(path.join(root, "business-modules.enabled"), "../reports\n");
-  assert.throws(() => discover(root), /unique module IDs/);
-  fs.writeFileSync(
-    path.join(root, "business-modules.enabled"),
-    "reports\nreports\n",
-  );
-  assert.throws(() => discover(root), /unique module IDs/);
+  select(root, ["../reports"]);
+  assert.throws(() => discover(root), /unique privateModules IDs/);
+  select(root, ["reports", "reports"]);
+  assert.throws(() => discover(root), /unique privateModules IDs/);
+  select(root, ["reports"]);
   const file = path.join(root, "business-modules/reports/module.json");
   const descriptor = JSON.parse(fs.readFileSync(file));
   fs.writeFileSync(

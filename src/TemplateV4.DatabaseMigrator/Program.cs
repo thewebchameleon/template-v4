@@ -8,6 +8,7 @@ using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+TemplateV4.Host.BusinessModules.ConfigureClient(builder);
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, TemplateV4.Host.BusinessModules.Descriptors);
 TemplateV4.Host.BusinessModules.Configure(builder);
 builder.Services.AddScoped<IExecutionContext, BackgroundExecutionContext>();

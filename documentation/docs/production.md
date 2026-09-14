@@ -1,5 +1,9 @@
 # Production deployment
 
+For registry-based foundation demo and generic client releases on native EasyPanel
+Compose, see [EasyPanel deployment examples](easypanel.md). The same releases also
+have a [Coolify deployment guide](coolify.md).
+
 The platform baseline now requires a private HTTPS S3 endpoint and app credentials in production. Follow [object storage](object-storage.md) before deploying API/Worker, and apply the PlatformBaseline migration through the migrator. Add [monitoring](monitoring.md) to configure alerts and repeatable restore verification. Set `DEPLOYMENT_VERSION` to identify the release in System Health.
 
 Use `compose.production.yaml` explicitly. `compose.yaml` remains local development and is the only deployment that includes Mailpit. The Web image's Nginx serves Angular and proxies `/api/` in both environments, so they share one origin. The `/api/` proxy preserves WebSocket upgrades used by SignalR notifications; the hosting platform ingress must preserve them as well. In production, publish Nginx's HTTP port 8080 through the Coolify/Easypanel proxy and let the platform terminate TLS and manage certificates. Do not expose Web directly or expose API, Worker, or PostgreSQL publicly. Docker DNS resolution refreshes API upstream addresses after replica replacement. The API trusts only the Nginx container address for forwarded headers. Configure the platform ingress to replace untrusted client forwarding headers; Nginx then preserves that trusted client address for API rate limiting.

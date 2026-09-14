@@ -31,12 +31,18 @@ public static class Registration
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<Updates.UpdateConfiguration>();
+        services.AddScoped<Updates.UpdateStore>();
+        services.AddScoped<IUpdates>(p => p.GetRequiredService<Updates.UpdateStore>());
+        services.AddHttpClient<Updates.UpdateFeedClient>(http => http.Timeout = TimeSpan.FromSeconds(30))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false }).RemoveAllLoggers();
         if ((config["Customers:Mode"] ?? "Both") is not ("Both" or "Personal" or "Organisations")) throw new InvalidOperationException("Invalid Customers:Mode.");
         services.AddSingleton<PlanCatalog>();
         services.AddScoped<CustomerAccess>();
         services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());
         services.AddScoped<ICustomers, CustomerStore>();
         services.AddScoped<TemplateV4.Application.Crm.IOrganisationOperations, Crm.OrganisationOperations>();
+        services.AddScoped<DemoPasswordVerifier>();
         services.AddScoped<TemplateV4.Application.Customers.IOrganisationObligations, Invoicing.CommercialObligations>();
         services.AddScoped<Crm.CrmStore>();
         services.AddScoped<TemplateV4.Application.Crm.IRecordAttachments, Crm.RecordAttachments>();
@@ -109,6 +115,8 @@ public static class Registration
         services.AddScoped<IHandler<AttachTicket, Unit>, AttachTicketHandler>();
         services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
+        services.AddScoped<TemplateV4.Application.Platform.IActionItems, ActionItemsService>();
+        services.AddScoped<RegistrationReviewService>();
         services.AddScoped<MyFilesService>();
         services.AddScoped<OrganisationFiles>();
         services.AddScoped<TemplateV4.Application.Crm.IOrganisationAttachments, OrganisationAttachments>();

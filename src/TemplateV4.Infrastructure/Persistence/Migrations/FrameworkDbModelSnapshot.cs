@@ -556,6 +556,79 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("issuer_settings", "invoicing");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.ActionItemRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssigneeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("QueueId")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Source", "SourceId")
+                        .IsUnique();
+
+                    b.HasIndex("AssigneeId", "State", "CreatedAt");
+
+                    b.HasIndex("CreatorId", "State", "CreatedAt");
+
+                    b.HasIndex("QueueId", "State", "CreatedAt");
+
+                    b.ToTable("action_items", "app", t =>
+                        {
+                            t.HasCheckConstraint("CK_action_items_assignment", "(\"AssigneeId\" IS NULL) <> (\"QueueId\" IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -636,6 +709,19 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset?>("RegistrationReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RegistrationReviewedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RegistrationState")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("NotRequired");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -1423,6 +1509,9 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("RegistrationApprovalRequired")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("RegistrationEnabled")
                         .HasColumnType("boolean");
 
@@ -1863,6 +1952,51 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("CustomerId", "CreatedAt");
 
                     b.ToTable("organisation_files", "files");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Updates.UpdateAnnouncement", b =>
+                {
+                    b.Property<string>("Component")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Component", "Version");
+
+                    b.ToTable("release_announcements", "app");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Updates.UpdateState", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("CheckedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InstalledHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ReleasesJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTimeOffset?>("SucceededAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("release_update_state", "app");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

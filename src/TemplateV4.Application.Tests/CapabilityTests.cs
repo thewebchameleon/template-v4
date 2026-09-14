@@ -136,7 +136,7 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal("modules.conflict", stale.Error!.Code);
 
         var dispatcher = sp.GetRequiredService<Dispatcher<SaveMyFilesModuleSettings, MyFilesModuleSettings>>();
-        var demo = await dispatcher.Send(new(true, true, saved.Value!.Version));
+        var demo = await dispatcher.Send(new(true, true, saved.Value!.Version, "Test-only!Password942"));
         Assert.True(demo.IsSuccess);
         var db = sp.GetRequiredService<FrameworkDb>();
         var started = (await db.FileStorageSettings.AsNoTracking().SingleAsync()).DemoStartedAt;

@@ -7,5 +7,6 @@ export interface ModuleActivation {
   enableBlockers: Array<string>;
   enabled: boolean;
   id: string;
+  initialized?: boolean;
   version: string;
 }

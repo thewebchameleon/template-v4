@@ -37,7 +37,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
         await db.Entry(user).ReloadAsync(ct);
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == user.Id, ct);
-        if (profile is null || profile.Disabled || !user.EmailConfirmed || await users.IsLockedOutAsync(user) || !await users.CheckPasswordAsync(user, request.Password))
+        if (profile is null || profile.Disabled || user.RegistrationState is "Pending" or "Rejected" || !user.EmailConfirmed || await users.IsLockedOutAsync(user) || !await users.CheckPasswordAsync(user, request.Password))
         {
             if (!await users.IsLockedOutAsync(user)) await users.AccessFailedAsync(user);
             Audit("auth.login_failed", user.Id); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
@@ -80,7 +80,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
             return Result<AuthTokens>.Fail("auth.challenge_expired", ErrorKind.Unauthorized);
         }
         await security.Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
-        if (challenge.Row.SecurityStamp != user.SecurityStamp)
+        if (user.RegistrationState is "Pending" or "Rejected" || challenge.Row.SecurityStamp != user.SecurityStamp)
             return Result<AuthTokens>.Fail("auth.challenge_expired", ErrorKind.Unauthorized);
         var methods = await security.ConfiguredMethods(user);
         if (!methods.Contains(request.Method) || request.Method == MfaMethods.Passkey)
@@ -181,7 +181,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         }
         var user = await users.FindByIdAsync(session.UserId.ToString());
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == session.UserId, ct);
-        if (session.RevokedAt is not null || session.ExpiresAt <= now || token.ExpiresAt <= now || user is null || profile is null || profile.Disabled || session.SecurityStamp != user.SecurityStamp)
+        if (session.RevokedAt is not null || session.ExpiresAt <= now || token.ExpiresAt <= now || user is null || profile is null || profile.Disabled || user.RegistrationState is "Pending" or "Rejected" || session.SecurityStamp != user.SecurityStamp)
             return Result<AuthTokens>.Fail("auth.session_invalid", ErrorKind.Unauthorized);
         token.ConsumedAt = now;
         var tokens = await Issue(user, session, profile.Culture);
@@ -196,7 +196,7 @@ public sealed class AuthService(FrameworkDb db, UserManager<AppUser> users, Sign
         var valid = await (from session in db.Sessions
                            join user in db.Users on session.UserId equals user.Id
                            join profile in db.Profiles on user.Id equals profile.Id
-                           where session.Id == sessionId && user.Id == userId && session.RevokedAt == null && session.ExpiresAt > now && !profile.Disabled && user.SecurityStamp == session.SecurityStamp
+                           where session.Id == sessionId && user.Id == userId && session.RevokedAt == null && session.ExpiresAt > now && !profile.Disabled && user.RegistrationState != "Pending" && user.RegistrationState != "Rejected" && user.SecurityStamp == session.SecurityStamp
                            select session.Id).AnyAsync(ct);
         if (!valid) return false;
         var live = await db.Sessions.AsNoTracking().SingleAsync(x => x.Id == sessionId, ct);

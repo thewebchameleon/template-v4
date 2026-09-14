@@ -32,7 +32,7 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         if (!result.Succeeded) { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         var user = result.User!;
         await security.Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
-        if (!user.EmailConfirmed || await users.IsLockedOutAsync(user) || !await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct))
+        if (user.RegistrationState is "Pending" or "Rejected" || !user.EmailConfirmed || await users.IsLockedOutAsync(user) || !await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct))
         { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized); }
         if (!(await users.AddOrUpdatePasskeyAsync(user, result.Passkey!)).Succeeded) throw new InvalidOperationException("Passkey update failed.");
         await users.ResetAccessFailedCountAsync(user);
@@ -63,7 +63,7 @@ public sealed class PasskeyService(FrameworkDb db, UserManager<AppUser> users, I
         if (user is null || challenge is null || state is null || loginChallenge is null || challenge.Row.SecurityStamp != user.SecurityStamp || loginChallenge.Row.UserId != user.Id || loginChallenge.Row.SecurityStamp != user.SecurityStamp)
         { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Fail("auth.challenge_expired", ErrorKind.Unauthorized); }
         await security.Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
-        if (challenge.Row.SecurityStamp != user.SecurityStamp || loginChallenge.Row.SecurityStamp != user.SecurityStamp)
+        if (user.RegistrationState is "Pending" or "Rejected" || challenge.Row.SecurityStamp != user.SecurityStamp || loginChallenge.Row.SecurityStamp != user.SecurityStamp)
             return Result<AuthTokens>.Fail("auth.challenge_expired", ErrorKind.Unauthorized);
         var result = await handler.PerformAssertionAsync(new() { HttpContext = http, CredentialJson = request.Credential.GetRawText(), AssertionState = state.AssertionState });
         if (!result.Succeeded || result.User?.Id != user.Id)

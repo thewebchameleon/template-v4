@@ -7,7 +7,7 @@ public interface ICapabilities
     Task<bool> Enabled(string capability, CancellationToken ct);
 }
 
-public sealed record ModuleActivation(string Id, bool Enabled, bool Available, Guid Version, string[] EnableBlockers, string[] DisableBlockers);
+public sealed record ModuleActivation(string Id, bool Enabled, bool Available, Guid Version, string[] EnableBlockers, string[] DisableBlockers, bool Initialized = true);
 public sealed record SaveModuleActivation(string Id, bool Enabled, Guid Version) : ICommand<ModuleActivation>, IAuthorizedRequest
 { public string Permission => Users.Permissions.Settings; }
 public interface IModuleActivation

@@ -35,3 +35,94 @@ See [verification](documentation/docs/verification.md) for test coverage, contra
 ## Configurable SaaS modules
 
 The SaaS module foundation supports deployment presets and independently gated capabilities. See [the module guide](documentation/docs/saas-modules.md) for configuration, vertical-slice scaffolding and the approved organisations/billing roadmap. Inspect effective preset settings with `node tools/framework.mjs modules baseline` or `node tools/framework.mjs modules minimal`.
+
+## Business modules: user guide
+
+The catalog distinguishes three categories:
+
+| Category | Included features | Control |
+| --- | --- | --- |
+| Core services | Identity, audit recording, delivery, maintenance, operations, audit history, organisations | Foundation configuration and permissions; not selectable in the private-module menu. |
+| Optional foundation modules | My Files, support, CRM, invoicing, SaaS billing | Client foundation settings; runtime controls only where supported. Code remains compiled in. |
+| Private business modules | Separately owned client features | Private-only selector, build inclusion, then supported runtime activation. |
+
+`client-modules.json` is the ignored source of client choices. See
+[client-modules.example.json](client-modules.example.json) for its shape. Its `foundation`
+object accepts only optional foundation IDs with boolean values; omitted values retain
+the existing preset/configuration defaults. Its `privateModules` array lists private IDs.
+The PowerShell selector modifies only that array and preserves foundation settings.
+Do not overwrite an existing client file with the example.
+
+After manually editing foundation settings, run `node tools/discover-business-modules.mjs`
+before restore/build. It validates dependencies and generates the existing host inputs.
+`business-modules.enabled` is now generated, not an editable source. A stale selection
+fails backend validation. For older checkouts, transfer its IDs into `privateModules`
+before regenerating. Administration lists only available modules with supported runtime
+controls; excluded modules retain their data and activation choices.
+
+A fresh template includes no private business modules. Each client selects its own set
+for its separate deployment and database. Including a module in a build and enabling
+it in Administration are separate steps.
+
+### Set up the repositories
+
+Install PowerShell 7 and the Node, npm and .NET versions specified in `framework.json`.
+Clone your private module repository into the template's `business-modules/` directory:
+
+```powershell
+# Run from the template repository root; replace the URL with your private repository.
+git clone <private-module-repository-url> business-modules
+pwsh -File ./tools/configure-business-modules.ps1
+```
+
+If both repositories are already cloned, ensure the private checkout is located at
+`template-v4/business-modules/` before running the script. The script does not move or
+clone repositories. Private source and the local module selection are ignored by the
+template's Git repository. Use a template revision containing the configuration script.
+
+### Choose and build modules
+
+The menu marks currently selected modules with `[x]` and lists their dependencies.
+
+| Input | Effect |
+| --- | --- |
+| `1,3` | Select exactly modules 1 and 3 from the displayed list. |
+| Enter | Keep the current selection. |
+| `none` | Select foundation only. |
+| `q` | Exit without saving. |
+
+Enter the complete desired set, including any required business dependencies. Confirm
+with `y` to save. Invalid selections are rejected before saving, so include missing
+dependencies and retry. Numbers refer to the current menu, not permanent module IDs.
+
+The script then offers to restore dependencies and build. Answer `y` to run .NET
+restore, npm installs for Web and Documentation, the Release solution build and the
+Angular production build. Stop running development hosts first. If a command fails,
+the script stops; the selection stays saved so you can fix the cause and rerun it.
+Answer `n` to build later. It does not run tests, deploy, migrate databases or enable modules.
+
+The `privateModules` selection in ignored `client-modules.json` controls API, Worker, Migrator and Web
+together. Deploy fresh matching builds, run the Database Migrator, then open
+**Administration → Modules** and enable prerequisites followed by the new module.
+New modules start disabled; existing activation choices are retained.
+
+### Remove or reinstall modules
+
+Rerun the script and leave a module out of the complete selection, or enter `none` to
+remove all business modules from the next build. Required dependents must also be
+removed. Removal preserves module source, database records and migration history;
+it takes effect in the running application only after rebuilding and deploying.
+
+To reinstall, select the module again, rebuild and deploy against the same database,
+and run the Migrator. Retained records remain available subject to permissions and
+activation. Before production removal, resolve outstanding work and decide how retained
+records will remain accessible. For a temporary pause, use runtime disablement in
+Administration instead of removing code from the build.
+
+### Repeatable client releases
+
+Pin both repository commits, retain the selected module IDs and reviewed dependency
+locks in private client release configuration, and build in a clean workspace. Selected
+host locks live under `.local/client-locks/`; restore them before a locked restore.
+Keep runtime secrets separate. See the [business module integration guide](documentation/docs/business-modules.md)
+for deployment, dependency and retention details.

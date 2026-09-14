@@ -9,15 +9,18 @@ export class Features {
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
   readonly capabilities = signal<Partial<Record<string, boolean>>>({});
+  readonly state = signal<'loading' | 'ready' | 'error'>('loading');
   private generation = 0;
   private pending?: Promise<void>;
   load(): Promise<void> {
     if (this.pending) return this.pending;
     const generation = this.generation;
+    this.state.set('loading');
     const pending = this.fetch(generation)
       .catch(() => {
         if (generation === this.generation) {
           this.capabilities.set({});
+          this.state.set('error');
         }
       })
       // A sign-in reset can supersede a route guard's in-flight fetch. Wait for
@@ -32,6 +35,7 @@ export class Features {
     this.generation++;
     this.pending = undefined;
     this.capabilities.set({});
+    this.state.set('loading');
   }
   private async fetch(generation: number) {
     const capabilities = await firstValueFrom(
@@ -39,6 +43,7 @@ export class Features {
     );
     if (generation !== this.generation) return;
     this.capabilities.set(capabilities);
+    this.state.set('ready');
   }
   enabled(name: string) {
     return this.capabilities()[name] === true;
@@ -47,11 +52,19 @@ export class Features {
 
 export const capabilityGuard =
   (name: string): CanActivateFn =>
-  async () => {
+  async (_route, state) => {
     const auth = inject(Auth);
     const features = inject(Features);
     const router = inject(Router);
     if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
     await features.load();
-    return features.enabled(name) || router.createUrlTree(['/me']);
+    return (
+      features.enabled(name) ||
+      router.createUrlTree(['/module-unavailable'], {
+        queryParams: {
+          returnUrl: state.url,
+          reason: features.state() === 'error' ? 'error' : 'disabled',
+        },
+      })
+    );
   };

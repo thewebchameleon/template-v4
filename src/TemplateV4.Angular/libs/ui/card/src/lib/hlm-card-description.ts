@@ -7,6 +7,6 @@ import { classes } from '@spartan-ng/helm/utils';
 })
 export class HlmCardDescription {
   constructor() {
-    classes(() => 'text-sm text-muted-foreground/80');
+    classes(() => 'text-sm text-card-foreground');
   }
 }

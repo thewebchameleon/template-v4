@@ -1,0 +1,26 @@
+services:
+  release-feed:
+    build:
+      context: ../..
+      dockerfile: services/release-feed/Dockerfile
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ["127.0.0.1:8095:8080"]
+    volumes:
+      - releases:/data
+      - ./release-credentials.json:/run/secrets/release-credentials.json:ro
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://localhost:8080/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  releases:

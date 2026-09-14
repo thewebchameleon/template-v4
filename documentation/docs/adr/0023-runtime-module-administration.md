@@ -1,6 +1,6 @@
 # ADR 0023: application-wide module administration
 
-Status: Accepted
+Status: Accepted; original Files-only scope superseded by [ADR 0031](0031-declarative-capabilities.md), [ADR 0035](0035-module-categories-and-client-configuration.md) and [ADR 0036](0036-module-administration-safety.md).
 
 ## Decision
 

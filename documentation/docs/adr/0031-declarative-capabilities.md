@@ -14,7 +14,7 @@ Generate C# module/capability constants and TypeScript identifier unions using `
 
 ## Runtime administration and concurrency
 
-My Files and Support remain the only runtime switches. Generic activation discovery derives supported modules from catalog metadata and returns activation versions plus enable/disable blockers to Administrators. The activation store rejects enabling an unavailable prerequisite and disabling a prerequisite with enabled dependents; there is no implicit cascade.
+Runtime switches are declared by the current catalog and selected private descriptors. My Files, Support, CRM and Invoicing are the current foundation switches. Generic activation discovery derives supported modules from catalog metadata and returns activation versions plus enable/disable blockers to Administrators. The activation store rejects enabling an unavailable prerequisite and disabling a prerequisite with enabled dependents; there is no implicit cascade.
 
 All activation writers lock runtime rows in ID order inside the dispatcher transaction before validating the graph or taking module-settings locks. This serializes graph transitions across API instances. A stale version returns conflict. Updates and audit entries commit together. Required foundations cannot be runtime switches. Future switches need seeded rows in a new forward migration; existing migration history is permanent.
 
@@ -33,3 +33,5 @@ Angular uses one typed capability response, a shared capability guard, and desti
 Cover graph failures, composed capability restrictions, missing runtime state, blocked transitions and concurrent prerequisite/dependent changes. PostgreSQL tests exercise the actual store, audit and optimistic conflicts, including independent activation and file-settings versions. Browser-free tests exercise Angular request coalescing, failure and sign-in races. E2E execution remains subject to repository permission rules.
 
 See the [module guide](../saas-modules.md) for extension commands and the repository-local `module-feature-development` skill for the implementation workflow.
+
+Administration safety, retained navigation, financial permissions and HTTP feature-context limits are clarified by [ADR 0036](0036-module-administration-safety.md).

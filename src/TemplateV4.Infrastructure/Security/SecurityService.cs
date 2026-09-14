@@ -15,7 +15,7 @@ public sealed record SecurityProof(string Password, string Code = "", bool Recov
 public sealed record MfaEnrollment(string Key, string Uri);
 public sealed record MfaConfirmation(string Code);
 public sealed record MfaPreferenceRequest(string Method);
-public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool RegistrationEnabled = false);
+public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool RegistrationEnabled = false, bool RegistrationApprovalRequired = false);
 public sealed record ProfileResponse(Guid Id, string Email, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys, bool EmailMfaEnabled, string[] MfaMethods, string PreferredMfaMethod,
     string? FirstName, string? LastName, string? PhoneNumber, string TimeZone, string? AvatarDataUrl, Guid Version, bool PasskeyRequired);
 public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt);
@@ -101,7 +101,7 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
     public async Task<bool> VerifyCode(AppUser user, string code, bool recovery, CancellationToken ct)
     {
         await Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
-        if (await users.IsLockedOutAsync(user) || !user.EmailConfirmed || !await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct)) return false;
+        if (user.RegistrationState is "Pending" or "Rejected" || await users.IsLockedOutAsync(user) || !user.EmailConfirmed || !await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct)) return false;
         bool valid = false;
         if (user.TwoFactorEnabled && !string.IsNullOrWhiteSpace(code) && code.Length <= 64)
         {
@@ -129,7 +129,7 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
     {
         if (proof is null) return false;
         await Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
-        if (await users.IsLockedOutAsync(user) || string.IsNullOrEmpty(proof.Password) || proof.Password.Length > 1024 || !await users.CheckPasswordAsync(user, proof.Password))
+        if (user.RegistrationState is "Pending" or "Rejected" || await users.IsLockedOutAsync(user) || string.IsNullOrEmpty(proof.Password) || proof.Password.Length > 1024 || !await users.CheckPasswordAsync(user, proof.Password))
         { await users.AccessFailedAsync(user); return false; }
         if (await PasskeyRequired(user, ct) && (await users.GetPasskeysAsync(user)).Count > 0) return await RecentlyVerified(user.Id, ct);
         if (user.TwoFactorEnabled) return await VerifyCode(user, proof.Code, proof.RecoveryCode, ct);
@@ -262,6 +262,8 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
         if (db.Entry(settings).State == EntityState.Detached) db.SecuritySettings.Add(settings);
         var previousPolicy = settings.MfaPolicy;
         var previousRegistration = settings.RegistrationEnabled;
+        var previousApproval = settings.RegistrationApprovalRequired;
+        settings.RegistrationApprovalRequired = request.RegistrationApprovalRequired;
         settings.MfaPolicy = request.MfaPolicy; settings.RegistrationEnabled = request.RegistrationEnabled; settings.Version = Guid.NewGuid();
         db.Audit.Add(new()
         {
@@ -269,7 +271,7 @@ public sealed class SecurityService(FrameworkDb db, UserManager<AppUser> users, 
             Action = "security.policy_changed",
             SubjectType = "configuration",
             SubjectNameSnapshot = "security",
-            ChangesJson = AuditCapture.Changes(new AuditChange("mfaPolicy", previousPolicy, request.MfaPolicy), new("registrationEnabled", previousRegistration.ToString(), request.RegistrationEnabled.ToString())),
+            ChangesJson = AuditCapture.Changes(new AuditChange("mfaPolicy", previousPolicy, request.MfaPolicy), new("registrationEnabled", previousRegistration.ToString(), request.RegistrationEnabled.ToString()), new("registrationApprovalRequired", previousApproval.ToString(), request.RegistrationApprovalRequired.ToString())),
             At = time.GetUtcNow()
         });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<SecuritySettings>.Success(settings);

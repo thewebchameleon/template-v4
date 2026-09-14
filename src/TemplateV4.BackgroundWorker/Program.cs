@@ -8,6 +8,7 @@ using TemplateV4.ServiceDefaults;
 
 if (await Hosting.HandleHealthProbe(args)) return;
 var builder = WebApplication.CreateBuilder(args);
+TemplateV4.Host.BusinessModules.ConfigureClient(builder);
 builder.AddServiceDefaults();
 var modules = TemplateV4.Host.BusinessModules.Descriptors;
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, modules);
@@ -21,6 +22,7 @@ builder.Services.AddHostedService<JobReconciler>();
 builder.Services.AddHostedService<StorageRetention>();
 builder.Services.AddHostedService<BillingReconciler>();
 builder.Services.AddHostedService<DeliveryMetrics>();
+builder.Services.AddHostedService<UpdateChecker>();
 builder.Services.AddQuartz(options =>
 {
     options.ConfigureScheduler(scheduler =>

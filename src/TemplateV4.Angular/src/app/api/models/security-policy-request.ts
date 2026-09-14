@@ -3,6 +3,7 @@
 
 export interface SecurityPolicyRequest {
   mfaPolicy: string;
+  registrationApprovalRequired?: boolean;
   registrationEnabled?: boolean;
   version: string;
 }

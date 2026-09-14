@@ -1,0 +1,10 @@
+services:
+  api:
+    secrets:
+      - { source: update_feed_token, target: Updates__Token }
+  worker:
+    secrets:
+      - { source: update_feed_token, target: Updates__Token }
+secrets:
+  update_feed_token:
+    file: ${SECRETS_DIR:?Set SECRETS_DIR}/update_feed_token

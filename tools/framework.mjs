@@ -106,7 +106,7 @@ switch (command) {
         files[1][1] = 'using TemplateV4.Application.Modules;\n' + files[1][1]
           .replace('        group.MapGet(', `        var entries = group.MapGroup("").OwnedByModule("${name.toLowerCase()}").RequireCapability("${name.toLowerCase()}");\n        entries.MapGet(`);
         files.push(
-          [`modules/scaffolds/${name.toLowerCase()}.json`, JSON.stringify({ id: name.toLowerCase(), required: false, enabledByDefault: false, dependencies: ['identity'], runtimeConfigurable: false, capabilities: [] }, null, 2) + '\n'],
+          [`modules/scaffolds/${name.toLowerCase()}.json`, JSON.stringify({ id: name.toLowerCase(), category: 'foundation', required: false, enabledByDefault: false, dependencies: ['identity'], runtimeConfigurable: false, capabilities: [] }, null, 2) + '\n'],
           [`${manifest.projects.Domain}/${name}/README.md`, `# ${name} domain\n\nOwn business invariants here. Keep this layer BCL-only.\n`],
           [`${manifest.projects.Infrastructure}/${name}/README.md`, `# ${name} infrastructure\n\nOwn focused persistence, provider adapters and explicit registration here. Do not access other module tables directly.\n`],
           [`${manifest.projects.Worker}/${name}/README.md`, `# ${name} worker\n\nOwn scheduling and consumers here. Define disable/drain behavior before registering a job.\n`],

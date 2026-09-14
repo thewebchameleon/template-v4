@@ -4,6 +4,7 @@ import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table
 import { CommercialDocument, PageOfCommercialDocument } from '../api/models';
 import { I18n } from '../core/i18n';
 import { Features } from '../core/features';
+import { Auth } from '../core/auth';
 import { WorkspaceApi } from '../core/workspace-api';
 import {
   WorkspaceUi,
@@ -27,11 +28,19 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
           variant="outline"
           [routerLink]="['/organisations', organisation, 'invoicing', 'settings']"
           >{{ 'issuerSettings' | t }}</a
-        ><a hlmBtn [routerLink]="['/organisations', organisation, 'invoicing', 'new']">{{
-          'issueDocument' | t
-        }}</a>
+        >
+        @if (auth.has('invoicing.issue')) {
+          <a hlmBtn [routerLink]="['/organisations', organisation, 'invoicing', 'new']">{{
+            'issueDocument' | t
+          }}</a>
+        }
       }
     </app-page-header>
+    @if (!features.enabled('invoicing')) {
+      <div hlmAlert class="mb-6">
+        <p hlmAlertDescription>{{ 'invoicingRetained' | t }}</p>
+      </div>
+    }
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'invoicing' | t }}</h2>
@@ -76,6 +85,7 @@ export class InvoicingPage {
   readonly search = new DebouncedSearch(this.query);
   readonly i18n = inject(I18n);
   readonly features = inject(Features);
+  readonly auth = inject(Auth);
   private readonly api = inject(WorkspaceApi);
   private readonly router = inject(Router);
   readonly data = new Resource<PageOfCommercialDocument>();

@@ -5,7 +5,22 @@ import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  releaseUpdates: ['Updates', 'Opdaterings'],
+  notificationReleaseAvailable: [
+    'A foundation or business-module update is available',
+    '’n Fondasie- of besigheidsmoduleopdatering is beskikbaar',
+  ],
+  notificationReleaseAvailableHelp: [
+    'Review available versions and compatibility under Updates.',
+    'Hersien beskikbare weergawes en versoenbaarheid onder Opdaterings.',
+  ],
   ...businessDictionary,
+  actionItems: ['Action items', 'Aksie-items'],
+  notificationActionAssigned: [
+    'An action item needs your input',
+    '’n Aksie-item benodig jou insette',
+  ],
+  registrationRequests: ['Registration requests', 'Registrasieversoeke'],
   organisations: ['Organisations', 'Organisasies'],
   organisation: ['Organisation', 'Organisasie'],
   billingSettings: ['Billing settings', 'Faktureringinstellings'],
@@ -96,27 +111,9 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   accountNavigation: ['Account', 'Rekening'],
   appBrand: ['templatev4', 'templatev4'],
-  signupTitle: ['Create an account', 'Skep ’n rekening'],
-  signupHelp: [
-    'Enter your details below to create your account.',
-    'Voer jou besonderhede hieronder in om jou rekening te skep.',
-  ],
-  registrationUnavailable: ['Registration is closed', 'Registrasie is gesluit'],
-  registrationUnavailableHelp: [
-    'Contact an administrator to request an invitation.',
-    'Kontak ’n administrateur om ’n uitnodiging te versoek.',
-  ],
   checkEmail: ['Check your email', 'Gaan jou e-pos na'],
-  registrationSent: [
-    'If your email can be registered, a verification link is on its way. Verify your email before signing in.',
-    'As jou e-pos geregistreer kan word, is ’n verifikasieskakel onderweg. Verifieer jou e-pos voordat jy aanmeld.',
-  ],
   nameRequired: ['Enter your name.', 'Voer jou naam in.'],
   emailInvalid: ['Enter a valid email address.', 'Voer ’n geldige e-posadres in.'],
-  signupEmailHelp: [
-    'Use this email address as your username when signing in.',
-    'Gebruik hierdie e-posadres as jou gebruikersnaam wanneer jy aanmeld.',
-  ],
   confirmPassword: ['Confirm password', 'Bevestig wagwoord'],
   passwordMismatch: ['Passwords must match.', 'Wagwoorde moet ooreenstem.'],
   createAccount: ['Create account', 'Skep rekening'],
@@ -124,15 +121,6 @@ export const dictionary: Record<string, [string, string]> = {
   noAccount: ['Don’t have an account?', 'Het jy nie ’n rekening nie?'],
   signUp: ['Sign up', 'Registreer'],
   orContinueWith: ['Or continue with', 'Of gaan voort met'],
-  emailVerified: [
-    'Your email is verified. Sign in to continue, or follow the password setup email if you were invited.',
-    'Jou e-pos is geverifieer. Meld aan om voort te gaan, of volg die wagwoordopstelling-e-pos as jy uitgenooi is.',
-  ],
-  registrationEnabled: ['Allow public registration', 'Laat openbare registrasie toe'],
-  registrationHelp: [
-    'Let people create an account without an invitation. They verify their email and start with Reader access.',
-    'Laat mense sonder ’n uitnodiging ’n rekening skep. Hulle verifieer hul e-pos en begin met Leser-toegang.',
-  ],
 
   workspace: ['Workspace', 'Werkruimte'],
   administration: ['Administration', 'Administrasie'],

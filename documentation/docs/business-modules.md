@@ -11,6 +11,56 @@ another module's tables. CRM, Invoicing and organisation Files remain foundation
 
 ## Select a client build
 
+The canonical client file is ignored `client-modules.json`:
+
+```json
+{
+  "schemaVersion": 1,
+  "foundation": { "support": false, "billing": false },
+  "privateModules": []
+}
+```
+
+The catalog's `category` is `core`, `foundation`, or `private`. Core services retain
+existing presets/settings and permissions. Only optional foundation IDs (My Files,
+support, CRM, invoicing, billing) are accepted in `foundation`. Omitted settings retain
+preset defaults; supplied settings override the preset, while runtime configuration can
+further restrict them. A client exclusion cannot be overridden by `Modules:<id> = true`.
+Dependency violations fail generation or startup.
+
+The selector edits only `privateModules`, preserving `foundation`. Run
+`node tools/discover-business-modules.mjs` after manual client-file edits and before
+restore. It generates `business-modules.enabled` and frontend registration. Backend
+validation rejects stale generated selection and compiles foundation choices into
+all executable hosts before service registration. Foundation modules remain compiled;
+private build exclusion is unchanged. Public clones default to no private modules.
+
+For an older checkout, copy the IDs from `business-modules.enabled` into the client
+file's `privateModules` array before first regeneration. Preserve the client file with
+private release configuration; the generated allowlist is not a second source of truth.
+Administration exposes only deployment-available modules supporting runtime activation.
+No category change deletes stored activation, schema history or business data.
+
+For interactive setup, clone the private repository inside the template as
+`business-modules/`, then run this command from the template root using PowerShell 7
+(or pass the script's absolute path from another working directory):
+
+```powershell
+pwsh -File ./tools/configure-business-modules.ps1
+```
+
+The menu marks current selections and accepts multiple comma-separated numbers.
+Enter keeps the selection, `none` removes all modules from the next build, and `q`
+exits without changes. Required business dependencies must also be selected; invalid
+selections are rejected before saving. The script offers to restore dependencies and
+build after saving, and stops on command failures. It never deploys, runs database
+migrations, deletes module source or changes runtime activation.
+
+To reinstall a removed module, rerun the menu and select it again. Deploy fresh builds
+against the same retained database and run the Migrator; existing records and activation
+choices remain. Before deploying a removal, resolve outstanding work and retained-data
+access. Use a clean release workspace to prevent stale build outputs from being deployed.
+
 Check out the private repository at `business-modules/` and pin an immutable commit.
 From the foundation root run:
 
@@ -19,7 +69,8 @@ node tools/select-business-modules.mjs reports client-accounting
 ```
 
 Use the actual module IDs owned by your private repository. The command validates the
-selection and writes ignored `business-modules.enabled`, one ID per line. Calling it
+selection and updates only `privateModules` in ignored `client-modules.json` and generates
+`business-modules.enabled`, one ID per line. Calling it
 without arguments selects foundation only. Never infer the selection from all folders
 present. Required business dependencies must be explicitly selected; missing modules,
 duplicates, invalid IDs and invalid dependency graphs fail validation.
@@ -100,6 +151,10 @@ Foundation tests use synthetic business examples and run without private source.
 
 ## Updates and removal
 
+For independent module versions and package-based source delivery, use
+[release updates](release-updates.md). A pinned client composition can select each
+module's artifact independently and notify deployed administrators of new releases.
+
 Pin foundation and business revisions together and validate both before upgrading a
 client. No production configuration, credentials or real client identifiers belong in
 public source. If a client later requests source, assemble only the agreed foundation,
@@ -114,3 +169,7 @@ use new forward migrations.
 
 See [foundation packages](packages.md), [verification](verification.md), and
 [ADR 0034](adr/0034-private-client-module-composition.md).
+
+## Module settings editors
+
+A `FoundationFeature` can supply `moduleSettingsComponent` for its own runtime module card. The component owns typed settings loading, version conflicts, retries and authorization feedback. It is instantiated only when that module is listed; its availability does not depend on the activation switch. It must not couple its load to generic activation discovery. See [administration safety](adr/0036-module-administration-safety.md). Financial integration calls require explicit invoicing permissions as well as organisation membership; see [module administration](saas-modules.md#administration-and-recovery).

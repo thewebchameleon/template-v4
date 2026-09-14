@@ -9,7 +9,7 @@ export class HlmCardTitle {
   constructor() {
     classes(
       () =>
-        'text-sm font-medium uppercase leading-normal tracking-wide text-muted-foreground group-data-[size=sm]/card:text-xs',
+        'text-sm font-medium uppercase leading-normal tracking-wide text-card-foreground group-data-[size=sm]/card:text-xs',
     );
   }
 }

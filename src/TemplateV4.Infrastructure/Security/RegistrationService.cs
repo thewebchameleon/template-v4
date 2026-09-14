@@ -8,11 +8,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Security;
 
 public sealed record RegistrationRequest(string Email, string DisplayName, string Password, string Culture);
-public sealed record RegistrationSettings(bool Enabled);
+public sealed record RegistrationSettings(bool Enabled, bool ApprovalRequired = false);
 
 public sealed class RegistrationService(FrameworkDb db, UserManager<AppUser> users, AccountService accounts, CultureCatalog cultures, TimeProvider time)
 {
-    public async Task<RegistrationSettings> Settings(CancellationToken ct) => new(await db.SecuritySettings.AnyAsync(x => x.RegistrationEnabled, ct));
+    public async Task<RegistrationSettings> Settings(CancellationToken ct) => new(await db.SecuritySettings.AnyAsync(x => x.RegistrationEnabled, ct), await db.SecuritySettings.AnyAsync(x => x.RegistrationApprovalRequired, ct));
 
     public async Task<Result<Unit>> Register(RegistrationRequest request, CancellationToken ct)
     {
@@ -23,9 +23,10 @@ public sealed class RegistrationService(FrameworkDb db, UserManager<AppUser> use
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         // Serialize with policy changes so disabling registration takes effect atomically.
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
-        if (!(await Settings(ct)).Enabled) return Result.Fail("auth.registration_disabled", ErrorKind.Forbidden);
+        var settings = await Settings(ct);
+        if (!settings.Enabled) return Result.Fail("auth.registration_disabled", ErrorKind.Forbidden);
         var email = request.Email.Trim();
-        var candidate = new AppUser { Id = Guid.NewGuid(), Email = email, UserName = email };
+        var candidate = new AppUser { Id = Guid.NewGuid(), Email = email, UserName = email, RegistrationState = settings.ApprovalRequired ? "Pending" : "NotRequired" };
         foreach (var validator in users.PasswordValidators)
         {
             var validation = await validator.ValidateAsync(users, candidate, request.Password);

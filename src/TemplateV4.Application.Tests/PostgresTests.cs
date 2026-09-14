@@ -15,6 +15,44 @@ public sealed class PostgresTests : IAsyncLifetime
     public async Task DisposeAsync() => await _postgres.DisposeAsync();
     private FrameworkDb CreateDb() => new(new DbContextOptionsBuilder<FrameworkDb>().UseNpgsql(_postgres.GetConnectionString(), x => x.MigrationsHistoryTable("migrations", "app")).Options);
     [Fact]
+    public async Task Named_queues_upgrade_preserves_manual_work_and_routes_reviews()
+    {
+        await using var db = CreateDb(); var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20260914134631_ActionItemsAndRegistrationApproval");
+        var creator = Guid.NewGuid(); var manual = Guid.NewGuid(); var privacy = Guid.NewGuid(); var registration = Guid.NewGuid();
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO app.action_items ("Id", "Title", "Description", "Source", "CreatorId", "Permission", "AdministratorOnly", "Link", "State", "CreatedAt") VALUES
+            ({manual}, 'Preserved manual work', 'Details', 'Manual', {creator}, 'support.agent', false, '/dashboard', 'Open', now()),
+            ({privacy}, 'Privacy', '', 'Privacy', NULL, 'settings.manage', true, '/privacy', 'Open', now()),
+            ({registration}, 'Registration', '', 'Registration', NULL, 'settings.manage', true, '/dashboard', 'Completed', now());
+            """);
+        await migrator.MigrateAsync();
+        var manualItem = await db.Set<ActionItemRow>().SingleAsync(x => x.Id == manual);
+        Assert.Equal(creator, manualItem.AssigneeId); Assert.Null(manualItem.QueueId); Assert.Equal("Details", manualItem.Description);
+        Assert.Equal("privacy-reviews", (await db.Set<ActionItemRow>().SingleAsync(x => x.Id == privacy)).QueueId);
+        var reviewed = await db.Set<ActionItemRow>().SingleAsync(x => x.Id == registration);
+        Assert.Equal("registration-approvals", reviewed.QueueId); Assert.Equal("Completed", reviewed.State);
+        await migrator.MigrateAsync(); Assert.Equal(3, await db.Set<ActionItemRow>().CountAsync());
+    }
+    [Fact]
+    public async Task Action_items_upgrade_preserves_accounts_and_backfills_pending_privacy()
+    {
+        await using var db = CreateDb();
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20260914090843_CurrentOrganisationPreference");
+        var id = Guid.NewGuid(); var requestId = Guid.NewGuid();
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO identity."AspNetUsers" ("Id", "UserName", "NormalizedUserName", "EmailConfirmed", "PhoneNumberConfirmed", "TwoFactorEnabled", "LockoutEnabled", "AccessFailedCount")
+            VALUES ({id}, {id.ToString()}, {id.ToString()}, true, false, false, false, 0);
+            INSERT INTO app.deletion_requests ("Id", "UserId", "State", "RequestedAt") VALUES ({requestId}, {id}, 'Pending', now());
+            """);
+        await migrator.MigrateAsync();
+        Assert.Equal("NotRequired", (await db.Users.SingleAsync()).RegistrationState);
+        var item = await db.Set<ActionItemRow>().SingleAsync();
+        Assert.Equal(requestId, item.SourceId); Assert.Equal("Open", item.State); Assert.Equal("Privacy", item.Source);
+        await migrator.MigrateAsync(); Assert.Equal(1, await db.Set<ActionItemRow>().CountAsync());
+    }
+    [Fact]
     public async Task Organisation_rename_preserves_existing_files_settings_links()
     {
         await using var db = CreateDb();

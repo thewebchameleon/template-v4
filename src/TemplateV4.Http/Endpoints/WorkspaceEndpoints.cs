@@ -44,9 +44,9 @@ public static class WorkspaceEndpoints
         group.MapPost("/privacy/withdraw", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.Withdraw(EndpointSecurity.Actor(principal), ct)).ToHttp())
             .RequireAuthorization().WithName("WithdrawAccountDeletion");
         group.MapGet("/privacy/requests", async (PrivacyService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string sort = "requestedAt", string direction = "asc") => (await service.Requests(pageNumber, pageSize, sort, direction, ct)).ToHttp())
-            .RequireAuthorization(Permissions.Settings).WithName("ListDeletionRequests").Produces<Page<DeletionItem>>();
+            .RequireAuthorization(Permissions.Settings).RequireAuthorization(policy => policy.RequireRole("Administrator")).WithName("ListDeletionRequests").Produces<Page<DeletionItem>>();
         group.MapPost("/privacy/review", async (ReviewDeletionRequest request, ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.Review(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
-            .RequireAuthorization(Permissions.Settings).WithName("ReviewAccountDeletion");
+            .RequireAuthorization(Permissions.Settings).RequireAuthorization(policy => policy.RequireRole("Administrator")).WithName("ReviewAccountDeletion");
         return group;
     }
 }

@@ -161,19 +161,20 @@ public sealed partial class SecurityAndMessagingTests
     }
 
     [Fact]
-    public async Task Baseline_privacy_protects_last_administrator_and_review_races()
+    public async Task Baseline_privacy_protects_self_review_and_review_races()
     {
-        Guid userId; Guid requestId;
+        Guid userId; Guid requestId; Guid reviewerId;
         await using (var scope = _services.CreateAsyncScope())
         {
             var sp = scope.ServiceProvider; var user = await User(sp); userId = user.Id; var privacy = sp.GetRequiredService<PrivacyService>();
             await privacy.RequestDeletion(userId, default); requestId = (await privacy.Status(userId, default)).Request!.Id;
-            Assert.Equal("user.last_administrator", (await privacy.Review(Guid.NewGuid(), new(requestId, true), default)).Error!.Code);
-            await User(sp);
+            Assert.Equal("auth.forbidden", (await privacy.Review(Guid.NewGuid(), new(requestId, true), default)).Error!.Code);
+            Assert.Equal("user.self_lockout", (await privacy.Review(userId, new(requestId, true), default)).Error!.Code);
+            reviewerId = (await User(sp)).Id;
         }
         async Task<Result<Unit>> Review(bool approve)
         {
-            await using var scope = _services.CreateAsyncScope(); return await scope.ServiceProvider.GetRequiredService<PrivacyService>().Review(Guid.NewGuid(), new(requestId, approve), default);
+            await using var scope = _services.CreateAsyncScope(); return await scope.ServiceProvider.GetRequiredService<PrivacyService>().Review(reviewerId, new(requestId, approve), default);
         }
         var outcomes = await Task.WhenAll(Review(true), Review(false)); Assert.Single(outcomes, x => x.IsSuccess);
     }

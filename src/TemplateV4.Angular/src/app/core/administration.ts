@@ -18,11 +18,15 @@ export class AdministrationNavigation {
   );
 }
 
-export const administrationLandingGuard: CanActivateFn = async (route) => {
+export const administrationLandingGuard: CanActivateFn = async (route, state) => {
   const navigation = inject(AdministrationNavigation);
   const features = inject(Features);
   const router = inject(Router);
   await features.load();
+  if (features.state() === 'error')
+    return router.createUrlTree(['/module-unavailable'], {
+      queryParams: { returnUrl: state.url, reason: 'error' },
+    });
   return router.createUrlTree([navigation.links()[0]?.path ?? '/forbidden'], {
     queryParams: route.queryParams,
     fragment: route.fragment ?? undefined,

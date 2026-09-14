@@ -7,11 +7,15 @@
     "additionalProperties": false,
     "required": [
       "id",
+      "category",
       "required",
       "enabledByDefault",
       "dependencies"
     ],
     "properties": {
+      "category": {
+        "enum": ["core", "foundation", "private"]
+      },
       "id": {
         "$ref": "#/$defs/id"
       },
@@ -39,10 +43,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "id",
-            "requires"
-          ],
+          "required": ["id", "requires"],
           "properties": {
             "id": {
               "$ref": "#/$defs/id"

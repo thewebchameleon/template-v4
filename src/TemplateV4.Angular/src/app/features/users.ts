@@ -22,6 +22,7 @@ import { InvitationDrawer } from './invite-user';
 import { InvitationsPanel } from './invitations';
 import { RolesPanel } from './roles';
 import { AccountSecurityPanel } from './account-security';
+import { RegistrationRequestsPage } from './registration-requests';
 import { PrivacyRequestsPage } from './privacy-requests';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Auth } from '../core/auth';
@@ -41,6 +42,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     RolesPanel,
     AccountSecurityPanel,
     PrivacyRequestsPage,
+    RegistrationRequestsPage,
     UserDetailPage,
   ],
   providers: [workspaceIcons],
@@ -238,6 +240,8 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
       <app-invitations-panel />
     } @else if (section() === 'security') {
       <app-account-security-panel />
+    } @else if (section() === 'registrations') {
+      <app-registration-requests />
     } @else if (section() === 'privacy') {
       <app-privacy-requests />
     } @else {
@@ -313,6 +317,7 @@ export class UsersPage {
       roles: '/administration/users/roles',
       security: '/administration/users/account-security',
       privacy: '/administration/users/privacy-requests',
+      registrations: '/administration/users/registration-requests',
     };
     const path = paths[section];
     if (!path || section === this.section()) return;

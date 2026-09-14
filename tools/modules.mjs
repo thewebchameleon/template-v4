@@ -9,6 +9,9 @@ export function resolveModules(definitions, overrides = {}) {
         typeof definition.enabledByDefault !== 'boolean' || !Array.isArray(definition.dependencies) ||
         definition.dependencies.some(x => typeof x !== 'string')) throw new Error('Invalid module descriptor.');
     if (known.has(definition.id)) throw new Error(`Duplicate module ${definition.id}.`);
+    if (definition.category !== undefined && (!['core', 'foundation', 'private'].includes(definition.category) ||
+        (definition.category === 'core' && definition.runtimeConfigurable) || (definition.category === 'private' && definition.required)))
+      throw new Error('Invalid module category or lifecycle.');
     known.set(definition.id, definition);
   }
   for (const [id, value] of Object.entries(overrides)) {

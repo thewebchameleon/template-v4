@@ -35,6 +35,7 @@
     "audit-history",
     "invitations",
     "notifications",
+    "action-items",
     "privacy",
     "s3-storage",
     "role-management",
@@ -78,6 +79,7 @@
   "documentation": "documentation/docs",
   "adrs": "documentation/docs/adr",
   "extensions": {
+    "releaseUpdates": "services/release-feed: authenticated per-client release metadata; independently pinned GitHub Packages source bundles; administrator checks and reviewed client upgrade PRs",
     "persistence": "EF Core / PostgreSQL",
     "transport": "PostgreSQL outbox / local Worker consumers",
     "email": "SMTP",

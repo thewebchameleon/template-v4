@@ -19,7 +19,7 @@ export interface Destination {
 // Paths are relative to the selected organisation workspace.
 export const organisationDestinations: readonly Destination[] = [
   { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
-  { path: 'invoicing', label: 'invoicing', icon: 'lucideFileSpreadsheet', capability: 'invoicing' },
+  { path: 'invoicing', label: 'invoicing', icon: 'lucideFileSpreadsheet' },
 ];
 
 export function activeDestinationIndex(items: readonly Destination[], path: string): number {
@@ -102,6 +102,13 @@ export const administrationDestinations = {
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
+  updates: {
+    path: '/administration/updates',
+    label: 'releaseUpdates',
+    icon: 'lucideHistory',
+    section: 'administration',
+    administratorOnly: true,
+  },
   storage: {
     path: '/administration/storage',
     label: 'storageSettings',
@@ -144,14 +151,19 @@ export function destinationAvailable(
 
 export const destinationGuard =
   (destination: Destination): CanActivateFn =>
-  async () => {
+  async (_route, state) => {
     const auth = inject(Auth);
     const features = inject(Features);
     const router = inject(Router);
     if (!auth.access() && !(await auth.refresh())) return router.createUrlTree(['/login']);
     await features.load();
     if (destination.capability && !features.enabled(destination.capability))
-      return router.createUrlTree(['/me']);
+      return router.createUrlTree(['/module-unavailable'], {
+        queryParams: {
+          returnUrl: state.url,
+          reason: features.state() === 'error' ? 'error' : 'disabled',
+        },
+      });
     return (
       destinationAvailable(destination, auth, features) || router.createUrlTree(['/forbidden'])
     );

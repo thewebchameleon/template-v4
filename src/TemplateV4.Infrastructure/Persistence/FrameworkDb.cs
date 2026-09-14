@@ -9,6 +9,9 @@ namespace TemplateV4.Infrastructure.Persistence;
 
 public sealed class AppUser : IdentityUser<Guid>
 {
+    public string RegistrationState { get; set; } = "NotRequired";
+    public DateTimeOffset? RegistrationReviewedAt { get; set; }
+    public Guid? RegistrationReviewedBy { get; set; }
     public Guid? CurrentOrganisationId { get; set; }
     public long? StorageQuotaBytes { get; set; }
     public DateTimeOffset? InvitationSentAt { get; set; }
@@ -28,6 +31,7 @@ public sealed class SecuritySettings
     public int Id { get; set; } = 1;
     public string MfaPolicy { get; set; } = "Administrators";
     public bool RegistrationEnabled { get; set; }
+    public bool RegistrationApprovalRequired { get; set; }
     public DateTimeOffset? BootstrapCompletedAt { get; set; }
     public Guid Version { get; set; } = Guid.NewGuid();
 }
@@ -167,6 +171,19 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).IsRequired();
         });
         foreach (var entity in model.Model.GetEntityTypes()) entity.SetSchema("identity");
+        model.Entity<ActionItemRow>(entity =>
+        {
+            entity.ToTable("action_items", "app", table => table.HasCheckConstraint("CK_action_items_assignment", "(\"AssigneeId\" IS NULL) <> (\"QueueId\" IS NULL)"));
+            entity.Property(x => x.Title).HasMaxLength(160); entity.Property(x => x.Description).HasMaxLength(2000);
+            entity.Property(x => x.Link).HasMaxLength(1000); entity.Property(x => x.Source).HasMaxLength(32);
+            entity.Property(x => x.QueueId).HasMaxLength(80); entity.Property(x => x.State).HasMaxLength(16);
+            entity.HasIndex(x => new { x.Source, x.SourceId }).IsUnique();
+            entity.HasIndex(x => new { x.AssigneeId, x.State, x.CreatedAt });
+            entity.HasIndex(x => new { x.QueueId, x.State, x.CreatedAt });
+            entity.HasIndex(x => new { x.CreatorId, x.State, x.CreatedAt });
+        });
+
+        model.Entity<AppUser>().Property(x => x.RegistrationState).HasMaxLength(32).HasDefaultValue("NotRequired");
         model.Entity<AppUser>().HasIndex(x => x.NormalizedEmail).IsUnique();
         model.Entity<AppUser>().Property(x => x.PreferredMfaMethod).HasMaxLength(32);
         model.Entity<SecuritySettings>(entity => { entity.ToTable("security_settings", "identity"); entity.Property(x => x.Version).IsConcurrencyToken(); });
@@ -241,6 +258,18 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.Kind).HasMaxLength(100); entity.Property(x => x.Link).HasMaxLength(200);
             entity.HasIndex(x => new { x.UserId, x.CreatedAt });
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<TemplateV4.Infrastructure.Updates.UpdateState>(entity =>
+        {
+            entity.ToTable("release_update_state", "app");
+            entity.HasKey(x => x.Id); entity.Property(x => x.Id).ValueGeneratedNever();
+            entity.Property(x => x.Status).HasMaxLength(30); entity.Property(x => x.InstalledHash).HasMaxLength(64);
+        });
+        model.Entity<TemplateV4.Infrastructure.Updates.UpdateAnnouncement>(entity =>
+        {
+            entity.ToTable("release_announcements", "app");
+            entity.HasKey(x => new { x.Component, x.Version });
+            entity.Property(x => x.Component).HasMaxLength(80); entity.Property(x => x.Version).HasMaxLength(30);
         });
         model.Entity<StoredFile>(entity =>
         {

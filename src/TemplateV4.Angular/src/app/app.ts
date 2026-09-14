@@ -110,6 +110,7 @@ type RailLink = Destination & {
         sidebarWidthIcon="var(--app-sidebar-rail-width)"
       >
         <hlm-sidebar
+          role="complementary"
           [mobileTitle]="'toggleNavigation' | t"
           variant="inset"
           collapsible="panel"
@@ -337,7 +338,7 @@ type RailLink = Destination & {
             </button>
           }
         </hlm-sidebar>
-        <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0">
+        <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0 outline-none">
           <header class="app-header">
             <div class="flex min-w-0 flex-1 items-center gap-2">
               @if (sidebar.isMobile() || hasSecondaryNavigation()) {
@@ -417,7 +418,9 @@ type RailLink = Destination & {
         </main>
       </div>
     } @else {
-      <main id="main" tabindex="-1"><ng-container *ngTemplateOutlet="page" /></main>
+      <main id="main" tabindex="-1" class="outline-none">
+        <ng-container *ngTemplateOutlet="page" />
+      </main>
     }
     <hlm-toaster [theme]="theme.preference()" position="top-center" richColors />
     <app-confirmation />
@@ -440,6 +443,12 @@ export class App {
         path: '/security/sessions',
         label: 'accountMenuSessions',
         icon: 'lucideMonitor',
+        requiresMfa: true,
+      },
+      {
+        path: '/action-items',
+        label: 'actionItems',
+        icon: 'lucideBell',
         requiresMfa: true,
       },
       {

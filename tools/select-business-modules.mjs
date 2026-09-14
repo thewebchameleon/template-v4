@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readClientModules } from "./client-modules.mjs";
 import {
   discover,
   frontend,
@@ -16,6 +17,11 @@ if (
     "Pass unique module IDs. No arguments selects foundation only.",
   );
 const modules = discover(root, selection);
+const client = readClientModules(root);
+fs.writeFileSync(
+  path.join(root, "client-modules.json"),
+  JSON.stringify({ ...client, privateModules: selection }, null, 2) + "\n",
+);
 fs.writeFileSync(
   path.join(root, "business-modules.enabled"),
   selection.length ? selection.join("\n") + "\n" : "",

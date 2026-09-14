@@ -17,7 +17,7 @@ public sealed record DeletionItem(Guid Id, Guid UserId, string? DisplayName, str
 public sealed record PrivacyStatus(DeletionItem? Request, int DeletedFileRetentionDays, int NotificationRetentionDays, string ReviewPolicy = "AdministratorReview");
 internal sealed record EmailChangeState(string Email, string Token);
 
-public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, TemplateV4.Application.Billing.IStorageEntitlements entitlements)
+public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, TemplateV4.Application.Billing.IStorageEntitlements entitlements, TemplateV4.Application.Platform.IActionItems actionItems)
 {
     private readonly IDataProtector _recipient = protection.CreateProtector("TemplateV4.email.recipient.v1");
     private readonly IDataProtector _action = protection.CreateProtector("TemplateV4.email.action.v1");
@@ -39,6 +39,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId, x.Description, x.Tags, x.Important, x.Starred, x.UpdatedAt }).ToArrayAsync(ct);
         var fileShares = await db.Set<MyFileShare>().AsNoTracking().Where(x => x.RecipientId == actor || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == actor)).Select(x => new { x.FileId, x.RecipientId, x.Permission, x.ExpiresAt }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
+        var actionItemsExport = await db.Set<ActionItemRow>().AsNoTracking().Where(x => x.CreatorId == actor || x.AssigneeId == actor).Select(x => new { x.Title, x.Description, x.Link, x.State, x.CreatedAt, x.CompletedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor || x.ActorId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);
         var memberships = await db.Set<MembershipRow>().AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.CustomerId, x.Role }).ToArrayAsync(ct);
         var personalBilling = await db.Set<SubscriptionRow>().AsNoTracking().Where(x => x.CustomerId == actor).Select(x => new { x.PlanId, x.TrialUntil, x.PaidUntil, x.Cancelled, x.Seats }).ToArrayAsync(ct);
@@ -47,7 +48,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         var ticketIds = supportTickets.Select(x => x.Id).ToArray();
         var supportMessages = await db.Set<SupportMessageRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId) && !x.Internal).ToArrayAsync(ct);
         var supportAttachments = await db.Set<SupportAttachmentRow>().AsNoTracking().Where(x => ticketIds.Contains(x.TicketId)).Select(x => new { x.Id, x.TicketId, x.Name, Size = x.Content.Length, x.At }).ToArrayAsync(ct);
-        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), Profile = profile, AvatarPng = avatar, Account = account, Sessions = sessions, Notifications = notifications, Files = files, FileShares = fileShares, DeletionRequests = requests, Activity = activity, Memberships = memberships, PersonalBilling = personalBilling, OrganisationInvitations = pendingInvitations, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
+        var result = JsonSerializer.SerializeToUtf8Bytes(new { ExportedAt = time.GetUtcNow(), ActionItems = actionItemsExport, Profile = profile, AvatarPng = avatar, Account = account, Sessions = sessions, Notifications = notifications, Files = files, FileShares = fileShares, DeletionRequests = requests, Activity = activity, Memberships = memberships, PersonalBilling = personalBilling, OrganisationInvitations = pendingInvitations, SupportTickets = supportTickets, SupportMessages = supportMessages, SupportAttachments = supportAttachments }, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true });
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.exported", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return result;
     }
@@ -99,7 +100,9 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         await using var tx = await db.Database.BeginTransactionAsync(ct); await security.Lock(actor, ct);
         if (!await db.DeletionRequests.AnyAsync(x => x.UserId == actor && x.State == "Pending", ct))
         {
-            db.DeletionRequests.Add(new() { UserId = actor, RequestedAt = time.GetUtcNow() });
+            var deletion = new DeletionRequest { UserId = actor, RequestedAt = time.GetUtcNow() };
+            db.DeletionRequests.Add(deletion);
+            await actionItems.AddReview("Privacy", deletion.Id, actor, "privacyReviewAction", "/administration/users/privacy-requests", ct);
             db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.deletion_requested", At = time.GetUtcNow() });
             db.Notifications.Add(new() { UserId = actor, Kind = "notificationDeletionRequested", Link = "/privacy", CreatedAt = time.GetUtcNow() });
         }
@@ -110,6 +113,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         await using var tx = await db.Database.BeginTransactionAsync(ct); await security.Lock(actor, ct);
         var request = await db.DeletionRequests.SingleOrDefaultAsync(x => x.UserId == actor && x.State == "Pending", ct);
         if (request is null) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
+        await actionItems.ResolveReview("Privacy", request.Id, actor, ct);
         request.State = "Withdrawn"; request.ReviewedAt = time.GetUtcNow();
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "privacy.deletion_withdrawn", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
@@ -135,6 +139,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
+        if (!await db.UserRoles.AnyAsync(x => x.UserId == actor && db.Roles.Any(r => r.Id == x.RoleId && r.Name == "Administrator"), ct)) return Result.Fail("auth.forbidden", ErrorKind.Forbidden);
         var request = await db.DeletionRequests.AsNoTracking().SingleOrDefaultAsync(x => x.Id == command.Id, ct);
         if (request is null) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
         await security.Lock(request.UserId, ct);
@@ -181,6 +186,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             await db.Set<SupportMessageRow>().Where(x => x.AuthorId == user.Id).ExecuteDeleteAsync(ct);
             await db.Set<SupportAttachmentRow>().Where(x => x.OwnerId == user.Id).ExecuteDeleteAsync(ct);
             await db.Set<SupportTicketRow>().Where(x => x.AssigneeId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(t => t.AssigneeId, (Guid?)null).SetProperty(t => t.Version, Guid.NewGuid()), ct);
+            await db.Set<ActionItemRow>().Where(x => x.CreatorId == user.Id || x.AssigneeId == user.Id || x.SubjectId == user.Id).ExecuteDeleteAsync(ct);
             // Historical display names and file names follow the existing account erasure policy.
             var ownedFiles = db.Files.Where(x => x.OwnerId == user.Id).Select(x => x.Id);
             await db.Audit.Where(x => x.ActorId == user.Id)
@@ -213,6 +219,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             request.State = "Declined";
             db.Notifications.Add(new() { UserId = user.Id, Kind = "notificationDeletionDeclined", Link = "/privacy", CreatedAt = time.GetUtcNow() });
         }
+        await actionItems.ResolveReview("Privacy", request.Id, actor, ct);
         request.ReviewedAt = time.GetUtcNow(); request.ReviewedBy = actor;
         db.Audit.Add(new() { ActorId = actor, SubjectId = user.Id, Action = command.Approve ? "privacy.account_anonymised" : "privacy.deletion_declined", At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();

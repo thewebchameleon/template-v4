@@ -29,7 +29,9 @@ import { AuthLayout } from './auth-layout';
       <div hlmFieldGroup>
         <div class="auth-heading">
           <h1 class="auth-title">{{ 'signupTitle' | t }}</h1>
-          <p class="auth-description">{{ 'signupHelp' | t }}</p>
+          <p class="auth-description">
+            {{ (approvalRequired() ? 'signupApprovalHelp' : 'signupHelp') | t }}
+          </p>
         </div>
         @if (checking()) {
           <div role="status" class="flex items-center gap-2">
@@ -48,7 +50,9 @@ import { AuthLayout } from './auth-layout';
         } @else if (done()) {
           <div hlmAlert role="status">
             <h2 hlmAlertTitle>{{ 'checkEmail' | t }}</h2>
-            <p hlmAlertDescription>{{ 'registrationSent' | t }}</p>
+            <p hlmAlertDescription>
+              {{ (approvalRequired() ? 'registrationApprovalSent' : 'registrationSent') | t }}
+            </p>
           </div>
         } @else {
           <form #form="ngForm" (ngSubmit)="form.valid && password === confirmation && submit()">
@@ -157,6 +161,7 @@ export class SignupPage implements OnInit {
   readonly checking = signal(true);
   readonly checkFailed = signal(false);
   readonly enabled = signal(false);
+  readonly approvalRequired = signal(false);
   readonly busy = signal(false);
   readonly done = signal(false);
   readonly passwordErrors = signal<string[]>([]);
@@ -169,7 +174,9 @@ export class SignupPage implements OnInit {
     this.checking.set(true);
     this.checkFailed.set(false);
     try {
-      this.enabled.set((await this.registration.status()).enabled);
+      const settings = await this.registration.status();
+      this.enabled.set(settings.enabled);
+      this.approvalRequired.set(settings.approvalRequired);
     } catch {
       this.checkFailed.set(true);
     } finally {

@@ -190,7 +190,7 @@ public sealed partial class SecurityAndMessagingTests
         using var client = factory.CreateClient(new() { BaseAddress = new("https://localhost") });
         client.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
         const string path = "/api/v1/auth/administration/modules/activation";
-        Assert.False((await client.GetFromJsonAsync<ModuleActivation[]>(path))!.Single(x => x.Id == "my-files").Available);
+        Assert.DoesNotContain((await client.GetFromJsonAsync<ModuleActivation[]>(path))!, x => x.Id == "my-files");
         var csrf = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         client.DefaultRequestHeaders.Add("Origin", "https://localhost");
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("token").GetString());

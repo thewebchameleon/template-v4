@@ -1,0 +1,192 @@
+name: Publish Compose release
+on:
+  workflow_dispatch:
+    inputs:
+      foundation_ref:
+        description: Foundation branch, tag or commit to build
+        default: main
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      foundation_ref:
+        type: string
+        default: main
+      business_repository:
+        type: string
+        default: ""
+      business_ref:
+        type: string
+        default: main
+      selection_file:
+        type: string
+        default: deploy/compose-platforms/demo/client-modules.json
+      deployment_branch:
+        type: string
+        default: deploy-demo
+      template_file:
+        type: string
+        default: ""
+      configuration_ref:
+        type: string
+        default: ""
+      validate_only:
+        type: boolean
+        default: false
+    secrets:
+      BUSINESS_MODULES_TOKEN:
+        required: false
+      MODULE_PACKAGES_TOKEN:
+        required: false
+permissions:
+  contents: write
+  packages: write
+concurrency:
+  group: compose-release-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FOUNDATION_REF: ${{ inputs.foundation_ref || 'main' }}
+      BUSINESS_REPOSITORY: ${{ inputs.business_repository }}
+      BUSINESS_REF: ${{ inputs.business_ref || 'main' }}
+      DEPLOYMENT_BRANCH: ${{ inputs.deployment_branch || 'deploy-demo' }}
+      SELECTION_FILE: ${{ inputs.selection_file || 'deploy/compose-platforms/demo/client-modules.json' }}
+      RELEASE: run-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: configuration
+          ref: ${{ inputs.configuration_ref }}
+      - name: Resolve immutable foundation pin
+        id: pins
+        env:
+          TEMPLATE_FILE: ${{ inputs.template_file }}
+        run: |
+          if [ -n "$TEMPLATE_FILE" ]; then
+            test "$TEMPLATE_FILE" = client-template.json
+            test -z "$BUSINESS_REPOSITORY"
+            commit=$(jq -er '.components[] | select(.id == "foundation") | .commit' "configuration/$TEMPLATE_FILE")
+            [[ "$commit" =~ ^[a-f0-9]{40}$ ]]
+            echo "foundation=$commit" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: thewebchameleon/template-v4
+          ref: ${{ steps.pins.outputs.foundation || env.FOUNDATION_REF }}
+          path: foundation
+          persist-credentials: false
+      - name: Require private checkout credential
+        if: env.BUSINESS_REPOSITORY != ''
+        env:
+          MODULE_TOKEN: ${{ secrets.BUSINESS_MODULES_TOKEN }}
+        run: test -n "$MODULE_TOKEN"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        if: env.BUSINESS_REPOSITORY != ''
+        with:
+          repository: ${{ env.BUSINESS_REPOSITORY }}
+          ref: ${{ env.BUSINESS_REF }}
+          token: ${{ secrets.BUSINESS_MODULES_TOKEN }}
+          path: foundation/business-modules
+          persist-credentials: false
+      - name: Read toolchains
+        id: tools
+        run: |
+          echo "dotnet=$(jq -r .toolchains.dotnet foundation/framework.json)" >> "$GITHUB_OUTPUT"
+          echo "node=$(jq -r .toolchains.node foundation/framework.json)" >> "$GITHUB_OUTPUT"
+          echo "npm=$(jq -r .toolchains.npm foundation/framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+      - name: Compose client and validate locked dependencies
+        working-directory: foundation
+        env:
+          NPM_VERSION: ${{ steps.tools.outputs.npm }}
+          TEMPLATE_FILE: ${{ inputs.template_file }}
+          NODE_AUTH_TOKEN: ${{ secrets.MODULE_PACKAGES_TOKEN }}
+        run: |
+          npm install -g "npm@$NPM_VERSION"
+          node --test tools/compose-release.test.mjs
+          node tools/prepare-client-release.mjs "$PWD" "$GITHUB_WORKSPACE/configuration" "$SELECTION_FILE"
+          if [ -n "$TEMPLATE_FILE" ]; then
+            node tools/releases/cli.mjs compose "$PWD" "$GITHUB_WORKSPACE/configuration/$TEMPLATE_FILE"
+          fi
+          node tools/discover-business-modules.mjs
+          node tools/framework.mjs validate
+          node tools/business-module-ids.mjs --check
+          npm ci --prefix src/TemplateV4.Angular
+          for project in ApiService BackgroundWorker DatabaseMigrator Application.Tests; do
+            dotnet restore "src/TemplateV4.$project/TemplateV4.$project.csproj" --locked-mode
+          done
+          npm run lint --prefix src/TemplateV4.Angular
+          npm run build --prefix src/TemplateV4.Angular
+          dotnet test src/TemplateV4.Application.Tests -c Release --no-restore
+          node tools/test-business-modules.mjs -c Release -p:RestoreLockedMode=true
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+        if: ${{ !inputs.validate_only }}
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        if: ${{ !inputs.validate_only }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push coordinated images
+        if: ${{ !inputs.validate_only }}
+        working-directory: foundation
+        run: |
+          set -euo pipefail
+          IMAGE_ROOT="ghcr.io/${GITHUB_REPOSITORY,,}"
+          mkdir -p "$GITHUB_WORKSPACE/bundle"
+          for item in api:ApiService worker:BackgroundWorker migrator:DatabaseMigrator web:Web; do
+            service="${item%%:*}"
+            project="${item#*:}"
+            dockerfile=deploy/Dockerfile.dotnet
+            if [ "$service" = web ]; then dockerfile=src/TemplateV4.Angular/Dockerfile; fi
+            docker buildx build --push --file "$dockerfile" \
+              --build-arg "PROJECT=TemplateV4.$project" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
+              --tag "$IMAGE_ROOT/$service:$RELEASE" \
+              --metadata-file "$GITHUB_WORKSPACE/bundle/$service.metadata.json" .
+          done
+          business_commit=''
+          if [ -n "$BUSINESS_REPOSITORY" ]; then business_commit=$(git -C business-modules rev-parse HEAD); fi
+          node tools/render-compose-release.mjs "$PWD" "$GITHUB_WORKSPACE/bundle" \
+            "$RELEASE" "$IMAGE_ROOT" "$(git rev-parse HEAD)" "$business_commit"
+          docker compose --env-file "$GITHUB_WORKSPACE/bundle/.env.example" \
+            -f "$GITHUB_WORKSPACE/bundle/compose.yaml" config --quiet
+      - name: Publish deployment branch only after every image succeeds
+        if: ${{ !inputs.validate_only }}
+        working-directory: configuration
+        run: |
+          set -euo pipefail
+          git check-ref-format --branch "$DEPLOYMENT_BRANCH"
+          case "$DEPLOYMENT_BRANCH" in deploy|deploy-demo) ;; *) echo 'Use a dedicated deploy or deploy-demo branch.'; exit 1;; esac
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -n "$(git ls-remote --heads origin "$DEPLOYMENT_BRANCH")" ]; then
+            git fetch origin "$DEPLOYMENT_BRANCH"
+            git switch -C "$DEPLOYMENT_BRANCH" FETCH_HEAD
+          else
+            git switch --orphan "$DEPLOYMENT_BRANCH"
+          fi
+          cp "$GITHUB_WORKSPACE/bundle/compose.yaml" .
+          cp "$GITHUB_WORKSPACE/bundle/compose.coolify.yaml" .
+          cp "$GITHUB_WORKSPACE/bundle/COOLIFY.md" .
+          cp "$GITHUB_WORKSPACE/bundle/updates.override.yaml" .
+          cp "$GITHUB_WORKSPACE/bundle/release.json" .
+          cp "$GITHUB_WORKSPACE/bundle/client-modules.json" .
+          cp "$GITHUB_WORKSPACE/bundle/.env.example" .
+          cp "$GITHUB_WORKSPACE/bundle/upgrade.sh" .
+          cp "$GITHUB_WORKSPACE/bundle/README.md" .
+          mkdir -p deploy
+          cp "$GITHUB_WORKSPACE/bundle/deploy/"* deploy/
+          git add -f compose.yaml compose.coolify.yaml updates.override.yaml COOLIFY.md release.json client-modules.json .env.example upgrade.sh README.md deploy/init-database.sh deploy/nginx.production.conf
+          git commit -m "Deploy $RELEASE"
+          git push origin "HEAD:refs/heads/$DEPLOYMENT_BRANCH"
+          echo "Release $RELEASE is ready on $DEPLOYMENT_BRANCH." >> "$GITHUB_STEP_SUMMARY"

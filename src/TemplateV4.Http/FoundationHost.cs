@@ -18,10 +18,11 @@ namespace TemplateV4.ApiService;
 
 public static class FoundationHost
 {
-    public static async Task Run(string[] args, IEnumerable<TemplateV4.Application.Modules.ModuleDefinition>? modules = null, Action<WebApplicationBuilder>? configure = null, Action<WebApplication>? endpoints = null)
+    public static async Task Run(string[] args, IEnumerable<TemplateV4.Application.Modules.ModuleDefinition>? modules = null, Action<WebApplicationBuilder>? configure = null, Action<WebApplication>? endpoints = null, Action<WebApplicationBuilder>? configureClient = null)
     {
         if (await Hosting.HandleHealthProbe(args)) return;
         var builder = WebApplication.CreateBuilder(args);
+        configureClient?.Invoke(builder);
         var exportPath = builder.Configuration["OpenApi:ExportPath"];
         if (exportPath is not null && !builder.Environment.IsDevelopment()) throw new InvalidOperationException("OpenAPI export is development-only.");
         builder.AddServiceDefaults();
@@ -32,6 +33,9 @@ public static class FoundationHost
         if (exportPath is null) builder.Services.AddHostedService<NotificationChangeRelay>();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IExecutionContext, HttpExecutionContext>();
+        builder.Services.AddScoped<TemplateV4.Infrastructure.Modules.CapabilityEvaluator>();
+        builder.Services.AddScoped<HttpCapabilities>();
+        builder.Services.AddScoped<TemplateV4.Application.Modules.ICapabilities>(provider => provider.GetRequiredService<HttpCapabilities>());
         builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
         {
             context.ProblemDetails.Extensions.TryAdd("code", "http." + context.ProblemDetails.Status);
@@ -169,4 +173,3 @@ public static class FoundationHost
         app.Run();
     }
 }
-

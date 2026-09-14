@@ -1,3 +1,4 @@
+import { ActionItemsPage } from './action-items';
 import { FOUNDATION_FEATURES } from '../core/feature-extensions';
 import { workspaceDestinations, destinationAvailable } from '../core/destinations';
 import { Component, computed, inject } from '@angular/core';
@@ -13,9 +14,10 @@ import { PageHeader } from '../shared/workspace';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, HlmCardImports, HlmButtonImports, Translate, PageHeader],
+  imports: [ActionItemsPage, RouterLink, HlmCardImports, HlmButtonImports, Translate, PageHeader],
   template: `
     <app-page-header eyebrow="workspace" title="dashboard" description="dashboardActionsHelp" />
+    <div class="mb-6"><app-action-items [overview]="true" /></div>
     <div class="grid gap-6 md:grid-cols-2">
       <section hlmCard>
         <div hlmCardHeader>

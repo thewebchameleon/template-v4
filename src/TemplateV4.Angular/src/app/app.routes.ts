@@ -1,3 +1,5 @@
+import { actionItemTranslations } from './core/action-item-resolver';
+import { updateTranslations } from './core/update-resolver';
 import { currentOrganisationGuard } from './core/current-organisation';
 import { customerTranslations } from './core/customer-resolver';
 import { FOUNDATION_FEATURES } from './core/feature-extensions';
@@ -13,7 +15,7 @@ import {
 import { supportTranslations } from './core/support-resolver';
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
-import { authGuard, permissionGuard } from './core/auth';
+import { authGuard, administratorRoleGuard, permissionGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
@@ -24,7 +26,6 @@ export const routes: Routes = [
     data: { breadcrumb: 'organisation' },
     canActivate: [
       authGuard,
-      destinationGuard(workspaceDestinations.organisations),
       (route, state) => {
         const destination = [
           ...organisationDestinations,
@@ -51,8 +52,8 @@ export const routes: Routes = [
     path: 'organisations/:id/invoicing/new',
     canDeactivate: [unsavedGuard],
     resolve: { businessTranslations },
-    data: { breadcrumb: 'issueDocument' },
-    canActivate: [authGuard, capabilityGuard('invoicing')],
+    data: { breadcrumb: 'issueDocument', permission: 'invoicing.issue' },
+    canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
     loadComponent: () => import('./features/commercial-editor').then((m) => m.CommercialEditorPage),
   },
   {
@@ -136,6 +137,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [bootstrapLandingGuard], children: [] },
   {
     path: 'dashboard',
+    resolve: { actionItemTranslations },
     data: { breadcrumb: 'dashboard' },
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard').then((m) => m.DashboardPage),
@@ -153,11 +155,13 @@ export const routes: Routes = [
   },
   {
     path: 'signup',
+    resolve: { actionItemTranslations },
     data: { breadcrumb: 'signupTitle' },
     loadComponent: () => import('./features/signup').then((m) => m.SignupPage),
   },
   {
     path: 'account',
+    resolve: { actionItemTranslations },
     data: { breadcrumb: 'account' },
     loadComponent: () => import('./features/account').then((m) => m.AccountPage),
   },
@@ -183,6 +187,13 @@ export const routes: Routes = [
     canDeactivate: [unsavedGuard],
     canActivate: [authGuard],
     loadComponent: () => import('./features/profile').then((m) => m.ProfilePage),
+  },
+  {
+    path: 'action-items',
+    resolve: { actionItemTranslations },
+    data: { breadcrumb: 'actionItems' },
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/action-items').then((m) => m.ActionItemsPage),
   },
   {
     path: 'notifications',
@@ -280,6 +291,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
       {
         path: 'users',
+        resolve: { actionItemTranslations },
         data: {
           breadcrumb: 'userManagement',
           permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
@@ -316,13 +328,23 @@ export const routes: Routes = [
             loadComponent: () => import('./features/users').then((m) => m.UsersPage),
           },
           {
+            path: 'registration-requests',
+            data: {
+              breadcrumb: 'registrationRequests',
+              permission: 'settings.manage',
+              section: 'registrations',
+            },
+            canActivate: [permissionGuard, administratorRoleGuard],
+            loadComponent: () => import('./features/users').then((m) => m.UsersPage),
+          },
+          {
             path: 'privacy-requests',
             data: {
               breadcrumb: 'privacyRequests',
               permission: 'settings.manage',
               section: 'privacy',
             },
-            canActivate: [permissionGuard],
+            canActivate: [permissionGuard, administratorRoleGuard],
             canDeactivate: [unsavedGuard],
             loadComponent: () => import('./features/users').then((m) => m.UsersPage),
           },
@@ -356,6 +378,13 @@ export const routes: Routes = [
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.modules)],
         loadComponent: () => import('./features/modules').then((m) => m.ModulesPage),
+      },
+      {
+        path: 'updates',
+        resolve: { updateTranslations },
+        data: { breadcrumb: 'releaseUpdates' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.updates)],
+        loadComponent: () => import('./features/updates').then((m) => m.UpdatesPage),
       },
       {
         path: 'billing',
@@ -400,6 +429,13 @@ export const routes: Routes = [
     data: { breadcrumb: 'accessRestricted', forbidden: true },
     canActivate: [authGuard],
     loadComponent: () => import('./features/unavailable').then((m) => m.UnavailablePage),
+  },
+  {
+    path: 'module-unavailable',
+    data: { breadcrumb: 'modules' },
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/module-unavailable').then((m) => m.ModuleUnavailablePage),
   },
   {
     path: '**',

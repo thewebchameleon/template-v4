@@ -5,6 +5,7 @@ import { CommercialDetail } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
 import { I18n } from '../core/i18n';
 import { Features } from '../core/features';
+import { Auth } from '../core/auth';
 import { WorkspaceUi, Resource } from '../shared/workspace';
 import { BusinessSelect } from '../shared/business-select';
 import { BusinessDate } from '../shared/business-date';
@@ -36,7 +37,7 @@ import { commercialKinds } from './invoicing';
                   {{ 'storePdf' | t }}
                 </button>
               }
-              @if (doc.kind === 0) {
+              @if (doc.kind === 0 && auth.has('invoicing.issue')) {
                 @if (doc.accepted) {
                   <button hlmBtn [disabled]="busy()" (click)="invoiceAccepted()">
                     {{ 'invoiceQuotation' | t }}
@@ -101,7 +102,12 @@ import { commercialKinds } from './invoicing';
             <p class="whitespace-pre-wrap">{{ doc.snapshot.issuer.paymentInstructions }}</p>
           </div>
         </section>
-        @if (doc.kind === 0 && !doc.accepted && features.enabled('invoicing')) {
+        @if (
+          doc.kind === 0 &&
+          !doc.accepted &&
+          features.enabled('invoicing') &&
+          auth.has('invoicing.issue')
+        ) {
           <section hlmCard class="mb-6">
             <div hlmCardHeader>
               <h2 hlmCardTitle>{{ 'acceptQuotation' | t }}</h2>
@@ -124,34 +130,39 @@ import { commercialKinds } from './invoicing';
             </form>
           </section>
         }
-        @if (doc.kind === 1) {
+        @if (doc.kind === 1 && (auth.has('invoicing.settle') || auth.has('invoicing.correct'))) {
           <section hlmCard class="mb-6">
             <div hlmCardHeader>
               <h2 hlmCardTitle>{{ 'invoicing' | t }}</h2>
             </div>
             <div hlmCardContent class="grid gap-5">
               <div class="flex flex-wrap gap-3">
-                <button
-                  hlmBtn
-                  [disabled]="busy() || outstanding() <= 0 || doc.paid > 0"
-                  (click)="begin('payment')"
-                >
-                  {{ 'recordPayment' | t }}</button
-                ><button
-                  hlmBtn
-                  variant="outline"
-                  [disabled]="busy() || doc.credits >= doc.amount"
-                  (click)="begin('credit')"
-                >
-                  {{ 'recordCredit' | t }}</button
-                ><button
-                  hlmBtn
-                  variant="outline"
-                  [disabled]="busy() || refundable() <= 0"
-                  (click)="begin('refund')"
-                >
-                  {{ 'recordRefund' | t }}
-                </button>
+                @if (auth.has('invoicing.settle')) {
+                  <button
+                    hlmBtn
+                    [disabled]="busy() || outstanding() <= 0 || doc.paid > 0"
+                    (click)="begin('payment')"
+                  >
+                    {{ 'recordPayment' | t }}
+                  </button>
+                }
+                @if (auth.has('invoicing.correct')) {
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || doc.credits >= doc.amount"
+                    (click)="begin('credit')"
+                  >
+                    {{ 'recordCredit' | t }}</button
+                  ><button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy() || refundable() <= 0"
+                    (click)="begin('refund')"
+                  >
+                    {{ 'recordRefund' | t }}
+                  </button>
+                }
               </div>
               @if (action) {
                 <form class="grid gap-4" (ngSubmit)="record()">
@@ -259,6 +270,7 @@ export class CommercialDetailPage {
   private readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly features = inject(Features);
+  readonly auth = inject(Auth);
   readonly organisation = this.route.snapshot.paramMap.get('id')!;
   readonly documentId = this.route.snapshot.paramMap.get('documentId')!;
   readonly data = new Resource<CommercialDetail>();

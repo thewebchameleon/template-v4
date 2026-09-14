@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 export function scaffoldBusiness(root, name) {
+  const manifestPath = fs.existsSync(path.join(root, "framework.json"))
+    ? path.join(root, "framework.json")
+    : path.join(import.meta.dirname, "../framework.json");
+  const foundationVersion = JSON.parse(
+    fs.readFileSync(manifestPath, "utf8"),
+  ).frameworkVersion;
+  const [major, minor] = foundationVersion.split(".").map(Number);
   const id = name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
   const folder = `business-modules/${id}`;
   const namespace = `TemplateV4.${name}`;
@@ -24,6 +31,13 @@ export function scaffoldBusiness(root, name) {
     JSON.stringify(
       {
         id,
+        version: "0.1.0",
+        foundationCompatibility: {
+          min: foundationVersion,
+          maxExclusive: `${major}.${minor + 1}.0`,
+        },
+        dependencyVersions: {},
+        category: "private",
         required: false,
         enabledByDefault: false,
         runtimeConfigurable: true,

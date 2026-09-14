@@ -4,6 +4,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Runtime } from './runtime';
 import { I18n } from './i18n';
+import { UiSounds } from './ui-sounds';
 import { AccessResponse as Access } from '../api/models/access-response';
 type ChallengeAccess = Access & {
   mfaMethods?: string[];
@@ -17,6 +18,7 @@ export class Auth {
   private readonly router = inject(Router);
   private readonly runtime = inject(Runtime);
   private readonly i18n = inject(I18n);
+  private readonly sounds = inject(UiSounds);
   readonly access = signal<Access | null>(null);
   readonly challenge = signal<string | null>(null);
   readonly mfaMethods = signal<string[]>([]);
@@ -155,6 +157,7 @@ export class Auth {
       this.access.set(null);
       this.csrf = '';
       this.resetChallenge();
+      this.sounds.play('complete');
       this.channel?.postMessage('logout');
     });
   }

@@ -11,8 +11,10 @@ public sealed class ModuleActivationStore(FrameworkDb db, ModuleCatalog catalog,
     {
         var rows = await db.RuntimeModules.AsNoTracking().ToArrayAsync(ct);
         var runtime = rows.ToDictionary(x => x.Id, x => x.Enabled);
-        return rows.Where(x => catalog.RuntimeConfigurable(x.Id)).OrderBy(x => x.Id)
-            .Select(x => Describe(x, runtime)).ToArray();
+        var byId = rows.ToDictionary(x => x.Id);
+        return catalog.Definitions.Where(x => x.RuntimeConfigurable && catalog.Enabled(x.Id)).OrderBy(x => x.Id)
+            .Select(x => byId.TryGetValue(x.Id, out var row) ? Describe(row, runtime)
+                : new ModuleActivation(x.Id, false, false, Guid.Empty, [], [], false)).ToArray();
     }
 
     private ModuleActivation Describe(RuntimeModuleSettings row, IReadOnlyDictionary<string, bool> runtime)

@@ -4,95 +4,80 @@
     "required": true,
     "enabledByDefault": true,
     "dependencies": [],
-    "runtimeConfigurable": false
+    "runtimeConfigurable": false,
+    "category": "core"
   },
   {
     "id": "audit-recording",
     "required": true,
     "enabledByDefault": true,
-    "dependencies": [
-      "identity"
-    ],
-    "runtimeConfigurable": false
+    "dependencies": ["identity"],
+    "runtimeConfigurable": false,
+    "category": "core"
   },
   {
     "id": "delivery",
     "required": true,
     "enabledByDefault": true,
-    "dependencies": [
-      "identity"
-    ],
-    "runtimeConfigurable": false
+    "dependencies": ["identity"],
+    "runtimeConfigurable": false,
+    "category": "core"
   },
   {
     "id": "my-files",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "identity",
-      "audit-recording"
-    ],
+    "dependencies": ["identity", "audit-recording"],
     "runtimeConfigurable": true,
-    "featureFlag": "my-files"
+    "featureFlag": "my-files",
+    "category": "foundation"
   },
   {
     "id": "maintenance",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "delivery"
-    ],
+    "dependencies": ["delivery"],
     "runtimeConfigurable": false,
-    "featureFlag": "maintenance"
+    "featureFlag": "maintenance",
+    "category": "core"
   },
   {
     "id": "operations",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "delivery",
-      "audit-recording"
-    ],
-    "runtimeConfigurable": false
+    "dependencies": ["delivery", "audit-recording"],
+    "runtimeConfigurable": false,
+    "category": "core"
   },
   {
     "id": "audit-history",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "audit-recording"
-    ],
-    "runtimeConfigurable": false
+    "dependencies": ["audit-recording"],
+    "runtimeConfigurable": false,
+    "category": "core"
   },
   {
     "id": "support",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "identity",
-      "audit-recording",
-      "delivery"
-    ],
-    "runtimeConfigurable": true
+    "dependencies": ["identity", "audit-recording", "delivery"],
+    "runtimeConfigurable": true,
+    "category": "foundation"
   },
   {
     "id": "organisations",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "identity",
-      "audit-recording",
-      "delivery"
-    ],
+    "dependencies": ["identity", "audit-recording", "delivery"],
     "runtimeConfigurable": false,
     "capabilities": [
       {
         "id": "organisation-files",
-        "requires": [
-          "my-files"
-        ]
+        "requires": ["my-files"]
       }
-    ]
+    ],
+    "category": "core"
   },
   {
     "id": "crm",
@@ -100,7 +85,13 @@
     "enabledByDefault": true,
     "dependencies": ["organisations", "audit-recording"],
     "runtimeConfigurable": true,
-    "capabilities": [{ "id": "crm-files", "requires": ["organisation-files"] }]
+    "capabilities": [
+      {
+        "id": "crm-files",
+        "requires": ["organisation-files"]
+      }
+    ],
+    "category": "foundation"
   },
   {
     "id": "invoicing",
@@ -108,16 +99,20 @@
     "enabledByDefault": true,
     "dependencies": ["crm"],
     "runtimeConfigurable": true,
-    "capabilities": [{ "id": "invoicing-files", "requires": ["organisation-files"] }]
+    "capabilities": [
+      {
+        "id": "invoicing-files",
+        "requires": ["organisation-files"]
+      }
+    ],
+    "category": "foundation"
   },
   {
     "id": "billing",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": [
-      "organisations",
-      "delivery"
-    ],
-    "runtimeConfigurable": false
+    "dependencies": ["organisations", "delivery"],
+    "runtimeConfigurable": false,
+    "category": "foundation"
   }
 ]

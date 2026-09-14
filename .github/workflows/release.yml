@@ -1,10 +1,37 @@
 name: Publish packages and images
 on:
   push:
-    tags: ['v*.*.*']
+    tags: ["v*.*.*"]
 permissions:
   contents: read
 jobs:
+  announce:
+    needs: [packages, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Read Node version
+        id: tools
+        run: echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+      - name: Publish successful release metadata
+        env:
+          RELEASE_FEED_URL: ${{ vars.RELEASE_FEED_URL }}
+          RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "${GITHUB_REF_NAME#v}" = "$(jq -r .frameworkVersion framework.json)"
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file releases/migration-notes.txt
+          fi
+          node tools/releases/cli.mjs foundation release-metadata.json \
+            "https://github.com/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME" \
+            releases/migration-notes.txt "$(jq -r .breaking releases/foundation.json)"
+          node tools/releases/cli.mjs publish release-metadata.json
   validate:
     uses: ./.github/workflows/ci.yml
   packages:
@@ -59,10 +86,26 @@ jobs:
     strategy:
       matrix:
         include:
-          - {name: api, project: TemplateV4.ApiService, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: worker, project: TemplateV4.BackgroundWorker, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: migrator, project: TemplateV4.DatabaseMigrator, dockerfile: deploy/Dockerfile.dotnet}
-          - {name: web, project: Web, dockerfile: src/TemplateV4.Angular/Dockerfile}
+          - {
+              name: api,
+              project: TemplateV4.ApiService,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: worker,
+              project: TemplateV4.BackgroundWorker,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: migrator,
+              project: TemplateV4.DatabaseMigrator,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: web,
+              project: Web,
+              dockerfile: src/TemplateV4.Angular/Dockerfile,
+            }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check release version

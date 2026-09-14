@@ -44,7 +44,9 @@ jobs:
       - run: node tools/framework.mjs validate
       - run: node tools/business-module-ids.mjs --check
       - run: node tools/discover-business-modules.mjs
-      - run: node --test tools/business-discovery.test.mjs
+      - run: node --test tools/business-discovery.test.mjs tools/configure-business-modules.test.mjs
+      - run: node --test tools/compose-release.test.mjs
+      - run: node --test tools/releases/releases.test.mjs
       - run: dotnet tool restore
       - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore

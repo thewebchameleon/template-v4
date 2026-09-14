@@ -103,6 +103,26 @@ import { Notifications } from '../core/notifications';
             </div>
           </div>
         </label>
+        <label
+          hlmFieldLabel
+          for="registration-approval"
+          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+          ><div hlmField orientation="horizontal">
+            <hlm-switch
+              inputId="registration-approval"
+              name="registrationApproval"
+              [(ngModel)]="registrationApprovalRequired"
+              [disabled]="busy() || settingsState() !== 'ready' || !registrationEnabled"
+              aria-describedby="registration-approval-help"
+            />
+            <div hlmFieldContent>
+              <span hlmFieldTitle>{{ 'registrationApprovalRequired' | t }}</span>
+              <p hlmFieldDescription id="registration-approval-help">
+                {{ 'registrationApprovalHelp' | t }}
+              </p>
+            </div>
+          </div></label
+        >
         <button hlmBtn [disabled]="busy() || form.invalid || !settings() || !hasUnsavedChanges()">
           @if (busy()) {
             <hlm-spinner />
@@ -134,7 +154,9 @@ export class AccountSecurityPanel {
     const saved = this.settings();
     return (
       !!saved &&
-      (this.policy !== saved.mfaPolicy || this.registrationEnabled !== saved.registrationEnabled)
+      (this.policy !== saved.mfaPolicy ||
+        this.registrationEnabled !== saved.registrationEnabled ||
+        this.registrationApprovalRequired !== saved.registrationApprovalRequired)
     );
   }
   private readonly auth = inject(Auth);
@@ -161,6 +183,7 @@ export class AccountSecurityPanel {
   }
   readonly reauthenticationRequired = signal(false);
   registrationEnabled = false;
+  registrationApprovalRequired = false;
   constructor() {
     void this.load();
   }
@@ -174,6 +197,7 @@ export class AccountSecurityPanel {
       if (applyDraft) {
         this.policy = value.mfaPolicy ?? 'Administrators';
         this.registrationEnabled = value.registrationEnabled ?? false;
+        this.registrationApprovalRequired = value.registrationApprovalRequired ?? false;
         this.settingsConflict.set(false);
       }
       this.settingsState.set('ready');
@@ -189,6 +213,7 @@ export class AccountSecurityPanel {
         await this.auth.action<SecuritySettings>('settings/security', {
           mfaPolicy: this.policy,
           registrationEnabled: this.registrationEnabled,
+          registrationApprovalRequired: this.registrationApprovalRequired,
           version: this.settings()?.version,
         }),
       );

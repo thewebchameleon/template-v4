@@ -21,7 +21,7 @@ public sealed record CultureRequest(string Culture);
 public sealed record InvitationRequest(Guid UserId, bool Cancel = false);
 public sealed record InvitationItem(Guid Id, string DisplayName, string Email, string State, bool EmailConfirmed, DateTimeOffset? SentAt, DateTimeOffset? ExpiresAt, DateTimeOffset? AcceptedAt, DateTimeOffset? ResendAt);
 public sealed record InvitationPage(IReadOnlyList<InvitationItem> Items, int Total, int PageNumber, int PageSize, int Pending, int Expired, int Accepted, int Revoked);
-public sealed partial class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access)
+public sealed partial class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access, TemplateV4.Application.Platform.IActionItems actionItems)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
     public async Task<Result<InvitationPage>> Invitations(int pageNumber, int pageSize, string? search, string state, string sort, string direction, CancellationToken ct)
@@ -115,6 +115,7 @@ public sealed partial class AccountService(FrameworkDb db, UserManager<AppUser> 
         if (!await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct) || user.InvitationCancelledAt != null) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         if (user.EmailConfirmed) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         if (!(await users.ConfirmEmailAsync(user, request.Token)).Succeeded) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
+        if (user.RegistrationState == "Pending") await actionItems.AddReview("Registration", user.Id, user.Id, "registrationReviewAction", "/administration/users/registration-requests", ct);
         user.EmailMfaEnabled = true;
         user.PreferredMfaMethod = MfaMethods.Email;
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);

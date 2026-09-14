@@ -1,5 +1,11 @@
 # Developer guide
 
+For independent module versions, central release-feed hosting, administrator update
+notifications and client upgrade PRs, see [release updates](release-updates.md).
+
+For native Docker Compose deployments of the foundation demo and a generic client,
+see [EasyPanel deployment examples](easypanel.md) and [Coolify deployment examples](coolify.md).
+
 For CRM, commercial documents, package composition and private extensions, see [business modules](business-modules.md) and [foundation packages](packages.md).
 
 For accounts, shared organisation files and subscriptions, see [Organisations and billing](customer-billing.md).
@@ -14,8 +20,8 @@ The framework manifest is the inventory and version contract. CLI and CI load it
 | Domain           | User profile invariants and domain events                         | BCL only                         |
 | Application      | Feature validation, permissions, handlers and app event contracts | Domain, SharedKernel             |
 | Infrastructure   | EF, Identity, sessions, outbox, SMTP, storage                     | Application                      |
-| Http             | Packaged HTTP, authorization, Problem Details, OpenAPI           | Infrastructure, ServiceDefaults  |
-| ApiService       | Explicit foundation/business composition host                    | Http, selected business Api      |
+| Http             | Packaged HTTP, authorization, Problem Details, OpenAPI            | Infrastructure, ServiceDefaults  |
+| ApiService       | Explicit foundation/business composition host                     | Http, selected business Api      |
 | BackgroundWorker | Durable delivery, Quartz scheduling and execution                 | Infrastructure, ServiceDefaults  |
 | DatabaseMigrator | Explicit schema and role-metadata seeding                         | Infrastructure                   |
 | AppHost          | Local orchestration only                                          | Executable project references    |
@@ -27,6 +33,8 @@ Start with [administration and delegated access](administration.md), then [user 
 The baseline also includes [platform workflows](platform-workflows.md), [S3 object storage](object-storage.md), and [monitoring and restore drills](monitoring.md). Their ownership, privacy and transaction conventions are recorded in [ADR 0015](adr/0015-platform-baseline-workflows.md).
 
 The developer guide is rendered by the DocMD project in `documentation`. Aspire runs it locally; `npm run validate --prefix documentation` checks internal links and `npm run build --prefix documentation` produces the static site.
+
+For personal action queues, dashboard oversight and optional registration approval, see [Action items](action-items.md).
 
 ## Golden path
 
@@ -94,7 +102,7 @@ See [production deployment](production.md), [MFA and passkey policy](adr/0005-co
 
 ## UI customization
 
-The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard.ts` with actual application metrics when available. It makes no privileged API requests. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
+The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard.ts` with actual application metrics when available. Its action-item overview uses server-enforced visibility, including Administrator oversight. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
 
 When a data table is the first content in a card (directly or through `app-page-state`), shared styles remove the top content padding and round the table's top corners to the inner card radius. Column headers then meet the card border without a blank strip. Cards with filters or status messages above the table retain their content spacing.
 

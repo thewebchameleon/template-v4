@@ -17,6 +17,7 @@
   --app-content-enter-duration: 500ms;
   --app-modal-background-scale: 1.02;
   --app-modal-background-duration: 200ms;
+  --app-modal-background-exit-duration: 75ms;
   --sidebar-item-enter-duration: 220ms;
   --sidebar-item-enter-distance: 0.375rem;
   --sidebar-item-enter-stagger: 35ms;

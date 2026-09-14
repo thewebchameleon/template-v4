@@ -5,6 +5,7 @@ import { protectUnload } from '../shared/confirmation';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FOUNDATION_FEATURES } from '../core/feature-extensions';
 import { organisationDestinations } from '../core/destinations';
+import { Features } from '../core/features';
 import { CustomerHome } from '../api/models';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Notifications } from '../core/notifications';
@@ -25,7 +26,10 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
     >
       @if (data.value(); as home) {
         <div class="grid gap-6">
-          @for (invite of home.invitations; track invite.id) {
+          @for (
+            invite of features.enabled('organisations') ? home.invitations : [];
+            track invite.id
+          ) {
             <section hlmCard>
               <div hlmCardHeader>
                 <h2 hlmCardTitle>{{ invite.customerName }}</h2>
@@ -125,6 +129,7 @@ export class OrganisationsPage {
     (this.data.value()?.accounts ?? []).filter((account) => account.kind === 'Organisation'),
   );
   readonly api = inject(WorkspaceApi);
+  readonly features = inject(Features);
   readonly toast = inject(Notifications);
   readonly busy = signal(false);
   name = '';

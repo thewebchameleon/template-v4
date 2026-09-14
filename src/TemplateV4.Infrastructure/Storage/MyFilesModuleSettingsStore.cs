@@ -6,12 +6,12 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
 
-public sealed class MyFilesModuleSettingsStore(FrameworkDb db, ModuleCatalog catalog, IExecutionContext context, TimeProvider time) : IMyFilesModuleSettings
+public sealed class MyFilesModuleSettingsStore(FrameworkDb db, ModuleCatalog catalog, IExecutionContext context, TimeProvider time, TemplateV4.Infrastructure.Security.DemoPasswordVerifier passwords) : IMyFilesModuleSettings
 {
     public async Task<MyFilesModuleSettings> Read(CancellationToken ct)
     {
         var row = await db.FileStorageSettings.AsNoTracking().SingleAsync(ct);
-        return new(row.DemoMode, row.SlowUploadMode, row.Version);
+        return new(row.DemoMode, row.SlowUploadMode, row.Version, row.DemoExpiryMinutes);
     }
     public async Task<Result<MyFilesModuleSettings>> Save(SaveMyFilesModuleSettings request, CancellationToken ct)
     {
@@ -20,8 +20,10 @@ public sealed class MyFilesModuleSettingsStore(FrameworkDb db, ModuleCatalog cat
         await ModuleActivationStore.LockRows(db, ct);
         var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM files.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         if (settings.Version != request.Version) return Result<MyFilesModuleSettings>.Fail("modules.conflict", ErrorKind.Conflict);
+        if (request.DemoMode && !settings.DemoMode && !await passwords.Verify(context.ActorId!.Value, request.Password, ct))
+            return Result<MyFilesModuleSettings>.Fail("authorization.denied", ErrorKind.Forbidden);
         if (request.DemoMode == settings.DemoMode && request.SlowUploadMode == settings.SlowUploadMode)
-            return Result<MyFilesModuleSettings>.Success(new(settings.DemoMode, settings.SlowUploadMode, settings.Version));
+            return Result<MyFilesModuleSettings>.Success(new(settings.DemoMode, settings.SlowUploadMode, settings.Version, settings.DemoExpiryMinutes));
         var version = Guid.NewGuid();
         var demoStartedAt = request.DemoMode == settings.DemoMode ? settings.DemoStartedAt
             : request.DemoMode ? time.GetUtcNow() : (DateTimeOffset?)null;

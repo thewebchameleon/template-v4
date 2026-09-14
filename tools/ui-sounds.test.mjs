@@ -106,6 +106,53 @@ test("pending MFA and rendering a restored session do not play login success", a
   assert.deepEqual(h.played, []);
 });
 
+for (const outcome of ["success", "failed"]) {
+  test(`sign-out plays complete only when logout succeeds (${outcome})`, async () => {
+    const played = [];
+    const http = {
+      get: () => rx.of({ token: "csrf" }),
+      post: () =>
+        outcome === "success"
+          ? rx.of(undefined)
+          : rx.throwError(() => Error("Sign-out failed")),
+    };
+    const injection = {
+      http,
+      router: {},
+      runtime: { apiUrl: "" },
+      i18n: {},
+      sounds: { play: (cue) => played.push(cue) },
+    };
+    const { Auth } = load(
+      "auth",
+      {
+        "@angular/core": {
+          Injectable: () => (value) => value,
+          inject: (token) => injection[token],
+          signal,
+        },
+        "@angular/common/http": {
+          HttpClient: "http",
+          HttpErrorResponse: class {},
+        },
+        "@angular/router": { Router: "router" },
+        rxjs: rx,
+        "./runtime": { Runtime: "runtime" },
+        "./i18n": { I18n: "i18n" },
+        "./ui-sounds": { UiSounds: "sounds" },
+      },
+      { navigator: {}, location: { assign: () => {} } },
+    );
+    const auth = new Auth();
+    auth.access.set({ userId: "user" });
+
+    if (outcome === "success") await auth.logout();
+    else await assert.rejects(auth.logout(), /Sign-out failed/);
+
+    assert.deepEqual(played, outcome === "success" ? ["complete"] : []);
+  });
+}
+
 const signal = (initial) => {
   let value = initial;
   const read = () => value;

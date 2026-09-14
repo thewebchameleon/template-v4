@@ -38,6 +38,10 @@ The baseline permission catalog is:
 
 Adding granular operator/reviewer permissions is an extension: change the catalog, endpoint and handler policies, UI navigation and descriptions together. The current catalog intentionally preserves the existing `settings.manage` grouping.
 
+## Action items and registration review
+
+See [Action items](action-items.md) for named work queues, dashboard oversight and registration approval. Privacy review now requires Administrator membership in addition to `settings.manage`; delegated settings operators cannot review privacy requests.
+
 ## Account and System Health
 
 **Account** (`/me`) contains identity and email change. **Security** contains authentication methods, recovery codes and the sessions shortcut. Proof fields appear for the chosen action. Copy recovery codes and acknowledge saving them before leaving. **Privacy** retains data export, retention and deletion requests.

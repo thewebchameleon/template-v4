@@ -5,6 +5,7 @@ export interface SecuritySettings {
   bootstrapCompletedAt?: (string | null);
   id?: number;
   mfaPolicy?: string;
+  registrationApprovalRequired?: boolean;
   registrationEnabled?: boolean;
   version?: string;
 }

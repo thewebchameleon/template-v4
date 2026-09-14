@@ -660,6 +660,9 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/users")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/settings/security")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/settings/security", new SecurityPolicyRequest("Optional", Guid.Empty, true))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/action-items")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/auth/registration-requests")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/auth/registration-requests/review", new ReviewRegistration(readerId, true))).StatusCode);
         Assert.Equal(readerId, (await client.GetFromJsonAsync<ProfileResponse>("/api/v1/auth/profile"))!.Id);
         // The same anonymous-bound CSRF token remains valid after the principal changes at login.
         Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/v1/auth/logout", new { })).StatusCode);

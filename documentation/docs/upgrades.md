@@ -81,3 +81,8 @@ Licensing has its own migration history and is disabled by default. Back up and 
 retained-database tests before production migration. Never delete/regenerate a migration.
 See packages.md for the artifact-only candidate upgrade fixture and business-modules.md
 for physical removal and accepted-obligation behavior.
+# Automated discovery and notifications
+
+See [release updates](release-updates.md) for the authenticated central release feed,
+independent module pins, administrator notifications and draft client upgrade PRs.
+The existing manual source-upgrade guidance below remains relevant to customized clones.

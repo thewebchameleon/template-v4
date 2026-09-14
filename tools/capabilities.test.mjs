@@ -38,10 +38,18 @@ test('capability discovery coalesces requests and refreshes on later navigation'
   requests[0].response.next({ 'my-files': true });
   await first;
   assert.equal(features.enabled('my-files'), true);
+  assert.equal(features.state(), 'ready');
   assert.equal(features.enabled('support'), false);
   const refresh = features.load();
   requests[1].response.error(new Error('offline'));
   await refresh;
+  assert.equal(features.enabled('my-files'), false);
+  assert.equal(features.state(), 'error');
+  const retry = features.load();
+  assert.equal(features.state(), 'loading');
+  requests[2].response.next({ 'my-files': false });
+  await retry;
+  assert.equal(features.state(), 'ready');
   assert.equal(features.enabled('my-files'), false);
 });
 

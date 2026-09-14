@@ -66,7 +66,8 @@ public sealed class Dispatcher<TRequest, TResponse>(IHandler<TRequest, TResponse
                 next = () => pipeline.Execute(request, inner, cancellationToken);
             }
             if (request is not ICommand<TResponse>) return await next();
-            var fingerprint = System.Text.Json.JsonSerializer.Serialize(request);
+            // Only replayable commands need a payload fingerprint. Never serialize credential commands unnecessarily.
+            var fingerprint = request is IIdempotentRequest ? System.Text.Json.JsonSerializer.Serialize(request) : "";
             return await transactions.Execute(next, (request as IIdempotentRequest)?.IdempotencyKey, typeof(TRequest).FullName + ":" + fingerprint, cancellationToken);
         }
     }

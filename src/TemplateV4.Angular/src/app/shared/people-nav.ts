@@ -20,7 +20,10 @@ import { Translate } from '../core/i18n';
         }
         @if (auth.has('settings.manage')) {
           <button hlmTabsTrigger="security">{{ 'security' | t }}</button>
-          <button hlmTabsTrigger="privacy">{{ 'privacyRequests' | t }}</button>
+          @if (auth.access()?.isAdministrator) {
+            <button hlmTabsTrigger="registrations">{{ 'registrationRequests' | t }}</button>
+            <button hlmTabsTrigger="privacy">{{ 'privacyRequests' | t }}</button>
+          }
         }
       </hlm-tabs-list>
     </hlm-tabs>

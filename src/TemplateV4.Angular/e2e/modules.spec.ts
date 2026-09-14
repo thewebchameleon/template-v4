@@ -6,11 +6,19 @@ async function modulesApp(page: Page, administrator = true, available = true) {
     id: 'my-files',
     enabled: true,
     available,
+    initialized: available,
     version: 'initial',
     enableBlockers: [] as string[],
     disableBlockers: [] as string[],
   };
   let failSave = false;
+  let settings = {
+    demoMode: false,
+    slowUploadMode: false,
+    version: 'file-settings',
+    demoExpiryMinutes: 60,
+  };
+  let settingsPosts = 0;
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/v1/auth/administration/modules/activation') {
@@ -26,10 +34,21 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       }
       return route.fulfill({ json: [saved] });
     }
-    if (path === '/api/v1/auth/administration/modules/my-files/settings')
-      return route.fulfill({
-        json: { demoMode: false, slowUploadMode: false, version: 'file-settings' },
-      });
+    if (path === '/api/v1/auth/administration/modules/my-files/settings') {
+      if (route.request().method() === 'POST') {
+        settingsPosts++;
+        const body = route.request().postDataJSON();
+        if (body.demoMode && !settings.demoMode && body.password !== 'test-admin-proof')
+          return route.fulfill({ status: 403, json: { title: 'Password verification failed.' } });
+        settings = {
+          ...settings,
+          demoMode: body.demoMode,
+          slowUploadMode: body.slowUploadMode,
+          version: 'updated-settings',
+        };
+      }
+      return route.fulfill({ json: settings });
+    }
     const responses: Record<string, unknown> = {
       '/api/v1/auth/appearance': { primaryColor: '#2563EB' },
       '/api/v1/auth/refresh': {
@@ -50,6 +69,8 @@ async function modulesApp(page: Page, administrator = true, available = true) {
   });
   return {
     enabled: () => saved.enabled,
+    settings: () => settings,
+    settingsPosts: () => settingsPosts,
     fail: () => {
       failSave = true;
     },
@@ -57,7 +78,7 @@ async function modulesApp(page: Page, administrator = true, available = true) {
 }
 
 const myFilesModuleControl = (page: Page) =>
-  page.getByRole('switch', { name: /^My Files Personal file libraries/ });
+  page.getByRole('switch', { name: 'My Files', exact: true });
 
 test('modules save application-wide Files state, refresh navigation and guard disabled routes', async ({
   page,
@@ -67,14 +88,14 @@ test('modules save application-wide Files state, refresh navigation and guard di
   const control = myFilesModuleControl(page);
   const features = page.getByRole('heading', { name: 'Features', exact: true });
   const storageSettings = page
-    .locator('#my-files-module-content')
+    .locator('#module-my-files')
     .getByRole('link', { name: 'File storage', exact: true });
   await expect(control).toBeChecked();
   await expect(features).toBeVisible();
   await expect(storageSettings).toHaveAttribute('href', '/administration/storage');
   await control.click();
   await expect(control).not.toBeChecked();
-  await expect(features).toBeHidden();
+  await expect(features).toBeVisible();
   await expect(storageSettings).toBeHidden();
   await expect.poll(app.enabled).toBe(false);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
@@ -93,7 +114,7 @@ test('modules save application-wide Files state, refresh navigation and guard di
     '/administration/users/owner/files',
   ]) {
     await page.goto(path);
-    await expect(page).toHaveURL(/\/me$/);
+    await expect(page).toHaveURL(/\/module-unavailable\?/);
   }
   await page.goto('/administration/modules');
   await control.click();
@@ -135,20 +156,27 @@ test('modules deny delegated settings operators and explain unavailable deployme
   await modulesApp(page, true, false);
   await page.goto('/administration/modules');
   await expect(myFilesModuleControl(page)).toBeDisabled();
-  await expect(
-    page.getByText('This module is unavailable in this deployment.', { exact: false }),
-  ).toBeVisible();
+  await expect(page.getByText('Module setup is incomplete.', { exact: false })).toBeVisible();
 });
 
 test('modules are accessible in both themes and reflow at enlarged text on mobile', async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await modulesApp(page);
   await page.goto('/administration/modules');
   const control = myFilesModuleControl(page);
   await expect(control).toBeVisible();
   for (const dark of [false, true]) {
     await page.evaluate((value) => document.documentElement.classList.toggle('dark', value), dark);
+    await page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+          .map((animation) => animation.finished.catch(() => {})),
+      ),
+    );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   }
   await page.setViewportSize({ width: 390, height: 844 });
@@ -164,4 +192,40 @@ test('modules are accessible in both themes and reflow at enlarged text on mobil
   await page.keyboard.press('Space');
   await expect(control).not.toBeChecked();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test('demo enabling requires warning confirmation and password; cancellation is inert', async ({
+  page,
+}) => {
+  const app = await modulesApp(page);
+  await page.goto('/administration/modules');
+  const demo = page.getByRole('switch', { name: 'Demo mode', exact: true });
+  await demo.click();
+  const dialog = page.getByRole('dialog', { name: 'Enable demo mode' });
+  await expect(dialog).toContainText('permanently deleted');
+  await expect(dialog).toContainText('60');
+  await expect(
+    dialog.getByRole('button', { name: 'Enable demo mode', exact: true }),
+  ).toBeDisabled();
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(demo).not.toBeChecked();
+  expect(app.settingsPosts()).toBe(0);
+  await demo.click();
+  await dialog.getByLabel('Password', { exact: true }).fill('incorrect');
+  await dialog.getByRole('button', { name: 'Enable demo mode', exact: true }).click();
+  await expect(dialog).toContainText('Demo mode was not enabled.');
+  await expect(dialog.getByLabel('Password', { exact: true })).toHaveValue('');
+  expect(app.settings().demoMode).toBe(false);
+  await dialog.getByLabel('Password', { exact: true }).fill('test-admin-proof');
+  await dialog.getByRole('button', { name: 'Enable demo mode', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(demo).toBeChecked();
+  await myFilesModuleControl(page).click();
+  await expect(
+    page.getByText('Demo expiry is active for everyone', { exact: false }),
+  ).toBeVisible();
+  await expect(demo).toBeEnabled();
+  await demo.click();
+  await expect(demo).not.toBeChecked();
+  await expect.poll(() => app.settings().demoMode).toBe(false);
 });

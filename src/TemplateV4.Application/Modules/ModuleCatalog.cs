@@ -5,7 +5,8 @@ namespace TemplateV4.Application.Modules;
 
 public sealed record ModuleDefinition([property: JsonRequired] string Id, [property: JsonRequired] bool Required,
     [property: JsonRequired] bool EnabledByDefault, [property: JsonRequired] IReadOnlyList<string> Dependencies,
-    bool RuntimeConfigurable = false, string? FeatureFlag = null, IReadOnlyList<CapabilityDefinition>? Capabilities = null);
+    bool RuntimeConfigurable = false, string? FeatureFlag = null, IReadOnlyList<CapabilityDefinition>? Capabilities = null,
+    string Category = "foundation");
 public sealed record CapabilityDefinition([property: JsonRequired] string Id, [property: JsonRequired] IReadOnlyList<string> Requires, string? FeatureFlag = null);
 
 /// <summary>Immutable deployment capabilities. Feature flags and permissions can restrict these further.</summary>
@@ -19,6 +20,9 @@ public sealed class ModuleCatalog
     public ModuleCatalog(IEnumerable<ModuleDefinition> definitions, IReadOnlyDictionary<string, bool> overrides)
     {
         var items = definitions.ToArray();
+        if (items.Any(x => x is null || x.Category is not ("core" or "foundation" or "private") ||
+            (x.Category == "core" && x.RuntimeConfigurable) || (x.Category == "private" && x.Required)))
+            throw new InvalidOperationException("Invalid module category or lifecycle.");
         if (items.Length == 0) throw new InvalidOperationException("The module catalog is empty.");
         if (items.Any(x => x is null || x.Dependencies is null || x.Dependencies.Any(string.IsNullOrWhiteSpace) ||
             x.Capabilities?.Any(c => c is null || c.Requires is null || c.Requires.Any(string.IsNullOrWhiteSpace)) == true))

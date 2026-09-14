@@ -3,6 +3,7 @@
 
 export interface SaveMyFilesModuleSettings {
   demoMode: boolean;
+  password?: (string | null);
   permission?: (string | null);
   slowUploadMode: boolean;
   version: string;

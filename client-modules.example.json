@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "foundation": {
+    "my-files": true,
+    "support": true,
+    "crm": true,
+    "invoicing": true,
+    "billing": false
+  },
+  "privateModules": []
+}

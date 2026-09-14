@@ -1,0 +1,1 @@
+Run the Database Migrator and all selected business-module migrations before starting the coordinated API and Worker release. Preserve existing migration history and take a verified backup before deployment. Review documentation/docs/upgrades.md for client-owned host and source changes.

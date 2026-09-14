@@ -10,9 +10,11 @@ export class Registration {
   private readonly runtime = inject(Runtime);
   private readonly auth = inject(Auth);
 
-  status(): Promise<{ enabled: boolean }> {
+  status(): Promise<{ enabled: boolean; approvalRequired: boolean }> {
     return firstValueFrom(
-      this.http.get<{ enabled: boolean }>(`${this.runtime.apiUrl}/api/v1/auth/registration`),
+      this.http.get<{ enabled: boolean; approvalRequired: boolean }>(
+        `${this.runtime.apiUrl}/api/v1/auth/registration`,
+      ),
     );
   }
 

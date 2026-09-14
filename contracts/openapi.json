@@ -2021,6 +2021,31 @@
         }
       }
     },
+    "/api/v1/auth/updates": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetReleaseUpdates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/my-files": {
       "get": {
         "tags": [
@@ -3046,6 +3071,339 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/action-items": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListActionItems",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "Scope",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "mine"
+            }
+          },
+          {
+            "name": "State",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "Open"
+            }
+          },
+          {
+            "name": "Sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "createdAt"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfActionItemDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateActionItem",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateActionItem"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/action-items/assignees": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "FindActionAssignees",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionAssignee"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/action-items/queues": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetActionItemQueues",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionQueue"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/action-items/{id}/complete": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CompleteActionItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/registration-requests": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListRegistrationRequests",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "displayName"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfRegistrationReviewItem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/registration-requests/review": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ReviewRegistration",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRegistration"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -5231,12 +5589,12 @@
         ]
       }
     },
-    "/api/v1/auth/customers": {
+    "/api/v1/auth/customers/administration": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetCustomers",
+        "operationId": "GetOrganisationAdministration",
         "responses": {
           "200": {
             "description": "OK",
@@ -5254,7 +5612,9 @@
             "Bearer": [ ]
           }
         ]
-      },
+      }
+    },
+    "/api/v1/auth/customers": {
       "post": {
         "tags": [
           "Framework"
@@ -5298,14 +5658,12 @@
             "Bearer": [ ]
           }
         ]
-      }
-    },
-    "/api/v1/auth/customers/administration": {
+      },
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetOrganisationAdministration",
+        "operationId": "GetCustomers",
         "responses": {
           "200": {
             "description": "OK",
@@ -5316,45 +5674,6 @@
                 }
               }
             }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/current": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SelectOrganisation",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SelectOrganisation"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         },
         "security": [
@@ -5742,6 +6061,45 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MemberAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/current": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SelectOrganisation",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectOrganisation"
               }
             }
           },
@@ -6811,6 +7169,105 @@
           }
         }
       },
+      "ActionAssignee": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ActionItemDto": {
+        "required": [
+          "id",
+          "title",
+          "description",
+          "source",
+          "link",
+          "assigneeId",
+          "queueId",
+          "assignee",
+          "state",
+          "createdAt",
+          "completedAt",
+          "canComplete"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "assigneeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "queueId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assignee": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "canComplete": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ActionQueue": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
       "AddCrmNote": {
         "required": [
           "text"
@@ -7675,6 +8132,57 @@
           }
         }
       },
+      "ComponentUpdate": {
+        "required": [
+          "id",
+          "installedVersion",
+          "availableVersion",
+          "status",
+          "notesUrl",
+          "migrationNotes",
+          "breaking",
+          "requirements"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "installedVersion": {
+            "type": "string"
+          },
+          "availableVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "notesUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "migrationNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "breaking": {
+            "type": "boolean"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "ConfirmEmailChangeRequest": {
         "required": [
           "challenge"
@@ -7699,6 +8207,38 @@
           },
           "token": {
             "type": "string"
+          }
+        }
+      },
+      "CreateActionItem": {
+        "required": [
+          "title",
+          "description",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "assigneeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "queueId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -9322,6 +9862,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "initialized": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -9342,6 +9886,11 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
           }
         }
       },
@@ -9544,6 +10093,35 @@
           "quotaBytes": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "PageOfActionItemDto": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActionItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -9792,6 +10370,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OrganisationFileItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfRegistrationReviewItem": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationReviewItem"
             }
           },
           "total": {
@@ -10279,6 +10886,26 @@
           }
         }
       },
+      "RegistrationReviewItem": {
+        "required": [
+          "id",
+          "displayName",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
       "RegistrationSettings": {
         "required": [
           "enabled"
@@ -10287,6 +10914,10 @@
         "properties": {
           "enabled": {
             "type": "boolean"
+          },
+          "approvalRequired": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -10383,6 +11014,22 @@
         }
       },
       "ReviewDeletionRequest": {
+        "required": [
+          "id",
+          "approve"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "approve": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReviewRegistration": {
         "required": [
           "id",
           "approve"
@@ -10508,6 +11155,12 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "permission": {
             "type": [
@@ -10640,6 +11293,10 @@
           "registrationEnabled": {
             "type": "boolean",
             "default": false
+          },
+          "registrationApprovalRequired": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -10673,6 +11330,9 @@
             "type": "string"
           },
           "registrationEnabled": {
+            "type": "boolean"
+          },
+          "registrationApprovalRequired": {
             "type": "boolean"
           },
           "bootstrapCompletedAt": {
@@ -11065,6 +11725,44 @@
           "removeAvatar": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "UpdateSummary": {
+        "required": [
+          "enabled",
+          "checkedAt",
+          "succeededAt",
+          "status",
+          "components"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "checkedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "succeededAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentUpdate"
+            }
           }
         }
       },
