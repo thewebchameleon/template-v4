@@ -117,9 +117,9 @@ jobs:
             node tools/releases/cli.mjs compose "$PWD" "$GITHUB_WORKSPACE/configuration/$TEMPLATE_FILE"
           fi
           node tools/discover-business-modules.mjs
+          npm ci --prefix src/TemplateV4.Angular
           node tools/framework.mjs validate
           node tools/business-module-ids.mjs --check
-          npm ci --prefix src/TemplateV4.Angular
           for project in ApiService BackgroundWorker DatabaseMigrator Application.Tests; do
             dotnet restore "src/TemplateV4.$project/TemplateV4.$project.csproj" --locked-mode
           done
