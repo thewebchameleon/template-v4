@@ -1,4 +1,11 @@
-import { workspaceDestinations, destinationAvailable } from './core/destinations';
+import { FOUNDATION_FEATURES } from './core/feature-extensions';
+import {
+  workspaceDestinations,
+  organisationDestinations,
+  activeDestinationIndex,
+  destinationAvailable,
+  Destination,
+} from './core/destinations';
 import { MyFilesTree } from './features/my-files-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -8,6 +15,9 @@ import { NavigationEnd, RouterOutlet, RouterLink, RouterLinkActive, Router } fro
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCommand,
+  lucideContactRound,
+  lucideFileSpreadsheet,
+  lucideCar,
   lucideLayoutDashboard,
   lucideUserRound,
   lucideUsersRound,
@@ -41,6 +51,11 @@ import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
 import { UnreadNotifications } from './core/unread-notifications';
 import { NotificationDrawer } from './features/notification-drawer';
+
+type RailLink = Destination & {
+  destination: string;
+  destinationQueryParams: Record<string, string> | null;
+};
 @Component({
   selector: 'app-root',
   imports: [
@@ -66,6 +81,9 @@ import { NotificationDrawer } from './features/notification-drawer';
   providers: [
     provideIcons({
       lucideCommand,
+      lucideContactRound,
+      lucideFileSpreadsheet,
+      lucideCar,
       lucideLayoutDashboard,
       lucideUserRound,
       lucideUsersRound,
@@ -115,7 +133,7 @@ import { NotificationDrawer } from './features/notification-drawer';
                   @if (activeRailIndex() >= 0) {
                     <span class="sidebar-rail-indicator" aria-hidden="true"></span>
                   }
-                  @for (item of railLinks(); track item.path) {
+                  @for (item of railLinks(); track item.path; let index = $index) {
                     @if (item.hasPanel) {
                       <a
                         hlmBtn
@@ -138,11 +156,10 @@ import { NotificationDrawer } from './features/notification-drawer';
                         hlmBtn
                         variant="ghost"
                         size="icon"
-                        [routerLink]="item.path"
-                        routerLinkActive
-                        #railActive="routerLinkActive"
-                        ariaCurrentWhenActive="page"
-                        [attr.data-active]="railActive.isActive"
+                        [routerLink]="item.destination"
+                        [queryParams]="item.destinationQueryParams"
+                        [attr.aria-current]="activeRailIndex() === index ? 'page' : null"
+                        [attr.data-active]="activeRailIndex() === index"
                         [attr.aria-label]="item.label | t"
                         [hlmTooltip]="item.label | t"
                         position="right"
@@ -201,7 +218,11 @@ import { NotificationDrawer } from './features/notification-drawer';
                   <ul hlmSidebarMenu>
                     @for (item of railLinks(); track item.path) {
                       <li hlmSidebarMenuItem>
-                        <a hlmSidebarMenuButton [routerLink]="item.path" closeMobileSidebarOnClick
+                        <a
+                          hlmSidebarMenuButton
+                          [routerLink]="item.destination"
+                          [queryParams]="item.destinationQueryParams"
+                          closeMobileSidebarOnClick
                           ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
                         >
                       </li>
@@ -406,10 +427,14 @@ import { NotificationDrawer } from './features/notification-drawer';
   `,
 })
 export class App {
+  readonly extensions = inject(FOUNDATION_FEATURES);
   readonly themeDrawerOpen = signal(false);
   readonly accountMenuLinks = computed(() =>
     [
       { path: '/me', label: 'accountMenuProfile', icon: 'lucideUserRound', requiresMfa: true },
+      ...(destinationAvailable(workspaceDestinations.organisations, this.auth, this.features)
+        ? [{ ...workspaceDestinations.organisations, requiresMfa: true }]
+        : []),
       { path: '/security', label: 'security', icon: 'lucideShieldCheck' },
       {
         path: '/security/sessions',
@@ -457,14 +482,7 @@ export class App {
     return (
       selectedPanel === 'account' ||
       (selectedPanel === null &&
-        this.accountMenuLinks().some((item) =>
-          this.router.isActive(item.path, {
-            paths: 'subset',
-            queryParams: 'ignored',
-            matrixParams: 'ignored',
-            fragment: 'ignored',
-          }),
-        ))
+        this.routeDestination(this.router.url.split(/[?#]/)[0]) === 'account')
     );
   });
 
@@ -506,7 +524,33 @@ export class App {
       selectedPanel === '/administration' || (selectedPanel === null && this.administrationActive())
     );
   });
-  readonly railLinks = computed(() => [
+  readonly organisationRailLinks = computed<RailLink[]>(() => {
+    this.navigationEnd();
+    let route = this.router.routerState.snapshot.root.firstChild;
+    let organisation: string | null = null;
+    while (route) {
+      if (route.routeConfig?.path?.startsWith('organisations/:id')) {
+        organisation = route.paramMap.get('id');
+        break;
+      }
+      route = route.firstChild;
+    }
+    const prefix = organisation ? `/organisations/${encodeURIComponent(organisation)}/` : null;
+    return [
+      ...organisationDestinations,
+      ...this.extensions.flatMap((feature) => feature.organisationDestinations ?? []),
+    ].map((item) => ({
+      ...item,
+      path: `/module-workspaces/${encodeURIComponent(item.path)}`,
+      destination: '/module-workspaces',
+      destinationQueryParams: { module: item.path },
+      activePath: prefix
+        ? prefix + (item.activePath ?? item.path)
+        : `/module-workspaces/${encodeURIComponent(item.path)}`,
+      hasPanel: false,
+    }));
+  });
+  readonly railLinks = computed<RailLink[]>(() => [
     ...(!this.auth.access()?.setupRequired
       ? [
           {
@@ -517,13 +561,24 @@ export class App {
           },
         ]
       : []),
-    ...Object.values(workspaceDestinations)
+    ...[
+      ...Object.values(workspaceDestinations).filter(
+        (item) => item.path !== workspaceDestinations.organisations.path,
+      ),
+      ...this.organisationRailLinks(),
+      ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => !x.section),
+    ]
       .filter((item) => destinationAvailable(item, this.auth, this.features))
-      .map((item) => ({
-        ...item,
-        destination: item.path,
-        destinationQueryParams: item.capability === 'my-files' ? { group: 'my-files' } : null,
-      })),
+      .map((item) => {
+        const railItem = item as Destination & Partial<RailLink>;
+        return {
+          ...item,
+          destination: railItem.destination ?? item.path,
+          destinationQueryParams:
+            railItem.destinationQueryParams ??
+            (item.capability === 'my-files' ? { group: 'my-files' } : null),
+        };
+      }),
     ...(this.availableAdminLinks().length
       ? [
           {
@@ -542,14 +597,7 @@ export class App {
     if (this.accountPanelActive()) return -1;
     const selectedPanel = this.selectedPanel();
     if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
-    return this.railLinks().findIndex((item) =>
-      this.router.isActive(item.path, {
-        paths: 'subset',
-        queryParams: 'ignored',
-        matrixParams: 'ignored',
-        fragment: 'ignored',
-      }),
-    );
+    return activeDestinationIndex(this.railLinks(), this.router.url.split(/[?#]/)[0]);
   });
 
   readonly myFilesPanelActive = computed(() => this.railPanelActive('/my-files'));
@@ -574,14 +622,13 @@ export class App {
   }
 
   private routeDestination(path: string): string {
+    const railDestination = this.railLinks()[activeDestinationIndex(this.railLinks(), path)];
+    if (railDestination) return railDestination.path;
     if (
       this.accountMenuLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`))
     )
       return 'account';
-    return (
-      this.railLinks().find((item) => path === item.path || path.startsWith(`${item.path}/`))
-        ?.path ?? path
-    );
+    return path;
   }
 
   selectRailPanel(event: MouseEvent, path: string): void {

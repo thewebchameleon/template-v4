@@ -1,10 +1,14 @@
+import { currentOrganisationGuard } from './core/current-organisation';
 import { customerTranslations } from './core/customer-resolver';
+import { FOUNDATION_FEATURES } from './core/feature-extensions';
+import { businessTranslations } from './core/business-translations';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
 import { capabilityGuard } from './core/features';
 import {
   destinationGuard,
   workspaceDestinations,
   administrationDestinations,
+  organisationDestinations,
 } from './core/destinations';
 import { supportTranslations } from './core/support-resolver';
 import { inject } from '@angular/core';
@@ -13,6 +17,82 @@ import { authGuard, permissionGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
+  {
+    path: 'module-workspaces',
+    canDeactivate: [unsavedGuard],
+    resolve: { customerTranslations, businessTranslations },
+    data: { breadcrumb: 'organisation' },
+    canActivate: [
+      authGuard,
+      destinationGuard(workspaceDestinations.organisations),
+      (route, state) => {
+        const destination = [
+          ...organisationDestinations,
+          ...inject(FOUNDATION_FEATURES).flatMap(
+            (feature) => feature.organisationDestinations ?? [],
+          ),
+        ].find((item) => item.path === route.queryParamMap.get('module'));
+        return destination
+          ? destinationGuard(destination)(route, state)
+          : inject(Router).createUrlTree(['/organisations']);
+      },
+      currentOrganisationGuard,
+    ],
+    loadComponent: () => import('./features/organisations').then((m) => m.OrganisationsPage),
+  },
+  {
+    path: 'organisations/:id/invoicing',
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'invoicing' },
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/invoicing').then((m) => m.InvoicingPage),
+  },
+  {
+    path: 'organisations/:id/invoicing/new',
+    canDeactivate: [unsavedGuard],
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'issueDocument' },
+    canActivate: [authGuard, capabilityGuard('invoicing')],
+    loadComponent: () => import('./features/commercial-editor').then((m) => m.CommercialEditorPage),
+  },
+  {
+    path: 'organisations/:id/invoicing/settings',
+    canDeactivate: [unsavedGuard],
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'issuerSettings' },
+    canActivate: [authGuard, capabilityGuard('invoicing')],
+    loadComponent: () => import('./features/issuer-settings').then((m) => m.IssuerSettingsPage),
+  },
+  {
+    path: 'organisations/:id/invoicing/:documentId',
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'invoicing' },
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/commercial-detail').then((m) => m.CommercialDetailPage),
+  },
+  {
+    path: 'organisations/:id/crm',
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'crm' },
+    canActivate: [authGuard, capabilityGuard('crm')],
+    loadComponent: () => import('./features/crm').then((m) => m.CrmPage),
+  },
+  {
+    path: 'organisations/:id/crm/configuration',
+    canDeactivate: [unsavedGuard],
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'crmConfiguration' },
+    canActivate: [authGuard, capabilityGuard('crm')],
+    loadComponent: () => import('./features/crm-configuration').then((m) => m.CrmConfigurationPage),
+  },
+  {
+    path: 'organisations/:id/crm/:recordId',
+    canDeactivate: [unsavedGuard],
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'crmEdit' },
+    canActivate: [authGuard, capabilityGuard('crm')],
+    loadComponent: () => import('./features/crm-detail').then((m) => m.CrmDetailPage),
+  },
   {
     path: 'files',
     pathMatch: 'full',
@@ -24,38 +104,34 @@ export const routes: Routes = [
     loadComponent: () => import('./features/public-my-files').then((m) => m.PublicMyFilesPage),
   },
   {
-    path: 'organizations',
+    path: 'organisations',
     canDeactivate: [unsavedGuard],
-    resolve: { customerTranslations },
-    data: { breadcrumb: 'organizations' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.organizations)],
-    loadComponent: () => import('./features/organizations').then((m) => m.OrganizationsPage),
+    resolve: { customerTranslations, businessTranslations },
+    data: { breadcrumb: 'organisation' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.organisations)],
+    loadComponent: () => import('./features/organisations').then((m) => m.OrganisationsPage),
   },
   {
-    path: 'organizations/:id/billing',
+    path: 'organisations/:id/billing',
     canDeactivate: [unsavedGuard],
-    resolve: { customerTranslations },
+    resolve: { customerTranslations, businessTranslations },
     data: { breadcrumb: 'billing' },
     canActivate: [authGuard],
     loadComponent: () => import('./features/billing').then((m) => m.BillingPage),
   },
   {
-    path: 'organizations/:id/files',
+    path: 'organisations/:id/files',
     canDeactivate: [unsavedGuard],
-    resolve: { customerTranslations },
-    data: { breadcrumb: 'organizationFiles' },
-    canActivate: [authGuard, capabilityGuard('organization-files')],
+    resolve: { customerTranslations, businessTranslations },
+    data: { breadcrumb: 'organisationFiles' },
+    canActivate: [authGuard, capabilityGuard('organisation-files')],
     loadComponent: () =>
-      import('./features/organization-files').then((m) => m.OrganizationFilesPage),
+      import('./features/organisation-files').then((m) => m.OrganisationFilesPage),
   },
   {
-    path: 'organizations/:id',
-    canDeactivate: [unsavedGuard],
-    resolve: { customerTranslations },
-    data: { breadcrumb: 'organizationWorkspace' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.organizations)],
-    loadComponent: () =>
-      import('./features/organization-detail').then((m) => m.OrganizationDetailPage),
+    path: 'organisations/:id',
+    redirectTo: ({ params }) =>
+      inject(Router).createUrlTree(['/administration/organisations', params['id']]),
   },
   { path: '', pathMatch: 'full', canActivate: [bootstrapLandingGuard], children: [] },
   {
@@ -184,6 +260,23 @@ export const routes: Routes = [
     data: { breadcrumb: 'administration' },
     canActivate: [authGuard],
     children: [
+      {
+        path: 'organisations',
+        data: { breadcrumb: 'organisations', organisationAdministration: true },
+        canActivate: [destinationGuard(administrationDestinations.organisations)],
+        canDeactivate: [unsavedGuard],
+        resolve: { customerTranslations },
+        loadComponent: () => import('./features/organisations').then((m) => m.OrganisationsPage),
+      },
+      {
+        path: 'organisations/:id',
+        data: { breadcrumb: 'organisationWorkspace' },
+        canActivate: [destinationGuard(administrationDestinations.organisations)],
+        canDeactivate: [unsavedGuard],
+        resolve: { customerTranslations },
+        loadComponent: () =>
+          import('./features/organisation-detail').then((m) => m.OrganisationDetailPage),
+      },
       { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
       {
         path: 'users',
@@ -267,7 +360,7 @@ export const routes: Routes = [
       {
         path: 'billing',
         canDeactivate: [unsavedGuard],
-        resolve: { customerTranslations },
+        resolve: { customerTranslations, businessTranslations },
         data: { breadcrumb: 'billingSettings', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.billing)],
         loadComponent: () =>

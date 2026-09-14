@@ -2,13 +2,13 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
 import { Features } from './features';
-import { CapabilityId } from './capability-ids';
 
 export interface Destination {
   path: string;
+  activePath?: string;
   label: string;
   icon: string;
-  capability?: CapabilityId;
+  capability?: string;
   permissions?: readonly string[];
   administratorOnly?: boolean;
   section?: string;
@@ -16,12 +16,31 @@ export interface Destination {
   hasPanel?: boolean;
 }
 
+// Paths are relative to the selected organisation workspace.
+export const organisationDestinations: readonly Destination[] = [
+  { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
+  { path: 'invoicing', label: 'invoicing', icon: 'lucideFileSpreadsheet', capability: 'invoicing' },
+];
+
+export function activeDestinationIndex(items: readonly Destination[], path: string): number {
+  let result = -1;
+  let length = -1;
+  items.forEach((item, index) => {
+    const match = item.activePath ?? item.path;
+    if ((path === match || path.startsWith(match + '/')) && match.length > length) {
+      result = index;
+      length = match.length;
+    }
+  });
+  return result;
+}
+
 export const workspaceDestinations = {
-  organizations: {
-    path: '/organizations',
-    label: 'organizations',
+  organisations: {
+    path: '/organisations',
+    label: 'organisation',
     icon: 'lucideUsersRound',
-    capability: 'organizations',
+    capability: 'organisations',
     help: 'dashboardTeamsHelp',
     hasPanel: false,
   },
@@ -44,6 +63,14 @@ export const workspaceDestinations = {
 } as const satisfies Record<string, Destination>;
 
 export const administrationDestinations = {
+  organisations: {
+    path: '/administration/organisations',
+    label: 'organisations',
+    icon: 'lucideUsersRound',
+    section: 'administration',
+    administratorOnly: true,
+    capability: 'organisations',
+  },
   billing: {
     path: '/administration/billing',
     label: 'billingSettings',

@@ -23,7 +23,7 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
                 ><hlm-select-trigger buttonId="billing-ownership"
                   ><hlm-select-value /></hlm-select-trigger
                 ><hlm-select-content *hlmSelectPortal>
-                  @for (value of ['Both', 'Personal', 'Organization']; track value) {
+                  @for (value of ['Both', 'Personal', 'Organisation']; track value) {
                     <hlm-select-item [value]="value">{{ 'customer.' + value | t }}</hlm-select-item>
                   }
                 </hlm-select-content></hlm-select

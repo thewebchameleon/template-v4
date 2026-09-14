@@ -1,4 +1,4 @@
-param([switch]$NoBuild)
+param([switch]$NoBuild, [string]$TestFilter = '')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 Push-Location $repo
@@ -26,9 +26,14 @@ try {
     Invoke-RestMethod -Uri 'https://localhost:9443/api/v1/bootstrap' -Method Post -SkipCertificateCheck -WebSession $browserSession -Headers @{ Origin = 'https://localhost:9443'; 'X-CSRF-TOKEN' = $csrf.token } -ContentType 'application/json' -Body $bootstrapBody | Out-Null
     docker compose -p templatev4-e2e -f compose.yaml -f compose.e2e.yaml up -d --scale api=2 --scale worker=2
     if ($LASTEXITCODE -ne 0) { throw 'Browser stack failed to scale after bootstrap' }
+    if ($TestFilter -in @('commercial.spec.ts', 'organisation-rail.spec.ts')) {
+        # This disposable workflow exercises business operations; security policy has its own suite.
+        'UPDATE identity.security_settings SET "MfaPolicy" = ''Optional'';' | docker compose -p templatev4-e2e -f compose.yaml -f compose.e2e.yaml exec -T postgres psql -U templatev4 -d templatev4
+        if ($LASTEXITCODE -ne 0) { throw 'Commercial fixture security setup failed' }
+    }
     Push-Location src/TemplateV4.Angular
     try {
-        node node_modules/@playwright/test/cli.js test
+        if ($TestFilter) { node node_modules/@playwright/test/cli.js test $TestFilter } else { node node_modules/@playwright/test/cli.js test }
         if ($LASTEXITCODE -ne 0) { throw 'Browser tests failed' }
     } finally { Pop-Location }
 } finally {

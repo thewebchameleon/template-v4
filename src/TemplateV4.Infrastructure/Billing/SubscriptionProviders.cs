@@ -43,13 +43,19 @@ public sealed class StripeSubscriptions(HttpClient http, IConfiguration config, 
     }
     public async Task<CheckoutResponse> Checkout(PaymentOrder order, CancellationToken ct)
     {
-        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organizations/" + order.CustomerId + "/billing";
+        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisations/" + order.CustomerId + "/billing";
         using var request = Request(HttpMethod.Post, "checkout/sessions", new()
         {
-            ["mode"] = "subscription", ["client_reference_id"] = order.Id.ToString(), ["success_url"] = url, ["cancel_url"] = url,
-            ["metadata[orderId]"] = order.Id.ToString(), ["subscription_data[metadata][orderId]"] = order.Id.ToString(),
-            ["line_items[0][price_data][currency]"] = order.Currency.ToLowerInvariant(), ["line_items[0][price_data][unit_amount]"] = order.UnitMinor.ToString(CultureInfo.InvariantCulture),
-            ["line_items[0][price_data][product_data][name]"] = order.Name, ["line_items[0][price_data][recurring][interval]"] = order.Interval,
+            ["mode"] = "subscription",
+            ["client_reference_id"] = order.Id.ToString(),
+            ["success_url"] = url,
+            ["cancel_url"] = url,
+            ["metadata[orderId]"] = order.Id.ToString(),
+            ["subscription_data[metadata][orderId]"] = order.Id.ToString(),
+            ["line_items[0][price_data][currency]"] = order.Currency.ToLowerInvariant(),
+            ["line_items[0][price_data][unit_amount]"] = order.UnitMinor.ToString(CultureInfo.InvariantCulture),
+            ["line_items[0][price_data][product_data][name]"] = order.Name,
+            ["line_items[0][price_data][recurring][interval]"] = order.Interval,
             ["line_items[0][quantity]"] = order.Quantity.ToString(CultureInfo.InvariantCulture),
             ["expires_at"] = order.CreatedAt.AddHours(23).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)
         });
@@ -147,14 +153,23 @@ public sealed class PayFastSubscriptions(HttpClient http, IConfiguration config,
     public Task<CheckoutResponse> Checkout(PaymentOrder order, CancellationToken ct)
     {
         if (order.Currency != "ZAR" || order.UnitMinor * order.Quantity < 500) throw new PaymentProviderException();
-        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organizations/" + order.CustomerId + "/billing";
+        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisations/" + order.CustomerId + "/billing";
         var amount = (order.UnitMinor * order.Quantity / 100m).ToString("F2", CultureInfo.InvariantCulture);
         var fields = new Dictionary<string, string>
         {
-            ["merchant_id"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantId"), ["merchant_key"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantKey"),
-            ["return_url"] = url, ["cancel_url"] = url, ["notify_url"] = PaymentHttp.PublicUrl(config, "Billing:PublicApiUrl") + "/api/v1/billing/callbacks/payfast",
-            ["m_payment_id"] = order.Id.ToString(), ["amount"] = amount, ["item_name"] = order.Name,
-            ["subscription_type"] = "1", ["billing_date"] = (order.Interval == "month" ? order.CreatedAt.AddMonths(1) : order.CreatedAt.AddYears(1)).ToOffset(TimeSpan.FromHours(2)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), ["recurring_amount"] = amount, ["frequency"] = order.Interval == "month" ? "3" : "6", ["cycles"] = "0"
+            ["merchant_id"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantId"),
+            ["merchant_key"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantKey"),
+            ["return_url"] = url,
+            ["cancel_url"] = url,
+            ["notify_url"] = PaymentHttp.PublicUrl(config, "Billing:PublicApiUrl") + "/api/v1/billing/callbacks/payfast",
+            ["m_payment_id"] = order.Id.ToString(),
+            ["amount"] = amount,
+            ["item_name"] = order.Name,
+            ["subscription_type"] = "1",
+            ["billing_date"] = (order.Interval == "month" ? order.CreatedAt.AddMonths(1) : order.CreatedAt.AddYears(1)).ToOffset(TimeSpan.FromHours(2)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            ["recurring_amount"] = amount,
+            ["frequency"] = order.Interval == "month" ? "3" : "6",
+            ["cycles"] = "0"
         };
         fields["signature"] = Signature(fields, PaymentHttp.Required(config, "Billing:PayFast:Passphrase"));
         return Task.FromResult(new CheckoutResponse(order.Id, "https://" + Host + "/eng/process", fields));
@@ -164,7 +179,9 @@ public sealed class PayFastSubscriptions(HttpClient http, IConfiguration config,
         if (!Guid.TryParse(token, out _)) throw new PaymentProviderException();
         var fields = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
-            ["merchant-id"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantId"), ["version"] = "v1", ["timestamp"] = time.GetUtcNow().ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture),
+            ["merchant-id"] = PaymentHttp.Required(config, "Billing:PayFast:MerchantId"),
+            ["version"] = "v1",
+            ["timestamp"] = time.GetUtcNow().ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture),
             ["passphrase"] = PaymentHttp.Required(config, "Billing:PayFast:Passphrase")
         };
         var signature = Convert.ToHexStringLower(MD5.HashData(Encoding.UTF8.GetBytes(Parameters(fields))));

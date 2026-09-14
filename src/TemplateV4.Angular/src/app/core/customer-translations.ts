@@ -1,60 +1,80 @@
 export const customerDictionary: Record<string, [string, string]> = {
-  closeOrganization: ['Close organization', 'Sluit organisasie'],
-  leaveOrganization: ['Leave organization', 'Verlaat organisasie'],
-  closeOrganizationHelp: [
+  closeOrganisation: ['Close organisation', 'Sluit organisasie'],
+  leaveOrganisation: ['Leave organisation', 'Verlaat organisasie'],
+  closeOrganisationHelp: [
     'All members will lose access and files will be deleted under the retention policy. Cancel subscriptions and wait for paid periods to end first. This cannot be undone.',
     'Alle lede verloor toegang en l�ers word volgens die bewaringsbeleid verwyder. Kanselleer intekeninge en wag tot betaalde tydperke eindig. Dit kan nie ongedaan gemaak word nie.',
   ],
-  leaveOrganizationHelp: [
-    'You will lose access to this organization and its files.',
+  leaveOrganisationHelp: [
+    'You will lose access to this organisation and its files.',
     'Jy sal toegang tot hierdie organisasie en sy l�ers verloor.',
   ],
   billingEntitlement: ['Current access', 'Huidige toegang'],
   'billing.Paid': ['Paid access', 'Betaalde toegang'],
   'billing.PastDue': ['Payment overdue', 'Betaling agterstallig'],
-  organizations: ['Accounts & teams', 'Rekeninge en spanne'],
-  organizationsHelp: [
-    'Choose a personal account or an organization workspace.',
+  organisations: ['Organisations', 'Organisasies'],
+  organisation: ['Organisation', 'Organisasie'],
+  currentOrganisation: ['Current organisation', 'Huidige organisasie'],
+  selectOrganisation: ['Use this organisation', 'Gebruik hierdie organisasie'],
+  currentOrganisationHelp: [
+    'Select the organisation to use across modules. Your choice is saved across sign-ins and devices.',
+    'Kies die organisasie om oor modules te gebruik. Jou keuse word oor aanmeldings en toestelle gestoor.',
+  ],
+  organisationManagementHelp: [
+    'Manage organisations and assign users.',
+    'Bestuur organisasies en wys gebruikers toe.',
+  ],
+  noOrganisations: [
+    'No organisations are available. Contact a system administrator for access.',
+    'Geen organisasies is beskikbaar nie. Kontak ’n stelseladministrateur vir toegang.',
+  ],
+  organisationsHelp: [
+    'Choose a personal account or an organisation workspace.',
     'Kies ’n persoonlike rekening of ’n organisasiewerkruimte.',
   ],
-  organizationWorkspace: ['Organization workspace', 'Organisasiewerkruimte'],
-  organizationWorkspaceHelp: [
+  organisationWorkspace: ['Organisation workspace', 'Organisasiewerkruimte'],
+  selectModuleOrganisationHelp: [
+    'Choose an organisation to open this module.',
+    'Kies ’n organisasie om hierdie module oop te maak.',
+  ],
+  organisationWorkspaceHelp: [
     'Manage membership, shared files and subscriptions.',
     'Bestuur lidmaatskap, gedeelde lêers en intekeninge.',
   ],
-  organizationName: ['Organization name', 'Organisasienaam'],
-  organizationMembers: ['Members', 'Lede'],
-  createOrganization: ['Create organization', 'Skep organisasie'],
-  organizationInvitation: [
-    'You have been invited to join this organization.',
+  organisationName: ['Organisation name', 'Organisasienaam'],
+  organisationMembers: ['Members', 'Lede'],
+  createOrganisation: ['Create organisation', 'Skep organisasie'],
+  organisationInvitation: [
+    'You have been invited to join this organisation.',
     'Jy is genooi om by hierdie organisasie aan te sluit.',
   ],
   openWorkspace: ['Open workspace', 'Maak werkruimte oop'],
   switchAccount: ['Switch account', 'Wissel rekening'],
-  inviteMember: ['Invite member', 'Nooi lid'],
+  inviteMember: ['Assign user', 'Wys gebruiker toe'],
   inviteMemberHelp: [
-    'Invitations expire in seven days. Sign in with the invited, verified email to accept.',
-    'Uitnodigings verval oor sewe dae. Meld met die genooide, bevestigde e-pos aan om te aanvaar.',
+    'Enter an existing user’s email address to grant membership immediately.',
+    'Voer ’n bestaande gebruiker se e-posadres in om lidmaatskap onmiddellik toe te ken.',
   ],
   makeAdmin: ['Make admin', 'Maak administrateur'],
   makeMember: ['Make member', 'Maak lid'],
   transferOwnership: ['Transfer ownership', 'Dra eienaarskap oor'],
   confirmCustomerChange: ['Confirm membership change', 'Bevestig lidmaatskapverandering'],
   confirmCustomerChangeHelp: [
-    'This changes access to this organization. Transferring ownership makes you an admin.',
+    'This changes access to this organisation. Transferring ownership changes the previous owner to an organisation admin.',
     'Dit verander toegang tot hierdie organisasie. Oordrag van eienaarskap maak jou ’n administrateur.',
   ],
   customerSaved: ['Account changes saved.', 'Rekeningveranderings gestoor.'],
-  notificationOrganization: [
-    'You have an organization invitation.',
+  notificationOrganisation: [
+    'You have an organisation invitation.',
     'Jy het ’n organisasie-uitnodiging.',
   ],
+  'customer.SystemAdministrator': ['System administrator', 'Stelseladministrateur'],
   'customer.Owner': ['Owner', 'Eienaar'],
   'customer.Admin': ['Admin', 'Administrateur'],
   'customer.Member': ['Member', 'Lid'],
   'customer.Personal': ['Personal', 'Persoonlik'],
-  'customer.Organization': ['Organization', 'Organisasie'],
-  'customer.Both': ['Personal and organizations', 'Persoonlik en organisasies'],
+  'customer.Organisation': ['Organisation', 'Organisasie'],
+  'customer.Both': ['Personal and organisations', 'Persoonlik en organisasies'],
   billing: ['Billing & subscriptions', 'Fakturering en intekeninge'],
   billingHelp: [
     'Manage your plan, payment provider and storage allowance.',
@@ -143,19 +163,19 @@ export const customerDictionary: Record<string, [string, string]> = {
     'Dra eienaarskap oor voordat die eienaar verwyder of verander word.',
   ],
   'customers.deletion_obligations': [
-    'Transfer organization ownership and settle personal subscriptions before deleting this account.',
+    'Transfer organisation ownership and settle personal subscriptions before deleting this account.',
     'Dra organisasie-eienaarskap oor en vereffen persoonlike intekeninge voordat hierdie rekening verwyder word.',
   ],
   'customers.limit': [
     'The account or invitation limit has been reached.',
     'Die rekening- of uitnodigingslimiet is bereik.',
   ],
-  organizationFiles: ['Shared organization files', 'Gedeelde organisasielêers'],
-  organizationFilesHelp: [
+  organisationFiles: ['Shared organisation files', 'Gedeelde organisasielêers'],
+  organisationFilesHelp: [
     'Files in this workspace are available to its current members.',
     'Lêers in hierdie werkruimte is vir die huidige lede beskikbaar.',
   ],
-  organizationUploadHelp: [
+  organisationUploadHelp: [
     'Upload up to 20 MiB per file within the shared storage quota.',
     'Laai tot 20 MiB per lêer binne die gedeelde bergingskwota op.',
   ],

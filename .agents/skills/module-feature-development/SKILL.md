@@ -15,7 +15,7 @@ Read [framework.json](../../../framework.json) for project paths and [the module
 - A **setting** configures behavior. Give module-specific settings typed contracts and store them in that module; do not add fields to generic activation contracts.
 - Permissions, customer ownership, quotas and subscription obligations remain operation-specific checks. Availability does not authorize a caller.
 
-Follow one existing slice through its Application contract, explicit registration, API group and Angular destination before choosing implementation details. Use My Files for runtime settings, Support for a cohesive gated endpoint group, and organization files for composed capabilities.
+Follow one existing slice through its Application contract, explicit registration, API group and Angular destination before choosing implementation details. Use My Files for runtime settings, Support for a cohesive gated endpoint group, and organisation files for composed capabilities.
 
 ## Define and connect
 

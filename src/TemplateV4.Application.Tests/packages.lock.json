@@ -865,16 +865,13 @@
       "templatev4.apiservice": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.OpenApi": "[10.0.12, )",
-          "Swashbuckle.AspNetCore.SwaggerUI": "[10.2.3, )",
-          "TemplateV4.Infrastructure": "[1.0.0, )",
-          "TemplateV4.ServiceDefaults": "[0.1.0, )"
+          "TemplateV4.Http": "[0.2.0, )"
         }
       },
       "templatev4.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Domain": "[1.0.0, )",
+          "TemplateV4.Domain": "[0.2.0, )",
           "TemplateV4.SharedKernel": "[0.1.0, )"
         }
       },
@@ -883,12 +880,21 @@
         "dependencies": {
           "Quartz.Extensions.Hosting": "[4.0.1, )",
           "Quartz.Serialization.SystemTextJson": "[4.0.1, )",
-          "TemplateV4.Infrastructure": "[1.0.0, )",
+          "TemplateV4.Infrastructure": "[0.2.0, )",
           "TemplateV4.ServiceDefaults": "[0.1.0, )"
         }
       },
       "templatev4.domain": {
         "type": "Project"
+      },
+      "templatev4.http": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "[10.0.12, )",
+          "Swashbuckle.AspNetCore.SwaggerUI": "[10.2.3, )",
+          "TemplateV4.Infrastructure": "[0.2.0, )",
+          "TemplateV4.ServiceDefaults": "[0.1.0, )"
+        }
       },
       "templatev4.infrastructure": {
         "type": "Project",
@@ -898,7 +904,8 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.12, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "TemplateV4.Application": "[1.0.0, )"
+          "PDFsharp": "[6.2.0, )",
+          "TemplateV4.Application": "[0.2.0, )"
         }
       },
       "templatev4.servicedefaults": {
@@ -1052,6 +1059,16 @@
         "contentHash": "McuXGjBJDL/Cown2PxfUQysK98MZG7ZDjO/IKUtaAx8t1m0PB0d+QtJC79RFTVipMhRIwjJiULNOp0OGfZbvwg==",
         "dependencies": {
           "OpenTelemetry.Api": "[1.18.0, 2.0.0)"
+        }
+      },
+      "PDFsharp": {
+        "type": "CentralTransitive",
+        "requested": "[6.2.0, )",
+        "resolved": "6.2.0",
+        "contentHash": "5Q6gn8qFiaFpJz1QcvXO6q5QTvLPlqlOxI7XVtyRB3PIAIZIarc5qH3TDKcGUifxrhcYxMNBzz008qdKWlQhVw==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging": "8.0.1",
+          "System.Security.Cryptography.Pkcs": "8.0.1"
         }
       },
       "Quartz.Extensions.Hosting": {

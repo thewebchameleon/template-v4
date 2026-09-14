@@ -113,7 +113,7 @@
       "templatev4.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Domain": "[1.0.0, )",
+          "TemplateV4.Domain": "[0.2.0, )",
           "TemplateV4.SharedKernel": "[0.1.0, )"
         }
       },
@@ -128,7 +128,8 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.12, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "TemplateV4.Application": "[1.0.0, )"
+          "PDFsharp": "[6.2.0, )",
+          "TemplateV4.Application": "[0.2.0, )"
         }
       },
       "templatev4.sharedkernel": {
@@ -189,6 +190,15 @@
           "Microsoft.EntityFrameworkCore": "[10.0.4, 11.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
           "Npgsql": "10.0.3"
+        }
+      },
+      "PDFsharp": {
+        "type": "CentralTransitive",
+        "requested": "[6.2.0, )",
+        "resolved": "6.2.0",
+        "contentHash": "5Q6gn8qFiaFpJz1QcvXO6q5QTvLPlqlOxI7XVtyRB3PIAIZIarc5qH3TDKcGUifxrhcYxMNBzz008qdKWlQhVw==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
         }
       }
     }

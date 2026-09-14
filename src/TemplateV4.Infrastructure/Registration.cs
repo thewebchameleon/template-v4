@@ -25,24 +25,33 @@ namespace TemplateV4.Infrastructure;
 
 public static class Registration
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config, IHostEnvironment environment)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config, IHostEnvironment environment, IEnumerable<ModuleDefinition>? modules = null)
     {
         if (config is IConfigurationBuilder configurationBuilder) configurationBuilder.AddKeyPerFile("/run/secrets", optional: true);
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
-        if ((config["Customers:Mode"] ?? "Both") is not ("Both" or "Personal" or "Organizations")) throw new InvalidOperationException("Invalid Customers:Mode.");
+        if ((config["Customers:Mode"] ?? "Both") is not ("Both" or "Personal" or "Organisations")) throw new InvalidOperationException("Invalid Customers:Mode.");
         services.AddSingleton<PlanCatalog>();
         services.AddScoped<CustomerAccess>();
         services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());
         services.AddScoped<ICustomers, CustomerStore>();
+        services.AddScoped<TemplateV4.Application.Crm.IOrganisationOperations, Crm.OrganisationOperations>();
+        services.AddScoped<TemplateV4.Application.Customers.IOrganisationObligations, Invoicing.CommercialObligations>();
+        services.AddScoped<Crm.CrmStore>();
+        services.AddScoped<TemplateV4.Application.Crm.IRecordAttachments, Crm.RecordAttachments>();
+        services.AddScoped<TemplateV4.Application.Crm.ICrm>(p => p.GetRequiredService<Crm.CrmStore>());
+        services.AddScoped<TemplateV4.Application.Crm.ICrmCustomers>(p => p.GetRequiredService<Crm.CrmStore>());
+        services.AddScoped<Invoicing.InvoicingStore>();
+        services.AddScoped<TemplateV4.Application.Invoicing.IInvoicing>(p => p.GetRequiredService<Invoicing.InvoicingStore>());
+        services.AddScoped<TemplateV4.Application.Invoicing.ICommercialDocuments>(p => p.GetRequiredService<Invoicing.InvoicingStore>());
         services.AddScoped<IStorageEntitlements, StorageEntitlements>();
         services.AddScoped<BillingStore>();
         services.AddScoped<IBilling>(p => p.GetRequiredService<BillingStore>());
         services.AddScoped<PaymentCallbacks>();
         services.AddHttpClient<StripeSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
         services.AddHttpClient<PayFastSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
-        services.AddSingleton(ModuleConfiguration.Load(config));
+        services.AddSingleton(ModuleConfiguration.Load(config, modules));
         services.AddHttpContextAccessor();
         var cultures = new CultureCatalog(config["Localisation:DefaultCulture"] ?? "en-ZA", (config.GetSection("Localisation:SupportedCultures").Get<string[]>() ?? ["en-ZA", "af-ZA"]).ToHashSet());
         if (!cultures.Supported.Contains(cultures.DefaultCulture) || cultures.Supported.Any(culture => !CultureCatalog.Examples.Supported.Contains(culture)))
@@ -101,7 +110,8 @@ public static class Registration
         services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
         services.AddScoped<MyFilesService>();
-        services.AddScoped<OrganizationFiles>();
+        services.AddScoped<OrganisationFiles>();
+        services.AddScoped<TemplateV4.Application.Crm.IOrganisationAttachments, OrganisationAttachments>();
         services.AddScoped<FileRetention>();
         services.AddScoped<ICapabilities, CapabilityEvaluator>();
         services.AddScoped<IModuleActivation, ModuleActivationStore>();

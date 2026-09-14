@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <DiscoverBusinessModules Condition="'$(MSBuildProjectName)' == 'TemplateV4.ApiService' Or '$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker' Or '$(MSBuildProjectName)' == 'TemplateV4.DatabaseMigrator'">true</DiscoverBusinessModules>
+    <_BusinessSelection Condition="'$(DiscoverBusinessModules)' == 'true' And Exists('$(MSBuildThisFileDirectory)business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)business-modules.enabled'))</_BusinessSelection>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(DiscoverBusinessModules)' == 'true'">
+    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' == 'TemplateV4.ApiService'" Include="$(MSBuildThisFileDirectory)business-modules/**/Api/*.csproj">
+      <ModuleId>$([System.Text.RegularExpressions.Regex]::Replace('%(RecursiveDir)', '[\\/](Api|Infrastructure)[\\/]?$', ''))</ModuleId>
+      <Selected>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_BusinessSelection)', '(?m)^%(ModuleId)\r?$'))</Selected>
+    </_AvailableBusinessProject>
+    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' != 'TemplateV4.ApiService'" Include="$(MSBuildThisFileDirectory)business-modules/**/Infrastructure/*.csproj">
+      <ModuleId>$([System.Text.RegularExpressions.Regex]::Replace('%(RecursiveDir)', '[\\/](Api|Infrastructure)[\\/]?$', ''))</ModuleId>
+      <Selected>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_BusinessSelection)', '(?m)^%(ModuleId)\r?$'))</Selected>
+    </_AvailableBusinessProject>
+    <ProjectReference Include="@(_AvailableBusinessProject->WithMetadataValue('Selected', 'True'))" />
+    <Compile Include="$(IntermediateOutputPath)BusinessModules.g.cs" />
+  </ItemGroup>
+  <Target Name="ValidateBusinessSelection" BeforeTargets="CollectPackageReferences;PrepareForBuild" Condition="'$(DiscoverBusinessModules)' == 'true'">
+    <Exec Command="node &quot;$(MSBuildThisFileDirectory)tools/discover-business-modules.mjs&quot; --validate" />
+  </Target>
+  <Target Name="GenerateBusinessModules" BeforeTargets="CoreCompile" Condition="'$(DiscoverBusinessModules)' == 'true'">
+    <Exec Command="node &quot;$(MSBuildThisFileDirectory)tools/discover-business-modules.mjs&quot; --host $(MSBuildProjectName) &quot;$(MSBuildProjectDirectory)/$(IntermediateOutputPath)BusinessModules.g.cs&quot;" />
+  </Target>
+</Project>

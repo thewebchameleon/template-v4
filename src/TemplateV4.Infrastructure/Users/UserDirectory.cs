@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
-using TemplateV4.Application.Users;
 using TemplateV4.Application.Platform;
+using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;

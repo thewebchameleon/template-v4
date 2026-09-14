@@ -1,3 +1,4 @@
+import { FOUNDATION_FEATURES } from './feature-extensions';
 import { administrationDestinations, destinationAvailable } from './destinations';
 import { Injectable, computed, inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
@@ -6,12 +7,14 @@ import { Features } from './features';
 
 @Injectable({ providedIn: 'root' })
 export class AdministrationNavigation {
+  private readonly extensions = inject(FOUNDATION_FEATURES);
   private readonly auth = inject(Auth);
   private readonly features = inject(Features);
   readonly links = computed(() =>
-    Object.values(administrationDestinations).filter((item) =>
-      destinationAvailable(item, this.auth, this.features),
-    ),
+    [
+      ...Object.values(administrationDestinations),
+      ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => x.section),
+    ].filter((item) => destinationAvailable(item, this.auth, this.features)),
   );
 }
 

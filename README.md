@@ -34,4 +34,4 @@ See [the developer guide](documentation/docs/README.md), [security model](docume
 See [verification](documentation/docs/verification.md) for test coverage, contract regeneration and the local end-to-end smoke command. CLI scaffolds require explicit implementation/registration; they do not silently activate new routes or jobs.
 ## Configurable SaaS modules
 
-The SaaS module foundation supports deployment presets and independently gated capabilities. See [the module guide](documentation/docs/saas-modules.md) for configuration, vertical-slice scaffolding and the approved organizations/billing roadmap. Inspect effective preset settings with `node tools/framework.mjs modules baseline` or `node tools/framework.mjs modules minimal`.
+The SaaS module foundation supports deployment presets and independently gated capabilities. See [the module guide](documentation/docs/saas-modules.md) for configuration, vertical-slice scaffolding and the approved organisations/billing roadmap. Inspect effective preset settings with `node tools/framework.mjs modules baseline` or `node tools/framework.mjs modules minimal`.

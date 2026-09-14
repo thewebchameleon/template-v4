@@ -215,6 +215,347 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("users", "app");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmAttachmentRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId", "RecordId", "FileId");
+
+                    b.ToTable("attachments", "crm");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmConfigurationRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId");
+
+                    b.ToTable("configuration", "crm");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmNoteRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.HasKey("OrganisationId", "Id");
+
+                    b.HasIndex("OrganisationId", "RecordId", "At");
+
+                    b.ToTable("notes", "crm");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmRecordRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Archived")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId", "Id");
+
+                    b.HasIndex("OrganisationId", "Kind", "Archived", "Name", "Id");
+
+                    b.ToTable("records", "crm");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.InvoiceAttachmentRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId", "RecordId", "FileId")
+                        .HasName("PK_attachments1");
+
+                    b.ToTable("attachments", "invoicing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AcceptanceReference")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("Accepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AcceptedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CorrectsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Credits")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("OriginId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OriginModule")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("OriginType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Paid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("PreviousRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("QuotationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Refunded")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Snapshot")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId", "Id");
+
+                    b.HasIndex("OrganisationId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("OrganisationId", "IssuedAt", "Id");
+
+                    b.HasIndex("OrganisationId", "OriginModule", "OriginType", "OriginId")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 'Invoice' AND \"OriginId\" IS NOT NULL");
+
+                    b.ToTable("documents", "invoicing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.CommercialOperationRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Key")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("ResultId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId", "Key");
+
+                    b.ToTable("operations", "invoicing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.FinancialEntryRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("IssuedDocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.HasKey("OrganisationId", "Id");
+
+                    b.HasIndex("OrganisationId", "DocumentId");
+
+                    b.ToTable("entries", "invoicing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.IssuerSettingsRow", b =>
+                {
+                    b.Property<Guid>("OrganisationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<long>("NextNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("OrganisationId");
+
+                    b.ToTable("issuer_settings", "invoicing");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.AppUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -227,6 +568,9 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("CurrentOrganisationId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -388,7 +732,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<string>("TraceParent")
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_entries1");
 
                     b.HasIndex("ActorId", "At");
 
@@ -517,7 +862,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("CustomerId", "Email")
                         .IsUnique();
 
-                    b.ToTable("invitations", "organizations");
+                    b.ToTable("invitations", "organisations");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
@@ -546,7 +891,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("PersonalUserId")
                         .IsUnique();
 
-                    b.ToTable("customers", "organizations");
+                    b.ToTable("customers", "organisations");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.DeletionRequest", b =>
@@ -745,7 +1090,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("memberships", "organizations");
+                    b.ToTable("memberships", "organisations");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
@@ -1045,6 +1390,18 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = "crm",
+                            Enabled = true,
+                            Version = new Guid("34c03708-6e53-4c4b-8bfa-d79ed6744c9c")
+                        },
+                        new
+                        {
+                            Id = "invoicing",
+                            Enabled = true,
+                            Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383")
+                        },
+                        new
+                        {
                             Id = "my-files",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
@@ -1272,7 +1629,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("PK_attachments2");
 
                     b.HasIndex("OwnerId");
 
@@ -1463,7 +1821,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("notifications", "app");
                 });
 
-            modelBuilder.Entity("TemplateV4.Infrastructure.Storage.OrganizationFileRow", b =>
+            modelBuilder.Entity("TemplateV4.Infrastructure.Storage.OrganisationFileRow", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1504,7 +1862,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CustomerId", "CreatedAt");
 
-                    b.ToTable("organization_files", "files");
+                    b.ToTable("organisation_files", "files");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1614,6 +1972,24 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithOne()
                         .HasForeignKey("TemplateV4.Domain.Users.UserProfile", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmNoteRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Crm.CrmRecordRow", null)
+                        .WithMany()
+                        .HasForeignKey("OrganisationId", "RecordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.FinancialEntryRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", null)
+                        .WithMany()
+                        .HasForeignKey("OrganisationId", "DocumentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

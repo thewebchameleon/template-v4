@@ -1,3 +1,4 @@
+import { FOUNDATION_FEATURES } from '../core/feature-extensions';
 import { workspaceDestinations, destinationAvailable } from '../core/destinations';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -39,7 +40,7 @@ import { PageHeader } from '../shared/workspace';
         <section hlmCard>
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ action.label | t }}</h2>
-            <p hlmCardDescription>{{ action.help | t }}</p>
+            <p hlmCardDescription>{{ action.help ?? '' | t }}</p>
           </div>
           <div hlmCardContent>
             <a hlmBtn variant="outline" [routerLink]="action.path">{{ action.label | t }}</a>
@@ -50,14 +51,16 @@ import { PageHeader } from '../shared/workspace';
   `,
 })
 export class DashboardPage {
+  readonly extensions = inject(FOUNDATION_FEATURES);
   readonly auth = inject(Auth);
   readonly features = inject(Features);
   readonly unread = inject(UnreadNotifications);
   readonly administration = inject(AdministrationNavigation);
   readonly actions = computed(() => [
-    ...Object.values(workspaceDestinations).filter((item) =>
-      destinationAvailable(item, this.auth, this.features),
-    ),
+    ...[
+      ...Object.values(workspaceDestinations),
+      ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => !x.section),
+    ].filter((item) => destinationAvailable(item, this.auth, this.features)),
     ...(this.administration.links().length
       ? [{ path: '/administration', label: 'administration', help: 'dashboardAdministrationHelp' }]
       : []),

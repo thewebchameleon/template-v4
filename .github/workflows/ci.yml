@@ -42,6 +42,9 @@ jobs:
       - run: npm ci --prefix src/TemplateV4.Angular
       - run: npm ci --prefix documentation
       - run: node tools/framework.mjs validate
+      - run: node tools/business-module-ids.mjs --check
+      - run: node tools/discover-business-modules.mjs
+      - run: node --test tools/business-discovery.test.mjs
       - run: dotnet tool restore
       - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore
@@ -64,11 +67,15 @@ jobs:
       - run: node --test tools/cli.test.mjs tools/appearance.test.mjs tools/auth-retry.test.mjs tools/capabilities.test.mjs tools/ui-sounds.test.mjs
       - name: Test independent package consumer
         shell: pwsh
-        run: ./tools/test-packages.ps1
+        run: |
+          ./tools/pack-foundation.ps1
+          ./tools/test-foundation-packages.ps1
+          node tools/build-business-frontend.mjs
       - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
         env:
           TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
       - run: node tools/framework.mjs clients
+      - run: node tools/generate-business-clients.mjs
       - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
       - name: Browser security and accessibility
         if: ${{ inputs.run_e2e == true }}

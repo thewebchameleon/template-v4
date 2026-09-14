@@ -9,7 +9,7 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Identity | Required | Authentication and authorization remain active |
 | Audit recording | Required | Security and business audit writes remain active |
 | Delivery | Required | Accepted messages, jobs and cleanup continue |
-| Organizations | `Modules:organizations` | New organization routes stop; memberships and data remain |
+| Organisations | `Modules:organisations` | New organisation routes stop; memberships and data remain |
 | Billing | `Modules:billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
 | My Files | `Modules:my-files` | File routes return 404; navigation is hidden; retention continues |
 | Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
@@ -25,6 +25,8 @@ File and maintenance feature flags remain additional restrictions. For example, 
 
 `GET /api/v1/capabilities` requires authentication and returns only effective boolean capabilities, never provider settings or secrets. The frontend uses this single response to hide destinations and guard direct routes. The former `/modules` and `/features` endpoints are removed. Failed loads clear capabilities; responses from a previous signed-in actor are discarded. Backend gates remain authoritative.
 
+Enabled organisation module destinations remain visible in the navigation rail throughout the application. Within an organisation workspace they open that organisation's module directly. Elsewhere they open an organisation selection page and continue to the chosen module after selection. This applies to contributed business module destinations as well as CRM and Commercial Billing; module activation remains global and organisation data remains isolated.
+
 ## Add a vertical slice
 
 Run `node tools/framework.mjs new module Reports`. This creates an Application query, an API endpoint with a module gate, an Angular page, a disabled descriptor for review, ownership folders for Domain/Infrastructure/Worker, and extension documentation. It never overwrites existing files or automatically registers an incomplete slice.
@@ -37,7 +39,7 @@ Modules communicate through explicit Application contracts or versioned events. 
 
 See [ADR 0031](adr/0031-declarative-capabilities.md) for the complete evaluation and concurrency contract. Each module declares a base capability with the same ID. Set `runtimeConfigurable: true` only for a supported administrator switch, and optionally associate a contextual `featureFlag`. Additional `capabilities` declare `id`, `requires`, and optional `featureFlag`; they automatically require their owning module.
 
-For example, Organizations declares `organization-files` requiring `my-files`. Disabling My Files hides organization file access without disabling Organizations. A module-level `dependencies` entry is appropriate only when the whole module needs that prerequisite.
+For example, Organisations declares `organisation-files` requiring `my-files`. Disabling My Files hides organisation file access without disabling Organisations. A module-level `dependencies` entry is appropriate only when the whole module needs that prerequisite.
 
 Run `node tools/framework.mjs module-ids` after changing the catalog. It generates C# `ModuleIds`/`CapabilityIds` and TypeScript `ModuleId`/`CapabilityId`; `validate` checks the catalog schema, graphs, presets and generated-file drift. Do not edit generated identifiers.
 
@@ -56,11 +58,11 @@ Give accepted-obligation HTTP operations `ContinuesWhenDisabled` metadata and a 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 1 | Catalog, validation, deployment switches, existing feature gates, presets, module scaffolding | Implemented; validation recorded in the change |
-| 2 | Personal/organization/both modes, memberships, invitations, switching, fixed tenant roles and ownership transfer | Implemented; see customer billing guide |
+| 2 | Personal/organisation/both modes, memberships, invitations, switching, fixed tenant roles and ownership transfer | Implemented; see customer billing guide |
 | 3 | Plans, storage entitlements, trials, purchased seats, subscriptions and Stripe/PayFast adapters | Implemented with documented limits; merchant sandbox verification pending |
-| 4 | Configurable onboarding, organization files/quotas, branding and customer self-service | Planned |
+| 4 | Configurable onboarding, organisation files/quotas, branding and customer self-service | Planned |
 | 5 | API keys, service accounts, signed webhooks, retries and usage metering | Planned |
-| 6 | Organization SSO, domain verification, SCIM, custom domains and audited support tools | Planned |
+| 6 | Organisation SSO, domain verification, SCIM, custom domains and audited support tools | Planned |
 
 Personal subscription, team SaaS and combined product presets will be added with their working account and billing modules. They are not advertised as usable presets yet. Stripe and PayFast are the approved payment-provider choices; both adapters are implemented; see [provider setup and limitations](customer-billing.md). Verify their current payment and subscription contracts against official provider documentation when implementing phase 3.
 

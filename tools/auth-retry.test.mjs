@@ -121,3 +121,43 @@ test("entity navigation replaces components while query-only navigation preserve
   assert.equal(strategy.shouldReuseRoute(route("B", 1), route("A", 1)), false);
   assert.equal(strategy.shouldReuseRoute(route("A", 2), route("A", 1)), true);
 });
+
+test("organisation module entry reloads saved selection and preserves nested module paths", async () => {
+  const WorkspaceApi = Symbol(),
+    Router = Symbol();
+  let currentOrganisationId = "first";
+  const api = {
+    get: async (path) => {
+      assert.equal(path, "customers/");
+      return { currentOrganisationId };
+    },
+  };
+  const router = { createUrlTree: (commands) => Array.from(commands) };
+  const dependencies = new Map([
+    [WorkspaceApi, api],
+    [Router, router],
+  ]);
+  const { currentOrganisationGuard } = load("core/current-organisation.ts", {
+    "@angular/core": { inject: (token) => dependencies.get(token) },
+    "@angular/router": { Router },
+    "./workspace-api": { WorkspaceApi },
+  });
+  const route = {
+    queryParamMap: new Map([["module", "sample-business/requests"]]),
+  };
+  assert.deepEqual(await currentOrganisationGuard(route), [
+    "/organisations",
+    "first",
+    "sample-business",
+    "requests",
+  ]);
+  currentOrganisationId = "second";
+  assert.deepEqual(await currentOrganisationGuard(route), [
+    "/organisations",
+    "second",
+    "sample-business",
+    "requests",
+  ]);
+  currentOrganisationId = null;
+  assert.equal(await currentOrganisationGuard(route), true);
+});

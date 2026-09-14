@@ -57,7 +57,7 @@ public sealed class BillingStore(FrameworkDb db, ICustomerAccess customers, Plan
     }
     public async Task<Result<Unit>> SaveSettings(Guid actor, BillingSettings settings, CancellationToken ct)
     {
-        if (settings.Ownership is not ("Personal" or "Organization" or "Both") || settings.DefaultProvider is not ("stripe" or "payfast") || settings.TrialDays is < 0 or > 90 || settings.GraceDays is < 0 or > 30 || settings.DefaultProvider == "stripe" && !settings.StripeEnabled || settings.DefaultProvider == "payfast" && !settings.PayFastEnabled) return Result.Fail("validation.failed", ErrorKind.Validation);
+        if (settings.Ownership is not ("Personal" or "Organisation" or "Both") || settings.DefaultProvider is not ("stripe" or "payfast") || settings.TrialDays is < 0 or > 90 || settings.GraceDays is < 0 or > 30 || settings.DefaultProvider == "stripe" && !settings.StripeEnabled || settings.DefaultProvider == "payfast" && !settings.PayFastEnabled) return Result.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var changed = await db.Set<BillingSettingsRow>().Where(x => x.Id == 1 && x.Version == settings.Version).ExecuteUpdateAsync(x => x.SetProperty(s => s.Ownership, settings.Ownership).SetProperty(s => s.StripeEnabled, settings.StripeEnabled).SetProperty(s => s.PayFastEnabled, settings.PayFastEnabled).SetProperty(s => s.DefaultProvider, settings.DefaultProvider).SetProperty(s => s.TrialDays, settings.TrialDays).SetProperty(s => s.GraceDays, settings.GraceDays).SetProperty(s => s.Version, Guid.NewGuid()), ct);
         if (changed == 0) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);

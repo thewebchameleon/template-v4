@@ -77,6 +77,7 @@ switch (command) {
     console.log(`Installed framework ${manifest.frameworkVersion}. No automatic migrations are available for this initial release. Review documentation/docs/upgrades.md before changing pins.`); break;
   case 'new': {
     if (!kind || !name || !/^[A-Z][A-Za-z0-9]{1,63}$/.test(name)) throw new Error('Usage: new <kind> <PascalCaseName>');
+    if (kind === 'business-module') { const { scaffoldBusiness } = await import('./scaffold-business.mjs'); scaffoldBusiness(root, name); break; }
     const app = manifest.projects.Application;
     let featureOwner;
     if (kind === 'feature') {

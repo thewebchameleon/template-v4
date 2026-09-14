@@ -5,6 +5,10 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Module dependencies block this change:',
     'Module-afhanklikhede blokkeer hierdie verandering:',
   ],
+  moduleMissingDependencies: [
+    'Enable the required modules first:',
+    'Aktiveer eers die vereiste modules:',
+  ],
   modules: ['Modules', 'Modules'],
   modulesHelp: [
     'Enable or disable modules for everyone in this application.',

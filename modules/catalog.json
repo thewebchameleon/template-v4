@@ -76,7 +76,7 @@
     "runtimeConfigurable": true
   },
   {
-    "id": "organizations",
+    "id": "organisations",
     "required": false,
     "enabledByDefault": true,
     "dependencies": [
@@ -87,7 +87,7 @@
     "runtimeConfigurable": false,
     "capabilities": [
       {
-        "id": "organization-files",
+        "id": "organisation-files",
         "requires": [
           "my-files"
         ]
@@ -95,11 +95,27 @@
     ]
   },
   {
+    "id": "crm",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["organisations", "audit-recording"],
+    "runtimeConfigurable": true,
+    "capabilities": [{ "id": "crm-files", "requires": ["organisation-files"] }]
+  },
+  {
+    "id": "invoicing",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["crm"],
+    "runtimeConfigurable": true,
+    "capabilities": [{ "id": "invoicing-files", "requires": ["organisation-files"] }]
+  },
+  {
     "id": "billing",
     "required": false,
     "enabledByDefault": true,
     "dependencies": [
-      "organizations",
+      "organisations",
       "delivery"
     ],
     "runtimeConfigurable": false

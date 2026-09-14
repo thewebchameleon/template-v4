@@ -1,13 +1,16 @@
+import { businessDictionary } from './business-translations';
 import { myFilesDictionary } from './my-files-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
-  organizations: ['Accounts & teams', 'Rekeninge en spanne'],
+  ...businessDictionary,
+  organisations: ['Organisations', 'Organisasies'],
+  organisation: ['Organisation', 'Organisasie'],
   billingSettings: ['Billing settings', 'Faktureringinstellings'],
-  notificationOrganization: [
-    'You have an organization invitation.',
+  notificationOrganisation: [
+    'You have an organisation invitation.',
     'Jy het ’n organisasie-uitnodiging.',
   ],
   support: ['Support', 'Ondersteuning'],
@@ -49,7 +52,7 @@ export const dictionary: Record<string, [string, string]> = {
     'Laai jou persoonlike l�ers op of af en organiseer hulle.',
   ],
   dashboardTeamsHelp: [
-    'Accept invitations and manage your organization workspaces.',
+    'Accept invitations and manage your organisation workspaces.',
     'Aanvaar uitnodigings en bestuur jou organisasiewerkruimtes.',
   ],
   dashboardSupportHelp: [

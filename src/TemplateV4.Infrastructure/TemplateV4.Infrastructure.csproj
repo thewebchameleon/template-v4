@@ -10,10 +10,13 @@
     <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />
 
     <PackageReference Include="MailKit" />
+    <PackageReference Include="PDFsharp" />
+    <EmbeddedResource Include="Invoicing/Fonts/*.ttf" />
+    <None Include="Invoicing/Fonts/LICENSE.txt" Pack="true" PackagePath="licenses/NotoSans.txt" />
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
-</Project>
+<PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Infrastructure package.</Description></PropertyGroup></Project>

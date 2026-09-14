@@ -52,6 +52,21 @@ public sealed class CapabilityTests
 public sealed partial class SecurityAndMessagingTests
 {
     [Fact]
+    public async Task Discovered_business_module_is_available_without_configuration_but_requires_runtime_activation()
+    {
+        await using var factory = new ApiFactory(_configuration);
+        using var client = factory.CreateClient();
+        var foundation = factory.Services.GetRequiredService<ModuleCatalog>();
+        var catalog = new ModuleCatalog(foundation.Definitions.Append(new("sample-business", false, true, ["crm"], true)), new Dictionary<string, bool>());
+        Assert.True(catalog.Enabled("sample-business"));
+        Assert.False(catalog.EffectiveModule("sample-business", new Dictionary<string, bool>()));
+        var activation = catalog.Definitions.Where(x => x.RuntimeConfigurable).ToDictionary(x => x.Id, _ => true);
+        Assert.True(catalog.EffectiveModule("sample-business", activation));
+        activation["crm"] = false;
+        Assert.False(catalog.EffectiveModule("sample-business", activation));
+    }
+
+    [Fact]
     public async Task Capability_metadata_covers_module_routes_and_lifecycle_exceptions()
     {
         await using var factory = new ApiFactory(_configuration);
@@ -69,7 +84,7 @@ public sealed partial class SecurityAndMessagingTests
             foreach (var gate in gates) Assert.True(catalog.Capabilities.ContainsKey(gate.Id), endpoint.DisplayName);
         }
         // Independently enforce ownership for module URL boundaries so omission of all metadata is caught.
-        foreach (var endpoint in endpoints.Where(x => new[] { "/api/v1/auth/my-files", "/api/v1/auth/support", "/api/v1/auth/customers", "/api/v1/auth/operations", "/api/v1/auth/audit", "/api/v1/billing/callbacks" }
+        foreach (var endpoint in endpoints.Where(x => new[] { "/api/v1/auth/my-files", "/api/v1/auth/support", "/api/v1/auth/customers", "/api/v1/auth/organisations", "/api/v1/auth/operations", "/api/v1/auth/audit", "/api/v1/billing/callbacks" }
             .Any(prefix => x.RoutePattern.RawText?.StartsWith(prefix, StringComparison.Ordinal) == true)))
             Assert.NotNull(endpoint.Metadata.GetMetadata<ModuleOwnership>());
     }

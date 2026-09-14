@@ -54,7 +54,7 @@ public sealed class S3StorageTests : IAsyncLifetime
         builder.Configuration["Storage:S3:Endpoint"] = endpoint; builder.Configuration["Storage:S3:Bucket"] = "templatev4";
         builder.Configuration["Storage:S3:AccessKey"] = "integration-key"; builder.Configuration["Storage:S3:SecretKey"] = "integration-secret";
         using var provider = new S3FileStorage(builder.Configuration, builder.Environment);
-        var key = scoped ? OrganizationFileRow.Key(Guid.NewGuid(), Guid.NewGuid()) : Guid.NewGuid().ToString("N"); using var content = new MemoryStream("stored in SeaweedFS"u8.ToArray());
+        var key = scoped ? OrganisationFileRow.Key(Guid.NewGuid(), Guid.NewGuid()) : Guid.NewGuid().ToString("N"); using var content = new MemoryStream("stored in SeaweedFS"u8.ToArray());
         await provider.Write(key, content, default);
         await using (var stream = await provider.Read(key, default))
         using (var reader = new StreamReader(stream)) Assert.Equal("stored in SeaweedFS", await reader.ReadToEndAsync());

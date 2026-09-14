@@ -1,11 +1,51 @@
-# Copy and package reuse
+# Foundation packages
 
-Two reuse paths are supported. Copy the repository when the application should own its Identity/PostgreSQL adapters, user-management example, Angular UI and operations policies. For separately versioned reuse, consume `TemplateV4.SharedKernel` and `TemplateV4.ServiceDefaults` as NuGet packages. SharedKernel contains CQRS, results, and provider interfaces without application feature or hosting dependencies. ServiceDefaults owns ASP.NET Core telemetry, health and HTTP defaults. Application-specific email and domain events remain in Application.
+The coordinated foundation release is 0.2.0: `TemplateV4.SharedKernel`,
+`TemplateV4.Domain`, `TemplateV4.Application`, `TemplateV4.Infrastructure`,
+`TemplateV4.Http`, `TemplateV4.ServiceDefaults` and `@templatev4/foundation`.
+Executable hosts and business code remain application-owned. CRM, Invoicing and Files
+ship in the foundation. Private business modules ship separately.
 
-Build packages with `dotnet pack src/TemplateV4.SharedKernel -c Release -o artifacts/packages` and `dotnet pack src/TemplateV4.ServiceDefaults -c Release -o artifacts/packages`. `tools/test-packages.ps1` restores and executes a consumer using the built nupkg rather than a project reference. Package versions are explicit in their projects; they need not track the consuming application's release version. Configure a trusted internal NuGet feed and package-source mapping when distributing them.
+Run `pwsh tools/pack-foundation.ps1 -Version 0.2.0` to build NuGet and npm artifacts
+under `artifacts/packages/0.2.0`. The script compiles a real partial-compilation Angular
+library, including owned Helm components, styles, fonts and theme initialization.
+Angular runtime libraries are peers; consumers must use the manifest-pinned compatible
+Angular/Spartan versions. `node tools/build-business-frontend.mjs` builds selected business modules against
+the built foundation declarations. Each module owns its package output and release instructions.
 
-For a copied app switching to packages, replace its SharedKernel and ServiceDefaults project references with package references, preserve namespace and API compatibility, then run its tests. Keep Domain and app-specific providers source-owned. IntegrationContracts provides explicit stable wire-name registration; custom consumers implement IIntegrationConsumer and are registered with LocalTransport. Domain event handlers implement IDomainEventHandler, with unhandled events failing visibly rather than being discarded.
+Run `pwsh tools/test-foundation-packages.ps1` after packing. It restores nupkg/tgz
+artifacts into isolated consumers, rejects project references, builds a foundation-only
+HTTP host, migrates a disposable PostgreSQL database, starts that host and checks
+packaged styles/assets. It never copies foundation feature source into the consumer.
+The fixture's branding/configuration remain application-owned. To exercise a compatible
+candidate upgrade locally, pack `0.2.0-preview.1`, pack `0.2.0`, then pass
+`-PreviousVersion 0.2.0-preview.1`. This tests two artifacts of the candidate API; it
+does not claim that a historical 0.1.0 full foundation package existed.
 
-Scaffolds print that explicit implementation/registration review is required. Job scaffolds are read-only starters; durable writes should use the JobRun lifecycle. Consumer scaffolds demonstrate a transactional audit effect. Email scaffolds create copied runtime configuration under Infrastructure/EmailTemplates; select one with EmailRequest.TemplateName. Localisation scaffolds create and import translation modules used by the UI. A feature scaffold's README lists required endpoint, handler and permission registration. These are deliberately not silently enabled public endpoints.
+A backend host references `TemplateV4.Http` and calls `FoundationHost.Run(args)`;
+optional business contributions are explicit arguments. The frontend calls
+`bootstrapApplication(App, foundationConfig(features))` from `@templatev4/foundation`.
+Import `@templatev4/foundation/styles/styles.css`, configure Tailwind/PostCSS, copy the
+package's `assets` contents into the public root, and provide application-owned
+`runtime-config.json`. Keep branding overrides in your own stylesheet. Package updates
+never rewrite those files. The committed consumer generator demonstrates the complete
+Angular workspace configuration without workspace source aliases.
 
-Use semantic versioning for public package contracts. Breaking dispatcher semantics or serialized response/contract changes require a migration note and major version after the initial 0.x series. Do not reuse an integration contract's wire name for an incompatible payload. Existing actor-scoped idempotency records live for 24 hours: keep response compatibility across rolling deployments or drain before a breaking upgrade. `upgrade` remains an informational command; schema changes run through reviewed EF migrations.
+## GitHub Packages
+
+No GitHub package owner or registry credentials were supplied. Set repository variable
+`PACKAGE_OWNER` explicitly, set `NPM_PACKAGE_SCOPE` to that owner's lowercase npm scope,
+and grant the publishing workflow package-write access. Consumers require read:packages
+access and downstream repository access to each private package. Never commit tokens.
+Local builds use the TemplateV4 identity and require no registry credentials.
+
+For NuGet add `https://nuget.pkg.github.com/OWNER/index.json` as a credentialed source
+using a local user-level configuration. Map `TemplateV4.*` exclusively to that feed;
+map other dependencies to nuget.org. In `.npmrc`, map `@OWNER:registry` to
+`https://npm.pkg.github.com` and use `${NODE_AUTH_TOKEN}` for authentication. Publish
+with the explicitly selected scope; downstream imports must match the published scope.
+Changing the npm scope is branding/configuration work, not an inferred owner choice.
+
+Release tags must match framework.json. CI packs immutable artifacts and validates
+consumers before publication. Do not overwrite a released version or use publication
+as a local validation step. Review [upgrades](upgrades.md) and [business modules](business-modules.md).

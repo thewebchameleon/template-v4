@@ -1,18 +1,39 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideIcons } from '@ng-icons/core';
-import { lucideFolderOpen, lucideLifeBuoy } from '@ng-icons/lucide';
+import {
+  lucideBoxes,
+  lucideCar,
+  lucideContactRound,
+  lucideFileSpreadsheet,
+  lucideFolderOpen,
+  lucideLifeBuoy,
+  lucideTriangleAlert,
+} from '@ng-icons/lucide';
+import { HlmTooltip } from '@spartan-ng/helm/tooltip';
 import { ModuleActivation, MyFilesModuleSettings } from '../api/models';
 type ModuleEditor = ModuleActivation & { demoMode: boolean; slowUploadMode: boolean };
 import { Features } from '../core/features';
+import { FOUNDATION_FEATURES } from '../core/feature-extensions';
+import { I18n } from '../core/i18n';
 import { Notifications } from '../core/notifications';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Resource, WorkspaceUi } from '../shared/workspace';
 
 @Component({
   selector: 'app-modules',
-  imports: [WorkspaceUi],
-  providers: [provideIcons({ lucideFolderOpen, lucideLifeBuoy })],
+  imports: [WorkspaceUi, HlmTooltip],
+  providers: [
+    provideIcons({
+      lucideBoxes,
+      lucideCar,
+      lucideContactRound,
+      lucideFileSpreadsheet,
+      lucideFolderOpen,
+      lucideLifeBuoy,
+      lucideTriangleAlert,
+    }),
+  ],
   template: `<app-page-header title="modules" description="modulesHelp" eyebrow="administration" />
     <app-page-state
       [state]="data.state()"
@@ -36,7 +57,17 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
             >
               <div hlmField orientation="horizontal" class="items-center">
                 <ng-icon
-                  [name]="module.id === 'my-files' ? 'lucideFolderOpen' : 'lucideLifeBuoy'"
+                  [name]="
+                    module.id === 'my-files'
+                      ? 'lucideFolderOpen'
+                      : module.id === 'support'
+                        ? 'lucideLifeBuoy'
+                        : module.id === 'crm'
+                          ? 'lucideContactRound'
+                          : module.id === 'invoicing'
+                            ? 'lucideFileSpreadsheet'
+                            : moduleIcon(module.id)
+                  "
                   size="3rem"
                   class="shrink-0"
                   [class.text-primary]="enabled[module.id]"
@@ -44,23 +75,37 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
                   aria-hidden="true"
                 />
                 <div hlmFieldContent class="min-w-0">
-                  <h2 hlmCardTitle>{{ module.id | t }}</h2>
+                  <h2 hlmCardTitle [id]="module.id + '-module-label'">{{ module.id | t }}</h2>
                   <p hlmCardDescription [id]="module.id + '-module-help'">
                     {{ module.id + 'ModuleHelp' | t }}
                   </p>
                 </div>
+                @if (hasMissingDependencies(module)) {
+                  <span
+                    role="img"
+                    tabindex="0"
+                    [hlmTooltip]="dependencyTooltip(module)"
+                    [attr.aria-label]="dependencyTooltip(module)"
+                    class="inline-flex shrink-0 text-[var(--warning)] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  >
+                    <ng-icon name="lucideTriangleAlert" size="2.5rem" aria-hidden="true" />
+                  </span>
+                }
                 <hlm-switch
                   [inputId]="module.id + '-enabled'"
                   [name]="module.id + 'Enabled'"
                   [ngModel]="enabled[module.id]"
                   (ngModelChange)="save(module, $event)"
-                  [disabled]="busy() || data.refreshing() || !module.available"
+                  [disabled]="
+                    busy() ||
+                    data.refreshing() ||
+                    !module.available ||
+                    hasMissingDependencies(module)
+                  "
                   [attr.aria-describedby]="module.id + '-module-help'"
                   [attr.aria-controls]="module.id + '-module-content'"
                   [attr.aria-expanded]="enabled[module.id] !== false"
-                  [attr.aria-label]="
-                    (module.id === 'my-files' ? 'enableFilesModule' : 'enableSupportModule') | t
-                  "
+                  [attr.aria-labelledby]="module.id + '-module-label'"
                   class="self-center"
                 />
               </div>
@@ -151,10 +196,15 @@ import { Resource, WorkspaceUi } from '../shared/workspace';
     </app-page-state>`,
 })
 export class ModulesPage implements OnInit {
+  private readonly contributions = inject(FOUNDATION_FEATURES);
+  moduleIcon(id: string) {
+    return this.contributions.find((feature) => feature.id === id)?.moduleIcon ?? 'lucideBoxes';
+  }
   readonly data = new Resource<ModuleEditor[]>();
   readonly busy = signal(false);
   readonly api = inject(WorkspaceApi);
   readonly features = inject(Features);
+  readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
   private fileSettings?: MyFilesModuleSettings;
   enabled: Record<string, boolean> = {};
@@ -193,9 +243,18 @@ export class ModulesPage implements OnInit {
   async reload() {
     await this.load();
   }
+  hasMissingDependencies(module: ModuleActivation) {
+    return !module.enabled && module.enableBlockers.length > 0;
+  }
+  dependencyTooltip(module: ModuleActivation) {
+    return `${this.i18n.text('moduleMissingDependencies')} ${module.enableBlockers
+      .map((dependency) => this.i18n.text(dependency))
+      .join(', ')}`;
+  }
   async save(module: ModuleEditor, enabled: boolean, demoMode?: boolean, slowUploadMode?: boolean) {
     if (
       !module?.available ||
+      (enabled && module.enableBlockers.length > 0) ||
       this.busy() ||
       this.data.refreshing() ||
       (enabled === module.enabled &&
@@ -209,6 +268,7 @@ export class ModulesPage implements OnInit {
     this.busy.set(true);
     try {
       let saved: ModuleEditor;
+      let activationSnapshot: ModuleActivation[] | undefined;
       if (demoMode !== undefined || slowUploadMode !== undefined) {
         if (!this.fileSettings) return;
         this.fileSettings = await this.api.post<MyFilesModuleSettings>(
@@ -234,11 +294,30 @@ export class ModulesPage implements OnInit {
           },
         );
         saved = { ...activation, demoMode: module.demoMode, slowUploadMode: module.slowUploadMode };
+        this.data.refreshError.set(false);
+        try {
+          activationSnapshot = await this.api.get<ModuleActivation[]>(
+            'administration/modules/activation',
+          );
+        } catch {
+          this.data.refreshError.set(true);
+        }
       }
-      this.data.value.update((items) => (items ?? []).map((m) => (m.id === saved.id ? saved : m)));
-      this.enabled[saved.id] = saved.enabled;
-      this.demoModes[saved.id] = saved.demoMode;
-      this.slowUploadModes[saved.id] = saved.slowUploadMode;
+      this.data.value.update((items) => {
+        const current = new Map((items ?? []).map((item) => [item.id, item]));
+        return activationSnapshot
+          ? activationSnapshot.map((activation) => ({
+              ...activation,
+              demoMode: current.get(activation.id)?.demoMode ?? false,
+              slowUploadMode: current.get(activation.id)?.slowUploadMode ?? false,
+            }))
+          : (items ?? []).map((item) => (item.id === saved.id ? saved : item));
+      });
+      this.enabled = Object.fromEntries((this.data.value() ?? []).map((m) => [m.id, m.enabled]));
+      this.demoModes = Object.fromEntries((this.data.value() ?? []).map((m) => [m.id, m.demoMode]));
+      this.slowUploadModes = Object.fromEntries(
+        (this.data.value() ?? []).map((m) => [m.id, m.slowUploadMode]),
+      );
       this.features.reset();
       await this.features.load();
       this.toast.success(
@@ -250,7 +329,7 @@ export class ModulesPage implements OnInit {
               ? saved.enabled
                 ? 'filesModuleEnabled'
                 : 'filesModuleDisabled'
-              : 'supportSaved',
+              : 'commercialSaved',
       );
     } catch (error) {
       if (error instanceof HttpErrorResponse) {

@@ -1,0 +1,29 @@
+{
+  "name": "@templatev4/foundation",
+  "version": "0.2.0",
+  "description": "TemplateV4 Angular shell, shared UI and foundation features",
+  "sideEffects": false,
+  "peerDependencies": {
+    "@angular/compiler": "22.1.6",
+    "@ng-icons/phosphor-icons": "36.0.0",
+    "@angular/forms": "22.1.6",
+    "@ng-icons/core": "36.0.0",
+    "tailwind-merge": "3.7.0",
+    "@angular/router": "22.1.6",
+    "@angular/platform-browser": "22.1.6",
+    "rxjs": "7.8.2",
+    "@microsoft/signalr": "10.0.11",
+    "class-variance-authority": "0.7.1",
+    "@angular/cdk": "22.1.6",
+    "@ng-icons/lucide": "36.0.0",
+    "@tanstack/angular-table": "9.2.4",
+    "clsx": "2.1.1",
+    "@foleyjs/core": "2.8.1",
+    "@angular/core": "22.1.6",
+    "@angular/common": "22.1.6",
+    "@spartan-ng/brain": "1.4.1"
+  },
+  "dependencies": {
+    "tslib": "2.8.1"
+  }
+}

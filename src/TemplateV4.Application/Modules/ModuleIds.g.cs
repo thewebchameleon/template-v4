@@ -6,12 +6,14 @@ public static class ModuleIds
     public const string AuditHistory = "audit-history";
     public const string AuditRecording = "audit-recording";
     public const string Billing = "billing";
+    public const string Crm = "crm";
     public const string Delivery = "delivery";
     public const string Identity = "identity";
+    public const string Invoicing = "invoicing";
     public const string Maintenance = "maintenance";
     public const string MyFiles = "my-files";
     public const string Operations = "operations";
-    public const string Organizations = "organizations";
+    public const string Organisations = "organisations";
     public const string Support = "support";
 }
 
@@ -20,12 +22,16 @@ public static class CapabilityIds
     public const string AuditHistory = "audit-history";
     public const string AuditRecording = "audit-recording";
     public const string Billing = "billing";
+    public const string Crm = "crm";
+    public const string CrmFiles = "crm-files";
     public const string Delivery = "delivery";
     public const string Identity = "identity";
+    public const string Invoicing = "invoicing";
+    public const string InvoicingFiles = "invoicing-files";
     public const string Maintenance = "maintenance";
     public const string MyFiles = "my-files";
     public const string Operations = "operations";
-    public const string OrganizationFiles = "organization-files";
-    public const string Organizations = "organizations";
+    public const string OrganisationFiles = "organisation-files";
+    public const string Organisations = "organisations";
     public const string Support = "support";
 }

@@ -13,3 +13,7 @@ TestResults/
 *.pfx
 *.pem
 artifacts/
+/business-modules/
+/business-modules.enabled
+/src/TemplateV4.Angular/src/business-modules.g.ts
+/src/TemplateV4.Angular/src/business-modules.g.css

@@ -15,7 +15,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var cutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:DeletedFileRetentionDays", 30), 1, 365));
         var abandoned = now.AddDays(-1);
         var personal = db.Files.Where(x => x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
-        var organizations = db.Set<OrganizationFileRow>().Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
+        var organisations = db.Set<OrganisationFileRow>().Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
         // Independent housekeeping commits even if every object provider call fails.
         await db.Set<CustomerInviteRow>().Where(x => x.ExpiresAt < now).ExecuteDeleteAsync(ct);
         var notificationCutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:NotificationRetentionDays", 90), 7, 365));
@@ -55,13 +55,13 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
             else row.PurgeRetryAt = now.AddHours(1);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); db.ChangeTracker.Clear();
         }
-        ids = await organizations.Where(x => x.PurgeRetryAt == null || x.PurgeRetryAt <= now).OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => x.Id).ToArrayAsync(ct);
+        ids = await organisations.Where(x => x.PurgeRetryAt == null || x.PurgeRetryAt <= now).OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => x.Id).ToArrayAsync(ct);
         foreach (var id in ids)
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
-            var row = await db.Set<OrganizationFileRow>().FromSqlInterpolated($"SELECT * FROM files.organization_files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
+            var row = await db.Set<OrganisationFileRow>().FromSqlInterpolated($"SELECT * FROM files.organisation_files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
             if (row is null || row.PurgedAt != null || row.PurgeRetryAt > now || !(row.DeletedAt < cutoff || !row.Ready && row.CreatedAt < abandoned)) continue;
-            if (await Delete(OrganizationFileRow.Key(row.CustomerId, row.Id), ct))
+            if (await Delete(OrganisationFileRow.Key(row.CustomerId, row.Id), ct))
             {
                 row.PurgedAt = now; row.DeletedAt ??= now; row.Name = "Deleted file"; row.PurgeRetryAt = null;
                 db.Audit.Add(new() { SubjectId = row.CustomerId, Action = "customer.file_purged", At = now });
@@ -69,7 +69,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
             else row.PurgeRetryAt = now.AddHours(1);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); db.ChangeTracker.Clear();
         }
-        var dates = personal.Select(x => (DateTimeOffset?)x.CreatedAt).Concat(organizations.Select(x => (DateTimeOffset?)x.CreatedAt));
+        var dates = personal.Select(x => (DateTimeOffset?)x.CreatedAt).Concat(organisations.Select(x => (DateTimeOffset?)x.CreatedAt));
         var backlog = new RetentionBacklog(await dates.CountAsync(ct), await dates.MinAsync(ct));
         if (backlog.Count > 0) logger.LogWarning("File retention backlog: {Count}; oldest object created at {OldestCreatedAt}", backlog.Count, backlog.OldestCreatedAt);
         return backlog;

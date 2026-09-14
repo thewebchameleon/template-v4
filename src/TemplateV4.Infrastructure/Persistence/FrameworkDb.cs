@@ -9,6 +9,7 @@ namespace TemplateV4.Infrastructure.Persistence;
 
 public sealed class AppUser : IdentityUser<Guid>
 {
+    public Guid? CurrentOrganisationId { get; set; }
     public long? StorageQuotaBytes { get; set; }
     public DateTimeOffset? InvitationSentAt { get; set; }
     public DateTimeOffset? InvitationExpiresAt { get; set; }
@@ -286,13 +287,18 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.Id).HasMaxLength(80);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.HasData(new RuntimeModuleSettings { Id = "support", Enabled = true, Version = new Guid("b6c2b6df-1f86-46ea-90f1-c7bc3b61ba49") });
+            entity.HasData(new RuntimeModuleSettings { Id = "crm", Enabled = true, Version = new Guid("34c03708-6e53-4c4b-8bfa-d79ed6744c9c") });
+            entity.HasData(new RuntimeModuleSettings { Id = "invoicing", Enabled = true, Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383") });
             entity.HasData(new RuntimeModuleSettings { Id = "my-files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         SupportModel.Configure(model);
         CustomerBillingModel.Configure(model);
-        model.Entity<TemplateV4.Infrastructure.Storage.OrganizationFileRow>(entity =>
+        Crm.CrmMappings.Configure(model);
+        Crm.RecordAttachmentMappings.Configure(model);
+        Invoicing.CommercialMappings.Configure(model);
+        model.Entity<TemplateV4.Infrastructure.Storage.OrganisationFileRow>(entity =>
         {
-            entity.ToTable("organization_files", "files"); entity.HasKey(x => x.Id);
+            entity.ToTable("organisation_files", "files"); entity.HasKey(x => x.Id);
             entity.Property(x => x.Name).HasMaxLength(180);
             entity.HasIndex(x => new { x.CustomerId, x.CreatedAt });
             entity.HasIndex(x => x.DeletedAt);

@@ -8,7 +8,8 @@ using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, TemplateV4.Host.BusinessModules.Descriptors);
+TemplateV4.Host.BusinessModules.Configure(builder);
 builder.Services.AddScoped<IExecutionContext, BackgroundExecutionContext>();
 await using var app = builder.Build();
 await using var scope = app.Services.CreateAsyncScope();
@@ -18,6 +19,13 @@ await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_lock(74842000)");
 try
 {
     await db.Database.MigrateAsync();
+    foreach (var contributor in scope.ServiceProvider.GetServices<TemplateV4.Application.Modules.IMigrationContributor>().OrderBy(x => x.Order).ThenBy(x => x.ModuleId, StringComparer.Ordinal))
+        await contributor.Migrate(CancellationToken.None);
+    var catalog = scope.ServiceProvider.GetRequiredService<TemplateV4.Application.Modules.ModuleCatalog>();
+    foreach (var module in catalog.Definitions.Where(x => x.RuntimeConfigurable))
+        if (!await db.RuntimeModules.AnyAsync(x => x.Id == module.Id)) db.RuntimeModules.Add(new() { Id = module.Id, Enabled = false, Version = Guid.NewGuid() });
+    foreach (var row in await db.RuntimeModules.Where(x => x.Version == Guid.Empty).ToArrayAsync()) row.Version = Guid.NewGuid();
+    await db.SaveChangesAsync();
     var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     foreach (var name in new[] { "Administrator", "Reader" })
     {
@@ -53,10 +61,10 @@ try
     }
     if (builder.Configuration.GetValue("Database:GrantRuntimeRoles", false))
         await db.Database.ExecuteSqlRawAsync("""
-            GRANT USAGE ON SCHEMA app, identity, messaging, audit, files, support TO templatev4_api, templatev4_worker;
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, identity, messaging, files, support TO templatev4_api, templatev4_worker;
+            GRANT USAGE ON SCHEMA app, identity, messaging, audit, files, support, crm, invoicing TO templatev4_api, templatev4_worker;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, identity, messaging, files, support, crm, invoicing TO templatev4_api, templatev4_worker;
             GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA audit TO templatev4_api, templatev4_worker;
-            GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, identity, messaging, audit, files, support TO templatev4_api, templatev4_worker;
+            GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, identity, messaging, audit, files, support, crm, invoicing TO templatev4_api, templatev4_worker;
             GRANT USAGE ON SCHEMA quartz TO templatev4_worker;
             GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA quartz TO templatev4_worker;
             GRANT USAGE ON ALL SEQUENCES IN SCHEMA quartz TO templatev4_worker;

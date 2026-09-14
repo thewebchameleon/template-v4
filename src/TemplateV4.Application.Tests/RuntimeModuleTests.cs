@@ -128,12 +128,12 @@ public sealed partial class SecurityAndMessagingTests
         }
         var original = (await writer.GetFromJsonAsync<ModuleActivation[]>(modulePath))!.Single(x => x.Id == "my-files");
         Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
-        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organisation-files"]);
         using var disabledResponse = await writer.PostAsJsonAsync(modulePath, new SaveModuleActivation("my-files", false, original.Version));
         Assert.Equal(HttpStatusCode.OK, disabledResponse.StatusCode);
         var disabled = (await disabledResponse.Content.ReadFromJsonAsync<ModuleActivation>())!;
         Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
-        Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
+        Assert.False((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organisation-files"]);
         foreach (var token in new[] { adminToken, ownerToken })
         {
             observer.DefaultRequestHeaders.Authorization = new("Bearer", token.Access.AccessToken);
@@ -156,7 +156,7 @@ public sealed partial class SecurityAndMessagingTests
         Assert.Equal(HttpStatusCode.OK, (await writer.PostAsJsonAsync(modulePath, new SaveModuleActivation("my-files", true, disabled.Version))).StatusCode);
         observer.DefaultRequestHeaders.Authorization = new("Bearer", ownerToken.Access.AccessToken);
         Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["my-files"]);
-        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organization-files"]);
+        Assert.True((await observer.GetFromJsonAsync<Dictionary<string, bool>>("/api/v1/capabilities"))!["organisation-files"]);
         Assert.Equal("preserved content", await observer.GetStringAsync($"{files}/{file.Id}/download"));
         var listing = (await observer.GetFromJsonAsync<FilePage>(files))!;
         Assert.Equal("original.txt", Assert.Single(listing.Page.Items).Name);

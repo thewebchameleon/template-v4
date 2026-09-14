@@ -5,6 +5,7 @@
 
 @import '@spartan-ng/brain/hlm-tailwind-preset.css';
 @import './brand.css';
+@import './business-modules.g.css';
 /* You can add global styles to this file, and also import other style files */
 
 /* Keep explicit theme previews isolated from the active application theme. */
@@ -133,8 +134,8 @@
 
 /* CDK overlays are body siblings of app-root, so only the page is scaled. */
 @media (prefers-reduced-motion: no-preference) {
-  :root:not([data-motion='reduced']) body {
-    overflow-x: clip;
+  :root:not([data-motion='reduced']):has(body > .cdk-overlay-container .cdk-overlay-backdrop) {
+    overflow: clip;
   }
 
   :root:not([data-motion='reduced']) app-root {

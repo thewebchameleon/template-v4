@@ -39,7 +39,7 @@ export const myFilesDictionary: Record<string, [string, string]> = {
   myFilesDemoExpiry: ['Demo expiry (minutes)', 'Demo-vervaltyd (minute)'],
   maxUploadSize: ['Maximum upload file size (MB)', 'Maksimum oplaailêergrootte (MB)'],
   maxUploadSizeHelp: [
-    'Applies to personal and organization files.',
+    'Applies to personal and organisation files.',
     'Geld vir persoonlike en organisasielêers.',
   ],
   maxUploadNoLimit: ['No limit', 'Geen limiet'],

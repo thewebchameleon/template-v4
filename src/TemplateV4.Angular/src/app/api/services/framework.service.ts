@@ -10,11 +10,17 @@ import { BaseService } from '../base-service';
 import { ApiConfiguration } from '../api-configuration';
 import { StrictHttpResponse } from '../strict-http-response';
 
-import { acceptOrganizationInvitation } from '../fn/framework/accept-organization-invitation';
-import { AcceptOrganizationInvitation$Params } from '../fn/framework/accept-organization-invitation';
+import { acceptCommercialQuotation } from '../fn/framework/accept-commercial-quotation';
+import { AcceptCommercialQuotation$Params } from '../fn/framework/accept-commercial-quotation';
+import { acceptOrganisationInvitation } from '../fn/framework/accept-organisation-invitation';
+import { AcceptOrganisationInvitation$Params } from '../fn/framework/accept-organisation-invitation';
 import { AccessCatalog } from '../models/access-catalog';
 import { AccessResponse } from '../models/access-response';
+import { addCrmNote } from '../fn/framework/add-crm-note';
+import { AddCrmNote$Params } from '../fn/framework/add-crm-note';
 import { AdminBootstrapStatus } from '../models/admin-bootstrap-status';
+import { archiveCrmRecord } from '../fn/framework/archive-crm-record';
+import { ArchiveCrmRecord$Params } from '../fn/framework/archive-crm-record';
 import { attachSupportTicket } from '../fn/framework/attach-support-ticket';
 import { AttachSupportTicket$Params } from '../fn/framework/attach-support-ticket';
 import { AuditDetail } from '../models/audit-detail';
@@ -24,15 +30,26 @@ import { BillingSettings } from '../models/billing-settings';
 import { BillingSummary } from '../models/billing-summary';
 import { cancelCustomerSubscription } from '../fn/framework/cancel-customer-subscription';
 import { CancelCustomerSubscription$Params } from '../fn/framework/cancel-customer-subscription';
-import { changeOrganizationRole } from '../fn/framework/change-organization-role';
-import { ChangeOrganizationRole$Params } from '../fn/framework/change-organization-role';
+import { changeCrmAttachment } from '../fn/framework/change-crm-attachment';
+import { ChangeCrmAttachment$Params } from '../fn/framework/change-crm-attachment';
+import { changeInvoicingAttachment } from '../fn/framework/change-invoicing-attachment';
+import { ChangeInvoicingAttachment$Params } from '../fn/framework/change-invoicing-attachment';
+import { changeOrganisationRole } from '../fn/framework/change-organisation-role';
+import { ChangeOrganisationRole$Params } from '../fn/framework/change-organisation-role';
 import { CheckoutResponse } from '../models/checkout-response';
-import { closeOrganization } from '../fn/framework/close-organization';
-import { CloseOrganization$Params } from '../fn/framework/close-organization';
+import { closeOrganisation } from '../fn/framework/close-organisation';
+import { CloseOrganisation$Params } from '../fn/framework/close-organisation';
+import { CommercialDetail } from '../models/commercial-detail';
+import { CommercialDocument } from '../models/commercial-document';
+import { CommercialTotals } from '../models/commercial-totals';
 import { completeMfa } from '../fn/framework/complete-mfa';
 import { CompleteMfa$Params } from '../fn/framework/complete-mfa';
 import { completePasskeyMfa } from '../fn/framework/complete-passkey-mfa';
 import { CompletePasskeyMfa$Params } from '../fn/framework/complete-passkey-mfa';
+import { configureCrm } from '../fn/framework/configure-crm';
+import { ConfigureCrm$Params } from '../fn/framework/configure-crm';
+import { configureInvoicing } from '../fn/framework/configure-invoicing';
+import { ConfigureInvoicing$Params } from '../fn/framework/configure-invoicing';
 import { confirmEmail } from '../fn/framework/confirm-email';
 import { ConfirmEmail$Params } from '../fn/framework/confirm-email';
 import { confirmEmailChange } from '../fn/framework/confirm-email-change';
@@ -43,8 +60,8 @@ import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-a
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
 import { createMyFilesFolder } from '../fn/framework/create-my-files-folder';
 import { CreateMyFilesFolder$Params } from '../fn/framework/create-my-files-folder';
-import { createOrganization } from '../fn/framework/create-organization';
-import { CreateOrganization$Params } from '../fn/framework/create-organization';
+import { createOrganisation } from '../fn/framework/create-organisation';
+import { CreateOrganisation$Params } from '../fn/framework/create-organisation';
 import { createRole } from '../fn/framework/create-role';
 import { CreateRole$Params } from '../fn/framework/create-role';
 import { createSubscriptionCheckout } from '../fn/framework/create-subscription-checkout';
@@ -53,19 +70,28 @@ import { createSupportTicket } from '../fn/framework/create-support-ticket';
 import { CreateSupportTicket$Params } from '../fn/framework/create-support-ticket';
 import { createUser } from '../fn/framework/create-user';
 import { CreateUser$Params } from '../fn/framework/create-user';
+import { creditCommercialInvoice } from '../fn/framework/credit-commercial-invoice';
+import { CreditCommercialInvoice$Params } from '../fn/framework/credit-commercial-invoice';
+import { CrmConfiguration } from '../models/crm-configuration';
+import { CrmDetail } from '../models/crm-detail';
+import { CrmNote } from '../models/crm-note';
+import { CrmOverview } from '../models/crm-overview';
+import { CrmRecord } from '../models/crm-record';
 import { CustomerHome } from '../models/customer-home';
 import { CustomerInfo } from '../models/customer-info';
 import { deleteMyFile } from '../fn/framework/delete-my-file';
 import { DeleteMyFile$Params } from '../fn/framework/delete-my-file';
-import { deleteOrganizationFile } from '../fn/framework/delete-organization-file';
-import { DeleteOrganizationFile$Params } from '../fn/framework/delete-organization-file';
+import { deleteOrganisationFile } from '../fn/framework/delete-organisation-file';
+import { DeleteOrganisationFile$Params } from '../fn/framework/delete-organisation-file';
 import { DeliveryPage } from '../models/delivery-page';
 import { disableMfa } from '../fn/framework/disable-mfa';
 import { DisableMfa$Params } from '../fn/framework/disable-mfa';
+import { downloadCommercialPdf } from '../fn/framework/download-commercial-pdf';
+import { DownloadCommercialPdf$Params } from '../fn/framework/download-commercial-pdf';
 import { downloadMyFile } from '../fn/framework/download-my-file';
 import { DownloadMyFile$Params } from '../fn/framework/download-my-file';
-import { downloadOrganizationFile } from '../fn/framework/download-organization-file';
-import { DownloadOrganizationFile$Params } from '../fn/framework/download-organization-file';
+import { downloadOrganisationFile } from '../fn/framework/download-organisation-file';
+import { DownloadOrganisationFile$Params } from '../fn/framework/download-organisation-file';
 import { downloadPublicMyFile } from '../fn/framework/download-public-my-file';
 import { DownloadPublicMyFile$Params } from '../fn/framework/download-public-my-file';
 import { downloadSupportAttachment } from '../fn/framework/download-support-attachment';
@@ -81,6 +107,7 @@ import { FileItem } from '../models/file-item';
 import { FilePage } from '../models/file-page';
 import { FileShareItem } from '../models/file-share-item';
 import { FileStorageSettings } from '../models/file-storage-settings';
+import { FinancialEntry } from '../models/financial-entry';
 import { forgotPassword } from '../fn/framework/forgot-password';
 import { ForgotPassword$Params } from '../fn/framework/forgot-password';
 import { getAccessCatalog } from '../fn/framework/get-access-catalog';
@@ -93,6 +120,14 @@ import { getBillingSettings } from '../fn/framework/get-billing-settings';
 import { GetBillingSettings$Params } from '../fn/framework/get-billing-settings';
 import { getCapabilities } from '../fn/framework/get-capabilities';
 import { GetCapabilities$Params } from '../fn/framework/get-capabilities';
+import { getCommercialDocument } from '../fn/framework/get-commercial-document';
+import { GetCommercialDocument$Params } from '../fn/framework/get-commercial-document';
+import { getCrmConfiguration } from '../fn/framework/get-crm-configuration';
+import { GetCrmConfiguration$Params } from '../fn/framework/get-crm-configuration';
+import { getCrmDetail } from '../fn/framework/get-crm-detail';
+import { GetCrmDetail$Params } from '../fn/framework/get-crm-detail';
+import { getCrmOverview } from '../fn/framework/get-crm-overview';
+import { GetCrmOverview$Params } from '../fn/framework/get-crm-overview';
 import { getCsrfToken } from '../fn/framework/get-csrf-token';
 import { GetCsrfToken$Params } from '../fn/framework/get-csrf-token';
 import { getCustomerBilling } from '../fn/framework/get-customer-billing';
@@ -101,6 +136,8 @@ import { getCustomers } from '../fn/framework/get-customers';
 import { GetCustomers$Params } from '../fn/framework/get-customers';
 import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
+import { getInvoicingSettings } from '../fn/framework/get-invoicing-settings';
+import { GetInvoicingSettings$Params } from '../fn/framework/get-invoicing-settings';
 import { getMyFilesModuleSettings } from '../fn/framework/get-my-files-module-settings';
 import { GetMyFilesModuleSettings$Params } from '../fn/framework/get-my-files-module-settings';
 import { getMyFilesStorageSettings } from '../fn/framework/get-my-files-storage-settings';
@@ -109,10 +146,14 @@ import { getNotificationSummary } from '../fn/framework/get-notification-summary
 import { GetNotificationSummary$Params } from '../fn/framework/get-notification-summary';
 import { getOperationsOverview } from '../fn/framework/get-operations-overview';
 import { GetOperationsOverview$Params } from '../fn/framework/get-operations-overview';
-import { getOrganizationFiles } from '../fn/framework/get-organization-files';
-import { GetOrganizationFiles$Params } from '../fn/framework/get-organization-files';
-import { getOrganizationMembers } from '../fn/framework/get-organization-members';
-import { GetOrganizationMembers$Params } from '../fn/framework/get-organization-members';
+import { getOrganisationAdministration } from '../fn/framework/get-organisation-administration';
+import { GetOrganisationAdministration$Params } from '../fn/framework/get-organisation-administration';
+import { getOrganisationAttachment } from '../fn/framework/get-organisation-attachment';
+import { GetOrganisationAttachment$Params } from '../fn/framework/get-organisation-attachment';
+import { getOrganisationFiles } from '../fn/framework/get-organisation-files';
+import { GetOrganisationFiles$Params } from '../fn/framework/get-organisation-files';
+import { getOrganisationMembers } from '../fn/framework/get-organisation-members';
+import { GetOrganisationMembers$Params } from '../fn/framework/get-organisation-members';
 import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
 import { GetPlatformAppearance$Params } from '../fn/framework/get-platform-appearance';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
@@ -136,14 +177,27 @@ import { GetSupportTicket$Params } from '../fn/framework/get-support-ticket';
 import { getUserAccess } from '../fn/framework/get-user-access';
 import { GetUserAccess$Params } from '../fn/framework/get-user-access';
 import { InvitationPage } from '../models/invitation-page';
-import { inviteOrganizationMember } from '../fn/framework/invite-organization-member';
-import { InviteOrganizationMember$Params } from '../fn/framework/invite-organization-member';
+import { inviteOrganisationMember } from '../fn/framework/invite-organisation-member';
+import { InviteOrganisationMember$Params } from '../fn/framework/invite-organisation-member';
+import { invoiceAcceptedQuotation } from '../fn/framework/invoice-accepted-quotation';
+import { InvoiceAcceptedQuotation$Params } from '../fn/framework/invoice-accepted-quotation';
+import { issueCommercialDocument } from '../fn/framework/issue-commercial-document';
+import { IssueCommercialDocument$Params } from '../fn/framework/issue-commercial-document';
+import { IssuerSettings } from '../models/issuer-settings';
 import { listAuditHistory } from '../fn/framework/list-audit-history';
 import { ListAuditHistory$Params } from '../fn/framework/list-audit-history';
+import { listCommercialDocuments } from '../fn/framework/list-commercial-documents';
+import { ListCommercialDocuments$Params } from '../fn/framework/list-commercial-documents';
+import { listCrmAttachments } from '../fn/framework/list-crm-attachments';
+import { ListCrmAttachments$Params } from '../fn/framework/list-crm-attachments';
+import { listCrmRecords } from '../fn/framework/list-crm-records';
+import { ListCrmRecords$Params } from '../fn/framework/list-crm-records';
 import { listDeletionRequests } from '../fn/framework/list-deletion-requests';
 import { ListDeletionRequests$Params } from '../fn/framework/list-deletion-requests';
 import { listInvitations } from '../fn/framework/list-invitations';
 import { ListInvitations$Params } from '../fn/framework/list-invitations';
+import { listInvoicingAttachments } from '../fn/framework/list-invoicing-attachments';
+import { ListInvoicingAttachments$Params } from '../fn/framework/list-invoicing-attachments';
 import { listModuleActivations } from '../fn/framework/list-module-activations';
 import { ListModuleActivations$Params } from '../fn/framework/list-module-activations';
 import { listMyFiles } from '../fn/framework/list-my-files';
@@ -152,6 +206,8 @@ import { listMyFileShares } from '../fn/framework/list-my-file-shares';
 import { ListMyFileShares$Params } from '../fn/framework/list-my-file-shares';
 import { listNotifications } from '../fn/framework/list-notifications';
 import { ListNotifications$Params } from '../fn/framework/list-notifications';
+import { listOrganisationAttachments } from '../fn/framework/list-organisation-attachments';
+import { ListOrganisationAttachments$Params } from '../fn/framework/list-organisation-attachments';
 import { listPublicMyFiles } from '../fn/framework/list-public-my-files';
 import { ListPublicMyFiles$Params } from '../fn/framework/list-public-my-files';
 import { listSessions } from '../fn/framework/list-sessions';
@@ -176,10 +232,14 @@ import { MyFilesModuleSettings } from '../models/my-files-module-settings';
 import { NotificationPage } from '../models/notification-page';
 import { NotificationSummary } from '../models/notification-summary';
 import { OperationsOverview } from '../models/operations-overview';
-import { OrganizationFilePage } from '../models/organization-file-page';
+import { OrganisationAttachment } from '../models/organisation-attachment';
+import { OrganisationFilePage } from '../models/organisation-file-page';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
+import { PageOfCommercialDocument } from '../models/page-of-commercial-document';
+import { PageOfCrmRecord } from '../models/page-of-crm-record';
 import { PageOfCustomerMember } from '../models/page-of-customer-member';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
+import { PageOfOrganisationAttachment } from '../models/page-of-organisation-attachment';
 import { PageOfTicketItem } from '../models/page-of-ticket-item';
 import { passkeyLogin } from '../fn/framework/passkey-login';
 import { PasskeyLogin$Params } from '../fn/framework/passkey-login';
@@ -191,6 +251,8 @@ import { PasskeyOptions } from '../models/passkey-options';
 import { passkeyRegistrationOptions } from '../fn/framework/passkey-registration-options';
 import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-registration-options';
 import { PlatformAppearance } from '../models/platform-appearance';
+import { previewCommercialDocument } from '../fn/framework/preview-commercial-document';
+import { PreviewCommercialDocument$Params } from '../fn/framework/preview-commercial-document';
 import { PrivacyStatus } from '../models/privacy-status';
 import { ProfileOptions } from '../models/profile-options';
 import { ProfileResponse } from '../models/profile-response';
@@ -201,21 +263,26 @@ import { readNotifications } from '../fn/framework/read-notifications';
 import { ReadNotifications$Params } from '../fn/framework/read-notifications';
 import { receivePaymentCallback } from '../fn/framework/receive-payment-callback';
 import { ReceivePaymentCallback$Params } from '../fn/framework/receive-payment-callback';
+import { RecordAttachment } from '../models/record-attachment';
+import { recordCommercialPayment } from '../fn/framework/record-commercial-payment';
+import { RecordCommercialPayment$Params } from '../fn/framework/record-commercial-payment';
 import { refresh } from '../fn/framework/refresh';
 import { Refresh$Params } from '../fn/framework/refresh';
+import { refundCommercialInvoice } from '../fn/framework/refund-commercial-invoice';
+import { RefundCommercialInvoice$Params } from '../fn/framework/refund-commercial-invoice';
 import { registerAccount } from '../fn/framework/register-account';
 import { RegisterAccount$Params } from '../fn/framework/register-account';
 import { registerPasskey } from '../fn/framework/register-passkey';
 import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
 import { RegistrationSettings } from '../models/registration-settings';
-import { removeOrganizationMember } from '../fn/framework/remove-organization-member';
-import { RemoveOrganizationMember$Params } from '../fn/framework/remove-organization-member';
+import { removeOrganisationMember } from '../fn/framework/remove-organisation-member';
+import { RemoveOrganisationMember$Params } from '../fn/framework/remove-organisation-member';
 import { removePasskey } from '../fn/framework/remove-passkey';
 import { RemovePasskey$Params } from '../fn/framework/remove-passkey';
 import { renameMyFile } from '../fn/framework/rename-my-file';
 import { RenameMyFile$Params } from '../fn/framework/rename-my-file';
-import { renameOrganization } from '../fn/framework/rename-organization';
-import { RenameOrganization$Params } from '../fn/framework/rename-organization';
+import { renameOrganisation } from '../fn/framework/rename-organisation';
+import { RenameOrganisation$Params } from '../fn/framework/rename-organisation';
 import { replayDelivery } from '../fn/framework/replay-delivery';
 import { ReplayDelivery$Params } from '../fn/framework/replay-delivery';
 import { replySupportTicket } from '../fn/framework/reply-support-ticket';
@@ -232,8 +299,8 @@ import { reviewAccountDeletion } from '../fn/framework/review-account-deletion';
 import { ReviewAccountDeletion$Params } from '../fn/framework/review-account-deletion';
 import { revokeMyFileShare } from '../fn/framework/revoke-my-file-share';
 import { RevokeMyFileShare$Params } from '../fn/framework/revoke-my-file-share';
-import { revokeOrganizationInvitation } from '../fn/framework/revoke-organization-invitation';
-import { RevokeOrganizationInvitation$Params } from '../fn/framework/revoke-organization-invitation';
+import { revokeOrganisationInvitation } from '../fn/framework/revoke-organisation-invitation';
+import { RevokeOrganisationInvitation$Params } from '../fn/framework/revoke-organisation-invitation';
 import { revokeSession } from '../fn/framework/revoke-session';
 import { RevokeSession$Params } from '../fn/framework/revoke-session';
 import { RoleItem } from '../models/role-item';
@@ -241,6 +308,8 @@ import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
 import { saveBillingSettings } from '../fn/framework/save-billing-settings';
 import { SaveBillingSettings$Params } from '../fn/framework/save-billing-settings';
+import { saveCrmRecord } from '../fn/framework/save-crm-record';
+import { SaveCrmRecord$Params } from '../fn/framework/save-crm-record';
 import { saveModuleActivation } from '../fn/framework/save-module-activation';
 import { SaveModuleActivation$Params } from '../fn/framework/save-module-activation';
 import { saveMyFilesModuleSettings } from '../fn/framework/save-my-files-module-settings';
@@ -254,6 +323,8 @@ import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-app
 import { saveSupportCategory } from '../fn/framework/save-support-category';
 import { SaveSupportCategory$Params } from '../fn/framework/save-support-category';
 import { SecuritySettings } from '../models/security-settings';
+import { selectOrganisation } from '../fn/framework/select-organisation';
+import { SelectOrganisation$Params } from '../fn/framework/select-organisation';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
 import { SessionDto } from '../models/session-dto';
@@ -269,10 +340,12 @@ import { shareMyFile } from '../fn/framework/share-my-file';
 import { ShareMyFile$Params } from '../fn/framework/share-my-file';
 import { startBillingTrial } from '../fn/framework/start-billing-trial';
 import { StartBillingTrial$Params } from '../fn/framework/start-billing-trial';
+import { storeCommercialPdf } from '../fn/framework/store-commercial-pdf';
+import { StoreCommercialPdf$Params } from '../fn/framework/store-commercial-pdf';
 import { SupportOptions } from '../models/support-options';
 import { TicketDetail } from '../models/ticket-detail';
-import { transferOrganizationOwnership } from '../fn/framework/transfer-organization-ownership';
-import { TransferOrganizationOwnership$Params } from '../fn/framework/transfer-organization-ownership';
+import { transferOrganisationOwnership } from '../fn/framework/transfer-organisation-ownership';
+import { TransferOrganisationOwnership$Params } from '../fn/framework/transfer-organisation-ownership';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
 import { updateMyFileMetadata } from '../fn/framework/update-my-file-metadata';
@@ -287,8 +360,10 @@ import { updateUser } from '../fn/framework/update-user';
 import { UpdateUser$Params } from '../fn/framework/update-user';
 import { uploadMyFile } from '../fn/framework/upload-my-file';
 import { UploadMyFile$Params } from '../fn/framework/upload-my-file';
-import { uploadOrganizationFile } from '../fn/framework/upload-organization-file';
-import { UploadOrganizationFile$Params } from '../fn/framework/upload-organization-file';
+import { uploadOrganisationAttachment } from '../fn/framework/upload-organisation-attachment';
+import { UploadOrganisationAttachment$Params } from '../fn/framework/upload-organisation-attachment';
+import { uploadOrganisationFile } from '../fn/framework/upload-organisation-file';
+import { UploadOrganisationFile$Params } from '../fn/framework/upload-organisation-file';
 import { UserAccessDetail } from '../models/user-access-detail';
 import { UserDirectoryPage } from '../models/user-directory-page';
 import { UserDto } from '../models/user-dto';
@@ -2704,6 +2779,762 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `listCrmRecords()` */
+  static readonly ListCrmRecordsPath = '/api/v1/auth/organisations/{organisation}/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCrmRecords()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords$Response(params: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
+    const obs = listCrmRecords(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCrmRecords$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords(params: ListCrmRecords$Params, context?: HttpContext): Observable<PageOfCrmRecord> {
+    const resp = this.listCrmRecords$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCrmRecord>): PageOfCrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCrmRecord()` */
+  static readonly SaveCrmRecordPath = '/api/v1/auth/organisations/{organisation}/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord$Response(params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = saveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord(params: SaveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.saveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmOverview()` */
+  static readonly GetCrmOverviewPath = '/api/v1/auth/organisations/{organisation}/crm/overview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmOverview()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview$Response(params: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
+    const obs = getCrmOverview(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmOverview$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview(params: GetCrmOverview$Params, context?: HttpContext): Observable<CrmOverview> {
+    const resp = this.getCrmOverview$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmOverview>): CrmOverview => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmConfiguration()` */
+  static readonly GetCrmConfigurationPath = '/api/v1/auth/organisations/{organisation}/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmConfiguration()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration$Response(params: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = getCrmConfiguration(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmConfiguration$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration(params: GetCrmConfiguration$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.getCrmConfiguration$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `configureCrm()` */
+  static readonly ConfigureCrmPath = '/api/v1/auth/organisations/{organisation}/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `configureCrm()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm$Response(params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = configureCrm(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `configureCrm$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm(params: ConfigureCrm$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.configureCrm$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmDetail()` */
+  static readonly GetCrmDetailPath = '/api/v1/auth/organisations/{organisation}/crm/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmDetail()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail$Response(params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
+    const obs = getCrmDetail(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmDetail$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail(params: GetCrmDetail$Params, context?: HttpContext): Observable<CrmDetail> {
+    const resp = this.getCrmDetail$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmDetail>): CrmDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `archiveCrmRecord()` */
+  static readonly ArchiveCrmRecordPath = '/api/v1/auth/organisations/{organisation}/crm/{id}/archive';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `archiveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord$Response(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = archiveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `archiveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.archiveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `addCrmNote()` */
+  static readonly AddCrmNotePath = '/api/v1/auth/organisations/{organisation}/crm/{id}/notes';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `addCrmNote()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote$Response(params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
+    const obs = addCrmNote(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `addCrmNote$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote(params: AddCrmNote$Params, context?: HttpContext): Observable<CrmNote> {
+    const resp = this.addCrmNote$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
+    );
+  }
+
+  /** Path part for operation `storeCommercialPdf()` */
+  static readonly StoreCommercialPdfPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/store-pdf';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `storeCommercialPdf()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  storeCommercialPdf$Response(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = storeCommercialPdf(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `storeCommercialPdf$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  storeCommercialPdf(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<void> {
+    const resp = this.storeCommercialPdf$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `previewCommercialDocument()` */
+  static readonly PreviewCommercialDocumentPath = '/api/v1/auth/organisations/{organisation}/invoicing/preview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `previewCommercialDocument()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCommercialDocument$Response(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialTotals>> {
+    const obs = previewCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `previewCommercialDocument$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCommercialDocument(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<CommercialTotals> {
+    const resp = this.previewCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialTotals>): CommercialTotals => r.body)
+    );
+  }
+
+  /** Path part for operation `listCommercialDocuments()` */
+  static readonly ListCommercialDocumentsPath = '/api/v1/auth/organisations/{organisation}/invoicing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCommercialDocuments()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCommercialDocuments$Response(params: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
+    const obs = listCommercialDocuments(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCommercialDocuments$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCommercialDocuments(params: ListCommercialDocuments$Params, context?: HttpContext): Observable<PageOfCommercialDocument> {
+    const resp = this.listCommercialDocuments$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCommercialDocument>): PageOfCommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `issueCommercialDocument()` */
+  static readonly IssueCommercialDocumentPath = '/api/v1/auth/organisations/{organisation}/invoicing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `issueCommercialDocument()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  issueCommercialDocument$Response(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = issueCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `issueCommercialDocument$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  issueCommercialDocument(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.issueCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `acceptCommercialQuotation()` */
+  static readonly AcceptCommercialQuotationPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/accept';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `acceptCommercialQuotation()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  acceptCommercialQuotation$Response(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = acceptCommercialQuotation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `acceptCommercialQuotation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  acceptCommercialQuotation(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.acceptCommercialQuotation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `getInvoicingSettings()` */
+  static readonly GetInvoicingSettingsPath = '/api/v1/auth/organisations/{organisation}/invoicing/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getInvoicingSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getInvoicingSettings$Response(params: GetInvoicingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
+    const obs = getInvoicingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getInvoicingSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getInvoicingSettings(params: GetInvoicingSettings$Params, context?: HttpContext): Observable<IssuerSettings> {
+    const resp = this.getInvoicingSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `configureInvoicing()` */
+  static readonly ConfigureInvoicingPath = '/api/v1/auth/organisations/{organisation}/invoicing/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `configureInvoicing()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureInvoicing$Response(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
+    const obs = configureInvoicing(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `configureInvoicing$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureInvoicing(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<IssuerSettings> {
+    const resp = this.configureInvoicing$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `invoiceAcceptedQuotation()` */
+  static readonly InvoiceAcceptedQuotationPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/invoice';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `invoiceAcceptedQuotation()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  invoiceAcceptedQuotation$Response(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = invoiceAcceptedQuotation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `invoiceAcceptedQuotation$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  invoiceAcceptedQuotation(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.invoiceAcceptedQuotation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadCommercialPdf()` */
+  static readonly DownloadCommercialPdfPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/pdf';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadCommercialPdf()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadCommercialPdf$Response(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+    const obs = downloadCommercialPdf(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadCommercialPdf$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadCommercialPdf(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<string> {
+    const resp = this.downloadCommercialPdf$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<string>): string => r.body)
+    );
+  }
+
+  /** Path part for operation `getCommercialDocument()` */
+  static readonly GetCommercialDocumentPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCommercialDocument()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialDocument$Response(params: GetCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDetail>> {
+    const obs = getCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCommercialDocument$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialDocument(params: GetCommercialDocument$Params, context?: HttpContext): Observable<CommercialDetail> {
+    const resp = this.getCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDetail>): CommercialDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `recordCommercialPayment()` */
+  static readonly RecordCommercialPaymentPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/payment';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `recordCommercialPayment()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  recordCommercialPayment$Response(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = recordCommercialPayment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `recordCommercialPayment$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  recordCommercialPayment(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.recordCommercialPayment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `creditCommercialInvoice()` */
+  static readonly CreditCommercialInvoicePath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/credit';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `creditCommercialInvoice()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  creditCommercialInvoice$Response(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = creditCommercialInvoice(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `creditCommercialInvoice$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  creditCommercialInvoice(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.creditCommercialInvoice$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `refundCommercialInvoice()` */
+  static readonly RefundCommercialInvoicePath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/refund';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `refundCommercialInvoice()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  refundCommercialInvoice$Response(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = refundCommercialInvoice(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `refundCommercialInvoice$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  refundCommercialInvoice(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.refundCommercialInvoice$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `listCrmAttachments()` */
+  static readonly ListCrmAttachmentsPath = '/api/v1/auth/organisations/{organisation}/crm/{id}/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCrmAttachments()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmAttachments$Response(params: ListCrmAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RecordAttachment>>> {
+    const obs = listCrmAttachments(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCrmAttachments$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmAttachments(params: ListCrmAttachments$Params, context?: HttpContext): Observable<Array<RecordAttachment>> {
+    const resp = this.listCrmAttachments$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<RecordAttachment>>): Array<RecordAttachment> => r.body)
+    );
+  }
+
+  /** Path part for operation `changeCrmAttachment()` */
+  static readonly ChangeCrmAttachmentPath = '/api/v1/auth/organisations/{organisation}/crm/{id}/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `changeCrmAttachment()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeCrmAttachment$Response(params: ChangeCrmAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = changeCrmAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `changeCrmAttachment$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeCrmAttachment(params: ChangeCrmAttachment$Params, context?: HttpContext): Observable<void> {
+    const resp = this.changeCrmAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listInvoicingAttachments()` */
+  static readonly ListInvoicingAttachmentsPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listInvoicingAttachments()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listInvoicingAttachments$Response(params: ListInvoicingAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RecordAttachment>>> {
+    const obs = listInvoicingAttachments(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listInvoicingAttachments$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listInvoicingAttachments(params: ListInvoicingAttachments$Params, context?: HttpContext): Observable<Array<RecordAttachment>> {
+    const resp = this.listInvoicingAttachments$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<RecordAttachment>>): Array<RecordAttachment> => r.body)
+    );
+  }
+
+  /** Path part for operation `changeInvoicingAttachment()` */
+  static readonly ChangeInvoicingAttachmentPath = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `changeInvoicingAttachment()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeInvoicingAttachment$Response(params: ChangeInvoicingAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = changeInvoicingAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `changeInvoicingAttachment$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeInvoicingAttachment(params: ChangeInvoicingAttachment$Params, context?: HttpContext): Observable<void> {
+    const resp = this.changeInvoicingAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listOrganisationAttachments()` */
+  static readonly ListOrganisationAttachmentsPath = '/api/v1/auth/organisations/{organisation}/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listOrganisationAttachments()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listOrganisationAttachments$Response(params: ListOrganisationAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfOrganisationAttachment>> {
+    const obs = listOrganisationAttachments(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listOrganisationAttachments$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listOrganisationAttachments(params: ListOrganisationAttachments$Params, context?: HttpContext): Observable<PageOfOrganisationAttachment> {
+    const resp = this.listOrganisationAttachments$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfOrganisationAttachment>): PageOfOrganisationAttachment => r.body)
+    );
+  }
+
+  /** Path part for operation `getOrganisationAttachment()` */
+  static readonly GetOrganisationAttachmentPath = '/api/v1/auth/organisations/{organisation}/attachments/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getOrganisationAttachment()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationAttachment$Response(params: GetOrganisationAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationAttachment>> {
+    const obs = getOrganisationAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getOrganisationAttachment$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationAttachment(params: GetOrganisationAttachment$Params, context?: HttpContext): Observable<OrganisationAttachment> {
+    const resp = this.getOrganisationAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<OrganisationAttachment>): OrganisationAttachment => r.body)
+    );
+  }
+
+  /** Path part for operation `uploadOrganisationAttachment()` */
+  static readonly UploadOrganisationAttachmentPath = '/api/v1/auth/organisations/{organisation}/attachments/upload';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `uploadOrganisationAttachment()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  uploadOrganisationAttachment$Response(params: UploadOrganisationAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationAttachment>> {
+    const obs = uploadOrganisationAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `uploadOrganisationAttachment$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  uploadOrganisationAttachment(params: UploadOrganisationAttachment$Params, context?: HttpContext): Observable<OrganisationAttachment> {
+    const resp = this.uploadOrganisationAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<OrganisationAttachment>): OrganisationAttachment => r.body)
+    );
+  }
+
   /** Path part for operation `getCustomers()` */
   static readonly GetCustomersPath = '/api/v1/auth/customers';
 
@@ -2731,379 +3562,433 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `createOrganization()` */
-  static readonly CreateOrganizationPath = '/api/v1/auth/customers';
+  /** Path part for operation `createOrganisation()` */
+  static readonly CreateOrganisationPath = '/api/v1/auth/customers';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `createOrganization()` instead.
+   * To access only the response body, use `createOrganisation()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  createOrganization$Response(params: CreateOrganization$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
-    const obs = createOrganization(this.http, this.rootUrl, params, context);
+  createOrganisation$Response(params: CreateOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
+    const obs = createOrganisation(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `createOrganization$Response()` instead.
+   * To access the full response (for headers, for example), `createOrganisation$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  createOrganization(params: CreateOrganization$Params, context?: HttpContext): Observable<CustomerInfo> {
-    const resp = this.createOrganization$Response(params, context);
+  createOrganisation(params: CreateOrganisation$Params, context?: HttpContext): Observable<CustomerInfo> {
+    const resp = this.createOrganisation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
     );
   }
 
-  /** Path part for operation `renameOrganization()` */
-  static readonly RenameOrganizationPath = '/api/v1/auth/customers/{customer}/rename';
+  /** Path part for operation `getOrganisationAdministration()` */
+  static readonly GetOrganisationAdministrationPath = '/api/v1/auth/customers/administration';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `renameOrganization()` instead.
+   * To access only the response body, use `getOrganisationAdministration()` instead.
    *
-   * This method sends `application/json` and handles request body of type `application/json`.
+   * This method doesn't expect any request body.
    */
-  renameOrganization$Response(params: RenameOrganization$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = renameOrganization(this.http, this.rootUrl, params, context);
+  getOrganisationAdministration$Response(params?: GetOrganisationAdministration$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerHome>> {
+    const obs = getOrganisationAdministration(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `renameOrganization$Response()` instead.
+   * To access the full response (for headers, for example), `getOrganisationAdministration$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationAdministration(params?: GetOrganisationAdministration$Params, context?: HttpContext): Observable<CustomerHome> {
+    const resp = this.getOrganisationAdministration$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CustomerHome>): CustomerHome => r.body)
+    );
+  }
+
+  /** Path part for operation `selectOrganisation()` */
+  static readonly SelectOrganisationPath = '/api/v1/auth/customers/current';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `selectOrganisation()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  renameOrganization(params: RenameOrganization$Params, context?: HttpContext): Observable<void> {
-    const resp = this.renameOrganization$Response(params, context);
+  selectOrganisation$Response(params: SelectOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = selectOrganisation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `selectOrganisation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  selectOrganisation(params: SelectOrganisation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.selectOrganisation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `getOrganizationMembers()` */
-  static readonly GetOrganizationMembersPath = '/api/v1/auth/customers/{customer}/members';
+  /** Path part for operation `renameOrganisation()` */
+  static readonly RenameOrganisationPath = '/api/v1/auth/customers/{customer}/rename';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getOrganizationMembers()` instead.
+   * To access only the response body, use `renameOrganisation()` instead.
    *
-   * This method doesn't expect any request body.
+   * This method sends `application/json` and handles request body of type `application/json`.
    */
-  getOrganizationMembers$Response(params: GetOrganizationMembers$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCustomerMember>> {
-    const obs = getOrganizationMembers(this.http, this.rootUrl, params, context);
+  renameOrganisation$Response(params: RenameOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = renameOrganisation(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getOrganizationMembers$Response()` instead.
+   * To access the full response (for headers, for example), `renameOrganisation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  renameOrganisation(params: RenameOrganisation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.renameOrganisation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getOrganisationMembers()` */
+  static readonly GetOrganisationMembersPath = '/api/v1/auth/customers/{customer}/members';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getOrganisationMembers()` instead.
    *
    * This method doesn't expect any request body.
    */
-  getOrganizationMembers(params: GetOrganizationMembers$Params, context?: HttpContext): Observable<PageOfCustomerMember> {
-    const resp = this.getOrganizationMembers$Response(params, context);
+  getOrganisationMembers$Response(params: GetOrganisationMembers$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCustomerMember>> {
+    const obs = getOrganisationMembers(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getOrganisationMembers$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationMembers(params: GetOrganisationMembers$Params, context?: HttpContext): Observable<PageOfCustomerMember> {
+    const resp = this.getOrganisationMembers$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<PageOfCustomerMember>): PageOfCustomerMember => r.body)
     );
   }
 
-  /** Path part for operation `inviteOrganizationMember()` */
-  static readonly InviteOrganizationMemberPath = '/api/v1/auth/customers/{customer}/invite';
+  /** Path part for operation `inviteOrganisationMember()` */
+  static readonly InviteOrganisationMemberPath = '/api/v1/auth/customers/{customer}/invite';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `inviteOrganizationMember()` instead.
+   * To access only the response body, use `inviteOrganisationMember()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  inviteOrganizationMember$Response(params: InviteOrganizationMember$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = inviteOrganizationMember(this.http, this.rootUrl, params, context);
+  inviteOrganisationMember$Response(params: InviteOrganisationMember$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = inviteOrganisationMember(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `inviteOrganizationMember$Response()` instead.
+   * To access the full response (for headers, for example), `inviteOrganisationMember$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  inviteOrganizationMember(params: InviteOrganizationMember$Params, context?: HttpContext): Observable<void> {
-    const resp = this.inviteOrganizationMember$Response(params, context);
+  inviteOrganisationMember(params: InviteOrganisationMember$Params, context?: HttpContext): Observable<void> {
+    const resp = this.inviteOrganisationMember$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `acceptOrganizationInvitation()` */
-  static readonly AcceptOrganizationInvitationPath = '/api/v1/auth/customers/invitations/{invitation}/accept';
+  /** Path part for operation `acceptOrganisationInvitation()` */
+  static readonly AcceptOrganisationInvitationPath = '/api/v1/auth/customers/invitations/{invitation}/accept';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `acceptOrganizationInvitation()` instead.
+   * To access only the response body, use `acceptOrganisationInvitation()` instead.
    *
    * This method doesn't expect any request body.
    */
-  acceptOrganizationInvitation$Response(params: AcceptOrganizationInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = acceptOrganizationInvitation(this.http, this.rootUrl, params, context);
+  acceptOrganisationInvitation$Response(params: AcceptOrganisationInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = acceptOrganisationInvitation(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `acceptOrganizationInvitation$Response()` instead.
+   * To access the full response (for headers, for example), `acceptOrganisationInvitation$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  acceptOrganizationInvitation(params: AcceptOrganizationInvitation$Params, context?: HttpContext): Observable<void> {
-    const resp = this.acceptOrganizationInvitation$Response(params, context);
+  acceptOrganisationInvitation(params: AcceptOrganisationInvitation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.acceptOrganisationInvitation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `revokeOrganizationInvitation()` */
-  static readonly RevokeOrganizationInvitationPath = '/api/v1/auth/customers/{customer}/invitations/{invitation}/revoke';
+  /** Path part for operation `revokeOrganisationInvitation()` */
+  static readonly RevokeOrganisationInvitationPath = '/api/v1/auth/customers/{customer}/invitations/{invitation}/revoke';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `revokeOrganizationInvitation()` instead.
+   * To access only the response body, use `revokeOrganisationInvitation()` instead.
    *
    * This method doesn't expect any request body.
    */
-  revokeOrganizationInvitation$Response(params: RevokeOrganizationInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = revokeOrganizationInvitation(this.http, this.rootUrl, params, context);
+  revokeOrganisationInvitation$Response(params: RevokeOrganisationInvitation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = revokeOrganisationInvitation(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `revokeOrganizationInvitation$Response()` instead.
+   * To access the full response (for headers, for example), `revokeOrganisationInvitation$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  revokeOrganizationInvitation(params: RevokeOrganizationInvitation$Params, context?: HttpContext): Observable<void> {
-    const resp = this.revokeOrganizationInvitation$Response(params, context);
+  revokeOrganisationInvitation(params: RevokeOrganisationInvitation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.revokeOrganisationInvitation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `changeOrganizationRole()` */
-  static readonly ChangeOrganizationRolePath = '/api/v1/auth/customers/{customer}/members/role';
+  /** Path part for operation `changeOrganisationRole()` */
+  static readonly ChangeOrganisationRolePath = '/api/v1/auth/customers/{customer}/members/role';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `changeOrganizationRole()` instead.
+   * To access only the response body, use `changeOrganisationRole()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  changeOrganizationRole$Response(params: ChangeOrganizationRole$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = changeOrganizationRole(this.http, this.rootUrl, params, context);
+  changeOrganisationRole$Response(params: ChangeOrganisationRole$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = changeOrganisationRole(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `changeOrganizationRole$Response()` instead.
+   * To access the full response (for headers, for example), `changeOrganisationRole$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  changeOrganizationRole(params: ChangeOrganizationRole$Params, context?: HttpContext): Observable<void> {
-    const resp = this.changeOrganizationRole$Response(params, context);
+  changeOrganisationRole(params: ChangeOrganisationRole$Params, context?: HttpContext): Observable<void> {
+    const resp = this.changeOrganisationRole$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `removeOrganizationMember()` */
-  static readonly RemoveOrganizationMemberPath = '/api/v1/auth/customers/{customer}/members/remove';
+  /** Path part for operation `removeOrganisationMember()` */
+  static readonly RemoveOrganisationMemberPath = '/api/v1/auth/customers/{customer}/members/remove';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `removeOrganizationMember()` instead.
+   * To access only the response body, use `removeOrganisationMember()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  removeOrganizationMember$Response(params: RemoveOrganizationMember$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = removeOrganizationMember(this.http, this.rootUrl, params, context);
+  removeOrganisationMember$Response(params: RemoveOrganisationMember$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = removeOrganisationMember(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `removeOrganizationMember$Response()` instead.
+   * To access the full response (for headers, for example), `removeOrganisationMember$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  removeOrganizationMember(params: RemoveOrganizationMember$Params, context?: HttpContext): Observable<void> {
-    const resp = this.removeOrganizationMember$Response(params, context);
+  removeOrganisationMember(params: RemoveOrganisationMember$Params, context?: HttpContext): Observable<void> {
+    const resp = this.removeOrganisationMember$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `transferOrganizationOwnership()` */
-  static readonly TransferOrganizationOwnershipPath = '/api/v1/auth/customers/{customer}/transfer';
+  /** Path part for operation `transferOrganisationOwnership()` */
+  static readonly TransferOrganisationOwnershipPath = '/api/v1/auth/customers/{customer}/transfer';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `transferOrganizationOwnership()` instead.
+   * To access only the response body, use `transferOrganisationOwnership()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  transferOrganizationOwnership$Response(params: TransferOrganizationOwnership$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = transferOrganizationOwnership(this.http, this.rootUrl, params, context);
+  transferOrganisationOwnership$Response(params: TransferOrganisationOwnership$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = transferOrganisationOwnership(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `transferOrganizationOwnership$Response()` instead.
+   * To access the full response (for headers, for example), `transferOrganisationOwnership$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  transferOrganizationOwnership(params: TransferOrganizationOwnership$Params, context?: HttpContext): Observable<void> {
-    const resp = this.transferOrganizationOwnership$Response(params, context);
+  transferOrganisationOwnership(params: TransferOrganisationOwnership$Params, context?: HttpContext): Observable<void> {
+    const resp = this.transferOrganisationOwnership$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `closeOrganization()` */
-  static readonly CloseOrganizationPath = '/api/v1/auth/customers/{customer}/close';
+  /** Path part for operation `closeOrganisation()` */
+  static readonly CloseOrganisationPath = '/api/v1/auth/customers/{customer}/close';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `closeOrganization()` instead.
+   * To access only the response body, use `closeOrganisation()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  closeOrganization$Response(params: CloseOrganization$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = closeOrganization(this.http, this.rootUrl, params, context);
+  closeOrganisation$Response(params: CloseOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = closeOrganisation(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `closeOrganization$Response()` instead.
+   * To access the full response (for headers, for example), `closeOrganisation$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  closeOrganization(params: CloseOrganization$Params, context?: HttpContext): Observable<void> {
-    const resp = this.closeOrganization$Response(params, context);
+  closeOrganisation(params: CloseOrganisation$Params, context?: HttpContext): Observable<void> {
+    const resp = this.closeOrganisation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `getOrganizationFiles()` */
-  static readonly GetOrganizationFilesPath = '/api/v1/auth/customers/{customer}/files';
+  /** Path part for operation `getOrganisationFiles()` */
+  static readonly GetOrganisationFilesPath = '/api/v1/auth/customers/{customer}/files';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getOrganizationFiles()` instead.
+   * To access only the response body, use `getOrganisationFiles()` instead.
    *
    * This method doesn't expect any request body.
    */
-  getOrganizationFiles$Response(params: GetOrganizationFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganizationFilePage>> {
-    const obs = getOrganizationFiles(this.http, this.rootUrl, params, context);
+  getOrganisationFiles$Response(params: GetOrganisationFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationFilePage>> {
+    const obs = getOrganisationFiles(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getOrganizationFiles$Response()` instead.
+   * To access the full response (for headers, for example), `getOrganisationFiles$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  getOrganizationFiles(params: GetOrganizationFiles$Params, context?: HttpContext): Observable<OrganizationFilePage> {
-    const resp = this.getOrganizationFiles$Response(params, context);
+  getOrganisationFiles(params: GetOrganisationFiles$Params, context?: HttpContext): Observable<OrganisationFilePage> {
+    const resp = this.getOrganisationFiles$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<OrganizationFilePage>): OrganizationFilePage => r.body)
+      map((r: StrictHttpResponse<OrganisationFilePage>): OrganisationFilePage => r.body)
     );
   }
 
-  /** Path part for operation `uploadOrganizationFile()` */
-  static readonly UploadOrganizationFilePath = '/api/v1/auth/customers/{customer}/files/upload';
+  /** Path part for operation `uploadOrganisationFile()` */
+  static readonly UploadOrganisationFilePath = '/api/v1/auth/customers/{customer}/files/upload';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `uploadOrganizationFile()` instead.
+   * To access only the response body, use `uploadOrganisationFile()` instead.
    *
    * This method doesn't expect any request body.
    */
-  uploadOrganizationFile$Response(params: UploadOrganizationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = uploadOrganizationFile(this.http, this.rootUrl, params, context);
+  uploadOrganisationFile$Response(params: UploadOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = uploadOrganisationFile(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `uploadOrganizationFile$Response()` instead.
+   * To access the full response (for headers, for example), `uploadOrganisationFile$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  uploadOrganizationFile(params: UploadOrganizationFile$Params, context?: HttpContext): Observable<void> {
-    const resp = this.uploadOrganizationFile$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `deleteOrganizationFile()` */
-  static readonly DeleteOrganizationFilePath = '/api/v1/auth/customers/{customer}/files/{id}/delete';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `deleteOrganizationFile()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  deleteOrganizationFile$Response(params: DeleteOrganizationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = deleteOrganizationFile(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `deleteOrganizationFile$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  deleteOrganizationFile(params: DeleteOrganizationFile$Params, context?: HttpContext): Observable<void> {
-    const resp = this.deleteOrganizationFile$Response(params, context);
+  uploadOrganisationFile(params: UploadOrganisationFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.uploadOrganisationFile$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `downloadOrganizationFile()` */
-  static readonly DownloadOrganizationFilePath = '/api/v1/auth/customers/{customer}/files/{id}';
+  /** Path part for operation `deleteOrganisationFile()` */
+  static readonly DeleteOrganisationFilePath = '/api/v1/auth/customers/{customer}/files/{id}/delete';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `downloadOrganizationFile()` instead.
+   * To access only the response body, use `deleteOrganisationFile()` instead.
    *
    * This method doesn't expect any request body.
    */
-  downloadOrganizationFile$Response(params: DownloadOrganizationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = downloadOrganizationFile(this.http, this.rootUrl, params, context);
+  deleteOrganisationFile$Response(params: DeleteOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = deleteOrganisationFile(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `downloadOrganizationFile$Response()` instead.
+   * To access the full response (for headers, for example), `deleteOrganisationFile$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  downloadOrganizationFile(params: DownloadOrganizationFile$Params, context?: HttpContext): Observable<void> {
-    const resp = this.downloadOrganizationFile$Response(params, context);
+  deleteOrganisationFile(params: DeleteOrganisationFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.deleteOrganisationFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadOrganisationFile()` */
+  static readonly DownloadOrganisationFilePath = '/api/v1/auth/customers/{customer}/files/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadOrganisationFile()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadOrganisationFile$Response(params: DownloadOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadOrganisationFile(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadOrganisationFile$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadOrganisationFile(params: DownloadOrganisationFile$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadOrganisationFile$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

@@ -9,3 +9,5 @@
 .env
 artifacts
 TestResults
+
+**/.git

@@ -686,6 +686,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
             Assert.False(parsed.RootElement.GetProperty("components").GetProperty("schemas").TryGetProperty(removed, out _));
         if (Environment.GetEnvironmentVariable("TEMPLATEV4_EXPORT_OPENAPI") is { Length: > 0 } output)
         { Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); await File.WriteAllTextAsync(output, contract.Replace("\r\n", "\n") + "\n"); }
+
     }
     [Fact]
     public async Task Public_registration_is_disabled_by_default_and_policy_changes_require_permission_and_version()
@@ -728,7 +729,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         var signedIn = await auth.Login(new(request.Email, request.Password, "test"), default);
         Assert.True(signedIn.IsSuccess); Assert.Equal(new[] { MfaMethods.Email }, signedIn.Value!.Access.MfaMethods); Assert.Empty(signedIn.Value.Access.Permissions);
     }
-    private sealed class ApiFactory(Dictionary<string, string?> config) : WebApplicationFactory<TemplateV4.ApiService.HttpExecutionContext>
+    private sealed class ApiFactory(Dictionary<string, string?> config) : WebApplicationFactory<TemplateV4.ApiService.ApiHostAssembly>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {

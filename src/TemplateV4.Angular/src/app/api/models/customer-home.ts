@@ -5,6 +5,7 @@ import { CustomerInfo } from '../models/customer-info';
 import { CustomerInvitation } from '../models/customer-invitation';
 export interface CustomerHome {
   accounts: Array<CustomerInfo>;
+  currentOrganisationId?: (string | null);
   invitations: Array<CustomerInvitation>;
   mode: string;
 }

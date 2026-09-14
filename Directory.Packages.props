@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="PDFsharp" Version="6.2.0" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.103" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />

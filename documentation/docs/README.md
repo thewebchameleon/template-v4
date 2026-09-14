@@ -1,6 +1,8 @@
 # Developer guide
 
-For accounts, shared organization files and subscriptions, see [Organizations and billing](customer-billing.md).
+For CRM, commercial documents, package composition and private extensions, see [business modules](business-modules.md) and [foundation packages](packages.md).
+
+For accounts, shared organisation files and subscriptions, see [Organisations and billing](customer-billing.md).
 
 For the configurable SaaS starter, see [modules, deployment presets and roadmap](saas-modules.md). The module catalog complements the framework inventory; it does not replace feature flags or permission checks.
 
@@ -12,7 +14,8 @@ The framework manifest is the inventory and version contract. CLI and CI load it
 | Domain           | User profile invariants and domain events                         | BCL only                         |
 | Application      | Feature validation, permissions, handlers and app event contracts | Domain, SharedKernel             |
 | Infrastructure   | EF, Identity, sessions, outbox, SMTP, storage                     | Application                      |
-| ApiService       | HTTP, policy authorization, Problem Details, OpenAPI              | Infrastructure, ServiceDefaults  |
+| Http             | Packaged HTTP, authorization, Problem Details, OpenAPI           | Infrastructure, ServiceDefaults  |
+| ApiService       | Explicit foundation/business composition host                    | Http, selected business Api      |
 | BackgroundWorker | Durable delivery, Quartz scheduling and execution                 | Infrastructure, ServiceDefaults  |
 | DatabaseMigrator | Explicit schema and role-metadata seeding                         | Infrastructure                   |
 | AppHost          | Local orchestration only                                          | Executable project references    |
@@ -52,6 +55,8 @@ Replace `IIntegrationTransport`, `IEmailSender`, `IFeatureFlags`, or `IFileStora
 Account and security HTTP handlers are contract adapters and do not access EF or Identity directly. Session, account, MFA, and passkey behavior belongs to their focused Infrastructure use-case services under the boundary defined by [ADR 0014](adr/0014-account-security-use-case-boundaries.md). Domain factories expose use-case event intent explicitly; callers do not create and then clear domain events.
 
 ## Localisation and UI
+
+The Account rail item includes an Organisation link immediately after Profile for selecting the current organisation. The selection persists on the user account across navigation, refreshes and sign-ins on different devices. System administrators manage every organisation under Administration → Organisations. Organisation modules such as CRM and Invoicing reuse the saved selection and retain their own rail destinations.
 
 Selected audible feedback uses [Foley interface sounds](ui-sounds.md), with enabled-by-default soft cues and a browser-local mute setting in the theme drawer. See [ADR 0030](adr/0030-interface-sounds.md) for ownership and lifecycle rules.
 

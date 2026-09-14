@@ -1,6 +1,6 @@
 # My Files
 
-My Files is the personal library at `/my-files`, with an expandable folder submenu and the shared server-paginated datatable. The module identifier and feature flag are `my-files`. Organization files retain their own routes and names; they still depend on this storage capability. See [the upgrade instructions](upgrades.md#my-files-upgrade) before updating an existing deployment.
+My Files is the personal library at `/my-files`, with an expandable folder submenu and the shared server-paginated datatable. The module identifier and feature flag are `my-files`. Organisation files retain their own routes and names; they still depend on this storage capability. See [the upgrade instructions](upgrades.md#my-files-upgrade) before updating an existing deployment.
 
 ## Navigation and metadata
 
@@ -16,7 +16,7 @@ Public links permit anonymous metadata reading, folder browsing and individual d
 
 ## Quota and Trash
 
-The account-wide segmented bar groups current bytes into Images, Documents/PDFs, Spreadsheets, Presentations, Video, Audio, Archives and Other. Separate segments account for Trash and unfinished uploads. The legend reports bytes and counts. Remaining space is clamped to zero when a quota is reduced below usage. Shared content uses its owner's quota. Administrators configure the default quota, maximum upload file size and demo expiry under **Administration → File storage**. The default-quota slider starts at 50 MB, using 5 MB increments through 100 MB, 10 MB through 200 MB, 50 MB through 500 MB, 100 MB through 5,000 MB, 1,000 MB through 20,000 MB, then No limit. Slider labels switch from MB to decimal GB at 1,000 MB. The upload-size slider retains its 5–1,000 MB stepped range and defaults to 20 MB. It also applies to organization files. Individual user overrides remain numeric from 0 through 100 GiB, where zero blocks storage; clearing an override restores inheritance from the default quota.
+The account-wide segmented bar groups current bytes into Images, Documents/PDFs, Spreadsheets, Presentations, Video, Audio, Archives and Other. Separate segments account for Trash and unfinished uploads. The legend reports bytes and counts. Remaining space is clamped to zero when a quota is reduced below usage. Shared content uses its owner's quota. Administrators configure the default quota, maximum upload file size and demo expiry under **Administration → File storage**. The default-quota slider starts at 50 MB, using 5 MB increments through 100 MB, 10 MB through 200 MB, 50 MB through 500 MB, 100 MB through 5,000 MB, 1,000 MB through 20,000 MB, then No limit. Slider labels switch from MB to decimal GB at 1,000 MB. The upload-size slider retains its 5–1,000 MB stepped range and defaults to 20 MB. It also applies to organisation files. Individual user overrides remain numeric from 0 through 100 GiB, where zero blocks storage; clearing an override restores inheritance from the default quota.
 
 Reservations, current files and retained deleted content count exactly once. PostgreSQL owner locks serialize quota reservations, file movement, recursive deletion/restoration and purge work. Interrupted uploads remain reserved until cleanup reconciles them.
 
@@ -24,7 +24,7 @@ Folders can be deleted only after all live direct files and subfolders have been
 
 ## Extension and validation
 
-`MyFilesService` owns library and sharing use cases. HTTP adapters live in `MyFilesEndpoints`; regenerate OpenAPI and the Angular client after contract changes. New file categories should update `Category`, the localized legend and semantic `--file-*` colors together. The historical `files` database schema and generic file provider remain shared with organization storage.
+`MyFilesService` owns library and sharing use cases. HTTP adapters live in `MyFilesEndpoints`; regenerate OpenAPI and the Angular client after contract changes. New file categories should update `Category`, the localized legend and semantic `--file-*` colors together. The historical `files` database schema and generic file provider remain shared with organisation storage.
 
 See [ADR 0029](adr/0029-my-files-library.md) for the architecture decision. PostgreSQL tests cover ownership, inherited roles, expiry, revocation, public HTTP downloads, recursive Trash, restoration, quotas, cleanup and module gates. Browser/E2E and accessibility checks require explicit permission under repository guidance.
 

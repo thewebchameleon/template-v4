@@ -29,7 +29,7 @@ public sealed partial class SecurityAndMessagingTests
 
     [Fact]
     [Trait("Category", "ReviewHardening")]
-    public async Task Organization_files_roundtrip_through_S3_and_capabilities_follow_membership()
+    public async Task Organisation_files_roundtrip_through_S3_and_capabilities_follow_membership()
     {
         var fixture = new S3StorageTests(); await fixture.InitializeAsync();
         try
@@ -39,18 +39,17 @@ public sealed partial class SecurityAndMessagingTests
             var owner = await User(sp); var member = await User(sp); var customers = sp.GetRequiredService<ICustomers>();
             var team = (await customers.Create(owner.Id, new("S3 team"), default)).Value!;
             Assert.True((await customers.Invite(owner.Id, team.Id, new(member.Email!, "Member"), default)).IsSuccess);
-            var invitation = Assert.Single((await customers.Home(member.Id, default)).Value!.Invitations);
-            Assert.True((await customers.Accept(member.Id, invitation.Id, default)).IsSuccess);
+            Assert.NotNull(await customers.Find(member.Id, team.Id, default));
             var db = sp.GetRequiredService<FrameworkDb>();
-            var files = new OrganizationFiles(db, sp.GetRequiredService<ICustomerAccess>(), sp.GetRequiredService<IStorageEntitlements>(), storage, _clock);
-            using var content = new MemoryStream("organization payload"u8.ToArray());
+            var files = new OrganisationFiles(db, sp.GetRequiredService<ICustomerAccess>(), sp.GetRequiredService<IStorageEntitlements>(), storage, _clock);
+            using var content = new MemoryStream("organisation payload"u8.ToArray());
             Assert.True((await files.Upload(owner.Id, team.Id, "shared.txt", content, default)).IsSuccess);
             var file = Assert.Single((await files.List(member.Id, team.Id, 1, 10, "name", "asc", default)).Value!.Page.Items);
             Assert.False(file.CanDelete);
             Assert.True(Assert.Single((await files.List(owner.Id, team.Id, 1, 10, "name", "asc", default)).Value!.Page.Items).CanDelete);
             Assert.False((await files.Delete(member.Id, team.Id, file.Id, default)).IsSuccess);
             var download = (await files.Download(member.Id, team.Id, file.Id, default)).Value!;
-            using (var reader = new StreamReader(download.Content)) Assert.Equal("organization payload", await reader.ReadToEndAsync());
+            using (var reader = new StreamReader(download.Content)) Assert.Equal("organisation payload", await reader.ReadToEndAsync());
             Assert.True((await files.Delete(owner.Id, team.Id, file.Id, default)).IsSuccess);
             _clock.Now = _clock.Now.AddDays(31);
             var retention = new FileRetention(db, storage, sp.GetRequiredService<IConfiguration>(), _clock, NullLogger<FileRetention>.Instance);
@@ -81,20 +80,18 @@ public sealed partial class SecurityAndMessagingTests
 
     [Fact]
     [Trait("Category", "ReviewHardening")]
-    public async Task Organization_invitation_provisions_reader_and_closure_unblocks_owner_erasure()
+    public async Task Organisation_assignment_requires_existing_user_and_closure_unblocks_owner_erasure()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider;
         var owner = await User(sp); var reviewer = await User(sp); var customers = sp.GetRequiredService<ICustomers>();
         var team = (await customers.Create(owner.Id, new("Lifecycle"), default)).Value!;
-        Assert.True((await customers.Invite(owner.Id, team.Id, new("new-member@example.test", "Member"), default)).IsSuccess);
-        var users = sp.GetRequiredService<UserManager<AppUser>>(); var invited = (await users.FindByEmailAsync("new-member@example.test"))!;
-        Assert.False(invited.EmailConfirmed); Assert.Null(invited.PasswordHash); Assert.Equal("Reader", Assert.Single(await users.GetRolesAsync(invited)));
-        var db = sp.GetRequiredService<FrameworkDb>(); var invitation = await db.Set<CustomerInviteRow>().SingleAsync();
-        Assert.False((await customers.Accept(invited.Id, invitation.Id, default)).IsSuccess);
-        Assert.Equal(2, await db.Outbox.CountAsync());
-        Assert.False((await customers.Close(reviewer.Id, team.Id, team.Version, default)).IsSuccess);
+        Assert.Equal("customers.not_found", (await customers.Invite(owner.Id, team.Id, new("new-member@example.test", "Member"), default)).Error!.Code);
+        var users = sp.GetRequiredService<UserManager<AppUser>>();
+        Assert.Null(await users.FindByEmailAsync("new-member@example.test"));
+        var db = sp.GetRequiredService<FrameworkDb>();
+        Assert.Empty(await db.Set<CustomerInviteRow>().ToArrayAsync());
         var version = (await customers.Find(owner.Id, team.Id, default))!.Version;
-        Assert.True((await customers.Close(owner.Id, team.Id, version, default)).IsSuccess);
+        Assert.True((await customers.Close(reviewer.Id, team.Id, version, default)).IsSuccess);
         Assert.Null(await customers.Find(owner.Id, team.Id, default)); Assert.Empty(await db.Set<CustomerInviteRow>().ToArrayAsync());
         var privacy = sp.GetRequiredService<PrivacyService>(); await privacy.RequestDeletion(owner.Id, default);
         Assert.True((await privacy.Review(reviewer.Id, new((await privacy.Status(owner.Id, default)).Request!.Id, true), default)).IsSuccess);
@@ -204,7 +201,7 @@ public sealed partial class SecurityAndMessagingTests
 
     [Fact]
     [Trait("Category", "ReviewHardening")]
-    public async Task Organization_file_HTTP_endpoints_honor_the_files_feature_flag()
+    public async Task Organisation_file_HTTP_endpoints_honor_the_files_feature_flag()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var owner = await User(sp);
         var customer = (await sp.GetRequiredService<ICustomers>().Create(owner.Id, new("Flag test"), default)).Value!;

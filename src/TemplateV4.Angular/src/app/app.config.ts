@@ -1,3 +1,4 @@
+import { unsavedGuard } from './shared/confirmation';
 import {
   ApplicationConfig,
   inject,
@@ -12,17 +13,41 @@ import { Runtime } from './core/runtime';
 import { UiSounds } from './core/ui-sounds';
 import { PlatformAppearanceTheme } from './core/platform-appearance';
 import { authInterceptor, errorInterceptor } from './core/interceptors';
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    { provide: RouteReuseStrategy, useClass: EntityRouteReuseStrategy },
-    provideHttpClient(withXhr(), withInterceptors([errorInterceptor, authInterceptor])),
-    provideAppInitializer(() => {
-      inject(UiSounds);
-      const runtime = inject(Runtime);
-      const appearance = inject(PlatformAppearanceTheme);
-      return runtime.load().then(() => appearance.load());
-    }),
-  ],
-};
+import { FOUNDATION_FEATURES, FoundationFeature } from './core/feature-extensions';
+import { authGuard } from './core/auth';
+import { capabilityGuard } from './core/features';
+import { dictionary } from './core/translations';
+export function foundationConfig(features: readonly FoundationFeature[] = []): ApplicationConfig {
+  if (new Set(features.map((feature) => feature.id)).size !== features.length)
+    throw new Error('Duplicate feature contribution.');
+  for (const feature of features) Object.assign(dictionary, feature.translations ?? {});
+  return {
+    providers: [
+      { provide: FOUNDATION_FEATURES, useValue: features },
+      provideBrowserGlobalErrorListeners(),
+      provideRouter([
+        ...features.flatMap((feature) =>
+          feature.routes.map((route) => ({
+            ...route,
+            canDeactivate: route.data?.['protectDraft'] ? [unsavedGuard] : route.canDeactivate,
+            canActivate: [
+              authGuard,
+              ...(route.data?.['capability'] ? [capabilityGuard(route.data['capability'])] : []),
+              ...(route.canActivate ?? []),
+            ],
+          })),
+        ),
+        ...routes,
+      ]),
+      { provide: RouteReuseStrategy, useClass: EntityRouteReuseStrategy },
+      provideHttpClient(withXhr(), withInterceptors([errorInterceptor, authInterceptor])),
+      provideAppInitializer(() => {
+        inject(UiSounds);
+        const runtime = inject(Runtime);
+        const appearance = inject(PlatformAppearanceTheme);
+        return runtime.load().then(() => appearance.load());
+      }),
+    ],
+  };
+}
+export const appConfig = foundationConfig();

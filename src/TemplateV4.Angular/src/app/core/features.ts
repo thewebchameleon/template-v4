@@ -1,4 +1,3 @@
-import { CapabilityId } from './capability-ids';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
 import { Injectable, inject, signal } from '@angular/core';
@@ -9,7 +8,7 @@ import { Runtime } from './runtime';
 export class Features {
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
-  readonly capabilities = signal<Partial<Record<CapabilityId, boolean>>>({});
+  readonly capabilities = signal<Partial<Record<string, boolean>>>({});
   private generation = 0;
   private pending?: Promise<void>;
   load(): Promise<void> {
@@ -36,20 +35,18 @@ export class Features {
   }
   private async fetch(generation: number) {
     const capabilities = await firstValueFrom(
-      this.http.get<Partial<Record<CapabilityId, boolean>>>(
-        `${this.runtime.apiUrl}/api/v1/capabilities`,
-      ),
+      this.http.get<Partial<Record<string, boolean>>>(`${this.runtime.apiUrl}/api/v1/capabilities`),
     );
     if (generation !== this.generation) return;
     this.capabilities.set(capabilities);
   }
-  enabled(name: CapabilityId) {
+  enabled(name: string) {
     return this.capabilities()[name] === true;
   }
 }
 
 export const capabilityGuard =
-  (name: CapabilityId): CanActivateFn =>
+  (name: string): CanActivateFn =>
   async () => {
     const auth = inject(Auth);
     const features = inject(Features);

@@ -6,7 +6,7 @@ namespace TemplateV4.Infrastructure.Modules;
 
 public static class ModuleConfiguration
 {
-    public static ModuleCatalog Load(IConfiguration configuration)
+    public static ModuleCatalog Load(IConfiguration configuration, IEnumerable<ModuleDefinition>? contributions = null)
     {
         using var stream = typeof(ModuleConfiguration).Assembly.GetManifestResourceStream("TemplateV4.Modules.catalog.json")
             ?? throw new InvalidOperationException("The module catalog is missing.");
@@ -27,6 +27,6 @@ public static class ModuleConfiguration
                 throw new InvalidOperationException($"Modules:{section.Key} must be a boolean.");
             overrides[section.Key] = enabled;
         }
-        return new ModuleCatalog(definitions, overrides);
+        return new ModuleCatalog(definitions.Concat(contributions ?? []), overrides);
     }
 }

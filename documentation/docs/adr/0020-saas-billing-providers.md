@@ -4,7 +4,7 @@ Status: Accepted; initial implementation follows [ADR 0026](0026-customer-billin
 
 ## Context
 
-The starter needs configurable subscriptions for personal and organization customers, with Stripe and a South African provider. Payment-provider capabilities differ.
+The starter needs configurable subscriptions for personal and organisation customers, with Stripe and a South African provider. Payment-provider capabilities differ.
 
 ## Decision
 

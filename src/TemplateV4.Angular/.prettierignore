@@ -1,4 +1,6 @@
 src/app/api/
+src/business-modules.g.ts
+src/business-modules.g.css
 package-lock.json
 dist/
 node_modules/

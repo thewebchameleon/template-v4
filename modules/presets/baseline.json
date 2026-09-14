@@ -5,7 +5,9 @@
     "operations": true,
     "audit-history": true,
     "support": true,
-    "organizations": true,
-    "billing": true
+    "organisations": true,
+    "billing": true,
+    "crm": true,
+    "invoicing": true
   }
 }

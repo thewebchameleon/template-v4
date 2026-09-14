@@ -13,6 +13,11 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
+      "@angular/*": ["./node_modules/@angular/*"],
+      "@ng-icons/core": ["./node_modules/@ng-icons/core"],
+      "@spartan-ng/brain/*": ["./node_modules/@spartan-ng/brain/*"],
+      "@tanstack/angular-table": ["./node_modules/@tanstack/angular-table"],
+      "rxjs": ["./node_modules/rxjs"],
       "@spartan-ng/helm/button": ["./libs/ui/button/src/index.ts"],
       "@spartan-ng/helm/utils": ["./libs/ui/utils/src/index.ts"],
       "@spartan-ng/helm/input": ["./libs/ui/input/src/index.ts"],
@@ -50,7 +55,9 @@
       "@spartan-ng/helm/alert-dialog": ["./libs/ui/alert-dialog/src/index.ts"],
       "@spartan-ng/helm/tabs": ["./libs/ui/tabs/src/index.ts"],
       "@spartan-ng/helm/slider": ["./libs/ui/slider/src/index.ts"],
-      "@spartan-ng/helm/context-menu": ["./libs/ui/context-menu/src/index.ts"]
+      "@spartan-ng/helm/context-menu": ["./libs/ui/context-menu/src/index.ts"],
+      "@templatev4/foundation": ["./src/public-api.ts"],
+      "tslib": ["./node_modules/tslib"]
     }
   },
   "angularCompilerOptions": {

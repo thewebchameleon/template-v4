@@ -34,7 +34,7 @@ public sealed class FrameworkManifestTests
     public void Api_route_handlers_are_registered_in_endpoint_files()
     {
         string repositoryRoot = FindRepositoryRoot();
-        string apiRoot = Path.Combine(repositoryRoot, "src", "TemplateV4.ApiService");
+        string apiRoot = Path.Combine(repositoryRoot, "src", "TemplateV4.Http");
         Regex routeDeclaration = new(@"\.(MapGet|MapPost|MapPut|MapDelete|MapPatch)\s*\(", RegexOptions.CultureInvariant);
 
         string[] routeFiles = Directory.GetFiles(apiRoot, "*.cs", SearchOption.AllDirectories)

@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Decision
 
-Keep the modular monolith, explicit service registration and shared EF migration stream. Extend `modules/catalog.json` with `runtimeConfigurable`, optional `featureFlag`, and optional additional `capabilities` containing `id`, `requires` and optional `featureFlag`. The module ID is its base capability. Additional capabilities automatically require their owning module. `organization-files` composes Organizations and My Files without requiring every organization to use file storage.
+Keep the modular monolith, explicit service registration and shared EF migration stream. Extend `modules/catalog.json` with `runtimeConfigurable`, optional `featureFlag`, and optional additional `capabilities` containing `id`, `requires` and optional `featureFlag`. The module ID is its base capability. Additional capabilities automatically require their owning module. `organisation-files` composes Organisations and My Files without requiring every organisation to use file storage.
 
 `ModuleCatalog` validates module and capability graphs and evaluates immutable deployment state with supplied runtime state and feature decisions. `ICapabilities` owns request-time availability discovery. Its Infrastructure implementation reads committed runtime state once per evaluation; it has no process-local cache. Unknown capabilities and missing runtime rows fail closed. Permissions, customer ownership, storage quotas and subscription obligations remain separate operation checks.
 
@@ -22,7 +22,7 @@ The clean activation API lives at `/api/v1/auth/administration/modules/activatio
 
 ## Endpoint and frontend conventions
 
-Endpoint groups declare `OwnedByModule` and `RequireCapability`. Individual endpoints use the same explicit ownership and capability declarations. Accepted-obligation endpoints explicitly declare `ContinuesWhenDisabled` with a reason and sit outside new-work gates. Billing callbacks, cancellation, provider configuration and organization closure preserve their existing behavior. Retention and accepted delivery remain active.
+Endpoint groups declare `OwnedByModule` and `RequireCapability`. Individual endpoints use the same explicit ownership and capability declarations. Accepted-obligation endpoints explicitly declare `ContinuesWhenDisabled` with a reason and sit outside new-work gates. Billing callbacks, cancellation, provider configuration and organisation closure preserve their existing behavior. Retention and accepted delivery remain active.
 
 Structural tests validate gate/exception metadata and independently check module URL boundaries, catching endpoints missing all metadata. New module boundaries must extend that coverage.
 

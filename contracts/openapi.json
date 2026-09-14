@@ -3696,6 +3696,1541 @@
         ]
       }
     },
+    "/api/v1/auth/organisations/{organisation}/crm": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListCrmRecords",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "$ref": "#/components/schemas/CrmRecordKind"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfCrmRecord"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveCrmRecord",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCrmRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmRecord"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/overview": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCrmOverview",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmOverview"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/configuration": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCrmConfiguration",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ConfigureCrm",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrmConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCrmDetail",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/{id}/archive": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ArchiveCrmRecord",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveCrmRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmRecord"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/{id}/notes": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "AddCrmNote",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCrmNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrmNote"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/store-pdf": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "StoreCommercialPdf",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/preview": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "PreviewCommercialDocument",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewCommercialDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialTotals"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "IssueCommercialDocument",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueCommercialDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialDocument"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListCommercialDocuments",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "issuedAt"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfCommercialDocument"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/accept": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "AcceptCommercialQuotation",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptQuotation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialDocument"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/settings": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ConfigureInvoicing",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssuerSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuerSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetInvoicingSettings",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuerSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/invoice": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "InvoiceAcceptedQuotation",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "idempotencyKey",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialDocument"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/pdf": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DownloadCommercialPdf",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCommercialDocument",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/payment": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RecordCommercialPayment",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialEntry"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/credit": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreditCommercialInvoice",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialEntry"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/refund": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RefundCommercialInvoice",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialEntry"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/crm/{id}/attachments": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListCrmAttachments",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecordAttachment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ChangeCrmAttachment",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRecordAttachment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListInvoicingAttachments",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecordAttachment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ChangeInvoicingAttachment",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRecordAttachment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/attachments": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListOrganisationAttachments",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfOrganisationAttachment"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/attachments/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganisationAttachment",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationAttachment"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisations/{organisation}/attachments/upload": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UploadOrganisationAttachment",
+        "parameters": [
+          {
+            "name": "organisation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationAttachment"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/customers": {
       "get": {
         "tags": [
@@ -3724,7 +5259,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "CreateOrganization",
+        "operationId": "CreateOrganisation",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -3740,7 +5275,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrganization"
+                "$ref": "#/components/schemas/CreateOrganisation"
               }
             }
           },
@@ -3765,12 +5300,76 @@
         ]
       }
     },
+    "/api/v1/auth/customers/administration": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganisationAdministration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerHome"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/customers/current": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SelectOrganisation",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectOrganisation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/customers/{customer}/rename": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "RenameOrganization",
+        "operationId": "RenameOrganisation",
         "parameters": [
           {
             "name": "customer",
@@ -3795,7 +5394,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RenameOrganization"
+                "$ref": "#/components/schemas/RenameOrganisation"
               }
             }
           },
@@ -3818,7 +5417,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "GetOrganizationMembers",
+        "operationId": "GetOrganisationMembers",
         "parameters": [
           {
             "name": "customer",
@@ -3888,7 +5487,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "InviteOrganizationMember",
+        "operationId": "InviteOrganisationMember",
         "parameters": [
           {
             "name": "customer",
@@ -3936,7 +5535,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "AcceptOrganizationInvitation",
+        "operationId": "AcceptOrganisationInvitation",
         "parameters": [
           {
             "name": "invitation",
@@ -3974,7 +5573,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "RevokeOrganizationInvitation",
+        "operationId": "RevokeOrganisationInvitation",
         "parameters": [
           {
             "name": "customer",
@@ -4021,7 +5620,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "ChangeOrganizationRole",
+        "operationId": "ChangeOrganisationRole",
         "parameters": [
           {
             "name": "customer",
@@ -4069,7 +5668,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "RemoveOrganizationMember",
+        "operationId": "RemoveOrganisationMember",
         "parameters": [
           {
             "name": "customer",
@@ -4117,7 +5716,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "TransferOrganizationOwnership",
+        "operationId": "TransferOrganisationOwnership",
         "parameters": [
           {
             "name": "customer",
@@ -4165,7 +5764,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "CloseOrganization",
+        "operationId": "CloseOrganisation",
         "parameters": [
           {
             "name": "customer",
@@ -4190,7 +5789,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CloseOrganization"
+                "$ref": "#/components/schemas/CloseOrganisation"
               }
             }
           },
@@ -4213,7 +5812,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "GetOrganizationFiles",
+        "operationId": "GetOrganisationFiles",
         "parameters": [
           {
             "name": "customer",
@@ -4265,7 +5864,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrganizationFilePage"
+                  "$ref": "#/components/schemas/OrganisationFilePage"
                 }
               }
             }
@@ -4283,7 +5882,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "UploadOrganizationFile",
+        "operationId": "UploadOrganisationFile",
         "parameters": [
           {
             "name": "customer",
@@ -4329,7 +5928,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "DeleteOrganizationFile",
+        "operationId": "DeleteOrganisationFile",
         "parameters": [
           {
             "name": "customer",
@@ -4376,7 +5975,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "DownloadOrganizationFile",
+        "operationId": "DownloadOrganisationFile",
         "parameters": [
           {
             "name": "customer",
@@ -5094,6 +6693,22 @@
   },
   "components": {
     "schemas": {
+      "AcceptQuotation": {
+        "required": [
+          "version",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reference": {
+            "type": "string"
+          }
+        }
+      },
       "AccessCatalog": {
         "required": [
           "roles",
@@ -5196,6 +6811,17 @@
           }
         }
       },
+      "AddCrmNote": {
+        "required": [
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
       "AdminBootstrapRequest": {
         "required": [
           "token",
@@ -5222,6 +6848,22 @@
         "type": "object",
         "properties": {
           "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ArchiveCrmRecord": {
+        "required": [
+          "version",
+          "archived"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "archived": {
             "type": "boolean"
           }
         }
@@ -5639,6 +7281,25 @@
           }
         }
       },
+      "ChangeRecordAttachment": {
+        "required": [
+          "fileId",
+          "attached"
+        ],
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attached": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChargeCategory": {
+        "type": "integer"
+      },
       "CheckoutRequest": {
         "required": [
           "planId",
@@ -5700,7 +7361,7 @@
           }
         }
       },
-      "CloseOrganization": {
+      "CloseOrganisation": {
         "required": [
           "version"
         ],
@@ -5709,6 +7370,308 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "CommercialAction": {
+        "required": [
+          "idempotencyKey",
+          "version",
+          "amount",
+          "reason",
+          "method",
+          "date",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ManualPaymentMethod"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CommercialDetail": {
+        "required": [
+          "document",
+          "entries",
+          "related"
+        ],
+        "type": "object",
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/CommercialDocument"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FinancialEntry"
+            }
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialDocument"
+            }
+          }
+        }
+      },
+      "CommercialDocument": {
+        "required": [
+          "id",
+          "organisationId",
+          "version",
+          "number",
+          "kind",
+          "customerId",
+          "snapshot",
+          "issuedAt",
+          "actorId",
+          "origin",
+          "quotationId",
+          "previousRevisionId",
+          "correctsId",
+          "accepted",
+          "acceptedAt",
+          "acceptanceReference",
+          "credits",
+          "paid",
+          "refunded",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organisationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CommercialDocumentKind"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "origin": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CommercialOrigin"
+              }
+            ]
+          },
+          "quotationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "previousRevisionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "correctsId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "acceptedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "acceptanceReference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "credits": {
+            "type": "number",
+            "format": "double"
+          },
+          "paid": {
+            "type": "number",
+            "format": "double"
+          },
+          "refunded": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CommercialDocumentKind": {
+        "type": "integer"
+      },
+      "CommercialLine": {
+        "required": [
+          "description",
+          "category",
+          "quantity",
+          "unitPrice",
+          "taxTreatment",
+          "taxRate"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ChargeCategory"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxTreatment": {
+            "$ref": "#/components/schemas/TaxTreatment"
+          },
+          "taxRate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CommercialOrigin": {
+        "required": [
+          "module",
+          "type",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CommercialSnapshot": {
+        "required": [
+          "issuer",
+          "customer",
+          "totals",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "issuer": {
+            "$ref": "#/components/schemas/IssuerSettings"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/CrmRecordInput"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/CommercialTotals"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CommercialTotals": {
+        "required": [
+          "lines",
+          "net",
+          "tax",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricedLine"
+            }
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "tax": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -5757,7 +7720,7 @@
           }
         }
       },
-      "CreateOrganization": {
+      "CreateOrganisation": {
         "required": [
           "name"
         ],
@@ -5826,6 +7789,421 @@
           }
         }
       },
+      "CrmConfiguration": {
+        "required": [
+          "version",
+          "lifecycleStatuses",
+          "tags",
+          "pipelines",
+          "contactFields"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lifecycleStatuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmOption"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmOption"
+            }
+          },
+          "pipelines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmPipeline"
+            }
+          },
+          "contactFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmField"
+            }
+          }
+        }
+      },
+      "CrmDetail": {
+        "required": [
+          "record",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/CrmRecord"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmNote"
+            }
+          }
+        }
+      },
+      "CrmField": {
+        "required": [
+          "id",
+          "label",
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmOption"
+            }
+          },
+          "retired": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CrmFieldValue": {
+        "required": [
+          "fieldId",
+          "optionId"
+        ],
+        "type": "object",
+        "properties": {
+          "fieldId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "optionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CrmNote": {
+        "required": [
+          "id",
+          "recordId",
+          "actorId",
+          "text",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recordId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CrmOption": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "retired": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CrmOverview": {
+        "required": [
+          "openDeals",
+          "openValue",
+          "recent"
+        ],
+        "type": "object",
+        "properties": {
+          "openDeals": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "recent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmRecord"
+            }
+          }
+        }
+      },
+      "CrmPipeline": {
+        "required": [
+          "id",
+          "label",
+          "stages"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmStage"
+            }
+          },
+          "retired": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CrmRecord": {
+        "required": [
+          "id",
+          "organisationId",
+          "version",
+          "data",
+          "archived",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organisationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CrmRecordInput"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CrmRecordInput": {
+        "required": [
+          "kind",
+          "name",
+          "email",
+          "phone",
+          "address",
+          "lifecycleStatusId",
+          "tags",
+          "ownerId",
+          "companies",
+          "customFields",
+          "customerId",
+          "contactId",
+          "value",
+          "expectedCloseDate",
+          "pipelineId",
+          "stageId",
+          "outcome"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/CrmRecordKind"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lifecycleStatusId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "ownerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "companies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmRelationship"
+            }
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmFieldValue"
+            }
+          },
+          "customerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "contactId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "value": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "expectedCloseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "pipelineId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "stageId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/DealOutcome"
+          },
+          "vatNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CrmRecordKind": {
+        "type": "integer"
+      },
+      "CrmRelationship": {
+        "required": [
+          "companyId",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "CrmStage": {
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "retired": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
       "CultureRequest": {
         "required": [
           "culture"
@@ -5879,6 +8257,13 @@
             "items": {
               "$ref": "#/components/schemas/CustomerInvitation"
             }
+          },
+          "currentOrganisationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -5969,6 +8354,9 @@
             "type": "string"
           }
         }
+      },
+      "DealOutcome": {
+        "type": "integer"
       },
       "DeletionItem": {
         "required": [
@@ -6479,6 +8867,70 @@
           }
         }
       },
+      "FinancialEntry": {
+        "required": [
+          "id",
+          "documentId",
+          "kind",
+          "amount",
+          "reason",
+          "method",
+          "date",
+          "reference",
+          "actorId",
+          "at",
+          "issuedDocumentId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ManualPaymentMethod"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "issuedDocumentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "ForgotPasswordRequest": {
         "required": [
           "email"
@@ -6630,6 +9082,111 @@
           }
         }
       },
+      "IssueCommercialDocument": {
+        "required": [
+          "idempotencyKey",
+          "customerId",
+          "kind",
+          "lines",
+          "origin",
+          "acceptedQuotationId",
+          "previousRevisionId",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CommercialDocumentKind"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialLine"
+            }
+          },
+          "origin": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CommercialOrigin"
+              }
+            ]
+          },
+          "acceptedQuotationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "previousRevisionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IssuerSettings": {
+        "required": [
+          "version",
+          "name",
+          "address",
+          "contact",
+          "paymentInstructions",
+          "vatRegistered",
+          "vatNumber",
+          "numberPrefix"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "paymentInstructions": {
+            "type": "string"
+          },
+          "vatRegistered": {
+            "type": "boolean"
+          },
+          "vatNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "numberPrefix": {
+            "type": "string"
+          }
+        }
+      },
       "JsonElement": { },
       "LoginRequest": {
         "required": [
@@ -6649,6 +9206,9 @@
             "type": "string"
           }
         }
+      },
+      "ManualPaymentMethod": {
+        "type": "integer"
       },
       "MemberAction": {
         "required": [
@@ -6915,7 +9475,28 @@
           }
         }
       },
-      "OrganizationFileItem": {
+      "OrganisationAttachment": {
+        "required": [
+          "id",
+          "name",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OrganisationFileItem": {
         "required": [
           "id",
           "name",
@@ -6945,7 +9526,7 @@
           }
         }
       },
-      "OrganizationFilePage": {
+      "OrganisationFilePage": {
         "required": [
           "page",
           "usedBytes",
@@ -6954,7 +9535,7 @@
         "type": "object",
         "properties": {
           "page": {
-            "$ref": "#/components/schemas/PageOfOrganizationFileItem"
+            "$ref": "#/components/schemas/PageOfOrganisationFileItem"
           },
           "usedBytes": {
             "type": "integer",
@@ -6979,6 +9560,64 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AuditItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfCommercialDocument": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialDocument"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfCrmRecord": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrmRecord"
             }
           },
           "total": {
@@ -7111,7 +9750,7 @@
           }
         }
       },
-      "PageOfOrganizationFileItem": {
+      "PageOfOrganisationAttachment": {
         "required": [
           "items",
           "total",
@@ -7123,7 +9762,36 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OrganizationFileItem"
+              "$ref": "#/components/schemas/OrganisationAttachment"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfOrganisationFileItem": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganisationFileItem"
             }
           },
           "total": {
@@ -7342,6 +10010,46 @@
           }
         }
       },
+      "PreviewCommercialDocument": {
+        "required": [
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialLine"
+            }
+          }
+        }
+      },
+      "PricedLine": {
+        "required": [
+          "source",
+          "net",
+          "tax",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/CommercialLine"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "tax": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "PrivacyStatus": {
         "required": [
           "request",
@@ -7517,6 +10225,37 @@
           }
         }
       },
+      "RecordAttachment": {
+        "required": [
+          "fileId",
+          "name",
+          "size",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "size": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
       "RegistrationRequest": {
         "required": [
           "email",
@@ -7566,7 +10305,7 @@
           }
         }
       },
-      "RenameOrganization": {
+      "RenameOrganisation": {
         "required": [
           "name",
           "version"
@@ -7696,6 +10435,33 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "SaveCrmRecord": {
+        "required": [
+          "id",
+          "version",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CrmRecordInput"
           }
         }
       },
@@ -7922,6 +10688,18 @@
           }
         }
       },
+      "SelectOrganisation": {
+        "required": [
+          "organisationId"
+        ],
+        "type": "object",
+        "properties": {
+          "organisationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "SessionDto": {
         "required": [
           "id",
@@ -8059,6 +10837,9 @@
             "type": "boolean"
           }
         }
+      },
+      "TaxTreatment": {
+        "type": "integer"
       },
       "TicketAttachment": {
         "required": [

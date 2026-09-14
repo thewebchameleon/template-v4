@@ -8,7 +8,7 @@ The personal file library needs folder navigation, metadata, useful file groups,
 
 ## Decision
 
-Rename the personal module and API to `my-files`, while retaining the existing physical `files` schema and organization file routes. Migrate runtime activation by updating its key, preserving disabled state and concurrency version. Redirect old browser routes; regenerate consumers for renamed API paths and operation identifiers.
+Rename the personal module and API to `my-files`, while retaining the existing physical `files` schema and organisation file routes. Migrate runtime activation by updating its key, preserving disabled state and concurrency version. Redirect old browser routes; regenerate consumers for renamed API paths and operation identifiers.
 
 Use the file identity as its content-object identity. Reserve each upload under the owner quota lock before writing bytes, then revalidate access before publishing it. The same lock protects moves, recursive Trash operations and cleanup. Failed or interrupted provider work remains durably accounted for and is reconciled by retention.
 

@@ -13,7 +13,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../shared/workspace';
   selector: 'app-billing',
   imports: [HlmSelectImports, WorkspaceUi, RouterLink],
   template: `<app-page-header title="billing" description="billingHelp"
-      ><a hlmBtn variant="outline" routerLink="/organizations">{{ 'switchAccount' | t }}</a
+      ><a hlmBtn variant="outline" routerLink="/organisations">{{ 'switchAccount' | t }}</a
       ><button hlmBtn variant="outline" [disabled]="busy()" (click)="refresh()">
         {{ 'refresh' | t }}
       </button></app-page-header

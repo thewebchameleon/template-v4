@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <PackageId>TemplateV4.Http</PackageId>
+    <Version>0.2.0</Version>
+    <Description>TemplateV4 foundation HTTP composition and endpoint extensions.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Infrastructure/TemplateV4.Infrastructure.csproj" />
+    <ProjectReference Include="../TemplateV4.ServiceDefaults/TemplateV4.ServiceDefaults.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+  </ItemGroup>
+</Project>

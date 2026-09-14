@@ -1,5 +1,33 @@
 # Versions and upgrades
 
+## Organisation spelling
+
+Organisation naming now applies to routes (`/organisations` and `/api/v1/auth/organisations`),
+module and capability IDs (`organisations`, `organisation-files`), API operation/type names,
+JSON properties (`organisationId`), source filenames and extension properties
+(`organisationDestinations`). Update callers, bookmarks, module configuration and
+`Customers:Mode=Organisations` together with the application. Regenerate both API clients
+from their respective OpenAPI documents.
+
+Stop API and worker instances before running the database migrator, then start the updated
+application. The new `RenameOrganisations` migrations preserve data while renaming the
+organisation schema, file table and scoped columns in CRM and invoicing; private modules own their corresponding migrations.
+Stored billing ownership values and notification links are migrated too. Existing migration
+names, IDs and historical files retain their original spelling so retained databases keep
+their migration history. Old URLs and API names have no compatibility aliases.
+
+## Business module discovery
+
+Source hosts now discover `business-modules/*/module.json` during build. Adopt
+`Directory.Build.targets`, `tools/discover-business-modules.mjs`, generic host
+composition, and Angular's prestart/prebuild/prewatch hooks together. Node is required
+on the build machine. Existing business modules need the descriptor `host` entry points
+documented in [business modules](business-modules.md#automatic-discovery-contract).
+Remove their manual host project references and registrations to avoid duplicates.
+No schema change is required for discovery. Run the Migrator for newly added modules;
+existing runtime activation choices and retained data are preserved. Package consumers
+can retain explicit composition; package upgrades do not rewrite source-owned tooling.
+
 ## Toolchain and dependency refresh
 
 The repository requires .NET SDK 10.0.401, Node.js 24.21.0, and npm 12.0.2. Run the database migrator before starting Quartz 4 workers so the additive scheduler schema update is applied. Do not run Quartz 3 and Quartz 4 workers against the same scheduler database during the rollout.
@@ -32,6 +60,24 @@ Run the database migrator before exposing Roles & permissions. It grants `roles.
 
 ## My Files upgrade
 
-Apply `MyFilesLibrary` and `RenameMyFilesModule` with the DatabaseMigrator before starting the updated API and Worker. Existing file objects keep their keys, and the module rename preserves the stored activation setting. Change deployment overrides from `Modules:files` to `Modules:my-files` and feature overrides from `Features:files:*` to `Features:my-files:*`, including environment-specific/user/tenant settings. The browser redirects `/files` and old administrator file URLs with their query state. API clients must regenerate against `/api/v1/auth/my-files`; old personal API paths are retired. Organization file API paths remain unchanged.
+Apply `MyFilesLibrary` and `RenameMyFilesModule` with the DatabaseMigrator before starting the updated API and Worker. Existing file objects keep their keys, and the module rename preserves the stored activation setting. Change deployment overrides from `Modules:files` to `Modules:my-files` and feature overrides from `Features:files:*` to `Features:my-files:*`, including environment-specific/user/tenant settings. The browser redirects `/files` and old administrator file URLs with their query state. API clients must regenerate against `/api/v1/auth/my-files`; old personal API paths are retired. Organisation file API paths remain unchanged.
 
-The `files` PostgreSQL schema remains in place because it also contains organization storage. New personal versions and shares are mapped there. Downgrading after users create new versions or shares would lose their metadata; restore a coordinated database/object-store backup instead of dropping these tables on an active library.
+The `files` PostgreSQL schema remains in place because it also contains organisation storage. New personal versions and shares are mapped there. Downgrading after users create new versions or shares would lose their metadata; restore a coordinated database/object-store backup instead of dropping these tables on an active library.
+
+
+## Foundation 0.2.0
+
+The API endpoint assembly is now TemplateV4.Http; ApiService is a composition host.
+Update host references and registrations explicitly. SharedKernel and ServiceDefaults
+remain compatible contracts; use the coordinated versions for full foundation hosts.
+The Angular package includes CRM, Invoicing and organisation file integration. Match
+backend/frontend 0.2.x; coordinate incompatible API/schema changes in a later release.
+Package updates do not update application-owned hosts, workflows, business modules,
+branding or runtime configuration.
+
+Apply retained foundation migrations first, then registered business contributors.
+New CRM/Invoicing schemas and file associations are forward migrations. Vehicle
+Licensing has its own migration history and is disabled by default. Back up and run
+retained-database tests before production migration. Never delete/regenerate a migration.
+See packages.md for the artifact-only candidate upgrade fixture and business-modules.md
+for physical removal and accepted-obligation behavior.

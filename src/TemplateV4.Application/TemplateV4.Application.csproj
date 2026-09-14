@@ -3,4 +3,4 @@
     <ProjectReference Include="../TemplateV4.Domain/TemplateV4.Domain.csproj" />
     <ProjectReference Include="../TemplateV4.SharedKernel/TemplateV4.SharedKernel.csproj" />
   </ItemGroup>
-</Project>
+<PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Application package.</Description></PropertyGroup></Project>

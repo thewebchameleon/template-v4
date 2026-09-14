@@ -66,6 +66,15 @@
           "Npgsql": "10.0.3"
         }
       },
+      "PDFsharp": {
+        "type": "Direct",
+        "requested": "[6.2.0, )",
+        "resolved": "6.2.0",
+        "contentHash": "5Q6gn8qFiaFpJz1QcvXO6q5QTvLPlqlOxI7XVtyRB3PIAIZIarc5qH3TDKcGUifxrhcYxMNBzz008qdKWlQhVw==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
       "AWSSDK.Core": {
         "type": "Transitive",
         "resolved": "4.0.102.3",
@@ -323,7 +332,7 @@
       "templatev4.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Domain": "[1.0.0, )",
+          "TemplateV4.Domain": "[0.2.0, )",
           "TemplateV4.SharedKernel": "[0.1.0, )"
         }
       },

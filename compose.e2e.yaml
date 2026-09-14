@@ -9,6 +9,7 @@ services:
       Web__AllowedOrigins__0: https://localhost:9443
   api:
     environment:
+      Security__RequireAdministratorPasskey: false
       Web__PublicUrl: https://localhost:9443
       Web__AllowedOrigins__0: https://localhost:9443
       ReverseProxy__Address: 172.31.0.10
