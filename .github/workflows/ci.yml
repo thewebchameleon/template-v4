@@ -1,4 +1,4 @@
-name: Validate
+name: CI and Publish
 on:
   workflow_call:
   workflow_dispatch:
