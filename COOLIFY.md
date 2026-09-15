@@ -2,7 +2,7 @@
 
 This guide covers the same foundation demo and generic client releases as the accompanying
 [EasyPanel guide](README.md). Both platforms use the same four immutable image digests,
-module selection, database roles and persistent data. Coolify uses the generated
+module selection, database roles, shared password and persistent data. Coolify uses the generated
 `compose.coolify.yaml`; EasyPanel uses `compose.yaml`.
 
 ## Build a release
@@ -19,8 +19,8 @@ replace the client example's module and repository placeholders before using it.
 
 Run the workflow with the desired foundation/business refs, normally `main`. It
 validates the composed application, builds all four images, and advances the deployment
-branch only after every image succeeds. The branch contains `release.json`, both
-Compose files, the guides, `.env.example`, and the required `deploy/` bind-mount files.
+branch only after every image succeeds. The branch contains `release.json`, both Compose
+files, the guides, `.env.example`, and the PostgreSQL initialization bind-mount file.
 If `compose.coolify.yaml` is absent, publish the updated release tooling and build a
 new release before configuring Coolify. Never paste the unresolved source template.
 
@@ -33,17 +33,16 @@ new release before configuring Coolify. Never paste the unresolved source templa
    choose **Docker Compose** as the **Build Pack**, set **Base Directory** to `/`,
    and **Docker Compose Location** to `/compose.coolify.yaml`.
 3. Enable **Preserve Repository During Deployment**. This is required for
-   `deploy/nginx.production.conf` and `deploy/init-database.sh` to remain available
-   as file bind mounts. A missing file can become a directory and prevent startup.
+   `deploy/init-database.sh` to remain available as a file bind mount. A missing file
+   can become a directory and prevent startup.
 4. Leave **Raw Compose Deployment** disabled. Coolify must generate the proxy labels
    and platform networking. Leave **Connect To Predefined Network** disabled unless
    a separately reviewed integration requires it. Keep the default Compose start
    command; do not substitute the EasyPanel upgrade script.
 5. Save and review **Docker Compose Content**. Confirm all services, image digests,
-   health checks, secret mounts and migration completion dependencies are present.
-   The Coolify variant adds `exclude_from_hc: true` to `key-permissions` and `migrator`
-   so successfully completed one-shot jobs do not make the application unhealthy.
-   It does not remove their completion dependencies. This is a Coolify extension;
+   health checks, persistent volumes and migration completion dependencies are present.
+   The Coolify variant adds `exclude_from_hc: true` to `migrator` so its successful
+   completion does not make the application unhealthy. This is a Coolify extension;
    use Coolify's processed definition for direct Docker commands, not this source file.
 6. Disable automatic deployments and preview deployments for this stateful resource.
    Use the controlled upgrade procedure below. A Git update must not start migrations
@@ -61,15 +60,15 @@ package credential with access to the required images. Authenticate every server
 must pull them. Do not put registry tokens in Compose or Git. Client packages stay private.
 
 Under **Environment Variables**, enter all values from the release's `.env.example`.
-Coolify discovers interpolated variables; add any missing network or secret-path
-variables explicitly. Required variables must be nonempty before deployment.
+Coolify discovers interpolated variables. Required variables must be nonempty before deployment.
 
 | Variable                                | Example or purpose                                                |
 | --------------------------------------- | ----------------------------------------------------------------- |
 | `PUBLIC_URL`                            | `https://client.example.com`, without the internal `:8080` suffix |
 | `JWT_KEY_ID`                            | Identifier for your retained production signing key               |
-| `SECRETS_DIR`                           | Absolute server directory, e.g. `/etc/templatev4/client/secrets`  |
-| `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION` | Private HTTPS object storage and client bucket                    |
+| `POSTGRES_PASSWORD`                     | Shared password for PostgreSQL and all three workload roles       |
+| `JWT_KEY_B64`                            | Base64 signing key material                                       |
+| S3 and SeaweedFS variables               | Endpoint, bucket, credentials and server configuration JSON       |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`   | Real SMTP delivery configuration                                  |
 | `COMPOSE_SUBNET`, `WEB_PROXY_IP`        | An unused subnet and matching fixed Web address                   |
 
@@ -79,12 +78,8 @@ other EasyPanel or Coolify deployments on the server. Review Coolify's processed
 network configuration and confirm Web retains that address: the API trusts it for
 forwarded HTTPS/client headers. Do not solve address mismatches by trusting all proxies.
 
-Provision the files in [Required secrets](README.md#required-secrets) before Deploy.
-They include separate database passwords and connection strings, the RSA signing key,
-the Data Protection wrapping certificate/password, S3 credentials and SMTP credentials.
-Coolify environment variables do not automatically create these file-backed secrets.
-The files must exist on the Docker host and be readable by container UID 1654 with
-appropriate host access restrictions. Preserve the key volume and wrapping certificate.
+Keep the populated environment private and restrict Coolify and Docker access. Preserve
+the key and SeaweedFS volumes plus the wrapping/signing material across deployments.
 
 For a fresh database, the included initialization script creates the three application
 roles. Existing volumes need deliberate role provisioning; initialization does not
@@ -103,8 +98,8 @@ Web serves Angular and proxies `/api/`, including WebSocket upgrades, over the p
 network. The outer proxy must replace untrusted client forwarding headers.
 
 Select **Deploy**, then inspect **Deployments** and individual service **Logs**.
-PostgreSQL must be healthy, key setup and Migrator must exit successfully, and API,
-Worker and Web must become healthy. Compose defines the health checks; Coolify's
+PostgreSQL must be healthy, Migrator must exit successfully, and API, Worker and Web
+must become healthy. Compose defines the health checks; Coolify's
 standard Application Healthcheck page does not configure Compose workload probes.
 
 Read the one-time administrator token from protected API logs and complete `/bootstrap`.
@@ -120,7 +115,7 @@ business module source. A Coolify redeploy pulls the latest published deployment
 commit, not unbuilt changes in the source repositories. Verify the intended
 `release.json` before rollout.
 
-1. Verify backups of PostgreSQL, object storage, the key ring and wrapping/signing
+1. Verify backups of PostgreSQL, SeaweedFS storage, the key ring and wrapping/signing
    material. Arrange a maintenance window and keep automatic deployment disabled.
 2. **Stop the application in Coolify** and confirm the existing API and Worker are
    stopped. Blocking HTTP alone does not stop background jobs.
@@ -154,10 +149,10 @@ schema is compatible; image rollback does not undo migrations or restore data.
   file and its host source path. Fix the mount source without deleting data volumes.
 - **No Available Server:** inspect Web health, the `:8080` domain suffix, API health
   and generated proxy/network configuration.
-- **Completed setup job shown as unhealthy:** confirm the selected file is
+- **Completed migration job shown as unhealthy:** confirm the selected file is
   `compose.coolify.yaml` and Coolify consumed its `exclude_from_hc` settings.
-- **Database login failure:** confirm role password files agree with connection
-  strings; changing an environment value does not rotate existing PostgreSQL roles.
+- **Database login failure:** changing an environment password does not rotate an
+  existing PostgreSQL role; update both deliberately.
 
 Based on Coolify's current [Docker Compose documentation](https://coolify.io/docs/applications/builds/docker-compose)
 and [registry authentication documentation](https://coolify.io/docs/applications/builds/docker-registries).

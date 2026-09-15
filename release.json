@@ -1,13 +1,13 @@
 {
-  "release": "run-34891727830-1",
-  "foundationCommit": "c62f7d6c81a86b8f03d8374cec4cb0ca23c37b5a",
+  "release": "run-35000686901-1",
+  "foundationCommit": "93b226ef737d73b265f838e59a59baaab4dada65",
   "businessCommit": null,
   "components": null,
   "images": {
-    "api": "ghcr.io/thewebchameleon/template-v4/api@sha256:37988c6b500c5ffb0c6d271324d5a9e81c15727eed013de9ccd7dd9bb957eea6",
-    "worker": "ghcr.io/thewebchameleon/template-v4/worker@sha256:17f4d3e38135e90367ea1a16b4e2a473bfab37233a81252229b0ef0d7f58273d",
-    "migrator": "ghcr.io/thewebchameleon/template-v4/migrator@sha256:ae571b77b19ac6041c010aca7cd948ed0dc8d181c7d4e2c2e798fb9496e45b25",
-    "web": "ghcr.io/thewebchameleon/template-v4/web@sha256:74dfb3cf6bb8f6738ed169e55b57798cbd7f944267410794db58497a6e3b2be5"
+    "api": "ghcr.io/thewebchameleon/template-v4/api@sha256:04f10bad000d3116cd759e9a5592c7b7c074e7c95621e9a2dbaf45544c73081c",
+    "worker": "ghcr.io/thewebchameleon/template-v4/worker@sha256:82f738a19a628f2e322c4d21a27a5b319ab0f63353379fe8b449e3ab77ae782e",
+    "migrator": "ghcr.io/thewebchameleon/template-v4/migrator@sha256:dd3f361f4f42328d19e37997e072eb05f349eb4db16e540034fe3737fc6e85d0",
+    "web": "ghcr.io/thewebchameleon/template-v4/web@sha256:ee29b4aa4de7b9bf84cba9783476110ac12f71eadb20b6fd5ced069ef362a661"
   },
   "selection": {
     "schemaVersion": 1,

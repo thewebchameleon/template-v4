@@ -1,16 +1,18 @@
+name: templatev4-production
 x-runtime: &runtime
   ASPNETCORE_ENVIRONMENT: Production
-  DataProtection__KeyPath: /keys
-  DataProtection__CertificatePath: /run/secrets/dp_certificate
-  Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
-  Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
-  Deployment__Version: run-34891727830-1
-  Updates__Enabled: ${UPDATES_ENABLED:-false}
-  Updates__FeedUrl: ${UPDATES_FEED_URL:-}
+  DataProtection__KeyPath: /keys/ring
+  DataProtection__AllowUnencryptedKeys: "true"
+  Web__PublicUrl: ${PUBLIC_URL}
+  Jwt__KeyId: ${JWT_KEY_ID}
+  Updates__Enabled: ${UPDATES_ENABLED}
   Storage__Provider: S3
-  Storage__S3__Endpoint: ${S3_ENDPOINT:?Set S3_ENDPOINT to the HTTPS object-storage origin}
-  Storage__S3__Bucket: ${S3_BUCKET:-templatev4}
-  Storage__S3__Region: ${S3_REGION:-us-east-1}
+  Storage__S3__Endpoint: ${S3_ENDPOINT}
+  Storage__S3__Bucket: ${S3_BUCKET}
+  Storage__S3__Region: ${S3_REGION}
+  Storage__S3__AccessKey: ${S3_ACCESS_KEY}
+  Storage__S3__SecretKey: ${S3_SECRET_KEY}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
 x-health: &health
   test: [CMD, dotnet, entry.dll, --health-check]
   interval: 30s
@@ -18,26 +20,14 @@ x-health: &health
   retries: 3
   start_period: 30s
 services:
-  key-permissions:
-    exclude_from_hc: true
-    image: postgres:18.6-alpine
-    user: "0"
-    entrypoint: [sh, -c, "chown 1654:1654 /keys && chmod 700 /keys"]
-    volumes: [keys:/keys]
   postgres:
     image: postgres:18.6-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: templatev4
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      [postgres_password, migrator_password, api_password, worker_password]
-    volumes:
-      [
-        postgres:/var/lib/postgresql,
-        "./deploy/init-database.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro",
-      ]
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [postgres:/var/lib/postgresql, './deploy/init-database.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro']
     healthcheck:
       test: [CMD-SHELL, pg_isready -U postgres -d templatev4]
       interval: 5s
@@ -46,98 +36,77 @@ services:
     stop_grace_period: 60s
   migrator:
     exclude_from_hc: true
-    image: ghcr.io/thewebchameleon/template-v4/migrator@sha256:ae571b77b19ac6041c010aca7cd948ed0dc8d181c7d4e2c2e798fb9496e45b25
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/migrator@sha256:dd3f361f4f42328d19e37997e072eb05f349eb4db16e540034fe3737fc6e85d0
     environment:
       <<: *runtime
-      Database__GrantRuntimeRoles: "true"
-    secrets:
-      - { source: migrator_connection, target: ConnectionStrings__app }
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_migrator;Password=${POSTGRES_PASSWORD}
+      Database__GrantRuntimeRoles: 'true'
     volumes: [keys:/keys]
     depends_on:
-      postgres: { condition: service_healthy }
-      key-permissions: { condition: service_completed_successfully }
+      postgres: {condition: service_healthy}
   api:
-    image: ghcr.io/thewebchameleon/template-v4/api@sha256:37988c6b500c5ffb0c6d271324d5a9e81c15727eed013de9ccd7dd9bb957eea6
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/api@sha256:04f10bad000d3116cd759e9a5592c7b7c074e7c95621e9a2dbaf45544c73081c
     restart: unless-stopped
     environment:
       <<: *runtime
-      Jwt__PrivateKeyPath: /run/secrets/jwt_key
-      ReverseProxy__Address: ${WEB_PROXY_IP:?Set WEB_PROXY_IP}
-    secrets:
-      - { source: api_connection, target: ConnectionStrings__app }
-      - { source: s3_access_key, target: Storage__S3__AccessKey }
-      - { source: s3_secret_key, target: Storage__S3__SecretKey }
-      - jwt_key
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_api;Password=${POSTGRES_PASSWORD}
+      Jwt__PrivateKeyBase64: ${JWT_KEY_B64}
+      ReverseProxy__Address: ${WEB_PROXY_IP}
+      OTEL_SERVICE_NAME: templatev4-api
     volumes: [keys:/keys]
     depends_on:
-      migrator: { condition: service_completed_successfully }
+      migrator: {condition: service_completed_successfully}
     healthcheck: *health
     stop_grace_period: 60s
   worker:
-    image: ghcr.io/thewebchameleon/template-v4/worker@sha256:17f4d3e38135e90367ea1a16b4e2a473bfab37233a81252229b0ef0d7f58273d
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/worker@sha256:82f738a19a628f2e322c4d21a27a5b319ab0f63353379fe8b449e3ab77ae782e
     restart: unless-stopped
     environment:
       <<: *runtime
-      Email__Host: ${SMTP_HOST:?Set SMTP_HOST}
-      Email__Port: ${SMTP_PORT:-587}
-      Email__From: ${SMTP_FROM:?Set SMTP_FROM}
-    secrets:
-      - { source: worker_connection, target: ConnectionStrings__app }
-      - { source: s3_access_key, target: Storage__S3__AccessKey }
-      - { source: s3_secret_key, target: Storage__S3__SecretKey }
-      - { source: smtp_username, target: Email__Username }
-      - { source: smtp_password, target: Email__Password }
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_worker;Password=${POSTGRES_PASSWORD}
+      Email__Host: ${SMTP_HOST}
+      Email__Port: ${SMTP_PORT}
+      Email__From: ${SMTP_FROM}
+      Email__Username: ${SMTP_USERNAME}
+      Email__Password: ${SMTP_PASSWORD}
+      OTEL_SERVICE_NAME: templatev4-worker
     volumes: [keys:/keys]
     depends_on:
-      migrator: { condition: service_completed_successfully }
+      migrator: {condition: service_completed_successfully}
     healthcheck: *health
     stop_grace_period: 60s
-  web:
-    image: ghcr.io/thewebchameleon/template-v4/web@sha256:74dfb3cf6bb8f6738ed169e55b57798cbd7f944267410794db58497a6e3b2be5
-    pull_policy: always
+  storage:
+    image: chrislusf/seaweedfs:4.45
     restart: unless-stopped
-    expose: ["8080"]
-    volumes:
-      ["./deploy/nginx.production.conf:/etc/nginx/conf.d/default.conf:ro"]
+    environment:
+      SEAWEED_CONFIG_JSON: ${SEAWEED_CONFIG_JSON}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        printf '%s' "$$SEAWEED_CONFIG_JSON" > /tmp/s3.json
+        exec weed mini -dir=/data -bucket=templatev4 -s3.config=/tmp/s3.json
+    expose: ["8333"]
+    volumes: [storage:/data]
+    stop_grace_period: 60s
+  web:
+    image: ghcr.io/thewebchameleon/template-v4/web@sha256:ee29b4aa4de7b9bf84cba9783476110ac12f71eadb20b6fd5ced069ef362a661
+    restart: unless-stopped
+    expose: ['8080']
     depends_on:
-      api: { condition: service_healthy }
+      api: {condition: service_healthy}
     networks:
-      default: { ipv4_address: "${WEB_PROXY_IP:?Set WEB_PROXY_IP}" }
+      default: {ipv4_address: "${WEB_PROXY_IP}"}
     healthcheck:
-      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/index.html"]
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/health/live']
       interval: 30s
       timeout: 5s
       retries: 3
     stop_grace_period: 60s
-secrets:
-  s3_access_key: { file: "${SECRETS_DIR}/s3_access_key" }
-  s3_secret_key: { file: "${SECRETS_DIR}/s3_secret_key" }
-  postgres_password:
-    { file: "${SECRETS_DIR:?Set SECRETS_DIR}/postgres_password" }
-  migrator_password: { file: "${SECRETS_DIR}/migrator_password" }
-  api_password: { file: "${SECRETS_DIR}/api_password" }
-  worker_password: { file: "${SECRETS_DIR}/worker_password" }
-  migrator_connection: { file: "${SECRETS_DIR}/migrator_connection" }
-  api_connection: { file: "${SECRETS_DIR}/api_connection" }
-  worker_connection: { file: "${SECRETS_DIR}/worker_connection" }
-  jwt_key: { file: "${SECRETS_DIR}/jwt_key" }
-  dp_certificate: { file: "${SECRETS_DIR}/dp_certificate" }
-  dp_password: { file: "${SECRETS_DIR}/dp_password" }
-  smtp_username: { file: "${SECRETS_DIR}/smtp_username" }
-  smtp_password: { file: "${SECRETS_DIR}/smtp_password" }
 volumes:
   postgres:
   keys:
+  storage:
 networks:
   default:
     ipam:
-      config: [{ subnet: "${COMPOSE_SUBNET:?Set COMPOSE_SUBNET}" }]
+      config: [{subnet: "${COMPOSE_SUBNET}"}]

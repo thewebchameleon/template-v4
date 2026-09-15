@@ -1,19 +1,18 @@
+name: templatev4-production
 x-runtime: &runtime
   ASPNETCORE_ENVIRONMENT: Production
   DataProtection__KeyPath: /keys/ring
-  DataProtection__CertificateBase64: ${DP_CERTIFICATE_B64:?Set DP_CERTIFICATE_B64}
-  DataProtection__CertificatePassword: ${DP_PASSWORD:?Set DP_PASSWORD}
-  Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
-  Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
-  Deployment__Version: sha-a8e97f3
+  DataProtection__AllowUnencryptedKeys: "true"
+  Web__PublicUrl: ${PUBLIC_URL}
+  Jwt__KeyId: ${JWT_KEY_ID}
   Updates__Enabled: ${UPDATES_ENABLED}
-  Updates__FeedUrl: ${UPDATES_FEED_URL}
   Storage__Provider: S3
-  Storage__S3__Endpoint: ${S3_ENDPOINT:?Set S3_ENDPOINT}
-  Storage__S3__Bucket: ${S3_BUCKET:?Set S3_BUCKET}
-  Storage__S3__Region: ${S3_REGION:?Set S3_REGION}
-  Storage__S3__AccessKey: ${S3_ACCESS_KEY:?Set S3_ACCESS_KEY}
-  Storage__S3__SecretKey: ${S3_SECRET_KEY:?Set S3_SECRET_KEY}
+  Storage__S3__Endpoint: ${S3_ENDPOINT}
+  Storage__S3__Bucket: ${S3_BUCKET}
+  Storage__S3__Region: ${S3_REGION}
+  Storage__S3__AccessKey: ${S3_ACCESS_KEY}
+  Storage__S3__SecretKey: ${S3_SECRET_KEY}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
 x-health: &health
   test: [CMD, dotnet, entry.dll, --health-check]
   interval: 30s
@@ -27,15 +26,8 @@ services:
     environment:
       POSTGRES_DB: templatev4
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
-      MIGRATOR_PASSWORD: ${MIGRATOR_PASSWORD:?Set MIGRATOR_PASSWORD}
-      API_PASSWORD: ${API_PASSWORD:?Set API_PASSWORD}
-      WORKER_PASSWORD: ${WORKER_PASSWORD:?Set WORKER_PASSWORD}
-    volumes:
-      [
-        postgres:/var/lib/postgresql,
-        "./deploy/init-database.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro",
-      ]
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [postgres:/var/lib/postgresql, './deploy/init-database.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro']
     healthcheck:
       test: [CMD-SHELL, pg_isready -U postgres -d templatev4]
       interval: 5s
@@ -43,51 +35,50 @@ services:
       retries: 20
     stop_grace_period: 60s
   migrator:
-    image: ghcr.io/thewebchameleon/template-v4/migrator:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/migrator@sha256:dd3f361f4f42328d19e37997e072eb05f349eb4db16e540034fe3737fc6e85d0
     environment:
       <<: *runtime
-      ConnectionStrings__app: ${MIGRATOR_CONNECTION_STRING:?Set MIGRATOR_CONNECTION_STRING}
-      Database__GrantRuntimeRoles: "true"
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_migrator;Password=${POSTGRES_PASSWORD}
+      Database__GrantRuntimeRoles: 'true'
     volumes: [keys:/keys]
     depends_on:
-      postgres: { condition: service_healthy }
+      postgres: {condition: service_healthy}
   api:
-    image: ghcr.io/thewebchameleon/template-v4/api:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/api@sha256:04f10bad000d3116cd759e9a5592c7b7c074e7c95621e9a2dbaf45544c73081c
     restart: unless-stopped
     environment:
       <<: *runtime
-      ConnectionStrings__app: ${API_CONNECTION_STRING:?Set API_CONNECTION_STRING}
-      Jwt__PrivateKeyBase64: ${JWT_KEY_B64:?Set JWT_KEY_B64}
-      ReverseProxy__Address: ${WEB_PROXY_IP:?Set WEB_PROXY_IP}
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_api;Password=${POSTGRES_PASSWORD}
+      Jwt__PrivateKeyBase64: ${JWT_KEY_B64}
+      ReverseProxy__Address: ${WEB_PROXY_IP}
+      OTEL_SERVICE_NAME: templatev4-api
     volumes: [keys:/keys]
     depends_on:
-      migrator: { condition: service_completed_successfully }
+      migrator: {condition: service_completed_successfully}
     healthcheck: *health
     stop_grace_period: 60s
   worker:
-    image: ghcr.io/thewebchameleon/template-v4/worker:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/worker@sha256:82f738a19a628f2e322c4d21a27a5b319ab0f63353379fe8b449e3ab77ae782e
     restart: unless-stopped
     environment:
       <<: *runtime
-      ConnectionStrings__app: ${WORKER_CONNECTION_STRING:?Set WORKER_CONNECTION_STRING}
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_worker;Password=${POSTGRES_PASSWORD}
       Email__Host: ${SMTP_HOST}
       Email__Port: ${SMTP_PORT}
       Email__From: ${SMTP_FROM}
       Email__Username: ${SMTP_USERNAME}
       Email__Password: ${SMTP_PASSWORD}
+      OTEL_SERVICE_NAME: templatev4-worker
     volumes: [keys:/keys]
     depends_on:
-      migrator: { condition: service_completed_successfully }
+      migrator: {condition: service_completed_successfully}
     healthcheck: *health
     stop_grace_period: 60s
   storage:
     image: chrislusf/seaweedfs:4.45
     restart: unless-stopped
     environment:
-      SEAWEED_CONFIG_JSON: ${SEAWEED_CONFIG_JSON:?Set SEAWEED_CONFIG_JSON}
+      SEAWEED_CONFIG_JSON: ${SEAWEED_CONFIG_JSON}
     entrypoint: [/bin/sh, -ec]
     command:
       - |
@@ -97,16 +88,15 @@ services:
     volumes: [storage:/data]
     stop_grace_period: 60s
   web:
-    image: ghcr.io/thewebchameleon/template-v4/web:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
-    pull_policy: always
+    image: ghcr.io/thewebchameleon/template-v4/web@sha256:ee29b4aa4de7b9bf84cba9783476110ac12f71eadb20b6fd5ced069ef362a661
     restart: unless-stopped
-    expose: ["8080"]
+    expose: ['8080']
     depends_on:
-      api: { condition: service_healthy }
+      api: {condition: service_healthy}
     networks:
-      default: { ipv4_address: "${WEB_PROXY_IP:?Set WEB_PROXY_IP}" }
+      default: {ipv4_address: "${WEB_PROXY_IP}"}
     healthcheck:
-      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/index.html"]
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/health/live']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -118,4 +108,4 @@ volumes:
 networks:
   default:
     ipam:
-      config: [{ subnet: "${COMPOSE_SUBNET:?Set COMPOSE_SUBNET}" }]
+      config: [{subnet: "${COMPOSE_SUBNET}"}]
