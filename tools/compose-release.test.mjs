@@ -139,13 +139,15 @@ test("release rendering requires every image digest and retains one release's me
   assert.equal((compose.match(/@sha256:/g) || []).length, 4);
   assert.ok(!compose.includes("__RELEASE__"));
   assert.ok(!compose.includes("build:"));
+  assert.ok(!compose.includes("key-permissions"));
+  assert.ok(compose.includes("DataProtection__KeyPath: /keys/ring"));
   const coolifyCompose = fs.readFileSync(
     path.join(output, "compose.coolify.yaml"),
     "utf8",
   );
   assert.equal(
     (coolifyCompose.match(/exclude_from_hc: true/g) || []).length,
-    2,
+    1,
   );
   assert.equal(
     coolifyCompose.replaceAll("\n    exclude_from_hc: true", ""),
@@ -158,6 +160,10 @@ test("release rendering requires every image digest and retains one release's me
     "b".repeat(40),
   );
   assert.ok(fs.existsSync(path.join(output, "deploy/init-database.sh")));
+  assert.equal(
+    fs.existsSync(path.join(output, "deploy/nginx.production.conf")),
+    false,
+  );
 });
 
 for (const failure of ["pull", "migrator", ""]) {

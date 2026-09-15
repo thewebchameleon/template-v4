@@ -186,7 +186,8 @@ jobs:
           cp "$GITHUB_WORKSPACE/bundle/README.md" .
           mkdir -p deploy
           cp "$GITHUB_WORKSPACE/bundle/deploy/"* deploy/
-          git add -f compose.yaml compose.coolify.yaml updates.override.yaml COOLIFY.md release.json client-modules.json .env.example upgrade.sh README.md deploy/init-database.sh deploy/nginx.production.conf
+          git rm -f --ignore-unmatch deploy/nginx.production.conf
+          git add -f compose.yaml compose.coolify.yaml updates.override.yaml COOLIFY.md release.json client-modules.json .env.example upgrade.sh README.md deploy/init-database.sh
           git commit -m "Deploy $RELEASE"
           git push origin "HEAD:refs/heads/$DEPLOYMENT_BRANCH"
           echo "Release $RELEASE is ready on $DEPLOYMENT_BRANCH." >> "$GITHUB_STEP_SUMMARY"

@@ -20,7 +20,7 @@ a generic client with explicit module/repository placeholders. Client details an
 the foundation contains only a non-secret example selection and caller workflow.
 
 The same bundle includes a Coolify guide and `compose.coolify.yaml`. Its only Compose
-difference is Coolify's `exclude_from_hc` flag on completed setup/migration jobs; startup
+difference is Coolify's `exclude_from_hc` flag on the completed Migrator job; startup
 dependencies and image digests remain identical. Coolify must process this variant to
 add platform labels/networks and consume its extension before invoking Docker Compose.
 

@@ -8,7 +8,6 @@ docker compose -f compose.yaml config --quiet
 docker compose -f compose.yaml pull
 docker compose -f compose.yaml stop web api worker
 docker compose -f compose.yaml up -d --wait postgres
-docker compose -f compose.yaml run --rm --no-deps key-permissions
 # A fresh container runs on EVERY upgrade, including retries of the same release.
 # A failure exits here with application workloads stopped.
 docker compose -f compose.yaml run --rm --no-deps migrator

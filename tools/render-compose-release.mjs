@@ -40,15 +40,14 @@ export function renderRelease(
   fs.writeFileSync(path.join(output, "compose.yaml"), compose);
   // Coolify consumes this extension before passing its processed file to Compose.
   const coolifyCompose = compose.replace(
-    /^  (key-permissions|migrator):$/gm,
+    /^  migrator:$/gm,
     "$&\n    exclude_from_hc: true",
   );
   fs.writeFileSync(path.join(output, "compose.coolify.yaml"), coolifyCompose);
-  for (const name of ["init-database.sh", "nginx.production.conf"])
-    fs.copyFileSync(
-      path.join(root, "deploy", name),
-      path.join(output, "deploy", name),
-    );
+  fs.copyFileSync(
+    path.join(root, "deploy/init-database.sh"),
+    path.join(output, "deploy/init-database.sh"),
+  );
   for (const name of [
     ".env.example",
     "upgrade.sh",

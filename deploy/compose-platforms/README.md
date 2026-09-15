@@ -71,7 +71,7 @@ Create a separate EasyPanel project and **Compose** service for each deployment:
    Suggested demo subnet/IP: `172.30.0.0/24` / `172.30.0.10`; client example:
    `172.31.0.0/24` / `172.31.0.10`. Avoid existing server/VPN networks.
 5. Provision the secret files described below, then Deploy. Initial startup orders
-   PostgreSQL, key permissions, Migrator, API/Worker and Web using Compose dependencies.
+   PostgreSQL, Migrator, API/Worker and Web using Compose dependencies.
 6. Add a domain targeting internal service **web**, port **8080**, protocol **HTTP**.
    Let EasyPanel terminate HTTPS and manage redirects/certificates. Preserve WebSocket
    upgrades and replace untrusted forwarded headers at the outer proxy. Do not publish
@@ -79,8 +79,8 @@ Create a separate EasyPanel project and **Compose** service for each deployment:
 7. Read the initial administrator bootstrap token from protected API logs, visit
    `/bootstrap`, create your administrator and verify bootstrap is then unavailable.
 
-The generated release includes the referenced Nginx configuration and PostgreSQL
-initialization script. It uses a project-scoped PostgreSQL volume and key-ring volume.
+The Web image includes its production Nginx configuration. The generated release includes
+the PostgreSQL initialization script and uses project-scoped database and key-ring volumes.
 Keep the EasyPanel project/service identity and volume definitions stable.
 
 ## Required secrets
@@ -134,8 +134,8 @@ concurrent panel deployment, run:
 sh upgrade.sh
 ```
 
-The script validates and pulls first, stops Web/API/Worker, waits for PostgreSQL,
-initializes key ownership, runs a fresh Migrator, and starts workloads only on success.
+The script validates and pulls first, stops Web/API/Worker, waits for PostgreSQL, runs a
+fresh Migrator, and starts workloads only on success.
 Never run it from an unrelated clone: that would create a different Compose project
 and volumes. Do not use `down -v`. Failed migrations leave workloads stopped for
 investigation. Do not enable a generic deployment webhook until an external rollout

@@ -22,9 +22,10 @@ the source commits and module selection. EasyPanel pulls the newest published re
 it does not load updated module source into already-built images. A client's Git key and
 registry pull credential are separate from the CI credential for private module source.
 
-The generated Compose file includes production Nginx and database initialization files,
-project-scoped persistent volumes, distinct database roles, secret mounts and migration
-dependencies. EasyPanel owns domains and TLS. Choose non-overlapping subnets and separate
+The Web image includes its production Nginx configuration, while the generated release
+includes the database initialization file, project-scoped persistent volumes, distinct
+database roles, secret mounts and migration dependencies. EasyPanel owns domains and TLS.
+Choose non-overlapping subnets and separate
 secret directories and S3 buckets when installing both examples on one server.
 
 For upgrades, stop application workloads before deploying. EasyPanel maintenance hides

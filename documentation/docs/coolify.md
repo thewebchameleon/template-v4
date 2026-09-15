@@ -16,8 +16,8 @@ configuration files. Leave Raw Compose Deployment disabled so Coolify generates 
 proxy labels and networking. The Web domain uses `https://your-hostname:8080`, while
 `PUBLIC_URL` uses the public HTTPS origin without that internal port suffix.
 
-The Coolify-specific file adds `exclude_from_hc` for the two one-shot setup services;
-it retains their successful-completion dependencies. Stop existing API and Worker
+The Coolify-specific file adds `exclude_from_hc` for the one-shot Migrator service.
+Stop existing API and Worker
 processes before deploying an upgrade. The plain Compose `upgrade.sh` must not be
 run unchanged against a Coolify-managed application because it does not include
 Coolify's processed labels, networks, environment-file flags or project identity.

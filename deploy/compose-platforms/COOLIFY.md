@@ -19,8 +19,8 @@ replace the client example's module and repository placeholders before using it.
 
 Run the workflow with the desired foundation/business refs, normally `main`. It
 validates the composed application, builds all four images, and advances the deployment
-branch only after every image succeeds. The branch contains `release.json`, both
-Compose files, the guides, `.env.example`, and the required `deploy/` bind-mount files.
+branch only after every image succeeds. The branch contains `release.json`, both Compose
+files, the guides, `.env.example`, and the PostgreSQL initialization bind-mount file.
 If `compose.coolify.yaml` is absent, publish the updated release tooling and build a
 new release before configuring Coolify. Never paste the unresolved source template.
 
@@ -33,17 +33,16 @@ new release before configuring Coolify. Never paste the unresolved source templa
    choose **Docker Compose** as the **Build Pack**, set **Base Directory** to `/`,
    and **Docker Compose Location** to `/compose.coolify.yaml`.
 3. Enable **Preserve Repository During Deployment**. This is required for
-   `deploy/nginx.production.conf` and `deploy/init-database.sh` to remain available
-   as file bind mounts. A missing file can become a directory and prevent startup.
+   `deploy/init-database.sh` to remain available as a file bind mount. A missing file
+   can become a directory and prevent startup.
 4. Leave **Raw Compose Deployment** disabled. Coolify must generate the proxy labels
    and platform networking. Leave **Connect To Predefined Network** disabled unless
    a separately reviewed integration requires it. Keep the default Compose start
    command; do not substitute the EasyPanel upgrade script.
 5. Save and review **Docker Compose Content**. Confirm all services, image digests,
    health checks, secret mounts and migration completion dependencies are present.
-   The Coolify variant adds `exclude_from_hc: true` to `key-permissions` and `migrator`
-   so successfully completed one-shot jobs do not make the application unhealthy.
-   It does not remove their completion dependencies. This is a Coolify extension;
+   The Coolify variant adds `exclude_from_hc: true` to `migrator` so its successful
+   completion does not make the application unhealthy. This is a Coolify extension;
    use Coolify's processed definition for direct Docker commands, not this source file.
 6. Disable automatic deployments and preview deployments for this stateful resource.
    Use the controlled upgrade procedure below. A Git update must not start migrations
@@ -103,8 +102,8 @@ Web serves Angular and proxies `/api/`, including WebSocket upgrades, over the p
 network. The outer proxy must replace untrusted client forwarding headers.
 
 Select **Deploy**, then inspect **Deployments** and individual service **Logs**.
-PostgreSQL must be healthy, key setup and Migrator must exit successfully, and API,
-Worker and Web must become healthy. Compose defines the health checks; Coolify's
+PostgreSQL must be healthy, Migrator must exit successfully, and API, Worker and Web
+must become healthy. Compose defines the health checks; Coolify's
 standard Application Healthcheck page does not configure Compose workload probes.
 
 Read the one-time administrator token from protected API logs and complete `/bootstrap`.
@@ -154,7 +153,7 @@ schema is compatible; image rollback does not undo migrations or restore data.
   file and its host source path. Fix the mount source without deleting data volumes.
 - **No Available Server:** inspect Web health, the `:8080` domain suffix, API health
   and generated proxy/network configuration.
-- **Completed setup job shown as unhealthy:** confirm the selected file is
+- **Completed migration job shown as unhealthy:** confirm the selected file is
   `compose.coolify.yaml` and Coolify consumed its `exclude_from_hc` settings.
 - **Database login failure:** confirm role password files agree with connection
   strings; changing an environment value does not rotate existing PostgreSQL roles.
