@@ -1,2 +1,2 @@
-import { vehicleLicensingFeature as feature0 } from '../../../business-modules/vehicle-licensing/frontend/public-api';
+import { vehicleLicensingFeature as feature0 } from '../../../business-modules/vehicle-licensing/Frontend/public-api';
 export const businessFeatures = [feature0];

@@ -4,7 +4,7 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 import { Auth } from './auth';
 import { Runtime } from './runtime';
 import { I18n } from './i18n';
-import { Notifications } from './notifications';
+import { Notifications } from '../features/notifications/notifications';
 @Injectable({ providedIn: 'root' })
 export class Errors {
   readonly problem = signal<{

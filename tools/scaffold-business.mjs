@@ -63,12 +63,20 @@ export function scaffoldBusiness(root, name) {
     `namespace ${namespace}.Api;\npublic static class ModuleHost\n{\n    public static void Configure(WebApplicationBuilder builder) => ${namespace}.Infrastructure.ModuleServices.Register(builder.Services, builder.Configuration);\n    public static void Map(WebApplication app)\n    {\n        // Map owned, authorized and capability-gated endpoints here.\n    }\n}\n`,
   );
   files.set(
-    `${folder}/frontend/public-api.ts`,
+    `${folder}/Frontend/public-api.ts`,
     `import type { FoundationFeature } from '@templatev4/foundation';\nexport const ${name[0].toLowerCase() + name.slice(1)}Feature: FoundationFeature = { id: '${id}', routes: [], translations: {} };\n`,
   );
   files.set(
     `${folder}/README.md`,
-    `# ${name}\n\nAutomatically discovered business starter, initially disabled in Administration. Implement owned operations, provider/HTTP registration in ModuleServices and ModuleHost, and a separate DbContext/migration history. The module.json host entries and frontend/public-api.ts are discovered on build; no host edits are required. Reference foundation Application contracts; never query another module's tables. Generate identifiers and OpenAPI in this root. Own package metadata and generator configuration inside this module. Rebuild, run the Migrator, and enable the module in Administration after implementing and validating its operations. See documentation/docs/business-modules.md.\n`,
+    `# ${name}\n\nAutomatically discovered business starter, initially disabled in Administration. Implement owned operations, provider/HTTP registration in ModuleServices and ModuleHost, and a separate DbContext/migration history. The module.json host entries and Frontend/public-api.ts are discovered on build; no host edits are required. Reference foundation Application contracts; never query another module's tables. Generate identifiers and OpenAPI in this root. Own package metadata and generator configuration inside this module. Rebuild, run the Migrator, and enable the module in Administration after implementing and validating its operations. See documentation/docs/business-modules.md.\n`,
+  );
+  files.set(
+    `${folder}/Docs/README.md`,
+    `# ${name} module design\n\nDocument owned use cases, public integration contracts, persistence and disable/retention behavior here. Use PascalCase backend and test folders and lowercase/kebab-case folders inside Frontend. Follow documentation/docs/module-layout.md in the foundation repository.\n`,
+  );
+  files.set(
+    `${folder}/Tests/README.md`,
+    `# ${name} verification\n\nPlace behavioral tests under their owning concern or use case. Register a module-owned test project here when implementing operations. Persistence requires real PostgreSQL coverage; browser tests in E2E require explicit permission.\n`,
   );
   for (const relative of files.keys())
     if (fs.existsSync(path.join(root, relative)))

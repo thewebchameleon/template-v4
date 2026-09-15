@@ -31,7 +31,7 @@ public sealed class FrameworkManifestTests
     }
 
     [Fact]
-    public void Api_route_handlers_are_registered_in_endpoint_files()
+    public void Api_route_handlers_are_registered_in_module_endpoint_files()
     {
         string repositoryRoot = FindRepositoryRoot();
         string apiRoot = Path.Combine(repositoryRoot, "src", "TemplateV4.Http");
@@ -46,7 +46,10 @@ public sealed class FrameworkManifestTests
         Assert.NotEmpty(routeFiles);
         Assert.All(routeFiles, file =>
         {
-            Assert.StartsWith(Path.Combine(apiRoot, "Endpoints") + Path.DirectorySeparatorChar, file, StringComparison.Ordinal);
+            string[] segments = Path.GetRelativePath(apiRoot, file).Split(Path.DirectorySeparatorChar);
+            Assert.True(segments.Length >= 2, "Route adapters must belong to a module folder.");
+            Assert.Matches("^[A-Z][A-Za-z0-9]*$", segments[0]);
+            Assert.NotEqual("Endpoints", segments[0]);
             Assert.EndsWith("Endpoints.cs", file, StringComparison.Ordinal);
         });
     }

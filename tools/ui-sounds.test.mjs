@@ -43,7 +43,7 @@ function loginHarness(method, outcome) {
       "@spartan-ng/helm/spinner",
       "@spartan-ng/helm/dialog",
       "./auth-layout",
-      "../core/i18n",
+      "../../../core/i18n",
     ].map((name) => [name, {}]),
   );
   const injection = {
@@ -70,13 +70,13 @@ function loginHarness(method, outcome) {
     },
     "@ng-icons/core": { provideIcons: () => ({}) },
     "@angular/router": { Router: "router", ActivatedRoute: "route" },
-    "../core/auth": { Auth: "auth" },
-    "../core/passkeys": { Passkeys: "passkeys" },
-    "../core/registration": { Registration: "registration" },
-    "../core/notifications": { Notifications: "notifications" },
-    "../core/ui-sounds": { UiSounds: "sounds" },
+    "../../../core/auth": { Auth: "auth" },
+    "../../passkeys/passkeys": { Passkeys: "passkeys" },
+    "../../../core/registration": { Registration: "registration" },
+    "../../notifications/notifications": { Notifications: "notifications" },
+    "../../../core/ui-sounds": { UiSounds: "sounds" },
   });
-  const { LoginPage } = load("../features/login", dependencies);
+  const { LoginPage } = load("../features/identity/authentication/login", dependencies);
   return { page: new LoginPage(), auth, played, navigated };
 }
 
@@ -341,7 +341,7 @@ test("unread summary sounds only after a baseline and an accepted increase", asy
     destroy: { onDestroy: () => {} },
   };
   const { UnreadNotifications } = load(
-    "unread-notifications",
+    "../features/notifications/unread-notifications",
     {
       "@angular/core": {
         Injectable: () => (value) => value,
@@ -361,10 +361,10 @@ test("unread summary sounds only after a baseline and an accepted increase", asy
         },
       },
       rxjs: rx,
-      "./auth": { Auth: "auth" },
-      "./runtime": { Runtime: "runtime" },
-      "./ui-sounds": { UiSounds: "sounds" },
-      "./interceptors": { QUIET_REQUEST: "quiet" },
+      "../../core/auth": { Auth: "auth" },
+      "../../core/runtime": { Runtime: "runtime" },
+      "../../core/ui-sounds": { UiSounds: "sounds" },
+      "../../core/interceptors": { QUIET_REQUEST: "quiet" },
     },
     {
       document: { visibilityState: "visible" },

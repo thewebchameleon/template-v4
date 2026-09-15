@@ -60,6 +60,16 @@ function fixture(t) {
   );
   return root;
 }
+
+test("frontend directory casing is validated even on case-insensitive filesystems", (t) => {
+  const root = fixture(t);
+  scaffoldBusiness(root, "Reports");
+  select(root, ["reports"]);
+  const folder = path.join(root, "business-modules/reports");
+  fs.renameSync(path.join(folder, "Frontend"), path.join(folder, "temporary-frontend"));
+  fs.renameSync(path.join(folder, "temporary-frontend"), path.join(folder, "frontend"));
+  assert.throws(() => discover(root), /Missing frontend entry point/);
+});
 test("scaffold is discovered without host edits, and removal clears registration", (t) => {
   const root = fixture(t);
   assert.deepEqual(discover(root), []);
@@ -67,6 +77,8 @@ test("scaffold is discovered without host edits, and removal clears registration
   select(root, ["reports"]);
   const modules = discover(root);
   assert.equal(modules[0].id, "reports");
+  assert.ok(fs.existsSync(path.join(root, "business-modules/reports/Tests/README.md")));
+  assert.ok(fs.existsSync(path.join(root, "business-modules/reports/Docs/README.md")));
   assert.equal(modules[0].enabledByDefault, false);
   assert.match(
     backend(modules, "TemplateV4.ApiService"),
@@ -80,7 +92,7 @@ test("scaffold is discovered without host edits, and removal clears registration
     backend(modules, "TemplateV4.DatabaseMigrator"),
     /Reports.Infrastructure.ModuleServices.Register/,
   );
-  assert.match(frontend(modules), /reports\/frontend\/public-api/);
+  assert.match(frontend(modules), /reports\/Frontend\/public-api/);
   fs.renameSync(
     path.join(root, "business-modules"),
     path.join(root, "removed-modules"),

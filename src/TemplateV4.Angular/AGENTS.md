@@ -2,6 +2,8 @@
 
 Applies to this workspace in addition to the root guidance. Read the relevant UI sections of the [developer guide](../../documentation/docs/README.md) and [ADR 0010](../../documentation/docs/adr/0010-spartan-design-tokens.md) for changes to shared components, layout, or interaction conventions.
 
+Group module-owned pages, resolvers, translations and services under `src/app/features/<module>/<concern>`, using lowercase/kebab-case folders. Keep shell services in `core` and controls with multiple consumers in `shared`. Private modules use a PascalCase `Frontend` root with lowercase/kebab-case folders inside it. See the [module layout convention](../../documentation/docs/module-layout.md).
+
 ## Controls and accessibility
 
 - Use the owned Spartan Helm controls in `libs/ui` and inspect their actual selectors before composing them. Do not add competing UI libraries or unsupported Helm attributes. Check `components.json` and run `npx ng g @spartan-ng/cli:info --json` before adding components.

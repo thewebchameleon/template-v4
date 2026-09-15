@@ -31,6 +31,9 @@ Enabled organisation module destinations remain visible in the navigation rail t
 
 ## Add a vertical slice
 
+Follow [module ownership](module-ownership.md) for registration, permissions and
+existing Support/CMS/CRM/Invoicing reference workflows.
+
 Run `node tools/framework.mjs new module Reports`. This creates an Application query, an API endpoint with a module gate, an Angular page, a disabled descriptor for review, ownership folders for Domain/Infrastructure/Worker, and extension documentation. It never overwrites existing files or automatically registers an incomplete slice.
 
 Implement the use cases and explicit registrations; add the reviewed descriptor to the catalog. Register permission policies, mark endpoint groups with `OwnedByModule` and `RequireCapability`, declare shared Angular destination requirements in `core/destinations.ts`, use `destinationGuard` or `capabilityGuard`, and regenerate OpenAPI clients. A substantial module that owns persistent data uses a module-named PostgreSQL schema in the shared `FrameworkDb` and migration stream. Files owns `files.files` and `files.file_storage_settings`, and Support owns its tables in `support`; platform, Identity, messaging and audit data retain their cross-cutting schemas. Capability modules that expose another foundation's data, such as Operations and Audit History, do not duplicate that data in their own schemas. A module's mappings and migrations remain present when disabled so retained data stays readable by approved recovery and cleanup paths. Do not conditionally change the EF model based on module activation.

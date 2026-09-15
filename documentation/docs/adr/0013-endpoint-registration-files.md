@@ -2,6 +2,10 @@
 
 Status: Accepted
 
+The source-location convention is superseded by
+[ADR 0042](0042-module-vertical-slices.md). Thin adapters and explicit registration
+remain required; module adapters now live under `TemplateV4.Http/<Module>`.
+
 ## Context
 
 Minimal API route handlers, authorization metadata, and HTTP contracts were registered directly in `ApiService/Program.cs`. As the built-in surface grew, application startup mixed host configuration with unrelated feature behavior and made endpoint ownership difficult to identify.

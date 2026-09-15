@@ -21,17 +21,19 @@ class Resource {
 }
 function harness(file, name, api) {
   const features = { enabled: () => true, reset: () => {}, load: async () => {} };
-  const tokens = { api, features, contributions: [], toast: { success: () => {} } };
+  const tokens = { api, features, contributions: [], i18n: { text: key => key }, toast: { success: () => {} } };
+  const prefix = file === 'modules' ? '../..' : '../../..';
   const dependencies = {
     '@angular/core': { Component: () => target => target, inject: token => { assert.ok(token in tokens, token); return tokens[token]; }, signal },
     '@angular/common': {}, '@angular/common/http': { HttpErrorResponse }, '@spartan-ng/helm/dialog': { HlmDialogImports: [] },
+    '@spartan-ng/helm/tooltip': {}, [prefix + '/core/i18n']: { I18n: 'i18n' },
     '@ng-icons/core': { provideIcons: () => ({}) }, '@ng-icons/lucide': {},
-    '../core/features': { Features: 'features' }, '../core/feature-extensions': { FOUNDATION_FEATURES: 'contributions' },
-    '../core/notifications': { Notifications: 'toast' }, '../core/workspace-api': { WorkspaceApi: 'api' },
-    '../shared/workspace': { Resource, WorkspaceUi: [] }, './my-files-settings-editor': { MyFilesSettingsEditor: class {} },
+    [prefix + '/core/features']: { Features: 'features' }, [prefix + '/core/feature-extensions']: { FOUNDATION_FEATURES: 'contributions' },
+    [file === 'modules' ? '../notifications/notifications' : '../../notifications/notifications']: { Notifications: 'toast' }, [prefix + '/core/workspace-api']: { WorkspaceApi: 'api' },
+    [prefix + '/shared/workspace']: { Resource, WorkspaceUi: [] }, '../my-files/configuration/my-files-settings-editor': { MyFilesSettingsEditor: class {} },
   };
   const exports = {};
-  const source = readFileSync(new URL(`../src/TemplateV4.Angular/src/app/features/${file}.ts`, import.meta.url), 'utf8');
+  const source = readFileSync(new URL(`../src/TemplateV4.Angular/src/app/features/${file === 'modules' ? 'modules/modules' : 'my-files/configuration/my-files-settings-editor'}.ts`, import.meta.url), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, experimentalDecorators: true } }).outputText;
   vm.runInNewContext(compiled, { exports, require: id => { assert.ok(id in dependencies, id); return dependencies[id]; } });
   return new exports[name]();

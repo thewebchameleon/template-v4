@@ -70,7 +70,7 @@ for (const switched of [false, true])
       "./auth": { Auth },
       "./runtime": { Runtime },
       "./i18n": { I18n },
-      "./notifications": {},
+      "../features/notifications/notifications": {},
     });
     const payload = new Uint8Array([1, 2, 3]);
     const request = {
@@ -137,10 +137,10 @@ test("organisation module entry reloads saved selection and preserves nested mod
     [WorkspaceApi, api],
     [Router, router],
   ]);
-  const { currentOrganisationGuard } = load("core/current-organisation.ts", {
+  const { currentOrganisationGuard } = load("features/organisations/current-organisation.ts", {
     "@angular/core": { inject: (token) => dependencies.get(token) },
     "@angular/router": { Router },
-    "./workspace-api": { WorkspaceApi },
+    "../../core/workspace-api": { WorkspaceApi },
   });
   const route = {
     queryParamMap: new Map([["module", "sample-business/requests"]]),

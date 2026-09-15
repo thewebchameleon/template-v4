@@ -6,7 +6,7 @@ import vm from "node:vm";
 
 const require = createRequire(new URL("../src/TemplateV4.Angular/package.json", import.meta.url));
 const ts = require("typescript");
-const source = readFileSync(new URL("../src/TemplateV4.Angular/src/app/features/my-files-upload.ts", import.meta.url), "utf8");
+const source = readFileSync(new URL("../src/TemplateV4.Angular/src/app/features/my-files/files/my-files-upload.ts", import.meta.url), "utf8");
 
 function harness(random) {
   let now = 0;

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideUserRound } from '@ng-icons/lucide';
-import { CurrentProfile } from '../core/current-profile';
+import { CurrentProfile } from '../features/identity/account/current-profile';
 
 @Component({
   selector: 'app-account-avatar',

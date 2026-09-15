@@ -6,7 +6,7 @@ import {
   destinationAvailable,
   Destination,
 } from './core/destinations';
-import { MyFilesTree } from './features/my-files-components';
+import { MyFilesTree } from './features/my-files/files/my-files-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -49,8 +49,8 @@ import { Preferences } from './core/preferences';
 import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
-import { UnreadNotifications } from './core/unread-notifications';
-import { NotificationDrawer } from './features/notification-drawer';
+import { UnreadNotifications } from './features/notifications/unread-notifications';
+import { NotificationDrawer } from './features/notifications/notification-drawer';
 
 type RailLink = Destination & {
   destination: string;

@@ -6,24 +6,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
-using TemplateV4.Application.Billing;
-using TemplateV4.Application.Customers;
 using TemplateV4.Application.Modules;
-using TemplateV4.Application.Platform;
-using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
-using TemplateV4.Infrastructure.Billing;
-using TemplateV4.Infrastructure.Customers;
 using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
 using TemplateV4.Infrastructure.Storage;
-using TemplateV4.Infrastructure.Support;
-using TemplateV4.Infrastructure.Users;
 
 namespace TemplateV4.Infrastructure;
 
-public static class Registration
+public static partial class Registration
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config, IHostEnvironment environment, IEnumerable<ModuleDefinition>? modules = null)
     {
@@ -31,33 +23,22 @@ public static class Registration
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
-        services.AddSingleton<Updates.UpdateConfiguration>();
-        services.AddScoped<Updates.UpdateStore>();
-        services.AddScoped<IUpdates>(p => p.GetRequiredService<Updates.UpdateStore>());
-        services.AddHttpClient<Updates.UpdateFeedClient>(http => http.Timeout = TimeSpan.FromSeconds(30))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false }).RemoveAllLoggers();
-        if ((config["Customers:Mode"] ?? "Both") is not ("Both" or "Personal" or "Organisations")) throw new InvalidOperationException("Invalid Customers:Mode.");
-        services.AddSingleton<PlanCatalog>();
-        services.AddScoped<CustomerAccess>();
-        services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());
-        services.AddScoped<ICustomers, CustomerStore>();
-        services.AddScoped<TemplateV4.Application.Crm.IOrganisationOperations, Crm.OrganisationOperations>();
+        AddUpdates(services);
+        AddOrganisations(services, config);
+        AddBilling(services);
+        AddCrm(services);
+        AddInvoicing(services);
+        AddCms(services);
+        AddOperations(services);
+        AddAuditHistory(services);
+        AddSupport(services);
+        AddNotifications(services);
+        AddActionItems(services);
+        AddMyFiles(services);
+        AddModules(services);
+        AddConfiguration(services);
+        AddUsers(services);
         services.AddScoped<DemoPasswordVerifier>();
-        services.AddScoped<TemplateV4.Application.Customers.IOrganisationObligations, Invoicing.CommercialObligations>();
-        services.AddScoped<Crm.CrmStore>();
-        services.AddScoped<TemplateV4.Application.Cms.ICms, Cms.CmsStore>();
-        services.AddScoped<TemplateV4.Application.Crm.IRecordAttachments, Crm.RecordAttachments>();
-        services.AddScoped<TemplateV4.Application.Crm.ICrm>(p => p.GetRequiredService<Crm.CrmStore>());
-        services.AddScoped<TemplateV4.Application.Crm.ICrmCustomers>(p => p.GetRequiredService<Crm.CrmStore>());
-        services.AddScoped<Invoicing.InvoicingStore>();
-        services.AddScoped<TemplateV4.Application.Invoicing.IInvoicing>(p => p.GetRequiredService<Invoicing.InvoicingStore>());
-        services.AddScoped<TemplateV4.Application.Invoicing.ICommercialDocuments>(p => p.GetRequiredService<Invoicing.InvoicingStore>());
-        services.AddScoped<IStorageEntitlements, StorageEntitlements>();
-        services.AddScoped<BillingStore>();
-        services.AddScoped<IBilling>(p => p.GetRequiredService<BillingStore>());
-        services.AddScoped<PaymentCallbacks>();
-        services.AddHttpClient<StripeSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
-        services.AddHttpClient<PayFastSubscriptions>(http => http.Timeout = TimeSpan.FromSeconds(20)).RemoveAllLoggers();
         services.AddSingleton(ModuleConfiguration.Load(config, modules));
         services.AddHttpContextAccessor();
         var cultures = new CultureCatalog(config["Localisation:DefaultCulture"] ?? "en-ZA", (config.GetSection("Localisation:SupportedCultures").Get<string[]>() ?? ["en-ZA", "af-ZA"]).ToHashSet());
@@ -96,45 +77,7 @@ public static class Registration
         services.AddScoped<AuthService>(); services.AddScoped<AccountService>(); services.AddScoped<AccessManagementService>();
         services.AddScoped<SecurityService>(); services.AddScoped<PasskeyService>();
         services.AddScoped<SharedRateLimiter>();
-        services.AddScoped<OperationsService>();
-        services.AddScoped<IAuditHistory, AuditHistory>();
-        services.AddScoped<IHandler<GetAuditDetail, AuditDetail>, AuditDetailHandler>();
-        services.AddScoped<IHandler<AuditQuery, Page<AuditItem>>, AuditQueryHandler>();
-        services.AddSingleton<IValidator<AuditQuery>, AuditQueryValidator>();
-        services.AddScoped<ISupportTickets, SupportTicketStore>();
-        services.AddScoped<IHandler<ListTickets, Page<TicketItem>>, ListTicketsHandler>();
-        services.AddSingleton<IValidator<ListTickets>, ListTicketsValidator>();
-        services.AddScoped<IHandler<GetTicket, TicketDetail>, GetTicketHandler>();
-        services.AddScoped<IHandler<CreateTicket, Guid>, CreateTicketHandler>();
-        services.AddSingleton<IValidator<CreateTicket>, CreateTicketValidator>();
-        services.AddScoped<IHandler<ReplyTicket, Unit>, ReplyTicketHandler>();
-        services.AddSingleton<IValidator<ReplyTicket>, ReplyTicketValidator>();
-        services.AddScoped<IHandler<UpdateTicket, Unit>, UpdateTicketHandler>();
-        services.AddSingleton<IValidator<UpdateTicket>, UpdateTicketValidator>();
-        services.AddScoped<IHandler<SaveSupportCategory, Unit>, SaveSupportCategoryHandler>();
-        services.AddSingleton<IValidator<SaveSupportCategory>, SaveSupportCategoryValidator>();
-        services.AddScoped<IHandler<AttachTicket, Unit>, AttachTicketHandler>();
-        services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
-        services.AddScoped<NotificationService>();
-        services.AddScoped<WebPushService>();
-        services.AddHttpClient<WebPushSender>(http => http.Timeout = TimeSpan.FromSeconds(20))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false }).RemoveAllLoggers();
-        services.AddScoped<TemplateV4.Application.Platform.IActionItems, ActionItemsService>();
         services.AddScoped<RegistrationReviewService>();
-        services.AddScoped<MyFilesService>();
-        services.AddScoped<OrganisationFiles>();
-        services.AddScoped<TemplateV4.Application.Crm.IOrganisationAttachments, OrganisationAttachments>();
-        services.AddScoped<FileRetention>();
-        services.AddScoped<ICapabilities, CapabilityEvaluator>();
-        services.AddScoped<IModuleActivation, ModuleActivationStore>();
-        services.AddScoped<IHandler<SaveModuleActivation, ModuleActivation>, SaveModuleActivationHandler>();
-        services.AddSingleton<IValidator<SaveModuleActivation>, SaveModuleActivationValidator>();
-        services.AddScoped<IMyFilesModuleSettings, MyFilesModuleSettingsStore>();
-        services.AddScoped<IHandler<SaveMyFilesModuleSettings, MyFilesModuleSettings>, SaveMyFilesModuleSettingsHandler>();
-        services.AddSingleton<IValidator<SaveMyFilesModuleSettings>, SaveMyFilesModuleSettingsValidator>();
-        services.AddScoped<IPlatformAppearance, PlatformAppearanceStore>();
-        services.AddScoped<IHandler<SavePlatformAppearance, PlatformAppearance>, SavePlatformAppearanceHandler>();
-        services.AddSingleton<IValidator<SavePlatformAppearance>, SavePlatformAppearanceValidator>();
         services.AddScoped<PrivacyService>();
         services.AddScoped<IPasskeyHandler<AppUser>, PasskeyHandler<AppUser>>();
         services.Configure<IdentityPasskeyOptions>(options =>
@@ -142,17 +85,9 @@ public static class Registration
             options.ServerDomain = new Uri(config["Web:PublicUrl"] ?? "https://localhost").Host;
             options.UserVerificationRequirement = "required";
         });
-        services.AddScoped<IUserDirectory, UserDirectory>(); services.AddScoped<IUnitOfWork, UnitOfWork>(); services.AddScoped<IEventOutbox, EventOutbox>();
-        services.AddScoped<IDomainEventHandler, UserProvisionedHandler>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>(); services.AddScoped<IEventOutbox, EventOutbox>();
         services.AddSingleton(new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1"));
         services.AddScoped(typeof(Dispatcher<,>));
-        services.AddScoped<IHandler<CreateUser, UserDto>, CreateUserHandler>();
-        services.AddScoped<IHandler<ListUsers, UserDirectoryPage>, ListUsersHandler>();
-        services.AddScoped<IHandler<UpdateUser, UserDto>, UpdateUserHandler>();
-        services.AddScoped<IHandler<TriggerMaintenance, Guid>, TriggerMaintenanceHandler>();
-        services.AddSingleton<IValidator<CreateUser>, CreateUserValidator>();
-        services.AddSingleton<IValidator<ListUsers>, ListUsersValidator>();
-        services.AddSingleton<IValidator<UpdateUser>, UpdateUserValidator>();
         services.AddSingleton<IFeatureFlags, ConfigurationFlags>();
         if (config["Storage:Provider"] == "S3") services.AddSingleton<IFileStorage, S3FileStorage>();
         else if (config["Storage:Provider"] is null or "Local") services.AddSingleton<IFileStorage, LocalFileStorage>();
@@ -166,43 +101,5 @@ public static class Registration
         }
         return services;
     }
-}
 
-public sealed class BackgroundExecutionContext : IExecutionContext
-{
-    public Guid? ActorId { get; set; }
-    public IReadOnlySet<string> Permissions { get; set; } = new HashSet<string>();
-    public string Culture { get; set; } = "en-ZA";
-    public string? TenantId { get; set; }
-    public string? TraceParent { get; set; }
-}
-public sealed class ConfigurationFlags(IConfiguration configuration, IHostEnvironment environment) : IFeatureFlags
-{
-    public bool Enabled(string feature, IExecutionContext context)
-    {
-        var section = configuration.GetSection($"Features:{feature}");
-        if (context.TenantId is not null && bool.TryParse(section[$"Tenants:{context.TenantId}"], out var tenant)) return tenant;
-        if (context.ActorId is not null && bool.TryParse(section[$"Users:{context.ActorId}"], out var user)) return user;
-        if (bool.TryParse(section[$"Environments:{environment.EnvironmentName}"], out var env)) return env;
-        return section.GetValue<bool>("Enabled");
-    }
-}
-public sealed class LocalFileStorage(IConfiguration config) : IFileStorage
-{
-    private readonly string _root = Path.GetFullPath(config["Storage:Path"] ?? ".local/storage");
-    private string Resolve(string key)
-    {
-        Storage.StorageKey.Validate(key);
-        Directory.CreateDirectory(_root);
-        var path = Path.Combine(_root, key);
-        if (File.Exists(path) && File.GetAttributes(path).HasFlag(FileAttributes.ReparsePoint)) throw new IOException("Symbolic links are not storage objects.");
-        return path;
-    }
-    public async Task Write(string key, Stream content, CancellationToken cancellationToken)
-    {
-        await using var stream = new FileStream(Resolve(key), FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, true);
-        await content.CopyToAsync(stream, cancellationToken);
-    }
-    public Task<Stream> Read(string key, CancellationToken cancellationToken) => Task.FromResult<Stream>(File.OpenRead(Resolve(key)));
-    public Task Delete(string key, CancellationToken cancellationToken) { File.Delete(Resolve(key)); return Task.CompletedTask; }
 }

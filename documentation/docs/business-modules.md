@@ -100,15 +100,18 @@ in their package metadata and validate compatibility before release.
 
 ## Module contract
 
+Follow the [vertical slice layout](module-layout.md) for module-owned use cases,
+frontend code, tests and folder casing.
+
 Each direct child module owns `module.json`, `Domain/`, `Application/`,
-`Infrastructure/`, `Api/`, `frontend/`, `tests/`, migrations and documentation. API and
+`Infrastructure/`, `Api/`, `Frontend/`, `Tests/`, migrations and documentation. API and
 Infrastructure must each contain exactly one project. The descriptor ID matches its
 folder, with `required: false`, `runtimeConfigurable: true` and `enabledByDefault: false`.
 
 The `host` object names typed entry points: `configure` accepts
 `WebApplicationBuilder`, `map` accepts `WebApplication`, `services` accepts
 `IServiceCollection` and `IConfiguration`, and `feature` names a `FoundationFeature`
-export from `frontend/public-api.ts`. Registration is compiled trusted source, not
+export from `Frontend/public-api.ts`. Registration is compiled trusted source, not
 runtime plugin loading. A newly copied module is not loaded by a running application.
 
 `FoundationFeature` contributes routes, translations, destinations, organisation links,

@@ -16,6 +16,8 @@ Before changes spanning layers, contracts, dependencies, or conventions, read [f
 - Use the repo-local [framework-change skill](.agents/skills/framework-change/SKILL.md) for changes spanning framework layers, modules, providers, or public API contracts.
 - Angular work also follows [its scoped guidance](src/TemplateV4.Angular/AGENTS.md). Load UI details only when working on the UI.
 - Keep affected code, manifest, docs, scaffolding, and CI consistent. New architectural or extension-point conventions need an ADR and extension documentation; routine fixes and instruction refactoring do not.
+- Follow the [module layout convention](documentation/docs/module-layout.md): group source by module and use case, use PascalCase module/backend/test folders, and lowercase or kebab-case folders inside `Frontend`. Preserve existing public namespaces and migration histories during source moves.
+- Follow [module ownership](documentation/docs/module-ownership.md) and the [module-feature-development skill](.agents/skills/module-feature-development/SKILL.md) when adding or converting modules. Keep registration and permission declarations with their owners, composition explicit, and disabled-module recovery dependencies registered. Use existing Support, CMS, CRM and Invoicing workflows as references; keep coordinated packages and the shared database unless a concrete requirement justifies changing them.
 
 ## Boundaries
 

@@ -1,8 +1,8 @@
 import { businessDictionary } from './business-translations';
-import { myFilesDictionary } from './my-files-translations';
+import { myFilesDictionary } from '../features/my-files/my-files-translations';
 import { adminDictionary } from './admin-translations';
-import { moduleDictionary } from './module-translations';
-import { configurationDictionary } from './configuration-translations';
+import { moduleDictionary } from '../features/modules/module-translations';
+import { configurationDictionary } from '../features/configuration/configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
   cms: ['Blog & news', 'Blog en nuus'],

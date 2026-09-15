@@ -1,5 +1,11 @@
 # Developer guide
 
+For module ownership, folder casing and use-case files, follow the
+[vertical slice layout](module-layout.md).
+
+For explicit registration, permission declarations and existing reference workflows,
+follow [module ownership](module-ownership.md).
+
 For independent module versions, central release-feed hosting, administrator update
 notifications and client upgrade PRs, see [release updates](release-updates.md).
 
@@ -105,7 +111,7 @@ See [production deployment](production.md), [MFA and passkey policy](adr/0005-co
 
 ## UI customization
 
-The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard.ts` with actual application metrics when available. Its action-item overview uses server-enforced visibility, including Administrator oversight. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
+The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard/dashboard.ts` with actual application metrics when available. Its action-item overview uses server-enforced visibility, including Administrator oversight. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
 
 When a data table is the first content in a card (directly or through `app-page-state`), shared styles remove the top content padding and round the table's top corners to the inner card radius. Column headers then meet the card border without a blank strip. Cards with filters or status messages above the table retain their content spacing.
 
@@ -120,7 +126,7 @@ Enabled actions use a pointer cursor through the semantic control selectors in `
 - `src/TemplateV4.Angular/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and artwork placement. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
 - Shared `hlmCard` panels use a muted rounded shell with an inset semantic card surface. Tune the `--panel-*` variables in `src/TemplateV4.Angular/src/design-tokens.css`; keep structural card styling centralized in `libs/ui/card` so light, dark and responsive treatments remain consistent across feature pages.
 - Right-side drawers use the same panel tokens and card-in-card composition. Put scrollable drawer content on an element with `hlmDrawerBody`; pair it with the shared drawer header and optional footer so the body uses matching top and horizontal insets across themes and viewport sizes. The notification drawer keeps its list-specific inset and edge treatment.
-- `src/TemplateV4.Angular/src/app/features/auth-layout.ts`: shared two-column authentication composition and the locally rendered FeralUI artwork. Administrators choose from all 30 gradient types and 298 color presets with thumbnails and a live preview under Configuration; see [ADR 0022](adr/0022-platform-configuration.md). Change the `appBrand` translation for branding.
+- `src/TemplateV4.Angular/src/app/features/identity/authentication/auth-layout.ts`: shared two-column authentication composition and the locally rendered FeralUI artwork. Administrators choose from all 30 gradient types and 298 color presets with thumbnails and a live preview under Configuration; see [ADR 0022](adr/0022-platform-configuration.md). Change the `appBrand` translation for branding.
 - `src/TemplateV4.Angular/libs/ui`: owned Helm variants and component styles. Extend these for control-wide changes; prefer their variants and semantic tokens in page templates. Use `hlm-select` with its trigger, value, portaled content, and items for dropdowns, including form drawers and table filters. Preserve accessible labels and required-value validation.
 
 Public registration is disabled by default. Administrators enable **Allow public registration** under **Users → Account security** without additional credential or factor confirmation. New users register at `/signup`, verify email, and receive Reader access. MFA policy still applies. See [registration policy](adr/0009-configurable-public-registration.md).

@@ -1,6 +1,6 @@
 ---
 name: module-feature-development
-description: Add or extend TemplateV4 modules and gated features, including capability definitions, dependencies, runtime activation, endpoint ownership, navigation and disable behavior. Use for new module slices or changes to their availability contracts; skip ordinary page styling and local refactors.
+description: Add, extend or convert TemplateV4 modules using module-owned registration and permissions, explicit contracts, capabilities and disable behavior. Use for module ownership or availability changes; skip ordinary page styling and unrelated local refactors.
 ---
 
 # Module and feature development
@@ -16,6 +16,33 @@ Read [framework.json](../../../framework.json) for project paths and [the module
 - Permissions, customer ownership, quotas and subscription obligations remain operation-specific checks. Availability does not authorize a caller.
 
 Follow one existing slice through its Application contract, explicit registration, API group and Angular destination before choosing implementation details. Use My Files for runtime settings, Support for a cohesive gated endpoint group, and organisation files for composed capabilities.
+
+## Convert or extend existing modules
+
+Follow [module ownership](../../../documentation/docs/module-ownership.md) and
+[ADR 0043](../../../documentation/docs/adr/0043-module-owned-composition.md).
+Use existing workflows as references: Support for handler/validator composition and
+delegated permissions, CMS for public/protected publishing, CRM for organisation
+isolation, and Invoicing for cross-module contracts and retained obligations.
+Support's requester scope is not an organisation-access pattern.
+
+Keep the coordinated foundation packages and shared EF model. Put registrations in
+`Infrastructure/<Module>/<Module>Registration.cs` as private methods on the existing
+partial `Registration` class, called explicitly by `AddInfrastructure`. Preserve
+lifetimes and store aliases. Register dependencies even while the module is disabled.
+Keep shared hosting, Identity and transaction setup in central composition.
+
+Put permission constants in the owner's Application folder using the existing partial
+`Permissions` type, and explicitly include new declarations in `Permissions.All`.
+Preserve existing names/values. Keep grant policy, built-in synchronization, audit and
+session revocation centralized; do not grant delegated roles permissions implicitly.
+
+Use Application contracts for calls between business modules. Run
+`ModuleOwnershipTests` after conversions and extend its focused module coverage when
+establishing another business boundary. Its typed-source checks do not cover raw SQL
+or replace real PostgreSQL isolation/workflow tests. Do not add a sample product
+module, universal lifecycle framework or repository abstraction to demonstrate a
+convention already exercised by an existing workflow.
 
 ## Define and connect
 

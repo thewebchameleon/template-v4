@@ -21,7 +21,7 @@ import { Theme } from './core/theme';
 import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
-import { UnreadNotifications } from './core/unread-notifications';
+import { UnreadNotifications } from './features/notifications/unread-notifications';
 import * as i0 from "@angular/core";
 import * as i1 from "@spartan-ng/helm/button";
 import * as i2 from "@spartan-ng/helm/sonner";
@@ -29,9 +29,9 @@ import * as i3 from "@spartan-ng/helm/sidebar";
 import * as i4 from "@spartan-ng/helm/separator";
 import * as i5 from "@spartan-ng/helm/drawer";
 const App_Conditional_3_Conditional_20_Defer_1_DepsFn = () => [/* @ts-ignore */
-    import("./features/my-files-components").then(m => m.MyFilesTree)];
+    import("./features/my-files/files/my-files-components").then(m => m.MyFilesTree)];
 const App_Conditional_3_Conditional_29_Defer_2_DepsFn = () => [/* @ts-ignore */
-    import("./features/notification-drawer").then(m => m.NotificationDrawer)];
+    import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer)];
 const App_Conditional_3_hlm_drawer_content_35_Defer_10_DepsFn = () => [i1.HlmButton, i5.HlmDrawerBody, i5.HlmDrawerFooter, /* @ts-ignore */
     import("./core/preferences").then(m => m.Preferences), Translate];
 const _c0 = a0 => ({ paths: a0, queryParams: "ignored", matrixParams: "ignored", fragment: "ignored" });
@@ -735,8 +735,8 @@ export class App {
             Translate], encapsulation: 2 });
 }
 (() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadataAsync(App, () => [/* @ts-ignore */
-    import("./features/my-files-components").then(m => m.MyFilesTree), /* @ts-ignore */
-    import("./features/notification-drawer").then(m => m.NotificationDrawer), /* @ts-ignore */
+    import("./features/my-files/files/my-files-components").then(m => m.MyFilesTree), /* @ts-ignore */
+    import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer), /* @ts-ignore */
     import("./core/preferences").then(m => m.Preferences)], (MyFilesTree, NotificationDrawer, Preferences) => { i0.ɵsetClassMetadata(App, [{
         type: Component,
         args: [{

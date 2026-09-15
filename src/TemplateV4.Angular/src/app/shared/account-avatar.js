@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideUserRound } from '@ng-icons/lucide';
-import { CurrentProfile } from '../core/current-profile';
+import { CurrentProfile } from '../features/identity/account/current-profile';
 import * as i0 from "@angular/core";
 import * as i1 from "@spartan-ng/helm/avatar";
 function AccountAvatar_Conditional_1_Template(rf, ctx) { if (rf & 1) {
