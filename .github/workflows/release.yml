@@ -24,7 +24,6 @@ jobs:
           RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          test "${GITHUB_REF_NAME#v}" = "$(jq -r .frameworkVersion framework.json)"
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file releases/migration-notes.txt
           fi
@@ -32,10 +31,56 @@ jobs:
             "https://github.com/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME" \
             releases/migration-notes.txt "$(jq -r .breaking releases/foundation.json)"
           node tools/releases/cli.mjs publish release-metadata.json
-  validate:
-    uses: ./.github/workflows/ci.yml
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+        run: |
+          test -n "$SLACK_WEBHOOK_URL"
+          image_root="ghcr.io/${GITHUB_REPOSITORY,,}"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          text=$(printf '%s\n' \
+            ":white_check_mark: *Release $GITHUB_REF_NAME completed successfully*" \
+            "• api: :white_check_mark: $image_root/api:$GITHUB_REF_NAME" \
+            "• worker: :white_check_mark: $image_root/worker:$GITHUB_REF_NAME" \
+            "• migrator: :white_check_mark: $image_root/migrator:$GITHUB_REF_NAME" \
+            "• web: :white_check_mark: $image_root/web:$GITHUB_REF_NAME" \
+            "<$run_url|View workflow run>")
+          curl --fail-with-body --silent --show-error --retry 3 \
+            --header 'Content-Type: application/json' \
+            --data "$(jq -n --arg text "$text" '{text: $text}')" \
+            "$SLACK_WEBHOOK_URL"
+  preflight:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify validated main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "${GITHUB_REF_NAME#v}" = "$(jq -r .frameworkVersion framework.json)"
+          run_id=$(gh run list --workflow ci.yml --commit "$GITHUB_SHA" --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "No successful main CI run found for $GITHUB_SHA."
+            exit 1
+          fi
+          echo "Using validated artifacts from CI run $run_id."
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify validated images
+        run: |
+          image_root="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for image in api worker migrator web; do
+            docker manifest inspect "$image_root/$image:sha-$GITHUB_SHA" >/dev/null
+          done
   packages:
-    needs: validate
+    needs: preflight
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,10 +96,14 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           dotnet-version: ${{ steps.sdk.outputs.version }}
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: ${{ steps.sdk.outputs.node }}
           registry-url: https://npm.pkg.github.com
+          cache: npm
+          cache-dependency-path: src/TemplateV4.Angular/package-lock.json
       - run: npm install -g npm@${{ steps.sdk.outputs.npm }}
       - run: npm ci --prefix src/TemplateV4.Angular
       - name: Pack framework packages
@@ -78,18 +127,11 @@ jobs:
           node tools/configure-npm-scope.mjs "$NPM_PACKAGE_SCOPE"
           npm publish src/TemplateV4.Angular/dist/foundation --registry=https://npm.pkg.github.com
   publish:
-    needs: validate
+    needs: preflight
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       packages: write
-    strategy:
-      matrix:
-        name: [api, worker, migrator, web]
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check release version
-        run: test "${GITHUB_REF_NAME#v}" = "$(jq -r .frameworkVersion framework.json)"
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -98,7 +140,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: names
         run: echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-      - name: Tag validated image for release
+      - name: Tag validated images for release
         env:
-          IMAGE: ghcr.io/${{ steps.names.outputs.repository }}/${{ matrix.name }}
-        run: docker buildx imagetools create --tag "$IMAGE:$GITHUB_REF_NAME" "$IMAGE:sha-$GITHUB_SHA"
+          IMAGE_ROOT: ghcr.io/${{ steps.names.outputs.repository }}
+        run: |
+          for image in api worker migrator web; do
+            docker buildx imagetools create \
+              --tag "$IMAGE_ROOT/$image:$GITHUB_REF_NAME" \
+              "$IMAGE_ROOT/$image:sha-$GITHUB_SHA"
+          done
