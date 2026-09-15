@@ -1,6 +1,6 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Reflection;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure;
 
