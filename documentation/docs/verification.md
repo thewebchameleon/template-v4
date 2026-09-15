@@ -1,6 +1,6 @@
 # Verification
 
-CI runs browser-free frontend tests, backend tests, documentation builds, C# and Angular lint/format checks, and npm/NuGet vulnerability audits. It does not run browser E2E, package-consumer checks or container builds.
+CI runs browser-free frontend tests, backend tests, documentation builds, C# and Angular lint/format checks, and npm/NuGet vulnerability audits. Successful `main` pushes build and publish the four runtime images to GHCR. CI does not run browser E2E or package-consumer checks.
 
 Run `node tools/verify.mjs` for the broader local verification suite. Run `dotnet restore src/TemplateV4.Backend.slnx --locked-mode` followed by `node tools/audit-nuget.mjs --no-restore` to audit backend production/test dependencies. Stop a running Aspire instance before rebuilding Debug binaries on Windows.
 

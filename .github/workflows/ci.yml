@@ -116,3 +116,60 @@ jobs:
       - run: dotnet restore src/TemplateV4.Backend.slnx --locked-mode
       - name: Audit NuGet dependencies
         run: node tools/audit-nuget.mjs --no-restore
+
+  publish-images:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend, documentation, backend, vulnerabilities]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - {
+              name: api,
+              project: TemplateV4.ApiService,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: worker,
+              project: TemplateV4.BackgroundWorker,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: migrator,
+              project: TemplateV4.DatabaseMigrator,
+              dockerfile: deploy/Dockerfile.dotnet,
+            }
+          - {
+              name: web,
+              project: Web,
+              dockerfile: src/TemplateV4.Angular/Dockerfile,
+            }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: names
+        run: echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: ${{ matrix.dockerfile }}
+          build-args: PROJECT=${{ matrix.project }}
+          push: true
+          tags: |
+            ghcr.io/${{ steps.names.outputs.repository }}/${{ matrix.name }}:latest
+            ghcr.io/${{ steps.names.outputs.repository }}/${{ matrix.name }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=ci-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=ci-${{ matrix.name }}

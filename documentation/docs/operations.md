@@ -22,7 +22,7 @@ Aspire is the default local path; Compose exposes the Web container's Nginx with
 
 ServiceDefaults configures readable multiline ILogger output in Development and structured JSON output in other environments, plus OpenTelemetry traces/metrics, optional OTLP export, HttpClient resilience and discovery. Logs omit message payloads; redact all outgoing HTTP headers. Liveness only checks the process; API readiness checks PostgreSQL. Worker readiness checks PostgreSQL, Quartz scheduler state, poison messages, stale pending/retry work, and expired running leases. Both degraded and unhealthy readiness results return HTTP 503 so orchestrators do not route work to a service that requires operator attention.
 
-CI validates browser-free frontend tests, backend tests, documentation builds, formatting and vulnerabilities. Publishing is a separate release workflow with ghcr.io and minimal token permissions.
+CI validates browser-free frontend tests, backend tests, documentation builds, formatting and vulnerabilities. After every successful `main` push, it publishes API, Worker, Migrator and Web images to GHCR with immutable commit tags and `latest`; version-tag releases remain separate.
 
 ## Recovery and production
 
