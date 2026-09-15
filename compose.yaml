@@ -5,7 +5,7 @@ x-runtime: &runtime
   DataProtection__CertificatePassword: ${DP_PASSWORD:?Set DP_PASSWORD}
   Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
   Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
-  Deployment__Version: main
+  Deployment__Version: sha-a8e97f3
   Updates__Enabled: ${UPDATES_ENABLED}
   Updates__FeedUrl: ${UPDATES_FEED_URL}
   Storage__Provider: S3
@@ -43,7 +43,7 @@ services:
       retries: 20
     stop_grace_period: 60s
   migrator:
-    image: ghcr.io/thewebchameleon/template-v4/migrator:main
+    image: ghcr.io/thewebchameleon/template-v4/migrator:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
     pull_policy: always
     environment:
       <<: *runtime
@@ -53,7 +53,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
   api:
-    image: ghcr.io/thewebchameleon/template-v4/api:main
+    image: ghcr.io/thewebchameleon/template-v4/api:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -67,7 +67,7 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   worker:
-    image: ghcr.io/thewebchameleon/template-v4/worker:main
+    image: ghcr.io/thewebchameleon/template-v4/worker:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -97,7 +97,7 @@ services:
     volumes: [storage:/data]
     stop_grace_period: 60s
   web:
-    image: ghcr.io/thewebchameleon/template-v4/web:main
+    image: ghcr.io/thewebchameleon/template-v4/web:sha-a8e97f3626475174589e1e1cb02e19a63f1c9397
     pull_policy: always
     restart: unless-stopped
     expose: ["8080"]
