@@ -44,8 +44,6 @@ See [ADR 0040](adr/0040-web-push-notifications.md) for transaction and privacy r
 ## Verification
 
 `node --test tools/web-push.test.mjs` checks the service worker without launching a
-browser. The `Web_push` tests in `SecurityAndMessagingTests` exercise opt-in,
-transactional fan-out, ownership, cancellation and expired subscriptions with real
-PostgreSQL and a simulated external push service. Actual browser delivery requires
-configured VAPID keys and a supported browser; browser/E2E checks require the
+browser. Actual browser delivery requires configured VAPID keys and a supported
+browser; browser/E2E checks require the
 repository's explicit user permission.

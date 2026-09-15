@@ -26,7 +26,7 @@ Folders can be deleted only after all live direct files and subfolders have been
 
 `MyFilesService` owns library and sharing use cases. HTTP adapters live in `MyFilesEndpoints`; regenerate OpenAPI and the Angular client after contract changes. New file categories should update `Category`, the localized legend and semantic `--file-*` colors together. The historical `files` database schema and generic file provider remain shared with organisation storage.
 
-See [ADR 0029](adr/0029-my-files-library.md) for the architecture decision. PostgreSQL tests cover ownership, inherited roles, expiry, revocation, public HTTP downloads, recursive Trash, restoration, quotas, cleanup and module gates. Browser/E2E and accessibility checks require explicit permission under repository guidance.
+See [ADR 0029](adr/0029-my-files-library.md) for the architecture decision. Browser/E2E and accessibility checks require explicit permission under repository guidance.
 
 My Files submenu groups are always expanded; nested folders start expanded and may be collapsed. Folders with zero direct items are hidden outside the My Files group. Each group displays its unfiltered file count, excluding folders; each folder badge likewise counts only its direct files. Folder disclosure still reflects child files and subfolders, and leaf folders have no disclosure caret. Owners can right-click a live folder or press Shift+F10 to create a subfolder or delete an empty folder.
 

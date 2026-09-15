@@ -63,9 +63,7 @@ revision browsing, per-article language variants and organisation-specific blogs
 
 ## Validation
 
-`CmsTests.cs` covers real PostgreSQL publishing, draft isolation, delegated editor
-permissions, CSRF, slug uniqueness, concurrent writes, atomic audit and runtime
-disablement. `CmsMarkdownTests` checks formatting and unsafe content. Extend the
-endpoint ownership test when adding routes. Follow [verification](../verification.md)
+`CmsMarkdownTests` covers supported formatting and active-content filtering. Extend
+the endpoint ownership test when adding routes. Follow [verification](../verification.md)
 for OpenAPI/client generation and the repository's explicit browser-test permission.
 

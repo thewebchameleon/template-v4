@@ -32,6 +32,6 @@ Account export includes requester tickets, public conversation and attachment me
 
 ## Validation
 
-`SupportPortalTests.cs` covers real PostgreSQL requester isolation, queue access, server filtering of internal notes, attachments, version conflicts, workflow, sorting, notification/outbox records, module preservation and privacy erasure. Runtime module tests cover administrator authorization and optimistic saves. Export OpenAPI through the existing API contract test, then run `node tools/framework.mjs clients`.
+Run `node tools/framework.mjs clients` after changing the support API contract.
 
 The portal uses owned Spartan controls and English/South African Afrikaans text. Most Support text is loaded with its route; global navigation/notification labels remain in the initial dictionary. The initial Angular error budget allows 1040 kB (10 kB more than the preceding shell) for the added navigation, route and shared styles; the 500 kB warning remains. Browser interaction and accessibility tests require explicit permission before execution.

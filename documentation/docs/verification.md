@@ -1,17 +1,17 @@
 # Verification
 
-Verified locally: 42 .NET tests passed, including 39 real PostgreSQL integration tests covering MFA method selection and email-code cooldowns, concurrent bootstrap/refresh/last-administrator behavior, session reuse/expiry, transaction/outbox behavior, lease fencing, Quartz persistence and actual execution. The CLI regression test, Angular strict production build/lint/format, documentation validation/build, manifest validation, generated-client regeneration, and the full Release solution build also passed. Earlier validation covered Spartan healthcheck, dependency vulnerability audits, container builds, Compose smoke, and Aspire startup; those environment checks were not repeated for this revision. GitHub workflows have not been run on GitHub from this local workspace.
+CI runs browser-free frontend tests, backend tests, documentation builds, C# and Angular lint/format checks, and npm/NuGet vulnerability audits. It does not run browser E2E, package-consumer checks or container builds.
 
-Run `node tools/verify.mjs` for manifest, locked restore, .NET formatting/build/tests, Angular formatting/lint/build and npm audit. Run `node tools/audit-nuget.mjs` for all .NET production/test dependencies. Docker must be running for the PostgreSQL tests. Stop a running Aspire instance before rebuilding Debug binaries on Windows.
+Run `node tools/verify.mjs` for the broader local verification suite. Run `dotnet restore src/TemplateV4.Backend.slnx --locked-mode` followed by `node tools/audit-nuget.mjs --no-restore` to audit backend production/test dependencies. Stop a running Aspire instance before rebuilding Debug binaries on Windows.
 
 `node --test tools/cli.test.mjs` verifies deterministic generation, no-overwrite behavior and path validation. `npx ng g @spartan-ng/cli:healthcheck --interactive=false` inside Web verifies the copied component conventions.
 
-The API integration test exports OpenAPI when TEMPLATEV4_EXPORT_OPENAPI points to the absolute `contracts/openapi.json` path. Then run `node tools/framework.mjs clients`. Generation cleans only its owned output path. CI compares the generated contract/client with checked-in files. Never format or edit generated client sources manually.
+Run `node tools/framework.mjs clients` after updating the OpenAPI contract. Generation cleans only its owned output path. Never format or edit generated client sources manually.
 
 After `docker compose up --build -d`, `pwsh tools/smoke-compose.ps1` checks sign-in through the local Nginx proxy, idempotent invitation, Worker delivery to the local Mailpit sink, durable maintenance request and logout. It reads the ignored local `.env`, never prints credentials, and creates clearly named smoke-test accounts. Its certificate bypass is limited to local development. Query the separate audit schema to verify job completion.
 
 Container images run nonroot with ICU-enabled .NET runtime images for localisation. Compose initializes key-volume ownership before starting workloads. The local PostgreSQL host port is 55432 to reduce collisions with installed databases.
 
-`node --test tools/auth-retry.test.mjs` runs isolated Node/RxJS regression checks against the actual interceptor and route-reuse source. It launches no browser. `ReviewHardeningTests` covers organisation S3 storage, file capabilities, expired billing cancellation, organisation onboarding/closure, privacy cache redaction, retention failures, passkey policy and API feature gating against PostgreSQL. Browser/E2E and merchant sandbox verification remain separate.
+`node --test tools/auth-retry.test.mjs` runs isolated Node/RxJS regression checks against the actual interceptor and route-reuse source. It launches no browser. Browser/E2E and merchant sandbox verification remain separate.
 
-Module/capability changes also use `node --test tools/cli.test.mjs tools/capabilities.test.mjs` and `node tools/framework.mjs validate`. `CapabilityTests` and the capability-prefixed PostgreSQL tests cover composed gates, runtime graph transitions, endpoint ownership and version conflicts. See [ADR 0031](adr/0031-declarative-capabilities.md).
+Module/capability changes also use `node --test tools/cli.test.mjs tools/capabilities.test.mjs` and `node tools/framework.mjs validate`. `CapabilityTests` covers graph composition and runtime transition rules. See [ADR 0031](adr/0031-declarative-capabilities.md).
