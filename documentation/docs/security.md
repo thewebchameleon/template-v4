@@ -14,7 +14,7 @@ The bootstrap administrator is a permanent account. Its reserved `@example.inval
 
 ## Production configuration
 
-Set ConnectionStrings__app with a workload-specific PostgreSQL credential, Web__PublicUrl, exact Web__AllowedOrigins, Jwt__PrivateKeyPath, Jwt__KeyId, DataProtection__KeyPath, DataProtection__CertificatePath, and the wrapping-certificate password. Share durable Data Protection key storage across API/Worker replicas and restrict its filesystem permissions. Mount private keys read-only. Production startup refuses unencrypted Data Protection key persistence.
+Set ConnectionStrings__app with a workload-specific PostgreSQL credential, Web__PublicUrl, exact Web__AllowedOrigins, Jwt__PrivateKeyPath, Jwt__KeyId, DataProtection__KeyPath, DataProtection__CertificatePath, and the wrapping-certificate password. Share durable Data Protection key storage across API/Worker replicas and restrict its filesystem permissions. Mount private keys read-only. Production startup refuses unencrypted Data Protection key persistence unless `DataProtection__AllowUnencryptedKeys=true` explicitly accepts that the private key-ring volume is the security boundary.
 
 JWT signing keys are separate from Data Protection. Rotate by adding the previous public PEM and key ID under Jwt__PreviousKeys, changing the active private key/key ID, and retaining the old validation key beyond maximum access-token lifetime plus clock skew. Rotate wrapping certificates with a reviewed plan to retain access to old Data Protection keys.
 

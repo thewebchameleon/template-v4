@@ -1,8 +1,7 @@
 x-runtime: &runtime
   ASPNETCORE_ENVIRONMENT: Production
   DataProtection__KeyPath: /keys/ring
-  DataProtection__CertificateBase64: ${DP_CERTIFICATE_B64:?Set DP_CERTIFICATE_B64}
-  DataProtection__CertificatePassword: ${DP_PASSWORD:?Set DP_PASSWORD}
+  DataProtection__AllowUnencryptedKeys: "true"
   Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
   Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
   Deployment__Version: __RELEASE__

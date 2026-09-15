@@ -58,10 +58,12 @@ public static partial class Registration
             .PersistKeysToFileSystem(new DirectoryInfo(config["DataProtection:KeyPath"] ?? throw new InvalidOperationException("DataProtection:KeyPath is required.")));
         if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
         {
-            var certificate = config["DataProtection:CertificateBase64"] is { Length: > 0 } encoded
-                ? X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(encoded), config["DataProtection:CertificatePassword"])
-                : X509CertificateLoader.LoadPkcs12FromFile(config["DataProtection:CertificatePath"] ?? throw new InvalidOperationException("A Data Protection wrapping certificate is required in production."), config["DataProtection:CertificatePassword"]);
-            protection.ProtectKeysWithCertificate(certificate);
+            if (config["DataProtection:CertificateBase64"] is { Length: > 0 } encoded)
+                protection.ProtectKeysWithCertificate(X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(encoded), config["DataProtection:CertificatePassword"]));
+            else if (config["DataProtection:CertificatePath"] is { Length: > 0 } path)
+                protection.ProtectKeysWithCertificate(X509CertificateLoader.LoadPkcs12FromFile(path, config["DataProtection:CertificatePassword"]));
+            else if (!config.GetValue<bool>("DataProtection:AllowUnencryptedKeys"))
+                throw new InvalidOperationException("A Data Protection wrapping certificate is required in production unless DataProtection:AllowUnencryptedKeys is explicitly enabled.");
         }
         services.AddIdentityCore<AppUser>(options =>
         {

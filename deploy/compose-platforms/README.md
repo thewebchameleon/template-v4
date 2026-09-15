@@ -86,12 +86,16 @@ Keep the EasyPanel project/service identity and volume definitions stable.
 ## Required secrets
 
 Set the four database passwords, three workload connection strings, base64-encoded RSA
-signing key, base64-encoded PKCS#12 Data Protection certificate, certificate password,
-S3 credentials and SeaweedFS configuration JSON in EasyPanel's Environment editor.
+signing key, S3 credentials and SeaweedFS configuration JSON in EasyPanel's Environment editor.
 The environment is not an encrypted vault; restrict panel and Docker access. Passwords in
 the connection strings must match their workload-role passwords. On an existing database,
 initialization scripts do not rerun, so password changes require deliberate role rotation.
 Do not mount development database volumes here.
+
+The EasyPanel examples explicitly allow the persistent Data Protection key ring to remain
+unencrypted inside its private Docker volume because the panel's environment editor cannot
+reliably store a full PKCS#12 value. Protect and back up the volume. Other production
+deployments still require a wrapping certificate unless they make the same explicit choice.
 
 ## Updating to latest source
 
