@@ -1,4 +1,4 @@
-FROM node:24.21.0-alpine AS build
+FROM --platform=$BUILDPLATFORM node:24.21.0-alpine AS build
 WORKDIR /source/src/TemplateV4.Angular
 COPY src/TemplateV4.Angular/package*.json ./
 RUN npm install --global npm@12.0.2
