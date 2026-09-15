@@ -58,7 +58,9 @@ public static partial class Registration
             .PersistKeysToFileSystem(new DirectoryInfo(config["DataProtection:KeyPath"] ?? throw new InvalidOperationException("DataProtection:KeyPath is required.")));
         if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
         {
-            var certificate = X509CertificateLoader.LoadPkcs12FromFile(config["DataProtection:CertificatePath"] ?? throw new InvalidOperationException("A Data Protection wrapping certificate is required in production."), config["DataProtection:CertificatePassword"]);
+            var certificate = config["DataProtection:CertificateBase64"] is { Length: > 0 } encoded
+                ? X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(encoded), config["DataProtection:CertificatePassword"])
+                : X509CertificateLoader.LoadPkcs12FromFile(config["DataProtection:CertificatePath"] ?? throw new InvalidOperationException("A Data Protection wrapping certificate is required in production."), config["DataProtection:CertificatePassword"]);
             protection.ProtectKeysWithCertificate(certificate);
         }
         services.AddIdentityCore<AppUser>(options =>

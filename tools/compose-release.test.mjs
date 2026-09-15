@@ -140,6 +140,11 @@ test("release rendering requires every image digest and retains one release's me
   assert.ok(!compose.includes("__RELEASE__"));
   assert.ok(!compose.includes("build:"));
   assert.ok(!compose.includes("key-permissions"));
+  assert.ok(!compose.includes("SECRETS_DIR"));
+  assert.ok(!compose.includes("secrets:"));
+  assert.ok(compose.includes("Storage__Provider: S3"));
+  assert.ok(compose.includes("chrislusf/seaweedfs:4.45"));
+  assert.ok(compose.includes("MIGRATOR_CONNECTION_STRING"));
   assert.ok(compose.includes("DataProtection__KeyPath: /keys/ring"));
   const coolifyCompose = fs.readFileSync(
     path.join(output, "compose.coolify.yaml"),

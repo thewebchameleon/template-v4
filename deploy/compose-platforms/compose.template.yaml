@@ -1,16 +1,19 @@
 x-runtime: &runtime
   ASPNETCORE_ENVIRONMENT: Production
   DataProtection__KeyPath: /keys/ring
-  DataProtection__CertificatePath: /run/secrets/dp_certificate
+  DataProtection__CertificateBase64: ${DP_CERTIFICATE_B64:?Set DP_CERTIFICATE_B64}
+  DataProtection__CertificatePassword: ${DP_PASSWORD:?Set DP_PASSWORD}
   Web__PublicUrl: ${PUBLIC_URL:?Set PUBLIC_URL to the public HTTPS origin}
   Jwt__KeyId: ${JWT_KEY_ID:?Set JWT_KEY_ID}
   Deployment__Version: __RELEASE__
-  Updates__Enabled: ${UPDATES_ENABLED:-false}
-  Updates__FeedUrl: ${UPDATES_FEED_URL:-}
+  Updates__Enabled: ${UPDATES_ENABLED}
+  Updates__FeedUrl: ${UPDATES_FEED_URL}
   Storage__Provider: S3
-  Storage__S3__Endpoint: ${S3_ENDPOINT:?Set S3_ENDPOINT to the HTTPS object-storage origin}
-  Storage__S3__Bucket: ${S3_BUCKET:-templatev4}
-  Storage__S3__Region: ${S3_REGION:-us-east-1}
+  Storage__S3__Endpoint: ${S3_ENDPOINT:?Set S3_ENDPOINT}
+  Storage__S3__Bucket: ${S3_BUCKET:?Set S3_BUCKET}
+  Storage__S3__Region: ${S3_REGION:?Set S3_REGION}
+  Storage__S3__AccessKey: ${S3_ACCESS_KEY:?Set S3_ACCESS_KEY}
+  Storage__S3__SecretKey: ${S3_SECRET_KEY:?Set S3_SECRET_KEY}
 x-health: &health
   test: [CMD, dotnet, entry.dll, --health-check]
   interval: 30s
@@ -24,9 +27,10 @@ services:
     environment:
       POSTGRES_DB: templatev4
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      [postgres_password, migrator_password, api_password, worker_password]
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      MIGRATOR_PASSWORD: ${MIGRATOR_PASSWORD:?Set MIGRATOR_PASSWORD}
+      API_PASSWORD: ${API_PASSWORD:?Set API_PASSWORD}
+      WORKER_PASSWORD: ${WORKER_PASSWORD:?Set WORKER_PASSWORD}
     volumes:
       [
         postgres:/var/lib/postgresql,
@@ -43,11 +47,8 @@ services:
     pull_policy: always
     environment:
       <<: *runtime
+      ConnectionStrings__app: ${MIGRATOR_CONNECTION_STRING:?Set MIGRATOR_CONNECTION_STRING}
       Database__GrantRuntimeRoles: "true"
-    secrets:
-      - { source: migrator_connection, target: ConnectionStrings__app }
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
     volumes: [keys:/keys]
     depends_on:
       postgres: { condition: service_healthy }
@@ -57,15 +58,9 @@ services:
     restart: unless-stopped
     environment:
       <<: *runtime
-      Jwt__PrivateKeyPath: /run/secrets/jwt_key
+      ConnectionStrings__app: ${API_CONNECTION_STRING:?Set API_CONNECTION_STRING}
+      Jwt__PrivateKeyBase64: ${JWT_KEY_B64:?Set JWT_KEY_B64}
       ReverseProxy__Address: ${WEB_PROXY_IP:?Set WEB_PROXY_IP}
-    secrets:
-      - { source: api_connection, target: ConnectionStrings__app }
-      - { source: s3_access_key, target: Storage__S3__AccessKey }
-      - { source: s3_secret_key, target: Storage__S3__SecretKey }
-      - jwt_key
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
     volumes: [keys:/keys]
     depends_on:
       migrator: { condition: service_completed_successfully }
@@ -77,21 +72,29 @@ services:
     restart: unless-stopped
     environment:
       <<: *runtime
-      Email__Host: ${SMTP_HOST:?Set SMTP_HOST}
-      Email__Port: ${SMTP_PORT:-587}
-      Email__From: ${SMTP_FROM:?Set SMTP_FROM}
-    secrets:
-      - { source: worker_connection, target: ConnectionStrings__app }
-      - { source: s3_access_key, target: Storage__S3__AccessKey }
-      - { source: s3_secret_key, target: Storage__S3__SecretKey }
-      - { source: smtp_username, target: Email__Username }
-      - { source: smtp_password, target: Email__Password }
-      - dp_certificate
-      - { source: dp_password, target: DataProtection__CertificatePassword }
+      ConnectionStrings__app: ${WORKER_CONNECTION_STRING:?Set WORKER_CONNECTION_STRING}
+      Email__Host: ${SMTP_HOST}
+      Email__Port: ${SMTP_PORT}
+      Email__From: ${SMTP_FROM}
+      Email__Username: ${SMTP_USERNAME}
+      Email__Password: ${SMTP_PASSWORD}
     volumes: [keys:/keys]
     depends_on:
       migrator: { condition: service_completed_successfully }
     healthcheck: *health
+    stop_grace_period: 60s
+  storage:
+    image: chrislusf/seaweedfs:4.45
+    restart: unless-stopped
+    environment:
+      SEAWEED_CONFIG_JSON: ${SEAWEED_CONFIG_JSON:?Set SEAWEED_CONFIG_JSON}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        printf '%s' "$$SEAWEED_CONFIG_JSON" > /tmp/s3.json
+        exec weed mini -dir=/data -bucket=templatev4 -s3.config=/tmp/s3.json
+    expose: ["8333"]
+    volumes: [storage:/data]
     stop_grace_period: 60s
   web:
     image: __WEB_IMAGE__
@@ -108,25 +111,10 @@ services:
       timeout: 5s
       retries: 3
     stop_grace_period: 60s
-secrets:
-  s3_access_key: { file: "${SECRETS_DIR}/s3_access_key" }
-  s3_secret_key: { file: "${SECRETS_DIR}/s3_secret_key" }
-  postgres_password:
-    { file: "${SECRETS_DIR:?Set SECRETS_DIR}/postgres_password" }
-  migrator_password: { file: "${SECRETS_DIR}/migrator_password" }
-  api_password: { file: "${SECRETS_DIR}/api_password" }
-  worker_password: { file: "${SECRETS_DIR}/worker_password" }
-  migrator_connection: { file: "${SECRETS_DIR}/migrator_connection" }
-  api_connection: { file: "${SECRETS_DIR}/api_connection" }
-  worker_connection: { file: "${SECRETS_DIR}/worker_connection" }
-  jwt_key: { file: "${SECRETS_DIR}/jwt_key" }
-  dp_certificate: { file: "${SECRETS_DIR}/dp_certificate" }
-  dp_password: { file: "${SECRETS_DIR}/dp_password" }
-  smtp_username: { file: "${SECRETS_DIR}/smtp_username" }
-  smtp_password: { file: "${SECRETS_DIR}/smtp_password" }
 volumes:
   postgres:
   keys:
+  storage:
 networks:
   default:
     ipam:

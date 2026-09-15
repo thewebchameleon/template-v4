@@ -5,7 +5,7 @@ Coolify's Git-based Docker Compose build pack. They use the same release workflo
 and deployment branches as the [EasyPanel examples](easypanel.md).
 
 Follow the [Coolify deployment guide](https://github.com/thewebchameleon/template-v4/blob/main/deploy/compose-platforms/COOLIFY.md)
-for Git and registry access, environment and secret files, domains, bootstrap,
+for Git and registry access, environment secrets, domains, bootstrap,
 module activation, upgrades and troubleshooting. Each generated release includes
 `COOLIFY.md` beside the EasyPanel `README.md`.
 

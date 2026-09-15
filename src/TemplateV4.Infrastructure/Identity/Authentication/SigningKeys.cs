@@ -12,9 +12,11 @@ public sealed class SigningKeys : IDisposable
     public IReadOnlyList<SecurityKey> ValidationKeys { get; }
     public SigningKeys(IConfiguration configuration, IHostEnvironment environment)
     {
-        var path = configuration["Jwt:PrivateKeyPath"] ?? throw new InvalidOperationException("Jwt:PrivateKeyPath must reference a mounted RSA private key.");
+        var pem = configuration["Jwt:PrivateKeyBase64"] is { Length: > 0 } encoded
+            ? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encoded))
+            : File.ReadAllText(configuration["Jwt:PrivateKeyPath"] ?? throw new InvalidOperationException("Configure Jwt:PrivateKeyBase64 or Jwt:PrivateKeyPath."));
         var keyId = configuration["Jwt:KeyId"] ?? throw new InvalidOperationException("Jwt:KeyId is required.");
-        var rsa = RSA.Create(); rsa.ImportFromPem(File.ReadAllText(path));
+        var rsa = RSA.Create(); rsa.ImportFromPem(pem);
         if (rsa.KeySize < 3072) throw new InvalidOperationException("JWT signing keys must be at least 3072 bits.");
         _keys.Add(rsa); Active = new RsaSecurityKey(rsa) { KeyId = keyId };
         var keys = new List<SecurityKey> { Active };

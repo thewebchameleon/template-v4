@@ -66,11 +66,11 @@ Create a separate EasyPanel project and **Compose** service for each deployment:
    account that runs Compose, with a read-only package credential. Do not store it
    in this repository or the Compose environment. Confirm a private image can pull.
 4. Copy `.env.example` into EasyPanel's Environment editor and enable **Create .env
-   file**. Set the public HTTPS origin, storage and SMTP details and secret directory.
-   Use distinct secret paths, S3 buckets and unused subnets for each deployment.
+   file**. Set the public HTTPS origin, credentials and optional SMTP details. EasyPanel
+   stores these deployment secrets; do not commit the populated file.
    Suggested demo subnet/IP: `172.30.0.0/24` / `172.30.0.10`; client example:
    `172.31.0.0/24` / `172.31.0.10`. Avoid existing server/VPN networks.
-5. Provision the secret files described below, then Deploy. Initial startup orders
+5. Deploy. Initial startup orders
    PostgreSQL, Migrator, API/Worker and Web using Compose dependencies.
 6. Add a domain targeting internal service **web**, port **8080**, protocol **HTTP**.
    Let EasyPanel terminate HTTPS and manage redirects/certificates. Preserve WebSocket
@@ -80,33 +80,18 @@ Create a separate EasyPanel project and **Compose** service for each deployment:
    `/bootstrap`, create your administrator and verify bootstrap is then unavailable.
 
 The Web image includes its production Nginx configuration. The generated release includes
-the PostgreSQL initialization script and uses project-scoped database and key-ring volumes.
+the PostgreSQL initialization script and uses project-scoped database, key-ring and SeaweedFS volumes.
 Keep the EasyPanel project/service identity and volume definitions stable.
 
 ## Required secrets
 
-`SECRETS_DIR` is an absolute protected directory on the Docker host, outside the Git
-checkout. Supply these files; no example contains real credentials:
-
-| Filename                                               | Contents                                                        |
-| ------------------------------------------------------ | --------------------------------------------------------------- |
-| `postgres_password`                                    | PostgreSQL administrator password                               |
-| `migrator_password`, `api_password`, `worker_password` | Separate role passwords                                         |
-| `migrator_connection`                                  | Npgsql string for `templatev4_migrator`                         |
-| `api_connection`                                       | Npgsql string for `templatev4_api`                              |
-| `worker_connection`                                    | Npgsql string for `templatev4_worker`                           |
-| `jwt_key`                                              | Production RSA PEM private signing key, at least 3072 bits      |
-| `dp_certificate`                                       | Password-protected PKCS#12 Data Protection wrapping certificate |
-| `dp_password`                                          | Wrapping certificate password                                   |
-| `s3_access_key`, `s3_secret_key`                       | Credentials for the private HTTPS S3 endpoint                   |
-| `smtp_username`, `smtp_password`                       | Real SMTP provider credentials                                  |
-
-Connection strings use `Host=postgres;Port=5432;Database=templatev4;Username=...;Password=...`.
-Use correct Npgsql quoting if a password contains special characters. Password files
-and connection strings must agree. File mounts must be readable by container UID 1654
-and protected from other host users. Compose file secrets are not an encrypted vault.
-On an existing database, provision roles deliberately: initialization scripts only run
-on a fresh PostgreSQL volume. Do not mount development database volumes here.
+Set the four database passwords, three workload connection strings, base64-encoded RSA
+signing key, base64-encoded PKCS#12 Data Protection certificate, certificate password,
+S3 credentials and SeaweedFS configuration JSON in EasyPanel's Environment editor.
+The environment is not an encrypted vault; restrict panel and Docker access. Passwords in
+the connection strings must match their workload-role passwords. On an existing database,
+initialization scripts do not rerun, so password changes require deliberate role rotation.
+Do not mount development database volumes here.
 
 ## Updating to latest source
 
@@ -154,7 +139,7 @@ documents Git build paths, `.env` creation, domain targets, dependencies and vol
 and specifies that Deploy runs `docker compose up --build -d`. Maintenance does not
 stop containers. These examples use native Compose, not Swarm stack conversion.
 
-Repository validation cannot prove your registry permissions, secret mounts, DNS,
-TLS renewal, SMTP, S3 or server network configuration. Validate those on your instance
+Repository validation cannot prove your registry permissions, environment-secret storage,
+DNS, TLS renewal, SMTP, S3 or server network configuration. Validate those on your instance
 before putting client data in service. No live EasyPanel deployment is implied by
 the presence of these example files.
