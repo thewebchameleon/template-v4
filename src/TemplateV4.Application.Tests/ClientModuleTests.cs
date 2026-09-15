@@ -1,6 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Modules;
 using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TemplateV4.Application.Crm;
 using TemplateV4.Application.Customers;
@@ -42,6 +43,7 @@ public sealed partial class SecurityAndMessagingTests
     public async Task Commercial_attachment_membership_and_cross_organisation_boundaries_are_enforced()
     {
         await using var scope = _services.CreateAsyncScope(); var sp = scope.ServiceProvider; var actor = (await User(sp)).Id;
+        sp.GetRequiredService<IConfiguration>()["Features:my-files:Enabled"] = "true";
         var customers = sp.GetRequiredService<ICustomers>(); var organisation = (await customers.Create(actor, new("Files one"), default)).Value!.Id;
         var other = (await customers.Create(actor, new("Files two"), default)).Value!.Id;
         var crm = sp.GetRequiredService<ICrm>(); var record = (await crm.Save(actor, organisation, new(null, null, Contact("Contact")), default)).Value!;

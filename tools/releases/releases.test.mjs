@@ -246,9 +246,12 @@ test("a clean module packages with npm and composes only its pinned source", asy
           { encoding: "utf8" },
         )
       : execFileSync("npm", args, { encoding: "utf8" });
-  const tgz = await fs.readFile(
-    path.join(directory, JSON.parse(packed)[0].filename),
-  );
+  const packOutput = JSON.parse(packed);
+  const packEntry = Array.isArray(packOutput)
+    ? packOutput[0]
+    : packOutput[release.artifact.package] ?? Object.values(packOutput)[0];
+  assert.ok(packEntry?.filename, "npm pack did not return a package filename");
+  const tgz = await fs.readFile(path.join(directory, packEntry.filename));
   release.artifact = { ...release.artifact, sha256: sha256(tgz) };
   const bundle = unpackBundle(tgz, release);
   assert.deepEqual(bundle.files.map((f) => f.path).sort(), [

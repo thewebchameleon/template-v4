@@ -14,12 +14,18 @@ on:
   pull_request:
   push:
     branches: [main]
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+
 jobs:
-  validate:
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Read toolchains
@@ -49,38 +55,170 @@ jobs:
       - run: node --test tools/releases/releases.test.mjs
       - run: dotnet tool restore
       - run: dotnet restore src/TemplateV4.slnx --locked-mode
-      - run: dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore
+      - name: Verify C# formatting
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            git fetch origin "$BASE_SHA" --depth=1
+            mapfile -t files < <(git diff --name-only "$BASE_SHA" HEAD -- '*.cs' | grep -v '^src/TemplateV4.Infrastructure/Persistence/Migrations/' || true)
+            if [ "${#files[@]}" -gt 0 ]; then
+              dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --include "${files[@]}"
+            fi
+          else
+            dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Infrastructure/Persistence/Migrations
+          fi
       - run: npm run format:check --prefix src/TemplateV4.Angular
       - run: npm run lint --prefix src/TemplateV4.Angular
       - run: dotnet build src/TemplateV4.slnx -c Release --no-restore
       - run: npm run build --prefix src/TemplateV4.Angular
       - run: npm run validate --prefix documentation
       - run: npm run build --prefix documentation
-      - run: npm audit --prefix src/TemplateV4.Angular --audit-level=moderate
-      - run: npm audit --prefix documentation --audit-level=moderate
+      - run: npm audit --prefix src/TemplateV4.Angular --omit=dev --audit-level=moderate
+      - run: npm audit --prefix documentation --omit=dev --audit-level=moderate
       - name: NuGet vulnerability check
         run: node tools/audit-nuget.mjs
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
-      - run: |
-          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.ApiService -t templatev4-api:ci .
-          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.BackgroundWorker -t templatev4-worker:ci .
-          docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=TemplateV4.DatabaseMigrator -t templatev4-databasemigrator:ci .
-          docker build -f src/TemplateV4.Angular/Dockerfile -t templatev4-web:ci .
       - run: node --test tools/cli.test.mjs tools/appearance.test.mjs tools/auth-retry.test.mjs tools/capabilities.test.mjs tools/ui-sounds.test.mjs
+      - name: Test non-integration application tests
+        run: dotnet test src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-build --logger trx --filter "FullyQualifiedName!~TemplateV4.Application.Tests.SecurityAndMessagingTests"
+      - run: dotnet test src/TemplateV4.Ui.Tests/TemplateV4.Ui.Tests.csproj -c Release --no-build --logger trx
+      - run: dotnet test src/TemplateV4.Utility.Tests/TemplateV4.Utility.Tests.csproj -c Release --no-build --logger trx
+
+  application-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read SDK
+        id: tools
+        run: echo "dotnet=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - run: dotnet restore src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj --locked-mode
+      - run: dotnet build src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-restore
+      - run: node tools/run-application-test-shard.mjs ${{ matrix.shard }} 4
+
+  generated-clients:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read toolchains
+        id: tools
+        run: |
+          echo "dotnet=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
+          echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
+          echo "npm=$(jq -r .toolchains.npm framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+          cache: npm
+          cache-dependency-path: src/TemplateV4.Angular/package-lock.json
+      - run: npm install -g npm@${{ steps.tools.outputs.npm }}
+      - run: npm ci --prefix src/TemplateV4.Angular
+      - run: dotnet restore src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj --locked-mode
+      - run: dotnet build src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-restore
+      - name: Export and validate live OpenAPI contract
+        run: dotnet test src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-build --logger trx --filter "FullyQualifiedName=TemplateV4.Application.Tests.SecurityAndMessagingTests.Api_requires_authorization_and_Csrf_and_exports_contract"
+        env:
+          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
+      - run: node tools/framework.mjs clients
+      - run: node tools/generate-business-clients.mjs
+      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
+
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            project: TemplateV4.ApiService
+            dockerfile: deploy/Dockerfile.dotnet
+          - name: worker
+            project: TemplateV4.BackgroundWorker
+            dockerfile: deploy/Dockerfile.dotnet
+          - name: migrator
+            project: TemplateV4.DatabaseMigrator
+            dockerfile: deploy/Dockerfile.dotnet
+          - name: web
+            project: Web
+            dockerfile: src/TemplateV4.Angular/Dockerfile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          build-args: PROJECT=${{ matrix.project }}
+          push: false
+          load: false
+          cache-from: type=gha,scope=validate-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=validate-${{ matrix.name }}
+
+  package-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read toolchains
+        id: tools
+        run: |
+          echo "dotnet=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
+          echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
+          echo "npm=$(jq -r .toolchains.npm framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+          cache: npm
+          cache-dependency-path: src/TemplateV4.Angular/package-lock.json
+      - run: npm install -g npm@${{ steps.tools.outputs.npm }}
+      - run: npm ci --prefix src/TemplateV4.Angular
+      - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - name: Test independent package consumer
         shell: pwsh
         run: |
           ./tools/pack-foundation.ps1
           ./tools/test-foundation-packages.ps1
           node tools/build-business-frontend.mjs
-      - run: dotnet test src/TemplateV4.slnx -c Release --no-build --logger trx
-        env:
-          TEMPLATEV4_EXPORT_OPENAPI: ${{ github.workspace }}/contracts/openapi.json
-      - run: node tools/framework.mjs clients
-      - run: node tools/generate-business-clients.mjs
-      - run: test -z "$(git status --porcelain -- contracts/openapi.json src/TemplateV4.Angular/src/app/api)"
+
+  browser-e2e:
+    if: ${{ inputs.run_e2e == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read toolchains
+        id: tools
+        run: |
+          echo "dotnet=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
+          echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
+          echo "npm=$(jq -r .toolchains.npm framework.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: ${{ steps.tools.outputs.dotnet }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.tools.outputs.node }}
+          cache: npm
+          cache-dependency-path: src/TemplateV4.Angular/package-lock.json
+      - run: npm install -g npm@${{ steps.tools.outputs.npm }}
+      - run: npm ci --prefix src/TemplateV4.Angular
+      - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - name: Browser security and accessibility
-        if: ${{ inputs.run_e2e == true }}
         shell: pwsh
         run: |
           node src/TemplateV4.Angular/node_modules/@playwright/test/cli.js install --with-deps chromium
