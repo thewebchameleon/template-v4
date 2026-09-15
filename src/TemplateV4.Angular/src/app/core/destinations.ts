@@ -36,6 +36,15 @@ export function activeDestinationIndex(items: readonly Destination[], path: stri
 }
 
 export const workspaceDestinations = {
+  cms: {
+    path: '/cms',
+    label: 'cms',
+    icon: 'lucideFileSpreadsheet',
+    capability: 'cms',
+    permissions: ['cms.edit'],
+    help: 'cmsModuleHelp',
+    hasPanel: false,
+  },
   organisations: {
     path: '/organisations',
     label: 'organisation',

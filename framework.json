@@ -19,6 +19,7 @@
     "spartan": "1.4.1"
   },
   "modules": [
+    "cms",
     "identity",
     "cqrs",
     "postgresql",

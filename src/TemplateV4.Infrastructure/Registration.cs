@@ -45,6 +45,7 @@ public static class Registration
         services.AddScoped<DemoPasswordVerifier>();
         services.AddScoped<TemplateV4.Application.Customers.IOrganisationObligations, Invoicing.CommercialObligations>();
         services.AddScoped<Crm.CrmStore>();
+        services.AddScoped<TemplateV4.Application.Cms.ICms, Cms.CmsStore>();
         services.AddScoped<TemplateV4.Application.Crm.IRecordAttachments, Crm.RecordAttachments>();
         services.AddScoped<TemplateV4.Application.Crm.ICrm>(p => p.GetRequiredService<Crm.CrmStore>());
         services.AddScoped<TemplateV4.Application.Crm.ICrmCustomers>(p => p.GetRequiredService<Crm.CrmStore>());

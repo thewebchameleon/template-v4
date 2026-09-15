@@ -18,11 +18,13 @@ public static class EndpointRegistration
             .MapRuntimeModuleEndpoints()
             .MapSupportEndpoints()
             .MapCrmEndpoints()
+            .MapCmsEndpoints()
             .MapInvoicingEndpoints()
             .MapOrganisationAttachmentEndpoints()
             .MapCustomerBillingEndpoints();
 
         app.MapPaymentCallbacks();
+        app.MapPublicBlog();
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")

@@ -85,3 +85,5 @@ Invoicing navigation remains available for retained documents even when new work
 Capability discovery failures remain fail-closed and show a retryable page preserving the intended URL. Confirmed unavailability has a separate explanation. HTTP feature overrides currently support user, environment and default decisions. Tenant overrides are **unsupported for HTTP**: `HttpExecutionContext.TenantId` is deliberately null. They apply only to non-HTTP callers supplying an explicit trusted context; an organisation route or selected workspace is not such a context.
 
 Disabling stops new admissions after the committed activation change. Requests already admitted may finish; accepted jobs and retained obligations continue. Disablement is not cancellation or a guarantee that no later writes occur. See [ADR 0036](adr/0036-module-administration-safety.md).
+
+See [CMS: site-wide public blog](modules/cms.md) for Markdown authoring, publication snapshots and public routing.

@@ -1,0 +1,59 @@
+/* Shared article typography for the public blog and authenticated Markdown preview. */
+.cms-prose {
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+}
+.cms-prose h1,
+.cms-prose h2,
+.cms-prose h3,
+.cms-prose h4 {
+  font-weight: 650;
+  line-height: 1.25;
+  margin-block: 1.5em 0.6em;
+}
+.cms-prose h1 {
+  font-size: 2em;
+}
+.cms-prose h2 {
+  font-size: 1.5em;
+}
+.cms-prose h3 {
+  font-size: 1.25em;
+}
+.cms-prose p,
+.cms-prose ul,
+.cms-prose ol,
+.cms-prose blockquote,
+.cms-prose pre {
+  margin-block: 1em;
+}
+.cms-prose ul {
+  list-style: disc;
+  padding-inline-start: 1.5em;
+}
+.cms-prose ol {
+  list-style: decimal;
+  padding-inline-start: 1.5em;
+}
+.cms-prose a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.cms-prose blockquote {
+  border-inline-start: 0.25rem solid currentColor;
+  padding-inline-start: 1em;
+}
+.cms-prose pre {
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+}
+.cms-prose code {
+  font-family: ui-monospace, monospace;
+}
+.cms-prose hr {
+  border: 0;
+  border-top: 1px solid currentColor;
+  margin-block: 2rem;
+}

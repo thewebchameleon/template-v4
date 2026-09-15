@@ -5,6 +5,18 @@ import { moduleDictionary } from './module-translations';
 import { configurationDictionary } from './configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  cms: ['Blog & news', 'Blog en nuus'],
+  cmsModuleHelp: [
+    'Site-wide public blog with Markdown publishing.',
+    'Webwerfwye openbare blog met Markdown-publikasie.',
+  ],
+  cmsModuleDisableHelp: [
+    'Blocks editor and public blog access while retaining all articles.',
+    'Blokkeer redakteurs en die openbare blog terwyl alle artikels behou word.',
+  ],
+  enableCmsModule: ['Enable CMS', 'Aktiveer CMS'],
+  'permission.cms.edit': ['Edit and publish blog articles', 'Redigeer en publiseer blogartikels'],
+  'permissionGroup.cms': ['CMS', 'CMS'],
   releaseUpdates: ['Updates', 'Opdaterings'],
   notificationReleaseAvailable: [
     'A foundation or business-module update is available',

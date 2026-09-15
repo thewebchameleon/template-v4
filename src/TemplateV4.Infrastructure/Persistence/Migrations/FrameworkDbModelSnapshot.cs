@@ -215,6 +215,55 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("users", "app");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ArticleRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Draft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Published")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PublishedContent")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("PublishedUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("Published", "PublishedAt", "Id");
+
+                    b.ToTable("articles", "cms");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmAttachmentRow", b =>
                 {
                     b.Property<Guid>("OrganisationId")
@@ -1497,6 +1546,12 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             Id = "my-files",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
+                        },
+                        new
+                        {
+                            Id = "cms",
+                            Enabled = true,
+                            Version = new Guid("a274bd77-60b9-4128-af9d-1084b2d8a34e")
                         });
                 });
 

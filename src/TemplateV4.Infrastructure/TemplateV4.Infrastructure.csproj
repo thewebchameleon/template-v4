@@ -10,6 +10,7 @@
     <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />
 
     <PackageReference Include="MailKit" />
+    <PackageReference Include="Markdig" />
     <PackageReference Include="PDFsharp" />
     <EmbeddedResource Include="Invoicing/Fonts/*.ttf" />
     <None Include="Invoicing/Fonts/LICENSE.txt" Pack="true" PackagePath="licenses/NotoSans.txt" />

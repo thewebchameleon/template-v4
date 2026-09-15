@@ -130,3 +130,5 @@ Administration is one permission-filtered rail destination with a settings-cog i
 Extend `core/administration.ts` and the guarded child routes together for new administration pages. Navigation and the parent landing route share the permission/module-filtered list; endpoint and route guards remain authoritative. Keep localized breadcrumbs, active rail state, named links and panel expanded state consistent for direct visits and browser history.
 
 See [My Files](my-files.md) for folders, sharing, Trash and storage accounting.
+
+The [CMS module](modules/cms.md) adds a site-wide public blog and delegated Markdown editors.

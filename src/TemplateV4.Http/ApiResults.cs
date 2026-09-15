@@ -124,6 +124,8 @@ public static class ApiResults
 
             "role.self_edit" => af ? "Ã¢â‚¬â„¢n Ander administrateur moet Ã¢â‚¬â„¢n rol wat aan jou toegeken is, wysig." : "Another administrator must edit a role assigned to you.",
 
+            "cms.slug_locked" => af ? "Die URL-naam is vas ná eerste publikasie." : "The URL slug is fixed after first publication.",
+            "cms.slug_taken" => af ? "Hierdie URL-naam word reeds gebruik. Kies 'n ander naam." : "This URL slug is already in use. Choose another.",
             "concurrency.conflict" => af ? "Die rekord het verander. Herlaai dit." : "The record changed. Reload it.",
 
             "profile.name_invalid" => af ? "Voer 'n vertoonnaam van hoogstens 120 karakters en name van hoogstens 100 karakters in." : "Enter a display name up to 120 characters and names up to 100 characters.",

@@ -1,3 +1,4 @@
+import { cmsTranslations } from './core/cms-resolver';
 import { actionItemTranslations } from './core/action-item-resolver';
 import { updateTranslations } from './core/update-resolver';
 import { currentOrganisationGuard } from './core/current-organisation';
@@ -19,6 +20,29 @@ import { authGuard, administratorRoleGuard, permissionGuard } from './core/auth'
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
+  {
+    path: 'cms',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    loadComponent: () => import('./features/cms').then((m) => m.CmsPage),
+  },
+  {
+    path: 'cms/new',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cmsNew' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/cms-editor').then((m) => m.CmsEditorPage),
+  },
+  {
+    path: 'cms/:id',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () => import('./features/cms-editor').then((m) => m.CmsEditorPage),
+  },
   {
     path: 'module-workspaces',
     canDeactivate: [unsavedGuard],

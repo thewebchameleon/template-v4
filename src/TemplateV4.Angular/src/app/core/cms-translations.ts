@@ -1,0 +1,64 @@
+export const cmsDictionary: Record<string, [string, string]> = {
+  cmsIntro: [
+    'Write and publish articles for the site-wide public blog.',
+    'Skryf en publiseer artikels vir die webwerf se openbare blog.',
+  ],
+  cmsArticles: ['Articles', 'Artikels'],
+  cmsNew: ['New article', 'Nuwe artikel'],
+  cmsTitle: ['Title', 'Titel'],
+  cmsAuthor: ['Public author name', 'Openbare outeurnaam'],
+  cmsSlug: ['URL slug', 'URL-naam'],
+  cmsSlugHelp: [
+    'Lowercase letters, numbers and hyphens. Fixed after first publication.',
+    'Kleinletters, syfers en koppeltekens. Vas ná eerste publikasie.',
+  ],
+  cmsExcerpt: ['Excerpt', 'Uittreksel'],
+  cmsMarkdown: ['Markdown body', 'Markdown-inhoud'],
+  cmsMarkdownHelp: [
+    'Supports headings, lists, links, quotes and code. HTML and images are disabled.',
+    'Ondersteun opskrifte, lyste, skakels, aanhalings en kode. HTML en beelde is gedeaktiveer.',
+  ],
+  cmsAll: ['All articles', 'Alle artikels'],
+  cmsDraft: ['Draft', 'Konsep'],
+  cmsPublished: ['Published', 'Gepubliseer'],
+  cmsPending: ['Published · pending changes', 'Gepubliseer · hangende veranderings'],
+  cmsUpdated: ['Last updated', 'Laas bygewerk'],
+  cmsEmpty: ['No articles found.', 'Geen artikels gevind nie.'],
+  cmsOpenBlog: ['View public blog', 'Bekyk openbare blog'],
+  cmsEditHelp: [
+    'Save a draft, preview it, then publish when ready.',
+    'Stoor ’n konsep, bekyk dit en publiseer wanneer gereed.',
+  ],
+  cmsSave: ['Save draft', 'Stoor konsep'],
+  cmsPreview: ['Preview Markdown', 'Voorskou van Markdown'],
+  cmsPreviewHelp: [
+    'Preview of the current Markdown body. This does not publish your changes.',
+    'Voorskou van die huidige Markdown-inhoud. Dit publiseer nie jou veranderings nie.',
+  ],
+  cmsPublish: ['Publish saved draft', 'Publiseer gestoorde konsep'],
+  cmsRepublish: ['Republish saved draft', 'Herpubliseer gestoorde konsep'],
+  cmsUnpublish: ['Unpublish', 'Ontpubliseer'],
+  cmsUnpublishHelp: [
+    'The article will disappear from the public blog and its URL will return not found.',
+    'Die artikel sal van die openbare blog verdwyn en sy URL sal nie meer gevind word nie.',
+  ],
+  cmsSaved: ['Draft saved.', 'Konsep gestoor.'],
+  cmsPublicationSaved: ['Publication updated.', 'Publikasie bygewerk.'],
+  cmsConflict: [
+    'Another editor changed this article. Your text is retained. Copy any changes you need before reloading the latest version.',
+    '’n Ander redakteur het hierdie artikel verander. Jou teks word behou. Kopieer nodige veranderings voordat jy die jongste weergawe herlaai.',
+  ],
+  cmsReload: ['Reload latest version', 'Herlaai jongste weergawe'],
+  cmsReloadHelp: [
+    'Reloading will replace your local edits with the latest saved draft.',
+    'Herlaai vervang jou plaaslike veranderings met die jongste gestoorde konsep.',
+  ],
+  cmsPendingHelp: [
+    'Readers see the previous published version until you republish.',
+    'Lesers sien die vorige gepubliseerde weergawe totdat jy herpubliseer.',
+  ],
+  cmsPreviewStale: [
+    'The Markdown has changed. Refresh the preview to see your latest edits.',
+    'Die Markdown het verander. Verfris die voorskou om jou jongste veranderings te sien.',
+  ],
+};

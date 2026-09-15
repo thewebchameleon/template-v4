@@ -84,7 +84,7 @@ public sealed partial class SecurityAndMessagingTests
             foreach (var gate in gates) Assert.True(catalog.Capabilities.ContainsKey(gate.Id), endpoint.DisplayName);
         }
         // Independently enforce ownership for module URL boundaries so omission of all metadata is caught.
-        foreach (var endpoint in endpoints.Where(x => new[] { "/api/v1/auth/my-files", "/api/v1/auth/support", "/api/v1/auth/customers", "/api/v1/auth/organisations", "/api/v1/auth/operations", "/api/v1/auth/audit", "/api/v1/billing/callbacks" }
+        foreach (var endpoint in endpoints.Where(x => new[] { "/blog", "/api/v1/auth/cms", "/api/v1/auth/my-files", "/api/v1/auth/support", "/api/v1/auth/customers", "/api/v1/auth/organisations", "/api/v1/auth/operations", "/api/v1/auth/audit", "/api/v1/billing/callbacks" }
             .Any(prefix => x.RoutePattern.RawText?.StartsWith(prefix, StringComparison.Ordinal) == true)))
             Assert.NotNull(endpoint.Metadata.GetMetadata<ModuleOwnership>());
     }

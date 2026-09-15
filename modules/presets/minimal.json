@@ -1,5 +1,6 @@
 {
   "Modules": {
+    "cms": false,
     "my-files": false,
     "maintenance": false,
     "operations": false,

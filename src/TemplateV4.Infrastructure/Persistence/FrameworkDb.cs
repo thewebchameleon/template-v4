@@ -336,6 +336,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         SupportModel.Configure(model);
         CustomerBillingModel.Configure(model);
         Crm.CrmMappings.Configure(model);
+        Cms.CmsMappings.Configure(model);
         Crm.RecordAttachmentMappings.Configure(model);
         Invoicing.CommercialMappings.Configure(model);
         model.Entity<TemplateV4.Infrastructure.Storage.OrganisationFileRow>(entity =>

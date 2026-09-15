@@ -41,6 +41,7 @@ import { ChangeOrganisationRole$Params } from '../fn/framework/change-organisati
 import { CheckoutResponse } from '../models/checkout-response';
 import { closeOrganisation } from '../fn/framework/close-organisation';
 import { CloseOrganisation$Params } from '../fn/framework/close-organisation';
+import { CmsArticle } from '../models/cms-article';
 import { CommercialDetail } from '../models/commercial-detail';
 import { CommercialDocument } from '../models/commercial-document';
 import { CommercialTotals } from '../models/commercial-totals';
@@ -130,6 +131,8 @@ import { getBillingSettings } from '../fn/framework/get-billing-settings';
 import { GetBillingSettings$Params } from '../fn/framework/get-billing-settings';
 import { getCapabilities } from '../fn/framework/get-capabilities';
 import { GetCapabilities$Params } from '../fn/framework/get-capabilities';
+import { getCmsArticle } from '../fn/framework/get-cms-article';
+import { GetCmsArticle$Params } from '../fn/framework/get-cms-article';
 import { getCommercialDocument } from '../fn/framework/get-commercial-document';
 import { GetCommercialDocument$Params } from '../fn/framework/get-commercial-document';
 import { getCrmConfiguration } from '../fn/framework/get-crm-configuration';
@@ -188,6 +191,8 @@ import { getSupportTicket } from '../fn/framework/get-support-ticket';
 import { GetSupportTicket$Params } from '../fn/framework/get-support-ticket';
 import { getUserAccess } from '../fn/framework/get-user-access';
 import { GetUserAccess$Params } from '../fn/framework/get-user-access';
+import { getWebPushStatus } from '../fn/framework/get-web-push-status';
+import { GetWebPushStatus$Params } from '../fn/framework/get-web-push-status';
 import { InvitationPage } from '../models/invitation-page';
 import { inviteOrganisationMember } from '../fn/framework/invite-organisation-member';
 import { InviteOrganisationMember$Params } from '../fn/framework/invite-organisation-member';
@@ -200,6 +205,8 @@ import { listActionItems } from '../fn/framework/list-action-items';
 import { ListActionItems$Params } from '../fn/framework/list-action-items';
 import { listAuditHistory } from '../fn/framework/list-audit-history';
 import { ListAuditHistory$Params } from '../fn/framework/list-audit-history';
+import { listCmsArticles } from '../fn/framework/list-cms-articles';
+import { ListCmsArticles$Params } from '../fn/framework/list-cms-articles';
 import { listCommercialDocuments } from '../fn/framework/list-commercial-documents';
 import { ListCommercialDocuments$Params } from '../fn/framework/list-commercial-documents';
 import { listCrmAttachments } from '../fn/framework/list-crm-attachments';
@@ -240,6 +247,7 @@ import { logout } from '../fn/framework/logout';
 import { Logout$Params } from '../fn/framework/logout';
 import { manageInvitation } from '../fn/framework/manage-invitation';
 import { ManageInvitation$Params } from '../fn/framework/manage-invitation';
+import { MarkdownPreview } from '../models/markdown-preview';
 import { MfaEnrollment } from '../models/mfa-enrollment';
 import { ModuleActivation } from '../models/module-activation';
 import { moveMyFile } from '../fn/framework/move-my-file';
@@ -252,6 +260,7 @@ import { OrganisationAttachment } from '../models/organisation-attachment';
 import { OrganisationFilePage } from '../models/organisation-file-page';
 import { PageOfActionItemDto } from '../models/page-of-action-item-dto';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
+import { PageOfCmsArticleSummary } from '../models/page-of-cms-article-summary';
 import { PageOfCommercialDocument } from '../models/page-of-commercial-document';
 import { PageOfCrmRecord } from '../models/page-of-crm-record';
 import { PageOfCustomerMember } from '../models/page-of-customer-member';
@@ -269,12 +278,16 @@ import { PasskeyOptions } from '../models/passkey-options';
 import { passkeyRegistrationOptions } from '../fn/framework/passkey-registration-options';
 import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-registration-options';
 import { PlatformAppearance } from '../models/platform-appearance';
+import { previewCmsMarkdown } from '../fn/framework/preview-cms-markdown';
+import { PreviewCmsMarkdown$Params } from '../fn/framework/preview-cms-markdown';
 import { previewCommercialDocument } from '../fn/framework/preview-commercial-document';
 import { PreviewCommercialDocument$Params } from '../fn/framework/preview-commercial-document';
 import { PrivacyStatus } from '../models/privacy-status';
 import { ProfileOptions } from '../models/profile-options';
 import { ProfileResponse } from '../models/profile-response';
 import { PublicAppearance } from '../models/public-appearance';
+import { publishCmsArticle } from '../fn/framework/publish-cms-article';
+import { PublishCmsArticle$Params } from '../fn/framework/publish-cms-article';
 import { purgeMyFile } from '../fn/framework/purge-my-file';
 import { PurgeMyFile$Params } from '../fn/framework/purge-my-file';
 import { readNotifications } from '../fn/framework/read-notifications';
@@ -292,6 +305,8 @@ import { registerAccount } from '../fn/framework/register-account';
 import { RegisterAccount$Params } from '../fn/framework/register-account';
 import { registerPasskey } from '../fn/framework/register-passkey';
 import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
+import { registerWebPush } from '../fn/framework/register-web-push';
+import { RegisterWebPush$Params } from '../fn/framework/register-web-push';
 import { RegistrationSettings } from '../models/registration-settings';
 import { removeOrganisationMember } from '../fn/framework/remove-organisation-member';
 import { RemoveOrganisationMember$Params } from '../fn/framework/remove-organisation-member';
@@ -328,6 +343,8 @@ import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
 import { saveBillingSettings } from '../fn/framework/save-billing-settings';
 import { SaveBillingSettings$Params } from '../fn/framework/save-billing-settings';
+import { saveCmsArticle } from '../fn/framework/save-cms-article';
+import { SaveCmsArticle$Params } from '../fn/framework/save-cms-article';
 import { saveCrmRecord } from '../fn/framework/save-crm-record';
 import { SaveCrmRecord$Params } from '../fn/framework/save-crm-record';
 import { saveModuleActivation } from '../fn/framework/save-module-activation';
@@ -342,6 +359,8 @@ import { savePlatformAppearance } from '../fn/framework/save-platform-appearance
 import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-appearance';
 import { saveSupportCategory } from '../fn/framework/save-support-category';
 import { SaveSupportCategory$Params } from '../fn/framework/save-support-category';
+import { saveWebPushPreferences } from '../fn/framework/save-web-push-preferences';
+import { SaveWebPushPreferences$Params } from '../fn/framework/save-web-push-preferences';
 import { SecuritySettings } from '../models/security-settings';
 import { selectOrganisation } from '../fn/framework/select-organisation';
 import { SelectOrganisation$Params } from '../fn/framework/select-organisation';
@@ -388,6 +407,7 @@ import { UploadOrganisationFile$Params } from '../fn/framework/upload-organisati
 import { UserAccessDetail } from '../models/user-access-detail';
 import { UserDirectoryPage } from '../models/user-directory-page';
 import { UserDto } from '../models/user-dto';
+import { WebPushStatus } from '../models/web-push-status';
 import { withdrawAccountDeletion } from '../fn/framework/withdraw-account-deletion';
 import { WithdrawAccountDeletion$Params } from '../fn/framework/withdraw-account-deletion';
 
@@ -1553,6 +1573,87 @@ export class FrameworkService extends BaseService {
    */
   saveNotificationPreferences(params: SaveNotificationPreferences$Params, context?: HttpContext): Observable<void> {
     const resp = this.saveNotificationPreferences$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getWebPushStatus()` */
+  static readonly GetWebPushStatusPath = '/api/v1/auth/notifications/push';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getWebPushStatus()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getWebPushStatus$Response(params?: GetWebPushStatus$Params, context?: HttpContext): Observable<StrictHttpResponse<WebPushStatus>> {
+    const obs = getWebPushStatus(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getWebPushStatus$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getWebPushStatus(params?: GetWebPushStatus$Params, context?: HttpContext): Observable<WebPushStatus> {
+    const resp = this.getWebPushStatus$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<WebPushStatus>): WebPushStatus => r.body)
+    );
+  }
+
+  /** Path part for operation `registerWebPush()` */
+  static readonly RegisterWebPushPath = '/api/v1/auth/notifications/push/subscribe';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `registerWebPush()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerWebPush$Response(params: RegisterWebPush$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = registerWebPush(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `registerWebPush$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerWebPush(params: RegisterWebPush$Params, context?: HttpContext): Observable<void> {
+    const resp = this.registerWebPush$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `saveWebPushPreferences()` */
+  static readonly SaveWebPushPreferencesPath = '/api/v1/auth/notifications/push/preferences';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveWebPushPreferences()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveWebPushPreferences$Response(params: SaveWebPushPreferences$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveWebPushPreferences(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveWebPushPreferences$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveWebPushPreferences(params: SaveWebPushPreferences$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveWebPushPreferences$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -3229,6 +3330,141 @@ export class FrameworkService extends BaseService {
     const resp = this.addCrmNote$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
+    );
+  }
+
+  /** Path part for operation `listCmsArticles()` */
+  static readonly ListCmsArticlesPath = '/api/v1/auth/cms';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCmsArticles()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCmsArticles$Response(params?: ListCmsArticles$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCmsArticleSummary>> {
+    const obs = listCmsArticles(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCmsArticles$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCmsArticles(params?: ListCmsArticles$Params, context?: HttpContext): Observable<PageOfCmsArticleSummary> {
+    const resp = this.listCmsArticles$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCmsArticleSummary>): PageOfCmsArticleSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCmsArticle()` */
+  static readonly SaveCmsArticlePath = '/api/v1/auth/cms';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCmsArticle()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsArticle$Response(params: SaveCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = saveCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCmsArticle$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsArticle(params: SaveCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.saveCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `getCmsArticle()` */
+  static readonly GetCmsArticlePath = '/api/v1/auth/cms/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCmsArticle()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsArticle$Response(params: GetCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = getCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCmsArticle$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsArticle(params: GetCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.getCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `publishCmsArticle()` */
+  static readonly PublishCmsArticlePath = '/api/v1/auth/cms/{id}/publish';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `publishCmsArticle()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsArticle$Response(params: PublishCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = publishCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `publishCmsArticle$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsArticle(params: PublishCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.publishCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `previewCmsMarkdown()` */
+  static readonly PreviewCmsMarkdownPath = '/api/v1/auth/cms/preview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `previewCmsMarkdown()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCmsMarkdown$Response(params: PreviewCmsMarkdown$Params, context?: HttpContext): Observable<StrictHttpResponse<MarkdownPreview>> {
+    const obs = previewCmsMarkdown(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `previewCmsMarkdown$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCmsMarkdown(params: PreviewCmsMarkdown$Params, context?: HttpContext): Observable<MarkdownPreview> {
+    const resp = this.previewCmsMarkdown$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<MarkdownPreview>): MarkdownPreview => r.body)
     );
   }
 

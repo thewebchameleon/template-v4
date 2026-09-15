@@ -1,5 +1,13 @@
 [
   {
+    "id": "cms",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["identity", "audit-recording"],
+    "runtimeConfigurable": true,
+    "category": "foundation"
+  },
+  {
     "id": "identity",
     "required": true,
     "enabledByDefault": true,
