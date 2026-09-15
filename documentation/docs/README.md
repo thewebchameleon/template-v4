@@ -9,6 +9,9 @@ follow [module ownership](module-ownership.md).
 For independent module versions, central release-feed hosting, administrator update
 notifications and client upgrade PRs, see [release updates](release-updates.md).
 
+For the proposed organization licensing, commercial module distribution and explicit
+client-approved VPS rollouts, see [client deployment architecture](client-deployment-proposal.md).
+
 For native Docker Compose deployments of the foundation demo and a generic client,
 see [EasyPanel deployment examples](easypanel.md) and [Coolify deployment examples](coolify.md).
 
@@ -137,4 +140,6 @@ Extend `core/administration.ts` and the guarded child routes together for new ad
 
 See [My Files](my-files.md) for folders, sharing, Trash and storage accounting.
 
-The [CMS module](modules/cms.md) adds a site-wide public blog and delegated Markdown editors.
+The [CMS module](modules/cms.md) adds landing sections, a public blog and delegated
+Markdown editors. The separate [public Angular SSR website](website.md) renders
+the business website and contact form, with bundled content when CMS is disabled.

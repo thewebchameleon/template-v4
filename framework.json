@@ -20,6 +20,7 @@
   },
   "modules": [
     "cms",
+    "contact",
     "identity",
     "cqrs",
     "postgresql",
@@ -57,6 +58,7 @@
     "ServiceDefaults": "src/TemplateV4.ServiceDefaults",
     "Documentation": "documentation",
     "Web": "src/TemplateV4.Angular",
+    "Website": "src/TemplateV4.Website",
     "CLI": "tools/framework.mjs",
     "SharedKernel": "src/TemplateV4.SharedKernel",
     "ApplicationTests": "src/TemplateV4.Application.Tests",
@@ -66,6 +68,7 @@
   },
   "workloads": {
     "Web": "src/TemplateV4.Angular/Dockerfile",
+    "Website": "src/TemplateV4.Website/Dockerfile",
     "API": "deploy/Dockerfile.dotnet",
     "Worker": "deploy/Dockerfile.dotnet"
   },

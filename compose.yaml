@@ -1,5 +1,12 @@
 name: templatev4
 services:
+  website:
+    build: {context: ., dockerfile: src/TemplateV4.Website/Dockerfile}
+    environment:
+      WEBSITE_API_URL: http://api:8080
+      PORT: 4300
+    ports: ["127.0.0.1:4300:4300"]
+    depends_on: [api]
   storage:
     image: chrislusf/seaweedfs:4.45
     command: [mini, '-dir=/data', '-bucket=templatev4']
@@ -55,7 +62,7 @@ services:
     build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.ApiService}}
     environment:
       <<: *environment
-      ReverseProxy__Address: ${WEB_PROXY_IP}
+      ReverseProxy__Address: web
     volumes: ["keys:/keys", "./.local/jwt.pem:/secrets/jwt.pem:ro"]
     depends_on:
       migrator: {condition: service_completed_successfully}
@@ -74,8 +81,6 @@ services:
     build: {context: ., dockerfile: src/TemplateV4.Angular/Dockerfile}
     ports: ["127.0.0.1:${WEB_HTTPS_PORT}:8443"]
     volumes: ["./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro", "./.local/web.pem:/run/secrets/web.pem:ro", "./.local/web.key:/run/secrets/web.key:ro"]
-    networks:
-      default: {ipv4_address: "${WEB_PROXY_IP}"}
     depends_on: [api]
   release-feed:
     profiles: [release-feed]
@@ -96,7 +101,3 @@ volumes:
   keys:
   storage:
   releases:
-networks:
-  default:
-    ipam:
-      config: [{subnet: "${COMPOSE_SUBNET}"}]

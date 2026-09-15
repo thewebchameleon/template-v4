@@ -1,4 +1,5 @@
 export const cmsDictionary: Record<string, [string, string]> = {
+  websiteSections: ['Landing page sections', 'Landingsbladafdelings'],
   cmsIntro: [
     'Write and publish articles for the site-wide public blog.',
     'Skryf en publiseer artikels vir die webwerf se openbare blog.',

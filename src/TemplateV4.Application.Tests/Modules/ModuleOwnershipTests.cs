@@ -12,7 +12,7 @@ namespace TemplateV4.Application.Tests;
 
 public sealed class ModuleOwnershipTests
 {
-    private static readonly string[] BusinessModules = ["Cms", "Crm", "Invoicing", "Support"];
+    private static readonly string[] BusinessModules = ["Cms", "Crm", "Invoicing", "Support", "Website", "Contact"];
 
     [Theory]
     [InlineData("baseline")]
@@ -87,7 +87,7 @@ public sealed class ModuleOwnershipTests
             .Select(field => (string)field.GetRawConstantValue()!).Order().ToArray();
         Assert.Equal(declarations.Length, declarations.Distinct().Count());
         Assert.Equal(declarations, Permissions.All.Order().ToArray());
-        Assert.Equal(new[] { "users.read", "users.manage", "roles.manage", "jobs.trigger", "settings.manage", "support.agent", "support.admin", "invoicing.issue", "invoicing.settle", "invoicing.correct", "cms.edit" }, Permissions.All);
+        Assert.Equal(new[] { "users.read", "users.manage", "roles.manage", "jobs.trigger", "settings.manage", "support.agent", "support.admin", "invoicing.issue", "invoicing.settle", "invoicing.correct", "cms.edit", "contact.manage" }, Permissions.All);
     }
 
     private static string[] Violations(CSharpCompilation compilation)

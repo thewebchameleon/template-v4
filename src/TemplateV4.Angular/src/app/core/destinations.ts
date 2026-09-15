@@ -72,6 +72,21 @@ export const workspaceDestinations = {
 } as const satisfies Record<string, Destination>;
 
 export const administrationDestinations = {
+  website: {
+    path: '/administration/website',
+    label: 'websiteSetup',
+    icon: 'lucideSettings',
+    section: 'administration',
+    administratorOnly: true,
+    permissions: ['settings.manage'],
+  },
+  contact: {
+    path: '/administration/contact',
+    label: 'contactInbox',
+    icon: 'lucideMail',
+    section: 'modules',
+    permissions: ['contact.manage'],
+  },
   organisations: {
     path: '/administration/organisations',
     label: 'organisations',

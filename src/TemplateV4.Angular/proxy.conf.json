@@ -7,9 +7,5 @@
   "/openapi": {
     "target": "https://localhost:7101",
     "secure": false
-  },
-  "/blog": {
-    "secure": false,
-    "target": "https://localhost:7101"
   }
 }

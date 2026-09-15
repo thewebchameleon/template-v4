@@ -32,7 +32,7 @@ In EasyPanel, create a Compose Git service for this repository, branch `deploy`,
 path `/`, filename `compose.yaml`. Add its SSH key as a read-only Git deploy key and
 configure separate GHCR read access. Copy the generated `.env.example` into the panel
 environment, enabling `.env` creation. Use a dedicated secret directory, PostgreSQL
-volume and S3 bucket; suggested subnet/IP are `172.31.0.0/24` / `172.31.0.10`.
+volume and S3 bucket. Docker allocates networking and the API discovers Web through DNS.
 Route the public domain to `web:8080` using internal HTTP and public HTTPS.
 
 For Coolify, use [the Coolify guide](deployment/COOLIFY.md) and the generated

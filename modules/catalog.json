@@ -1,5 +1,13 @@
 [
   {
+    "id": "contact",
+    "required": false,
+    "enabledByDefault": true,
+    "dependencies": ["identity", "audit-recording", "delivery"],
+    "runtimeConfigurable": true,
+    "category": "foundation"
+  },
+  {
     "id": "cms",
     "required": false,
     "enabledByDefault": true,

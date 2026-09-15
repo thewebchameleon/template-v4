@@ -29,6 +29,8 @@ public static partial class Registration
         AddCrm(services);
         AddInvoicing(services);
         AddCms(services);
+        AddWebsite(services);
+        AddContact(services);
         AddOperations(services);
         AddAuditHistory(services);
         AddSupport(services);
@@ -90,7 +92,7 @@ public static partial class Registration
             options.UserVerificationRequirement = "required";
         });
         services.AddScoped<IUnitOfWork, UnitOfWork>(); services.AddScoped<IEventOutbox, EventOutbox>();
-        services.AddSingleton(new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1"));
+        services.AddSingleton(new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1").Register<TemplateV4.Application.Contact.ContactNotification>("contact.notification.v1"));
         services.AddScoped(typeof(Dispatcher<,>));
         services.AddSingleton<IFeatureFlags, ConfigurationFlags>();
         if (config["Storage:Provider"] == "S3") services.AddSingleton<IFileStorage, S3FileStorage>();

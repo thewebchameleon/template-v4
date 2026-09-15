@@ -36,6 +36,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/cms/articles/cms-editor').then((m) => m.CmsEditorPage),
   },
   {
+    path: 'cms/sections',
+    loadChildren: () =>
+      import('./features/cms/sections/sections-routes').then((m) => m.sectionsRoutes),
+  },
+  {
     path: 'cms/:id',
     resolve: { cmsTranslations },
     data: { breadcrumb: 'cms' },
@@ -326,6 +331,16 @@ export const routes: Routes = [
     data: { breadcrumb: 'administration' },
     canActivate: [authGuard],
     children: [
+      {
+        path: 'website',
+        loadChildren: () =>
+          import('./features/website/website-routes').then((m) => m.websiteRoutes),
+      },
+      {
+        path: 'contact',
+        loadChildren: () =>
+          import('./features/contact/contact-routes').then((m) => m.contactRoutes),
+      },
       {
         path: 'organisations',
         data: { breadcrumb: 'organisations', organisationAdministration: true },

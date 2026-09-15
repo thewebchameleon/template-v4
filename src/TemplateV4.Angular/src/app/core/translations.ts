@@ -5,14 +5,27 @@ import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  websiteSetup: ['Website setup', 'Webwerfopstelling'],
+  contact: ['Contact enquiries', 'Kontaknavrae'],
+  contactInbox: ['Contact enquiries', 'Kontaknavrae'],
+  contactModuleHelp: [
+    'Public contact form, enquiry inbox and email notifications.',
+    'Openbare kontakvorm, navraaginkassie en e-poskennisgewings.',
+  ],
+  contactModuleDisableHelp: [
+    'Hides the public form. Retained enquiries and queued notifications remain available.',
+    'Versteek die openbare vorm. Bestaande navrae en kennisgewings in die tou bly beskikbaar.',
+  ],
+  enableContactModule: ['Enable contact form', 'Aktiveer kontakvorm'],
+  'permission.contact.manage': ['Manage website enquiries', 'Bestuur webwerfnavrae'],
   cms: ['Blog & news', 'Blog en nuus'],
   cmsModuleHelp: [
     'Site-wide public blog with Markdown publishing.',
     'Webwerfwye openbare blog met Markdown-publikasie.',
   ],
   cmsModuleDisableHelp: [
-    'Blocks editor and public blog access while retaining all articles.',
-    'Blokkeer redakteurs en die openbare blog terwyl alle artikels behou word.',
+    'Blocks CMS editing and data access. The public website uses bundled content.',
+    'Blokkeer CMS-redigering en datatoegang. Die openbare webwerf gebruik gebundelde inhoud.',
   ],
   enableCmsModule: ['Enable CMS', 'Aktiveer CMS'],
   'permission.cms.edit': ['Edit and publish blog articles', 'Redigeer en publiseer blogartikels'],

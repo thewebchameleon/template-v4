@@ -264,6 +264,74 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("articles", "cms");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.CmsSectionsRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Draft")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Published")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("sections", "cms");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Draft = "[]",
+                            Published = "[]",
+                            Version = new Guid("06416342-7225-40b5-95d3-216c4a5971d2")
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Contact.ContactRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("Read")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt", "Id");
+
+                    b.ToTable("enquiries", "contact");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmAttachmentRow", b =>
                 {
                     b.Property<Guid>("OrganisationId")
@@ -1552,6 +1620,12 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             Id = "cms",
                             Enabled = true,
                             Version = new Guid("a274bd77-60b9-4128-af9d-1084b2d8a34e")
+                        },
+                        new
+                        {
+                            Id = "contact",
+                            Enabled = true,
+                            Version = new Guid("1435e55e-cf92-4619-baf4-b4a27327e98b")
                         });
                 });
 
@@ -2097,6 +2171,64 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("web_push_subscriptions", "app");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Website.WebsiteImageRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("images", "website");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Website.WebsiteRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Configured")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NotificationEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id")
+                        .HasName("PK_settings1");
+
+                    b.ToTable("settings", "website");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Configured = false,
+                            Details = "{}",
+                            Enabled = false,
+                            NotificationEmail = "",
+                            Version = new Guid("1dd69198-4c66-431d-b35b-cc8d4d65a123")
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

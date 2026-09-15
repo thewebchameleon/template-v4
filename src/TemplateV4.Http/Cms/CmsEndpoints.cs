@@ -21,18 +21,9 @@ public static class CmsEndpoints
         cms.MapPost("", async (SaveArticle request, ICms store, CancellationToken ct) => (await store.Save(request, ct)).ToHttp()).WithName("SaveCmsArticle").Produces<CmsArticle>();
         cms.MapPost("/{id:guid}/publish", async (Guid id, PublishArticle request, ICms store, CancellationToken ct) => (await store.Publish(id, request, ct)).ToHttp()).WithName("PublishCmsArticle").Produces<CmsArticle>();
         cms.MapPost("/preview", async (PreviewMarkdown request, ICms store, CancellationToken ct) => (await store.Preview(request, ct)).ToHttp()).WithName("PreviewCmsMarkdown").Produces<MarkdownPreview>();
+        cms.MapGet("/sections", async (ICmsSections store, CancellationToken ct) => (await store.Read(ct)).ToHttp()).WithName("GetCmsSections").Produces<CmsSections>();
+        cms.MapPost("/sections", async (SaveCmsSections request, ICmsSections store, CancellationToken ct) => (await store.Save(request, ct)).ToHttp()).WithName("SaveCmsSections").Produces<CmsSections>();
+        cms.MapPost("/sections/publish", async (PublishCmsSections request, ICmsSections store, CancellationToken ct) => (await store.Publish(request, ct)).ToHttp()).WithName("PublishCmsSections").Produces<CmsSections>();
         return group;
-    }
-    public static void MapPublicBlog(this WebApplication app)
-    {
-        var blog = app.MapGroup("/blog").AllowAnonymous().RequireRateLimiting("api").OwnedByModule(ModuleIds.Cms).RequireCapability(CapabilityIds.Cms);
-        blog.AddEndpointFilter(async (context, next) =>
-        {
-            context.HttpContext.Response.Headers.CacheControl = "no-store";
-            context.HttpContext.Response.Headers.ContentSecurityPolicy = "default-src 'none'; style-src 'self'; font-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
-            return await next(context);
-        });
-        blog.MapGet("", BlogPages.Index).ExcludeFromDescription();
-        blog.MapGet("/{slug}", BlogPages.Article).ExcludeFromDescription();
     }
 }

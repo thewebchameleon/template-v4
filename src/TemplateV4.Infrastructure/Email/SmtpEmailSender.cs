@@ -26,6 +26,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
             EmailTemplate.SecurityNotification => af ? "Rekeningsekuriteit verander" : "Account security changed",
             EmailTemplate.OrganisationInvitation => af ? "Jy is genooi na ’n organisasie" : "You have an organisation invitation",
             EmailTemplate.SupportTicket => af ? "Jou ondersteuningskaartjie is opgedateer" : "Your support ticket has been updated",
+            EmailTemplate.ContactEnquiry => af ? "Nuwe webwerfnavraag" : "New website enquiry",
             EmailTemplate.MfaCode => af ? "Jou aanmeldkode" : "Your sign-in code",
             _ => af ? "Kennisgewing" : "Notification"
         };

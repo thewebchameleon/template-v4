@@ -25,8 +25,8 @@ registry pull credential are separate from the CI credential for private module 
 The Web image includes its production Nginx configuration, while the generated release
 includes the database initialization file, project-scoped persistent volumes, distinct
 database roles with one shared password, environment-backed secrets and migration dependencies. EasyPanel owns
-domains and TLS. Choose non-overlapping subnets and separate SeaweedFS volumes and S3
-credentials when installing both examples on one server.
+domains and TLS. Docker allocates networking and the API discovers its Web proxy through
+DNS. Use separate SeaweedFS volumes and S3 credentials when installing both examples on one server.
 
 For upgrades, stop application workloads before deploying. EasyPanel maintenance hides
 HTTP traffic but does not stop Workers. A generated `upgrade.sh` explicitly runs a fresh

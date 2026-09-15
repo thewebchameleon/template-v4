@@ -68,8 +68,8 @@ Create a separate EasyPanel project and **Compose** service for each deployment:
 4. Copy `.env.example` into EasyPanel's Environment editor and enable **Create .env
    file**. Set the public HTTPS origin, credentials and optional SMTP details. EasyPanel
    stores these deployment secrets; do not commit the populated file.
-   Suggested demo subnet/IP: `172.30.0.0/24` / `172.30.0.10`; client example:
-   `172.31.0.0/24` / `172.31.0.10`. Avoid existing server/VPN networks.
+   Docker allocates the private subnet and container addresses. The API discovers
+   its trusted Web proxy through Docker DNS; no subnet or proxy IP variables are needed.
 5. Deploy. Initial startup orders
    PostgreSQL, Migrator, API/Worker and Web using Compose dependencies.
 6. Add a domain targeting internal service **web**, port **8080**, protocol **HTTP**.

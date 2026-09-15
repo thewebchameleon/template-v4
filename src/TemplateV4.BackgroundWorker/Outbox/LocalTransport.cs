@@ -15,6 +15,11 @@ public sealed class LocalTransport(FrameworkDb db, UserManager<AppUser> users, A
         if (await db.Inbox.AnyAsync(x => x.Id == message.Id, ct)) return;
         switch (message.Type)
         {
+            case "contact.notification.v1":
+                var contact = JsonSerializer.Deserialize<TemplateV4.Application.Contact.ContactNotification>(message.Payload)!;
+                await email.Send("unused@example.invalid", new EmailRequest(Guid.Empty, EmailTemplate.ContactEnquiry, message.Culture,
+                    ActionUrl: contact.ProtectedAdminUrl, ProtectedRecipient: contact.ProtectedRecipient), message.Id, ct);
+                break;
             case "push.requested.v1":
                 await push.Send(JsonSerializer.Deserialize<WebPushDelivery>(message.Payload)!, ct);
                 break;

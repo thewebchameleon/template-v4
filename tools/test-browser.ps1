@@ -11,8 +11,6 @@ try {
     $env:MAILPIT_SMTP_PORT = '9026'
     $env:PUBLIC_URL = 'https://localhost:9443'
     $env:WEB_HTTPS_PORT = '9443'
-    $env:WEB_PROXY_IP = '172.31.0.10'
-    $env:COMPOSE_SUBNET = '172.31.0.0/24'
     $env:REQUIRE_ADMINISTRATOR_PASSKEY = 'false'
     $env:RELEASE_FEED_PORT = '9095'
     New-Item -ItemType Directory -Force .local | Out-Null
@@ -46,7 +44,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Browser tests failed' }
     } finally { Pop-Location }
 } finally {
-    Remove-Item Env:\BOOTSTRAP_EMAIL, Env:\BOOTSTRAP_PASSWORD, Env:\POSTGRES_PASSWORD, Env:\POSTGRES_PORT, Env:\MAILPIT_HTTP_PORT, Env:\MAILPIT_SMTP_PORT, Env:\PUBLIC_URL, Env:\WEB_HTTPS_PORT, Env:\WEB_PROXY_IP, Env:\COMPOSE_SUBNET, Env:\REQUIRE_ADMINISTRATOR_PASSKEY, Env:\RELEASE_FEED_PORT -ErrorAction SilentlyContinue
+    Remove-Item Env:\BOOTSTRAP_EMAIL, Env:\BOOTSTRAP_PASSWORD, Env:\POSTGRES_PASSWORD, Env:\POSTGRES_PORT, Env:\MAILPIT_HTTP_PORT, Env:\MAILPIT_SMTP_PORT, Env:\PUBLIC_URL, Env:\WEB_HTTPS_PORT, Env:\REQUIRE_ADMINISTRATOR_PASSKEY, Env:\RELEASE_FEED_PORT -ErrorAction SilentlyContinue
     docker compose -p templatev4-e2e -f compose.yaml down -v
     Pop-Location
 }

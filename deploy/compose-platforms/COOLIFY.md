@@ -70,13 +70,11 @@ Coolify discovers interpolated variables. Required variables must be nonempty be
 | `JWT_KEY_B64`                            | Base64 signing key material                                       |
 | S3 and SeaweedFS variables               | Endpoint, bucket, credentials and server configuration JSON       |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`   | Real SMTP delivery configuration                                  |
-| `COMPOSE_SUBNET`, `WEB_PROXY_IP`        | An unused subnet and matching fixed Web address                   |
 
-Suggested demo subnet/IP: `172.30.0.0/24` / `172.30.0.10`; client example:
-`172.31.0.0/24` / `172.31.0.10`. Avoid existing Docker, LAN and VPN ranges, including
-other EasyPanel or Coolify deployments on the server. Review Coolify's processed
-network configuration and confirm Web retains that address: the API trusts it for
-forwarded HTTPS/client headers. Do not solve address mismatches by trusting all proxies.
+Docker allocates the private subnet and container addresses. The API resolves `web`
+through Docker DNS and refreshes its trusted proxy addresses every ten seconds when
+forwarded requests arrive. Keep API and Web on the same private Compose network.
+No subnet or proxy IP environment variables are needed.
 
 Keep the populated environment private and restrict Coolify and Docker access. Preserve
 the key and SeaweedFS volumes plus the wrapping/signing material across deployments.
