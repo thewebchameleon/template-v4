@@ -28,14 +28,15 @@ export function renderRelease(
     images[service] = `${imageRoot}/${service}@${digest}`;
   }
   let compose = fs.readFileSync(
-    path.join(root, "deploy/compose-platforms/compose.template.yaml"),
+    path.join(root, "compose.production.yaml"),
     "utf8",
   );
-  for (const [service, image] of Object.entries(images))
-    compose = compose.replaceAll(`__${service.toUpperCase()}_IMAGE__`, image);
-  compose = compose.replaceAll("__RELEASE__", release);
-  if (/__[A-Z_]+__/.test(compose))
-    throw new Error("Unresolved Compose template marker.");
+  for (const [service, image] of Object.entries(images)) {
+    const sourceBuild = new RegExp(`^  ${service}:\\r?\\n    build: [^\\r\\n]+`, "m");
+    if (!sourceBuild.test(compose))
+      throw new Error(`Missing production build for ${service}.`);
+    compose = compose.replace(sourceBuild, `  ${service}:\n    image: ${image}`);
+  }
   fs.mkdirSync(path.join(output, "deploy"), { recursive: true });
   fs.writeFileSync(path.join(output, "compose.yaml"), compose);
   // Coolify consumes this extension before passing its processed file to Compose.
@@ -53,7 +54,6 @@ export function renderRelease(
     "upgrade.sh",
     "README.md",
     "COOLIFY.md",
-    "updates.override.yaml",
   ])
     fs.copyFileSync(
       path.join(root, "deploy/compose-platforms", name),

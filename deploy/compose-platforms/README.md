@@ -85,11 +85,12 @@ Keep the EasyPanel project/service identity and volume definitions stable.
 
 ## Required secrets
 
-Set the four database passwords, three workload connection strings, base64-encoded RSA
-signing key, S3 credentials and SeaweedFS configuration JSON in EasyPanel's Environment editor.
-The environment is not an encrypted vault; restrict panel and Docker access. Passwords in
-the connection strings must match their workload-role passwords. On an existing database,
-initialization scripts do not rerun, so password changes require deliberate role rotation.
+Set the database password, base64-encoded RSA signing key, S3 credentials and SeaweedFS
+configuration JSON in EasyPanel's Environment editor. PostgreSQL and the Migrator, API and
+Worker roles all use `POSTGRES_PASSWORD`; Compose builds the workload connection strings.
+The environment is not an encrypted vault; restrict panel and Docker access. On an existing
+database, initialization scripts do not rerun, so changing the value requires deliberately
+rotating all four role passwords.
 Do not mount development database volumes here.
 
 The EasyPanel examples explicitly allow the persistent Data Protection key ring to remain
@@ -109,8 +110,8 @@ It hides HTTP traffic but does **not** stop containers or background jobs.
 
 For a panel-managed upgrade, **Stop the Compose service before Deploy**. Confirm API
 and Worker are stopped, then deploy the new release branch. If the service remains
-disabled, use Start after deployment. The new image digests and `Deployment__Version`
-recreate the Migrator; its successful completion gates application startup. Inspect
+disabled, use Start after deployment. The new image digests recreate the Migrator;
+its successful completion gates application startup. Inspect
 deployment logs for this release's migration run and health checks before disabling
 maintenance. A plain Restart is not an upgrade. For retrying an identical release,
 use the explicit script below so a previous successful Migrator is never reused.

@@ -149,6 +149,7 @@ jobs:
             if [ "$service" = web ]; then dockerfile=src/TemplateV4.Angular/Dockerfile; fi
             docker buildx build --push --platform "linux/amd64,linux/arm64" --file "$dockerfile" \
               --build-arg "PROJECT=TemplateV4.$project" \
+              --build-arg "RELEASE_VERSION=$RELEASE" \
               --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
               --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
               --tag "$IMAGE_ROOT/$service:$RELEASE" \
@@ -178,7 +179,6 @@ jobs:
           cp "$GITHUB_WORKSPACE/bundle/compose.yaml" .
           cp "$GITHUB_WORKSPACE/bundle/compose.coolify.yaml" .
           cp "$GITHUB_WORKSPACE/bundle/COOLIFY.md" .
-          cp "$GITHUB_WORKSPACE/bundle/updates.override.yaml" .
           cp "$GITHUB_WORKSPACE/bundle/release.json" .
           cp "$GITHUB_WORKSPACE/bundle/client-modules.json" .
           cp "$GITHUB_WORKSPACE/bundle/.env.example" .
@@ -187,7 +187,7 @@ jobs:
           mkdir -p deploy
           cp "$GITHUB_WORKSPACE/bundle/deploy/"* deploy/
           git rm -f --ignore-unmatch deploy/nginx.production.conf
-          git add -f compose.yaml compose.coolify.yaml updates.override.yaml COOLIFY.md release.json client-modules.json .env.example upgrade.sh README.md deploy/init-database.sh
+          git add -f compose.yaml compose.coolify.yaml COOLIFY.md release.json client-modules.json .env.example upgrade.sh README.md deploy/init-database.sh
           git commit -m "Deploy $RELEASE"
           git push origin "HEAD:refs/heads/$DEPLOYMENT_BRANCH"
           echo "Release $RELEASE is ready on $DEPLOYMENT_BRANCH." >> "$GITHUB_STEP_SUMMARY"

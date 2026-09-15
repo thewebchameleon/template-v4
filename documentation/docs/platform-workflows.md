@@ -24,7 +24,7 @@
 | `Privacy:NotificationRetentionDays` | 90 days                           | 7–365 days                |
 | File storage default / user override | 100 MiB / inherit default       | 0–100 GiB                 |
 | `Operations:BacklogWarningSeconds`  | 300 seconds                       | 60–86400 seconds          |
-| `Deployment:Version`                | Assembly version (Compose: 0.1.0) | Set to release identifier |
+| Deployment version                  | Assembly informational version    | Stamped by release builds |
 
 Storage cleanup runs every ten minutes, independently of optional maintenance scheduling, with a 30-second timeout and at most twenty objects per pass. A shared lock prevents concurrent cleanup. Monitor cleanup failures in Worker logs. Purged metadata loses its original filename. Backup copies follow the deployment owner's policy; a database deletion does not alter historical backups. Audit identifiers are intentionally preserved and remain access controlled.
 

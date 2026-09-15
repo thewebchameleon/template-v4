@@ -11,8 +11,8 @@ module activation, upgrades and troubleshooting. Each generated release includes
 
 Select branch `deploy-demo` for the public foundation or `deploy` for a private
 client configuration repository, Base Directory `/`, and Docker Compose Location
-`/compose.coolify.yaml`. Enable Preserve Repository During Deployment for mounted
-configuration files. Leave Raw Compose Deployment disabled so Coolify generates its
+`/compose.coolify.yaml`. Enable Preserve Repository During Deployment for the mounted
+database initialization file. Leave Raw Compose Deployment disabled so Coolify generates its
 proxy labels and networking. The Web domain uses `https://your-hostname:8080`, while
 `PUBLIC_URL` uses the public HTTPS origin without that internal port suffix.
 
@@ -23,5 +23,5 @@ run unchanged against a Coolify-managed application because it does not include
 Coolify's processed labels, networks, environment-file flags or project identity.
 
 See [production](production.md) and [business modules](business-modules.md) for the
-shared storage, secrets and module lifecycle requirements. No live deployment is
+shared database password, storage, secrets and module lifecycle requirements. No live deployment is
 claimed by these example guides.

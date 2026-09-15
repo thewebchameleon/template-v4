@@ -108,6 +108,10 @@ test("release rendering requires every image digest and retains one release's me
     recursive: true,
   });
   fs.copyFileSync(
+    path.join(root, "compose.production.yaml"),
+    path.join(foundation, "compose.production.yaml"),
+  );
+  fs.copyFileSync(
     path.join(root, "deploy/compose-platforms/demo/client-modules.json"),
     path.join(foundation, "client-modules.json"),
   );
@@ -139,12 +143,24 @@ test("release rendering requires every image digest and retains one release's me
   assert.equal((compose.match(/@sha256:/g) || []).length, 4);
   assert.ok(!compose.includes("__RELEASE__"));
   assert.ok(!compose.includes("build:"));
+  assert.ok(!compose.includes("Deployment__Version"));
+  assert.ok(!compose.includes("Updates__FeedUrl"));
+  assert.ok(!compose.includes("Updates__Token"));
   assert.ok(!compose.includes("key-permissions"));
   assert.ok(!compose.includes("SECRETS_DIR"));
   assert.ok(!compose.includes("secrets:"));
   assert.ok(compose.includes("Storage__Provider: S3"));
   assert.ok(compose.includes("chrislusf/seaweedfs:4.45"));
-  assert.ok(compose.includes("MIGRATOR_CONNECTION_STRING"));
+  for (const role of ["migrator", "api", "worker"])
+    assert.ok(
+      compose.includes(
+        `ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_${role};Password=\${POSTGRES_PASSWORD}`,
+      ),
+    );
+  assert.ok(!compose.includes("MIGRATOR_PASSWORD"));
+  assert.ok(!compose.includes("API_PASSWORD"));
+  assert.ok(!compose.includes("WORKER_PASSWORD"));
+  assert.ok(!compose.includes("CONNECTION_STRING"));
   assert.ok(compose.includes("DataProtection__KeyPath: /keys/ring"));
   const coolifyCompose = fs.readFileSync(
     path.join(output, "compose.coolify.yaml"),

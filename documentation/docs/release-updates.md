@@ -6,9 +6,9 @@ module versions, administrator notifications, and client upgrade pull requests.
 
 ## Host the central feed
 
-Build `services/release-feed/Dockerfile` from the repository root or use
-`services/release-feed/compose.yaml`. The service binds to localhost port 8095 in that
-Compose example. Put it behind your HTTPS reverse proxy. Keep its HTTP port private,
+Build `services/release-feed/Dockerfile` from the repository root or run
+`docker compose --profile release-feed up release-feed`. The service binds to the
+localhost `RELEASE_FEED_PORT`. Put it behind your HTTPS reverse proxy. Keep its HTTP port private,
 limit request rates and request bodies at the proxy, and disable authorization-header
 logging. It needs no access to client databases or the GitHub package registry.
 
@@ -171,15 +171,10 @@ For API and Worker, configure:
 | Setting            | Value                                                     |
 | ------------------ | --------------------------------------------------------- |
 | `Updates__Enabled` | `true`                                                    |
-| `Updates__FeedUrl` | Your central HTTPS service base URL                       |
-| `Updates__Token`   | This deployment's client credential, via a mounted secret |
 
-The Compose release includes `updates.override.yaml` to mount
-`${SECRETS_DIR}/update_feed_token` as `Updates__Token`. Include it together with the
-main Compose file in your hosting configuration, set `UPDATES_ENABLED=true` and
-`UPDATES_FEED_URL`, and keep the raw token out of `.env`, image layers and build args.
-For Coolify combine it with `compose.coolify.yaml`. The optional override is not
-enabled automatically; deployments without a feed need no extra secret file.
+Set `UPDATES_ENABLED=true` in the deployment environment. The API and Worker appsettings
+contain placeholder feed URL and token values; replace both before enabling updates.
+Deployments without a feed leave updates disabled.
 
 Administrators see **Administration → Updates**. The Worker checks at startup and
 every six hours, notifying current Administrators once per newly detected component

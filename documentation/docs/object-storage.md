@@ -10,27 +10,27 @@ For development without containers, set `Storage:Provider=Local` and an absolute
 
 ## Self-hosted production
 
-`compose.storage.yaml` supplies a standalone SeaweedFS deployment with persisted data and credential configuration from a secret file. On Coolify/Easypanel, route a dedicated HTTPS origin to port 8333 using a trusted TLS proxy. Keep other SeaweedFS ports private. Preserve request host/path when proxying S3 signatures. No bucket is public. Use a dedicated app key scoped to `Read:templatev4`, `Write:templatev4` and `List:templatev4`; keep a separate provisioning administrator key.
+`compose.production.yaml` includes the default SeaweedFS service with persisted data and credential configuration from `SEAWEED_CONFIG_JSON`. On Coolify/Easypanel, route a dedicated HTTPS origin to port 8333 using a trusted TLS proxy. Keep other SeaweedFS ports private. Preserve request host/path when proxying S3 signatures. No bucket is public. Use a dedicated app key scoped to `Read:templatev4`, `Write:templatev4` and `List:templatev4`; keep a separate provisioning administrator key. Set `S3_ENDPOINT` to another compatible HTTPS provider to use generic S3 instead.
 
-Create `${SECRETS_DIR}/seaweedfs_s3.json` using the upstream S3 IAM format:
+Set `SEAWEED_CONFIG_JSON` to the upstream S3 IAM format:
 
 ```json
 {"identities":[{"name":"provisioning","credentials":[{"accessKey":"REPLACE_ADMIN_KEY","secretKey":"REPLACE_ADMIN_SECRET"}],"actions":["Admin","Read","Write","List"]},{"name":"templatev4","credentials":[{"accessKey":"REPLACE_APP_KEY","secretKey":"REPLACE_APP_SECRET"}],"actions":["Read:templatev4","Write:templatev4","List:templatev4"]}]}
 ```
 
-Run `docker compose -f compose.storage.yaml up -d` after provisioning the file and TLS origin. The mini command creates the bucket; use the provisioning key to verify it, then give only the app key to API/Worker. Verify the exact scoped permissions with upload/read/delete checks against your selected S3 implementation.
+Run `docker compose -f compose.production.yaml up -d` after provisioning the environment and TLS origin. The mini command creates the bucket; use the provisioning key to verify it, then give only the app key to API/Worker. Verify the exact scoped permissions with upload/read/delete checks against your selected S3 implementation.
 
 The production app Compose file requires:
 
 | Input | Purpose |
 | --- | --- |
 | `S3_ENDPOINT` | HTTPS S3 origin |
-| `S3_BUCKET` | Existing private bucket; defaults to `templatev4` |
-| `S3_REGION` | Signing region; defaults to `us-east-1` |
-| `${SECRETS_DIR}/s3_access_key` | App access key |
-| `${SECRETS_DIR}/s3_secret_key` | App secret key |
+| `S3_BUCKET` | Existing private bucket |
+| `S3_REGION` | Signing region |
+| `S3_ACCESS_KEY` | App access key |
+| `S3_SECRET_KEY` | App secret key |
 
-API/Worker load keys through key-per-file configuration. The migrator does not instantiate the storage provider. Production rejects plaintext HTTP S3 endpoints. The SDK uses path-style requests, required checksums and conditional object creation, with a bounded timeout and no automatic write retries. Both local and S3 providers accept exactly a GUID in `N` format or two such GUIDs joined by a hyphen (`customer-file`); filenames stay in PostgreSQL. Custom providers must implement `Write`, `Read` and idempotent `Delete`. Retention cleanup makes repeated deletes safe after crashes.
+API/Worker load keys from the environment. The migrator does not instantiate the storage provider. Production rejects plaintext HTTP S3 endpoints. The SDK uses path-style requests, required checksums and conditional object creation, with a bounded timeout and no automatic write retries. Both local and S3 providers accept exactly a GUID in `N` format or two such GUIDs joined by a hyphen (`customer-file`); filenames stay in PostgreSQL. Custom providers must implement `Write`, `Read` and idempotent `Delete`. Retention cleanup makes repeated deletes safe after crashes.
 
 A single-node deployment is a practical baseline, not high availability. For production resilience, follow [SeaweedFS replication guidance](https://github.com/seaweedfs/seaweedfs/wiki/Replication) across separate hosts and maintain encrypted off-host backups of data and filer metadata. Do not treat replicas on the same machine as disaster recovery. Test restoring both database metadata and the referenced objects before claiming recovery targets.
 
@@ -42,4 +42,4 @@ The file library accepts all file types and always downloads them as attachments
 
 ## Retention processing
 
-`Privacy:DeletedFileRetentionDays` defaults to 30 (range 1–365); `Privacy:NotificationRetentionDays` defaults to 90 (range 7–365). Unfinished uploads become eligible after one day. `Privacy:FilePurgeBatchSize` defaults to 100 per library per runner (range 1–1000). Four bounded runners scan every minute using individual `FOR UPDATE SKIP LOCKED` transactions. Each delete has a 65-second timeout. A failed object receives a persisted one-hour retry delay; other files and independent invitation/notification cleanup can commit. Quota is released only after successful object deletion. The worker logs backlog count and the oldest eligible object's creation time without names or payloads. Alert on sustained backlog growth.
+`Privacy:DeletedFileRetentionDays` defaults to 30 (range 1ï¿½365); `Privacy:NotificationRetentionDays` defaults to 90 (range 7ï¿½365). Unfinished uploads become eligible after one day. `Privacy:FilePurgeBatchSize` defaults to 100 per library per runner (range 1ï¿½1000). Four bounded runners scan every minute using individual `FOR UPDATE SKIP LOCKED` transactions. Each delete has a 65-second timeout. A failed object receives a persisted one-hour retry delay; other files and independent invitation/notification cleanup can commit. Quota is released only after successful object deletion. The worker logs backlog count and the oldest eligible object's creation time without names or payloads. Alert on sustained backlog growth.

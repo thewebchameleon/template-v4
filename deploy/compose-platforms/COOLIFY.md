@@ -2,7 +2,7 @@
 
 This guide covers the same foundation demo and generic client releases as the accompanying
 [EasyPanel guide](README.md). Both platforms use the same four immutable image digests,
-module selection, database roles and persistent data. Coolify uses the generated
+module selection, database roles, shared password and persistent data. Coolify uses the generated
 `compose.coolify.yaml`; EasyPanel uses `compose.yaml`.
 
 ## Build a release
@@ -66,9 +66,8 @@ Coolify discovers interpolated variables. Required variables must be nonempty be
 | --------------------------------------- | ----------------------------------------------------------------- |
 | `PUBLIC_URL`                            | `https://client.example.com`, without the internal `:8080` suffix |
 | `JWT_KEY_ID`                            | Identifier for your retained production signing key               |
-| Database password variables             | Separate hexadecimal administrator and workload passwords         |
-| Workload connection-string variables    | Complete Npgsql strings for Migrator, API and Worker              |
-| `JWT_KEY_B64`, certificate variables     | Base64 signing/wrapping material and its password                 |
+| `POSTGRES_PASSWORD`                     | Shared password for PostgreSQL and all three workload roles       |
+| `JWT_KEY_B64`                            | Base64 signing key material                                       |
 | S3 and SeaweedFS variables               | Endpoint, bucket, credentials and server configuration JSON       |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`   | Real SMTP delivery configuration                                  |
 | `COMPOSE_SUBNET`, `WEB_PROXY_IP`        | An unused subnet and matching fixed Web address                   |

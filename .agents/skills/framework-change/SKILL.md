@@ -31,6 +31,6 @@ For new scaffolds, inspect the relevant `node tools/framework.mjs new` template 
 ## Synchronize contracts and validate
 
 - For HTTP contract changes, use the existing API integration test with `TEMPLATEV4_EXPORT_OPENAPI` set to the absolute `contracts/openapi.json` path, then run `node tools/framework.mjs clients`. Inspect the generated diff and build the affected consumer after regeneration. See [verification](../../../documentation/docs/verification.md) for prerequisites.
-- For persistence changes, generate EF migrations through the existing tooling and review schema/data effects. Validate with real PostgreSQL integration tests under the root policy.
-- Update only affected inventory, scaffold, deployment/CI, and developer-documentation surfaces. Run `node tools/framework.mjs validate` when those framework contracts change.
-- Choose focused checks from current package scripts and CI. Surface missing prerequisites and remaining validation; do not substitute mocks for required PostgreSQL coverage or bypass E2E permission.
+- For persistence changes, generate EF migrations through the existing tooling and review schema/data effects.
+- Update only affected inventory, scaffold, and developer-documentation surfaces. Run `node tools/framework.mjs validate` when those framework contracts change.
+- Choose focused checks from current package scripts. Surface missing prerequisites and remaining validation; do not bypass E2E permission.

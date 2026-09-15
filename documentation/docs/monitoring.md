@@ -2,9 +2,9 @@
 
 ## Actionable alerts
 
-Apply `compose.monitoring.yaml` alongside `compose.production.yaml`. It adds an OTLP metrics collector, Prometheus, Blackbox Exporter and Alertmanager. Prometheus binds only to loopback; use an SSH tunnel for operator access. API/Worker health endpoints remain private. DNS discovery probes each resolved replica address, not just a single load-balanced hostname.
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` in the production environment to send API and Worker telemetry to your collector. The repository does not deploy a monitoring stack; connect the collector to your existing metrics, probing, and alerting infrastructure. API/Worker health endpoints remain private.
 
-Supply `${SECRETS_DIR}/alert_webhook` with an Alertmanager-compatible destination URL, and configure `deploy/monitoring/public-targets.json` with your real public origin, for example:
+Configure `deploy/monitoring/public-targets.json` with your real public origin when reusing the supplied Prometheus configuration, for example:
 
 ```json
 [{"targets":["https://app.example.com"],"labels":{"application":"templatev4"}}]
@@ -14,7 +14,7 @@ The committed empty target list intentionally sends no probes to a guessed publi
 
 Worker samples bounded, payload-free gauges every thirty seconds using the existing `templatev4` Meter. Names are `platform.delivery.pending`, `platform.delivery.failed`, `platform.delivery.oldest_seconds`, `platform.jobs.active` and `platform.delivery.sample_timestamp_seconds`. Prometheus normalizes dots to underscores. Take the maximum across replicas for database-wide gauges; never sum duplicate snapshots. A timestamp detects stale collection instead of interpreting stale zeroes as success. The supplied collector handles metrics; route traces to your existing trace backend separately if required.
 
-The System Health page provides current counts, last maintenance, an explicit checked timestamp and deployment version. Set `DEPLOYMENT_VERSION` to a release or commit identifier. A healthy process is not proof of readiness or successful delivery.
+The System Health page provides current counts, last maintenance, an explicit checked timestamp and the assembly informational version stamped by the build. A healthy process is not proof of readiness or successful delivery.
 
 The supplied collector accepts traces through a no-op exporter so the application's shared OTLP endpoint does not produce unsupported-service errors. Replace `nop` with your trace backend to retain traces; payload logging is never enabled.
 
