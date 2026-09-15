@@ -47,8 +47,8 @@ public sealed class OutboxPump(IServiceScopeFactory scopes, ILogger<OutboxPump> 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct); timeout.CancelAfter(TimeSpan.FromSeconds(30));
         try
         {
-            // SMTP is outside a database transaction. Local effects and receipts remain atomic.
-            await using var local = message.Type == "email.requested.v1" ? null : await db.Database.BeginTransactionAsync(ct);
+            // External delivery is outside a database transaction. Local effects and receipts remain atomic.
+            await using var local = message.Type is "email.requested.v1" or "push.requested.v1" ? null : await db.Database.BeginTransactionAsync(ct);
             await scope.ServiceProvider.GetRequiredService<IIntegrationTransport>().Publish(new(message.Id, message.Type, message.Payload, message.Culture, message.TraceParent, message.ActorId), timeout.Token);
             await using var externalCompletion = local is null ? await db.Database.BeginTransactionAsync(ct) : null;
             var owned = await db.Outbox.Where(x => x.Id == message.Id && x.LeaseId == lease && x.LeaseUntil > time.GetUtcNow()).AnyAsync(ct);

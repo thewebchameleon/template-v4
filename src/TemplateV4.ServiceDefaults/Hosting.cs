@@ -47,7 +47,13 @@ public static class Hosting
         var telemetry = builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddRuntimeInstrumentation().AddMeter("templatev4"))
             .WithTracing(traces => traces.AddAspNetCoreInstrumentation(options => options.Filter = context => !context.Request.Path.StartsWithSegments("/health"))
-                .AddHttpClientInstrumentation(options => options.FilterHttpRequestMessage = request => request.RequestUri?.Host != "api.payfast.co.za").AddSource("TemplateV4.*"));
+                .AddHttpClientInstrumentation(options => options.FilterHttpRequestMessage = request =>
+                {
+                    // Push endpoint paths are delivery credentials and must not enter exported traces.
+                    var host = request.RequestUri?.Host ?? "";
+                    return host is not ("api.payfast.co.za" or "fcm.googleapis.com" or "updates.push.services.mozilla.com" or "web.push.apple.com")
+                        && !host.EndsWith(".notify.windows.com", StringComparison.Ordinal);
+                }).AddSource("TemplateV4.*"));
         if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
         {
             telemetry.WithMetrics(metrics => metrics.AddOtlpExporter()).WithTracing(traces => traces.AddOtlpExporter());

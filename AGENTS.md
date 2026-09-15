@@ -2,6 +2,7 @@
 
 ## Working agreement
 
+- Invoke the `ponytail:ponytail` skill at `full` intensity for every coding task in this repository. Keep it active throughout the task unless the user explicitly says `stop ponytail` or `normal mode`.
 - Complete the requested work within its authorized scope. Make routine, reversible implementation decisions using existing conventions. Ask and wait when missing input materially affects scope, public behavior, data safety, or an irreversible action; do not ask again for authorization already given.
 - Inspect the working tree before editing and preserve unrelated local changes. Work in the primary agent; parallelize independent reads and checks when useful.
 - Scale inspection and validation to the change. Use focused searches and read relevant sections once; avoid full-repo audits for local fixes. Use available timing information without building a separate timing harness.

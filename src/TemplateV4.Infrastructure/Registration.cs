@@ -115,6 +115,9 @@ public static class Registration
         services.AddScoped<IHandler<AttachTicket, Unit>, AttachTicketHandler>();
         services.AddSingleton<IValidator<AttachTicket>, AttachTicketValidator>();
         services.AddScoped<NotificationService>();
+        services.AddScoped<WebPushService>();
+        services.AddHttpClient<WebPushSender>(http => http.Timeout = TimeSpan.FromSeconds(20))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false }).RemoveAllLoggers();
         services.AddScoped<TemplateV4.Application.Platform.IActionItems, ActionItemsService>();
         services.AddScoped<RegistrationReviewService>();
         services.AddScoped<MyFilesService>();

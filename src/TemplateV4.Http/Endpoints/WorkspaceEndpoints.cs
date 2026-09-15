@@ -31,6 +31,12 @@ public static class WorkspaceEndpoints
         group.MapPost("/notifications/preferences", async (NotificationPreference request, NotificationService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Preferences(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("SaveNotificationPreferences");
         group.MapMyFilesEndpoints();
+        group.MapGet("/notifications/push", async (WebPushService service, ClaimsPrincipal principal, CancellationToken ct) => Results.Ok(await service.Status(EndpointSecurity.Actor(principal), ct)))
+            .RequireAuthorization().WithName("GetWebPushStatus").Produces<WebPushStatus>();
+        group.MapPost("/notifications/push/subscribe", async (WebPushRegistration request, WebPushService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Register(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
+            .RequireAuthorization().WithName("RegisterWebPush");
+        group.MapPost("/notifications/push/preferences", async (WebPushPreference request, WebPushService service, ClaimsPrincipal principal, CancellationToken ct) => (await service.Preferences(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
+            .RequireAuthorization().WithName("SaveWebPushPreferences");
         group.MapGet("/privacy", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.Ok(await service.Status(EndpointSecurity.Actor(principal), ct)))
             .RequireAuthorization().WithName("GetPrivacyStatus").Produces<PrivacyStatus>();
         group.MapGet("/privacy/export", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.File(await service.Export(EndpointSecurity.Actor(principal), ct), "application/json", "account-data.json"))

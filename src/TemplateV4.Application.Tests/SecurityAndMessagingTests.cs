@@ -515,7 +515,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
             await using var scope = _services.CreateAsyncScope(); var services = scope.ServiceProvider;
             var db = services.GetRequiredService<FrameworkDb>();
             await using var transaction = await db.Database.BeginTransactionAsync();
-            var transport = new LocalTransport(db, services.GetRequiredService<UserManager<AppUser>>(), services.GetRequiredService<AccountService>(), services.GetRequiredService<IEmailSender>(), _clock, []);
+            var transport = new LocalTransport(db, services.GetRequiredService<UserManager<AppUser>>(), services.GetRequiredService<AccountService>(), services.GetRequiredService<IEmailSender>(), _clock, [], services.GetRequiredService<WebPushSender>());
             await transport.Publish(envelope, default); await db.SaveChangesAsync();
             await transport.Publish(envelope, default); await transaction.CommitAsync();
             Assert.Single(await db.Inbox.ToArrayAsync());
@@ -559,7 +559,7 @@ public sealed partial class SecurityAndMessagingTests : IAsyncLifetime
         var services = consume.ServiceProvider; var consumerDb = services.GetRequiredService<FrameworkDb>();
         var message = await consumerDb.Outbox.SingleAsync();
         await using var transaction = await consumerDb.Database.BeginTransactionAsync();
-        var transport = new LocalTransport(consumerDb, services.GetRequiredService<UserManager<AppUser>>(), services.GetRequiredService<AccountService>(), services.GetRequiredService<IEmailSender>(), _clock, []);
+        var transport = new LocalTransport(consumerDb, services.GetRequiredService<UserManager<AppUser>>(), services.GetRequiredService<AccountService>(), services.GetRequiredService<IEmailSender>(), _clock, [], services.GetRequiredService<WebPushSender>());
         await transport.Publish(new(message.Id, message.Type, message.Payload, message.Culture, message.TraceParent, message.ActorId), default);
         await consumerDb.SaveChangesAsync(); await transaction.CommitAsync();
         Assert.Single(await consumerDb.Inbox.ToArrayAsync());

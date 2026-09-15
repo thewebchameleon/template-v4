@@ -19,6 +19,8 @@ public sealed class AppUser : IdentityUser<Guid>
     public DateTimeOffset? InvitationAcceptedAt { get; set; }
     public DateTimeOffset? InvitationCancelledAt { get; set; }
     public bool OptionalEmailEnabled { get; set; }
+    public bool PushEnabled { get; set; }
+    public bool PushShowPreview { get; set; }
     public long LastTotpStep { get; set; } = -1;
     public bool EmailMfaEnabled { get; set; }
     public string PreferredMfaMethod { get; set; } = "Email";
@@ -258,6 +260,17 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.Kind).HasMaxLength(100); entity.Property(x => x.Link).HasMaxLength(200);
             entity.HasIndex(x => new { x.UserId, x.CreatedAt });
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<WebPushSubscription>(entity =>
+        {
+            entity.ToTable("web_push_subscriptions", "app");
+            entity.Property(x => x.EndpointHash).HasMaxLength(64);
+            entity.Property(x => x.Endpoint).HasMaxLength(2048);
+            entity.Property(x => x.P256dh).HasMaxLength(87);
+            entity.Property(x => x.Auth).HasMaxLength(22);
+            entity.HasIndex(x => x.EndpointHash).IsUnique();
+            entity.HasIndex(x => x.UserId);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
         model.Entity<TemplateV4.Infrastructure.Updates.UpdateState>(entity =>
         {

@@ -1,0 +1,8 @@
+{
+  "name": "Template v4",
+  "short_name": "Template v4",
+  "id": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+}

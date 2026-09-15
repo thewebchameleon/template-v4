@@ -207,6 +207,33 @@ export const workspaceDictionary: Record<string, [string, string]> = {
     'Nuwe rekeningaktiwiteit en voltooide werk sal hier verskyn.',
   ],
   notificationPreferences: ['Delivery preferences', 'Afleweringsvoorkeure'],
+  webPush: ['Web push notifications', 'Webstootkennisgewings'],
+  webPushHelp: [
+    'Receive all notification types on browsers you enable, even when this app is closed. Turning this off stops push on every browser.',
+    'Ontvang alle kennisgewingsoorte op blaaiers wat jy aktiveer, selfs wanneer die toepassing toe is. Skakel dit af om stootkennisgewings op alle blaaiers te stop.',
+  ],
+  pushPreview: ['Show notification type in previews', 'Wys die kennisgewingsoort in voorskoue'],
+  pushPreviewHelp: [
+    'Off by default: “You have a new notification”. When on, previews show the notification type, including on your lock screen.',
+    'By verstek af: “Jy het ’n nuwe kennisgewing”. Wanneer aan, wys voorskoue die kennisgewingsoort, ook op jou sluitskerm.',
+  ],
+  pushRegisterBrowser: ['Enable on this browser', 'Aktiveer op hierdie blaaier'],
+  pushUnsupported: [
+    'Web push requires a supported browser and HTTPS. On iPhone or iPad, add this app to your Home Screen and open it there.',
+    'Webstoot vereis ’n ondersteunde blaaier en HTTPS. Voeg die toepassing op iPhone of iPad by jou tuisskerm en maak dit daar oop.',
+  ],
+  pushUnavailable: [
+    'Web push has not been configured by your administrator.',
+    'Webstoot is nog nie deur jou administrateur opgestel nie.',
+  ],
+  pushPermission: [
+    'Allow notifications in your browser settings, then try again.',
+    'Laat kennisgewings in jou blaaierinstellings toe en probeer weer.',
+  ],
+  pushFailed: [
+    'Could not enable or update web push. Check browser permission and try again.',
+    'Kon webstoot nie aktiveer of opdateer nie. Gaan blaaiertoestemming na en probeer weer.',
+  ],
   notificationPreferencesHelp: [
     'Choose how optional updates reach you.',
     'Kies hoe opsionele opdaterings jou bereik.',

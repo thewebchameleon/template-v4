@@ -33,7 +33,7 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
         var profile = await db.Profiles.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Id, x.DisplayName, x.FirstName, x.LastName, x.Culture, x.TimeZone }).SingleAsync(ct);
         var avatar = await db.Set<UserAvatar>().AsNoTracking().Where(x => x.UserId == actor).Select(x => x.Png).SingleOrDefaultAsync(ct);
-        var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.PhoneNumber, x.PhoneNumberConfirmed, x.OptionalEmailEnabled, x.CurrentOrganisationId }).SingleAsync(ct);
+        var account = await db.Users.AsNoTracking().Where(x => x.Id == actor).Select(x => new { x.Email, x.EmailConfirmed, x.PhoneNumber, x.PhoneNumberConfirmed, x.OptionalEmailEnabled, x.PushEnabled, x.PushShowPreview, x.CurrentOrganisationId }).SingleAsync(ct);
         var sessions = await db.Sessions.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Device, x.CreatedAt, x.ExpiresAt, x.RevokedAt }).ToArrayAsync(ct);
         var notifications = await db.Notifications.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Kind, x.Link, x.CreatedAt, x.ReadAt }).ToArrayAsync(ct);
         var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId, x.Description, x.Tags, x.Important, x.Starred, x.UpdatedAt }).ToArrayAsync(ct);
@@ -178,6 +178,8 @@ public sealed class PrivacyService(FrameworkDb db, UserManager<AppUser> users, S
             user.PasswordHash = null; user.PhoneNumber = null; user.PhoneNumberConfirmed = false;
             user.EmailConfirmed = false; user.EmailMfaEnabled = false; user.TwoFactorEnabled = false; user.OptionalEmailEnabled = false; user.CurrentOrganisationId = null;
             user.SecurityStamp = Guid.NewGuid().ToString();
+            user.PushEnabled = false; user.PushShowPreview = false;
+            await db.Set<WebPushSubscription>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             profile.Anonymise(time.GetUtcNow());
             await db.Set<UserAvatar>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             // Erasure runs even when Support is disabled. Remove requester conversations and files,

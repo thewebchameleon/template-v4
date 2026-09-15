@@ -83,6 +83,7 @@
     "persistence": "EF Core / PostgreSQL",
     "transport": "PostgreSQL outbox / local Worker consumers",
     "email": "SMTP",
+    "webPush": "VAPID Web Push; account-wide opt-in, per-browser subscriptions and generic-by-default previews",
     "storage": "S3-compatible / SeaweedFS; local flat-key filesystem fallback",
     "featureFlags": "configuration",
     "runtimeModules": "Catalog-composed application-wide PostgreSQL activation, dependency-safe transitions and typed module settings",

@@ -46,6 +46,9 @@ See [user file library and storage quotas](adr/0021-user-file-library.md) for th
 
 ## Extension points
 
+Account delivery preferences include opt-in [web push notifications](web-push.md),
+with per-browser subscriptions and generic-by-default notification previews.
+
 The [customer support portal](support.md) adds requester tickets, a delegated agent queue, private staff notes and bounded attachments. Its ownership, workflow and storage decisions are in [ADR 0025](adr/0025-customer-support-portal.md).
 
 Audit events and the Audit History detail drawer follow [ADR 0024](adr/0024-audit-event-details.md). Services author stable actions and allowlisted field changes; the persistence interceptor captures historical names and execution context within the operation's transaction. Extend the privacy redaction path when adding personally identifying audit details.

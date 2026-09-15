@@ -2,18 +2,22 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
+using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
 
 namespace TemplateV4.BackgroundWorker;
 
-public sealed class LocalTransport(FrameworkDb db, UserManager<AppUser> users, AccountService accounts, IEmailSender email, TimeProvider time, IEnumerable<IIntegrationConsumer> consumers) : IIntegrationTransport
+public sealed class LocalTransport(FrameworkDb db, UserManager<AppUser> users, AccountService accounts, IEmailSender email, TimeProvider time, IEnumerable<IIntegrationConsumer> consumers, WebPushSender push) : IIntegrationTransport
 {
     public async Task Publish(MessageEnvelope message, CancellationToken ct)
     {
         if (await db.Inbox.AnyAsync(x => x.Id == message.Id, ct)) return;
         switch (message.Type)
         {
+            case "push.requested.v1":
+                await push.Send(JsonSerializer.Deserialize<WebPushDelivery>(message.Payload)!, ct);
+                break;
             case "users.created.v1":
                 var created = JsonSerializer.Deserialize<UserCreated>(message.Payload)!;
                 var user = await users.FindByIdAsync(created.UserId.ToString()) ?? throw new InvalidOperationException("User missing.");
