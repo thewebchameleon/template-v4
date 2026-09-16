@@ -46,16 +46,15 @@ public sealed class ModuleTests
     }
 
     [Fact]
-    public void Actor_and_tenant_flags_cannot_reenable_disabled_modules()
+    public void Actor_flags_cannot_reenable_disabled_modules()
     {
-        var actor = new BackgroundExecutionContext { ActorId = Guid.NewGuid(), TenantId = "customer" };
+        var actor = new BackgroundExecutionContext { ActorId = Guid.NewGuid() };
         var builder = WebApplication.CreateBuilder();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ModulesPreset"] = "minimal",
             ["Features:my-files:Enabled"] = "true",
-            [$"Features:my-files:Users:{actor.ActorId}"] = "true",
-            ["Features:my-files:Tenants:customer"] = "true"
+            [$"Features:my-files:Users:{actor.ActorId}"] = "true"
         });
         var flags = new ConfigurationFlags(builder.Configuration, builder.Environment);
         var catalog = ModuleConfiguration.Load(builder.Configuration);

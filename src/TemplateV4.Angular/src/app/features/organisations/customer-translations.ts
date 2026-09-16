@@ -1,80 +1,15 @@
 export const customerDictionary: Record<string, [string, string]> = {
-  closeOrganisation: ['Close organisation', 'Sluit organisasie'],
-  leaveOrganisation: ['Leave organisation', 'Verlaat organisasie'],
-  closeOrganisationHelp: [
-    'All members will lose access and files will be deleted under the retention policy. Cancel subscriptions and wait for paid periods to end first. This cannot be undone.',
-    'Alle lede verloor toegang en l�ers word volgens die bewaringsbeleid verwyder. Kanselleer intekeninge en wag tot betaalde tydperke eindig. Dit kan nie ongedaan gemaak word nie.',
-  ],
-  leaveOrganisationHelp: [
-    'You will lose access to this organisation and its files.',
-    'Jy sal toegang tot hierdie organisasie en sy l�ers verloor.',
-  ],
   billingEntitlement: ['Current access', 'Huidige toegang'],
   'billing.Paid': ['Paid access', 'Betaalde toegang'],
   'billing.PastDue': ['Payment overdue', 'Betaling agterstallig'],
-  organisations: ['Organisations', 'Organisasies'],
   organisation: ['Organisation', 'Organisasie'],
-  currentOrganisation: ['Current organisation', 'Huidige organisasie'],
-  selectOrganisation: ['Use this organisation', 'Gebruik hierdie organisasie'],
-  currentOrganisationHelp: [
-    'Select the organisation to use across modules. Your choice is saved across sign-ins and devices.',
-    'Kies die organisasie om oor modules te gebruik. Jou keuse word oor aanmeldings en toestelle gestoor.',
-  ],
   organisationManagementHelp: [
-    'Manage organisations and assign users.',
-    'Bestuur organisasies en wys gebruikers toe.',
-  ],
-  noOrganisations: [
-    'No organisations are available. Contact a system administrator for access.',
-    'Geen organisasies is beskikbaar nie. Kontak ’n stelseladministrateur vir toegang.',
-  ],
-  organisationsHelp: [
-    'Choose a personal account or an organisation workspace.',
-    'Kies ’n persoonlike rekening of ’n organisasiewerkruimte.',
+    'Manage the organisation shared by all users.',
+    'Bestuur die organisasie wat alle gebruikers deel.',
   ],
   organisationWorkspace: ['Organisation workspace', 'Organisasiewerkruimte'],
-  selectModuleOrganisationHelp: [
-    'Choose an organisation to open this module.',
-    'Kies ’n organisasie om hierdie module oop te maak.',
-  ],
-  organisationWorkspaceHelp: [
-    'Manage membership, shared files and subscriptions.',
-    'Bestuur lidmaatskap, gedeelde lêers en intekeninge.',
-  ],
   organisationName: ['Organisation name', 'Organisasienaam'],
-  organisationMembers: ['Members', 'Lede'],
-  createOrganisation: ['Create organisation', 'Skep organisasie'],
-  organisationInvitation: [
-    'You have been invited to join this organisation.',
-    'Jy is genooi om by hierdie organisasie aan te sluit.',
-  ],
-  openWorkspace: ['Open workspace', 'Maak werkruimte oop'],
-  switchAccount: ['Switch account', 'Wissel rekening'],
-  inviteMember: ['Assign user', 'Wys gebruiker toe'],
-  inviteMemberHelp: [
-    'Enter an existing user’s email address to grant membership immediately.',
-    'Voer ’n bestaande gebruiker se e-posadres in om lidmaatskap onmiddellik toe te ken.',
-  ],
-  makeAdmin: ['Make admin', 'Maak administrateur'],
-  makeMember: ['Make member', 'Maak lid'],
-  transferOwnership: ['Transfer ownership', 'Dra eienaarskap oor'],
-  confirmCustomerChange: ['Confirm membership change', 'Bevestig lidmaatskapverandering'],
-  confirmCustomerChangeHelp: [
-    'This changes access to this organisation. Transferring ownership changes the previous owner to an organisation admin.',
-    'Dit verander toegang tot hierdie organisasie. Oordrag van eienaarskap maak jou ’n administrateur.',
-  ],
   customerSaved: ['Account changes saved.', 'Rekeningveranderings gestoor.'],
-  notificationOrganisation: [
-    'You have an organisation invitation.',
-    'Jy het ’n organisasie-uitnodiging.',
-  ],
-  'customer.SystemAdministrator': ['System administrator', 'Stelseladministrateur'],
-  'customer.Owner': ['Owner', 'Eienaar'],
-  'customer.Admin': ['Admin', 'Administrateur'],
-  'customer.Member': ['Member', 'Lid'],
-  'customer.Personal': ['Personal', 'Persoonlik'],
-  'customer.Organisation': ['Organisation', 'Organisasie'],
-  'customer.Both': ['Personal and organisations', 'Persoonlik en organisasies'],
   billing: ['Billing & subscriptions', 'Fakturering en intekeninge'],
   billingHelp: [
     'Manage your plan, payment provider and storage allowance.',
@@ -82,12 +17,8 @@ export const customerDictionary: Record<string, [string, string]> = {
   ],
   billingSettings: ['Billing settings', 'Faktureringinstellings'],
   billingSettingsHelp: [
-    'Configure billing ownership, checkout providers and trial policy.',
-    'Stel faktureringseienaarskap, betalingsverskaffers en proefbeleid op.',
-  ],
-  billingOwnership: [
-    'Accounts eligible for new subscriptions',
-    'Rekeninge wat vir nuwe intekeninge kwalifiseer',
+    'Configure payment providers and trial policy for the organisation.',
+    'Stel betalingsverskaffers en proefbeleid vir die organisasie op.',
   ],
   billingRetentionHelp: [
     'Files and downloads remain available after a downgrade. Uploads stop while storage is over the allowance.',
@@ -102,8 +33,8 @@ export const customerDictionary: Record<string, [string, string]> = {
   billingInterval: ['Billing interval', 'Faktureringsinterval'],
   billingSeats: ['Purchased seats', 'Gekoopte sitplekke'],
   billingSeatsHelp: [
-    'Per-seat plans require at least one seat per member. Flat plans ignore this quantity. Storage is shared per account.',
-    'Planne per sitplek vereis minstens een sitplek per lid. Vaste planne ignoreer hierdie hoeveelheid. Berging word per rekening gedeel.',
+    'Per-seat plans require at least one seat per active user. Flat plans ignore this quantity. Storage is shared across the organisation.',
+    'Planne per sitplek vereis minstens een sitplek per aktiewe gebruiker. Vaste planne ignoreer hierdie hoeveelheid. Berging word oor die organisasie gedeel.',
   ],
   paymentProvider: ['Payment provider', 'Betalingsverskaffer'],
   defaultPaymentProvider: ['Default provider', 'Verstekverskaffer'],
@@ -155,25 +86,13 @@ export const customerDictionary: Record<string, [string, string]> = {
     'Die betalingsverskaffer is onbeskikbaar. Probeer hierdie betaling later weer.',
   ],
   'customers.not_found': [
-    'This account is unavailable or your membership has ended.',
-    'Hierdie rekening is onbeskikbaar of jou lidmaatskap het geëindig.',
-  ],
-  'customers.last_owner': [
-    'Transfer ownership before removing or changing the owner.',
-    'Dra eienaarskap oor voordat die eienaar verwyder of verander word.',
-  ],
-  'customers.deletion_obligations': [
-    'Transfer organisation ownership and settle personal subscriptions before deleting this account.',
-    'Dra organisasie-eienaarskap oor en vereffen persoonlike intekeninge voordat hierdie rekening verwyder word.',
-  ],
-  'customers.limit': [
-    'The account or invitation limit has been reached.',
-    'Die rekening- of uitnodigingslimiet is bereik.',
+    'The organisation is unavailable or you do not have access.',
+    'Die organisasie is onbeskikbaar of jy het nie toegang nie.',
   ],
   organisationFiles: ['Shared organisation files', 'Gedeelde organisasielêers'],
   organisationFilesHelp: [
-    'Files in this workspace are available to its current members.',
-    'Lêers in hierdie werkruimte is vir die huidige lede beskikbaar.',
+    'Shared files are available to approved, enabled users.',
+    'Gedeelde lêers is vir goedgekeurde, aktiewe gebruikers beskikbaar.',
   ],
   organisationUploadHelp: [
     'Upload up to 20 MiB per file within the shared storage quota.',

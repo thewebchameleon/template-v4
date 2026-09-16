@@ -35,7 +35,7 @@ interface FileInfo {
         hlmInput
         type="file"
         [id]="controlId() + '-upload'"
-        [disabled]="busy()"
+        [disabled]="busy() || !canUpload()"
         (change)="upload($event)"
       />
       <p hlmFieldDescription>{{ 'attachmentUploadHelp' | t }}</p>
@@ -43,7 +43,6 @@ interface FileInfo {
   </div>`,
 })
 export class AttachmentPicker {
-  readonly organisation = input.required<string>();
   readonly controlId = input.required<string>();
   readonly value = model('');
   readonly page = signal(1);
@@ -56,9 +55,11 @@ export class AttachmentPicker {
   private readonly runtime = inject(Runtime);
   constructor() {
     effect(() => {
-      this.organisation();
       void this.load();
     });
+  }
+  canUpload() {
+    return this.auth.has('organisation.files.manage');
   }
   options() {
     const files = this.files.value()?.items ?? [];
@@ -70,11 +71,7 @@ export class AttachmentPicker {
   }
   async load() {
     await this.files.load((signal) =>
-      this.api.get(
-        `organisations/${this.organisation()}/attachments`,
-        { pageNumber: this.page(), pageSize: 10 },
-        signal,
-      ),
+      this.api.get(`organisation/attachments`, { pageNumber: this.page(), pageSize: 10 }, signal),
     );
   }
   async upload(event: Event) {
@@ -86,7 +83,7 @@ export class AttachmentPicker {
       const headers = await this.auth.browserHeaders();
       const result = await firstValueFrom(
         this.http.post<FileInfo>(
-          `${this.runtime.apiUrl}/api/v1/auth/organisations/${this.organisation()}/attachments/upload`,
+          `${this.runtime.apiUrl}/api/v1/auth/organisation/attachments/upload`,
           file,
           {
             params: { name: file.name },

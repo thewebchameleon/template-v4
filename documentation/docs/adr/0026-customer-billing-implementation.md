@@ -2,6 +2,9 @@
 
 Status: Accepted; lifecycle and reconciliation updated by [ADR 0028](0028-review-hardening.md).
 
+The account ownership and tenant model below is historical and superseded by
+[ADR 0047](0047-single-organisation.md).
+
 ## Decision
 
 Implement Organisations and Billing as optional vertical slices using the existing assembly boundaries and shared migration stream. Customer/membership/invitation persistence belongs to `organisations`; orders, subscription state, receipts and billing settings belong to `billing`; shared file metadata belongs to `files`. Application defines provider-neutral contracts and Domain defines membership and entitlement rules. Infrastructure owns the focused use cases, provider execution and explicit transaction boundaries. HTTP only adapts requests. BackgroundWorker owns reconciliation scheduling.

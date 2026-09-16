@@ -7,7 +7,7 @@ namespace TemplateV4.Infrastructure.Storage;
 
 public sealed partial class MyFilesService
 {
-    private async Task<long> Quota(Guid owner, CancellationToken ct) => await entitlements.Quota(owner, ct) ?? await db.Users.Where(x => x.Id == owner).Select(x => x.StorageQuotaBytes).SingleAsync(ct) ?? (await Settings(ct)).DefaultQuotaBytes;
+    private async Task<long> Quota(Guid owner, CancellationToken ct) => await entitlements.Quota(ct) ?? (await Settings(ct)).DefaultQuotaBytes;
     public Task<FileStorageSettings> Settings(CancellationToken ct) => db.FileStorageSettings.AsNoTracking().SingleAsync(ct);
     public async Task<Result<Unit>> SaveSettings(Guid actor, StorageSettingsRequest request, CancellationToken ct)
     {
@@ -23,17 +23,6 @@ public sealed partial class MyFilesService
             db.Audit.Add(new() { ActorId = actor, Action = "file.quota_default_changed", SubjectType = "configuration", SubjectNameSnapshot = "storage", ChangesJson = AuditCapture.Changes(new AuditChange("defaultQuotaBytes", previous.DefaultQuotaBytes.ToString(CultureInfo.InvariantCulture), request.DefaultQuotaBytes.ToString(CultureInfo.InvariantCulture))), At = time.GetUtcNow() });
         if (previous.MaxUploadBytes != request.MaxUploadBytes)
             db.Audit.Add(new() { ActorId = actor, Action = "file.max_upload_changed", SubjectType = "configuration", SubjectNameSnapshot = "storage", ChangesJson = AuditCapture.Changes(new AuditChange("maxUploadBytes", previous.MaxUploadBytes.ToString(CultureInfo.InvariantCulture), request.MaxUploadBytes.ToString(CultureInfo.InvariantCulture))), At = time.GetUtcNow() });
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
-    }
-    public async Task<Result<Unit>> SetQuota(Guid actor, Guid owner, FileQuotaRequest request, CancellationToken ct)
-    {
-        if (request.QuotaBytes is < 0 or > MaximumQuotaBytes) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        await Lock(owner, ct);
-        if (!await db.Profiles.AnyAsync(x => x.Id == owner, ct)) return Result.Fail("files.not_found", ErrorKind.NotFound);
-        var previous = await db.Users.Where(x => x.Id == owner).Select(x => x.StorageQuotaBytes).SingleAsync(ct);
-        await db.Users.Where(x => x.Id == owner).ExecuteUpdateAsync(x => x.SetProperty(u => u.StorageQuotaBytes, request.QuotaBytes), ct);
-        db.Audit.Add(new() { ActorId = actor, SubjectId = owner, Action = "file.quota_changed", SubjectType = "user", ChangesJson = AuditCapture.Changes(new AuditChange("quotaBytes", previous?.ToString(CultureInfo.InvariantCulture), request.QuotaBytes?.ToString(CultureInfo.InvariantCulture))), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
     private static bool ValidMaxUploadBytes(long bytes)

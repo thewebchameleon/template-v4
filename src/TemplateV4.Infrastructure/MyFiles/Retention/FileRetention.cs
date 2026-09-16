@@ -15,9 +15,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var cutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:DeletedFileRetentionDays", 30), 1, 365));
         var abandoned = now.AddDays(-1);
         var personal = db.Files.Where(x => x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
-        var organisations = db.Set<OrganisationFileRow>().Where(x => x.PurgedAt == null && (x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned));
         // Independent housekeeping commits even if every object provider call fails.
-        await db.Set<CustomerInviteRow>().Where(x => x.ExpiresAt < now).ExecuteDeleteAsync(ct);
         var notificationCutoff = now.AddDays(-Math.Clamp(config.GetValue("Privacy:NotificationRetentionDays", 90), 7, 365));
         await db.Notifications.Where(x => x.CreatedAt < notificationCutoff).ExecuteDeleteAsync(ct);
         var batch = Math.Clamp(config.GetValue("Privacy:FilePurgeBatchSize", 100), 1, 1000);
@@ -27,24 +25,23 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         {
             // Publish an irreversible purge decision before touching object storage. A crash or
             // partial provider failure must never leave a partly removed entry restorable.
-            var owner = await db.Files.Where(x => x.Id == id).Select(x => x.OwnerId).SingleAsync(ct);
             await using (var claim = await db.Database.BeginTransactionAsync(ct))
             {
-                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
                 var claimed = await db.Files.Where(x => x.Id == id && x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned))
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.PurgeRequested, true).SetProperty(x => x.DeletedAt, x => x.DeletedAt ?? now), ct);
                 if (claimed == 0) continue;
                 await claim.CommitAsync(ct);
             }
             await using var tx = await db.Database.BeginTransactionAsync(ct);
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
             var row = await db.Files.FromSqlInterpolated($"SELECT * FROM files.files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
             if (row != null) await db.Entry(row).ReloadAsync(ct);
             if (row is null || row.PurgedAt != null || row.PurgeRetryAt > now || !(row.PurgeRequested || row.DeletedAt < cutoff || !row.Ready && row.CreatedAt < abandoned)) continue;
             var removed = true;
             if (!row.IsFolder)
             {
-                if (!await Delete(row.Id.ToString("N"), ct)) removed = false;
+                if (!await Delete(row.ObjectKey, ct)) removed = false;
             }
             if (removed)
             {
@@ -55,21 +52,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
             else row.PurgeRetryAt = now.AddHours(1);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); db.ChangeTracker.Clear();
         }
-        ids = await organisations.Where(x => x.PurgeRetryAt == null || x.PurgeRetryAt <= now).OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => x.Id).ToArrayAsync(ct);
-        foreach (var id in ids)
-        {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
-            var row = await db.Set<OrganisationFileRow>().FromSqlInterpolated($"SELECT * FROM files.organisation_files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
-            if (row is null || row.PurgedAt != null || row.PurgeRetryAt > now || !(row.DeletedAt < cutoff || !row.Ready && row.CreatedAt < abandoned)) continue;
-            if (await Delete(OrganisationFileRow.Key(row.CustomerId, row.Id), ct))
-            {
-                row.PurgedAt = now; row.DeletedAt ??= now; row.Name = "Deleted file"; row.PurgeRetryAt = null;
-                db.Audit.Add(new() { SubjectId = row.CustomerId, Action = "customer.file_purged", At = now });
-            }
-            else row.PurgeRetryAt = now.AddHours(1);
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); db.ChangeTracker.Clear();
-        }
-        var dates = personal.Select(x => (DateTimeOffset?)x.CreatedAt).Concat(organisations.Select(x => (DateTimeOffset?)x.CreatedAt));
+        var dates = personal.Select(x => (DateTimeOffset?)x.CreatedAt);
         var backlog = new RetentionBacklog(await dates.CountAsync(ct), await dates.MinAsync(ct));
         if (backlog.Count > 0) logger.LogWarning("File retention backlog: {Count}; oldest object created at {OldestCreatedAt}", backlog.Count, backlog.OldestCreatedAt);
         return backlog;
@@ -85,9 +68,8 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var eligible = db.Files.Where(x => x.PurgedAt == null && !x.PurgeRequested && x.CreatedAt <= cutoff &&
             (!x.IsFolder || !db.Files.Any(child => child.ParentId == x.Id && child.PurgedAt == null)));
         var candidates = await eligible.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => new { x.Id, x.OwnerId }).ToArrayAsync(ct);
-        // Stable lock order across owners; all folder mutations use these same locks.
-        foreach (var owner in candidates.Select(x => x.OwnerId).Distinct().Order())
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0))", ct);
+        // Folder mutations and retention share the organisation library lock.
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
         var ids = candidates.Select(x => x.Id).ToArray();
         await eligible.Where(x => ids.Contains(x.Id)).ExecuteUpdateAsync(s => s.SetProperty(x => x.PurgeRequested, true).SetProperty(x => x.DeletedAt, x => x.DeletedAt ?? now), ct);
         await tx.CommitAsync(ct);

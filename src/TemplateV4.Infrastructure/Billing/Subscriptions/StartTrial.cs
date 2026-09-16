@@ -7,12 +7,13 @@ namespace TemplateV4.Infrastructure.Billing;
 
 public sealed partial class BillingStore
 {
-    public async Task<Result<Unit>> Trial(Guid actor, Guid customer, StartTrial request, CancellationToken ct)
+    public async Task<Result<Unit>> Trial(Guid actor, StartTrial request, CancellationToken ct)
     {
+        var customer = TemplateV4.Application.Customers.Organisation.Id;
         var plan = plans.Plans.SingleOrDefault(x => x.Id == request.PlanId && x.Id != "free"); if (plan is null) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(customer, ct);
-        var account = await customers.Find(actor, customer, ct); var settings = await Settings(ct);
-        if (account is null || account.Role != "Owner" || !Allowed(settings, account) || !await modules.Enabled(CapabilityIds.Billing, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+        await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(ct);
+        var account = await customers.Find(actor, ct); var settings = await Settings(ct);
+        if (account is null || !account.CanManage || !await modules.Enabled(CapabilityIds.Billing, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var sub = await db.Set<SubscriptionRow>().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
         if (settings.TrialDays == 0 || sub?.TrialUsed == true || sub?.OrderId != null) return Result.Fail("billing.trial_used", ErrorKind.Conflict);
         if (sub is null) { sub = new() { CustomerId = customer }; db.Set<SubscriptionRow>().Add(sub); }

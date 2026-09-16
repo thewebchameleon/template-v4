@@ -5,6 +5,7 @@
 - Complete the requested work within its authorized scope. Make routine, reversible implementation decisions using existing conventions. Ask and wait when missing input materially affects scope, public behavior, data safety, or an irreversible action; do not ask again for authorization already given.
 - Inspect the working tree before editing and preserve unrelated local changes. Work in the primary agent; parallelize independent reads and checks when useful.
 - Scale inspection and validation to the change. Use focused searches and read relevant sections once; avoid full-repo audits for local fixes. Use available timing information without building a separate timing harness.
+- Keep routine work simple: follow the nearest existing pattern, avoid speculative analysis and elaborate scaffolding, and stop once the requested behavior and required checks are satisfied.
 - Keep updates concise. Finish with the outcome, validation performed, and any remaining limitation. Do not claim checks that were not run.
 
 ## Context and ownership
@@ -28,8 +29,10 @@ Before changes spanning layers, contracts, dependencies, or conventions, read [f
 
 ## Validation
 
+Use existing tests first. Add or extend only the minimum number of tests needed to cover meaningful new behavior or a regression that existing coverage does not demonstrate. Skip new tests for styling, copy edits, and straightforward behavior-preserving refactors. Avoid redundant edge cases, tests that mirror implementation details, duplicate coverage across layers, and elaborate test scaffolding. Add cases only for distinct, concrete risks; do not pursue exhaustive coverage or a test-count target. Preserve mandatory security and correctness checks.
+
 Run the smallest checks that demonstrate the changed behavior and affected contracts. Focused reproduction tests may run early; complete relevant formatting/lint, manifest checks, builds, and behavioral tests before delivery. Broaden or repeat checks only for new changes, failures, or unresolved risks. Documentation-only edits need content/link/format checks, not application builds or test suites.
 
-Persistence, session, and messaging changes require real PostgreSQL integration tests. Read [verification guidance](documentation/docs/verification.md) and the affected package scripts or CI steps when choosing commands; do not run every check by default.
+Persistence, session, and messaging changes require focused behavioral tests. Read [verification guidance](documentation/docs/verification.md) and the affected package scripts or CI steps when choosing commands; do not run every check by default.
 
 E2E tests require explicit user permission: ask and stop if it has not already been granted for this work. This includes browser accessibility checks, Angular's `npm test` (Playwright), and end-to-end smoke scripts. Complete other authorized validation before requesting that permission.

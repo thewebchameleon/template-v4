@@ -12,20 +12,19 @@ then hydrates for client navigation and form submission.
 2. Use the portal's existing bootstrap token flow to create the first administrator.
 3. Sign in and finish any required MFA/passkey setup. The website wizard opens when
    business details are missing, including for existing installations.
-4. Enter business name, description, email, phone and address. Continue to logo,
-   brand colour, public/admin origins, SEO defaults and enquiry notification email.
-5. Save and review the saved business preview. Choose **Enable public website**.
+4. Enter the business name and optionally upload a PNG, JPEG or WebP logo up to
+   1 MB using the dropzone.
+5. Save the setup. Choose **Enable public website** when it is ready for visitors.
 
 Saving settings never enables the website. Before enablement, visitors see **Coming
 soon** and crawlers receive `noindex`. Return to **Administration → Website setup**
 to edit settings or disable the website. Saved settings survive restarts and interrupted
 sessions; unsaved inputs trigger the portal's existing leave-page warning.
 
-Origins must differ and have no path/query/fragment, for example
-`https://www.example.com` and `https://admin.example.com`. Sign-in links always target
-the configured admin origin's `/login`. `Web:PublicUrl` in the backend still means the
-admin portal for existing account email links; do not replace it with the new public
-website origin.
+The reduced setup stores removed business-detail fields as empty values. The public
+website omits optional logo, contact, sign-in and metadata values when they are absent
+and uses its current request origin for canonical metadata. `Web:PublicUrl` in the
+backend still means the admin portal for existing account email links.
 
 ## CMS and contact modules
 
@@ -46,10 +45,8 @@ Contact is separately controlled in **Administration → Modules** (`Modules:con
 for deployment settings). It is enabled in baseline and excluded by minimal. Delegate
 `contact.manage` to permit inbox access; Administrator receives it through Migrator
 permission synchronization. **Administration → Contact enquiries** lists, searches,
-sorts and pages enquiries and can mark them as read. Disabling Contact hides the form;
-the inbox and accepted notifications remain available. Configure the existing Worker
-SMTP settings to deliver email to the wizard's notification address. Email links to
-the authenticated inbox without copying visitor messages into email or audit records.
+sorts and pages enquiries and can mark them as read. With no notification recipient in
+the reduced website setup, the public contact form remains hidden.
 
 Website image uploads accept PNG/JPEG/WebP up to 1 MB, through the existing local/S3
 storage provider. My Files need not be enabled. Uploaded assets are public and retained.

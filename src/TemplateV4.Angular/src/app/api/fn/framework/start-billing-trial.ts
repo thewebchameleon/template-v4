@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { StartTrial } from '../../models/start-trial';
 
 export interface StartBillingTrial$Params {
-  customer: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -22,7 +21,6 @@ export interface StartBillingTrial$Params {
 export function startBillingTrial(http: HttpClient, rootUrl: string, params: StartBillingTrial$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, startBillingTrial.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -37,4 +35,4 @@ export function startBillingTrial(http: HttpClient, rootUrl: string, params: Sta
   );
 }
 
-startBillingTrial.PATH = '/api/v1/auth/customers/{customer}/billing/trial';
+startBillingTrial.PATH = '/api/v1/auth/billing/trial';

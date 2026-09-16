@@ -13,6 +13,10 @@ Group module-owned pages, resolvers, translations and services under `src/app/fe
 - Accessibility is an acceptance criterion: semantic HTML, keyboard operation, visible focus, accessible names and state announcements, contrast in both themes, reduced-motion preferences, and usable zoom/reflow.
 - Validate affected interactions with proportional keyboard and visual review and applicable automated accessibility checks. Root E2E permission requirements also apply to accessibility automation. Report any review that could not be performed.
 
+## Validation
+
+Follow the root minimum-test policy. Reuse existing coverage and add only the fewest cases needed for changed interaction behavior or a regression. Styling, copy edits, and straightforward behavior-preserving refactors need no new tests. Keep visual and accessibility review proportional to the affected UI; do not build a new test harness or duplicate browser-free coverage in E2E without a distinct risk. Preserve accessibility acceptance criteria and the root E2E permission requirement.
+
 ## Data tables
 
 - Reuse `src/app/shared/data-table.ts` (`app-data-table`) with typed columns. Use server pagination and sorting for data-bearing columns; action-only columns are not sortable. Keep query state in the URL; APIs allowlist sorting and use a stable identifier as secondary ordering.

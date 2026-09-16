@@ -19,7 +19,7 @@ import { LoginBackgroundArtwork } from '../../../shared/login-background';
           {{ 'appBrand' | t }}
         </a>
         <div class="auth-content">
-          <div class="auth-form"><ng-content /></div>
+          <div class="auth-form auth-stagger"><ng-content /></div>
         </div>
         <footer class="auth-preferences"><app-preferences /></footer>
       </div>

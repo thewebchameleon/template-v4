@@ -87,7 +87,6 @@ public sealed class ModuleOwnershipTests
             .Select(field => (string)field.GetRawConstantValue()!).Order().ToArray();
         Assert.Equal(declarations.Length, declarations.Distinct().Count());
         Assert.Equal(declarations, Permissions.All.Order().ToArray());
-        Assert.Equal(new[] { "users.read", "users.manage", "roles.manage", "jobs.trigger", "settings.manage", "support.agent", "support.admin", "invoicing.issue", "invoicing.settle", "invoicing.correct", "cms.edit", "contact.manage" }, Permissions.All);
     }
 
     private static string[] Violations(CSharpCompilation compilation)

@@ -17,7 +17,6 @@ export interface CommercialDocument {
   issuedAt: string;
   kind: CommercialDocumentKind;
   number: string;
-  organisationId: string;
   origin: (null | CommercialOrigin);
   paid: number;
   previousRevisionId: (string | null);

@@ -16,10 +16,16 @@ export interface Destination {
   hasPanel?: boolean;
 }
 
-// Paths are relative to the selected organisation workspace.
+// Paths are relative to the organisation workspace.
 export const organisationDestinations: readonly Destination[] = [
+  { path: 'billing', label: 'billing', icon: 'lucideSettings', administratorOnly: true },
   { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
-  { path: 'invoicing', label: 'invoicing', icon: 'lucideFileSpreadsheet' },
+  {
+    path: 'invoicing',
+    label: 'invoicing',
+    icon: 'lucideFileSpreadsheet',
+    capability: 'invoicing',
+  },
 ];
 
 export function activeDestinationIndex(items: readonly Destination[], path: string): number {
@@ -46,7 +52,7 @@ export const workspaceDestinations = {
     hasPanel: false,
   },
   organisations: {
-    path: '/organisations',
+    path: '/organisation',
     label: 'organisation',
     icon: 'lucideUsersRound',
     capability: 'organisations',
@@ -72,14 +78,6 @@ export const workspaceDestinations = {
 } as const satisfies Record<string, Destination>;
 
 export const administrationDestinations = {
-  website: {
-    path: '/administration/website',
-    label: 'websiteSetup',
-    icon: 'lucideSettings',
-    section: 'administration',
-    administratorOnly: true,
-    permissions: ['settings.manage'],
-  },
   contact: {
     path: '/administration/contact',
     label: 'contactInbox',
@@ -88,8 +86,8 @@ export const administrationDestinations = {
     permissions: ['contact.manage'],
   },
   organisations: {
-    path: '/administration/organisations',
-    label: 'organisations',
+    path: '/administration/organisation',
+    label: 'organisation',
     icon: 'lucideUsersRound',
     section: 'administration',
     administratorOnly: true,
@@ -158,6 +156,14 @@ export const administrationDestinations = {
     capability: 'operations',
   },
 } as const satisfies Record<string, Destination>;
+
+export const websiteSetupDestination = {
+  path: '/administration/website',
+  label: 'websiteSetup',
+  icon: 'lucideSettings',
+  administratorOnly: true,
+  permissions: ['settings.manage'],
+} as const satisfies Destination;
 
 export function destinationAvailable(
   destination: Destination,

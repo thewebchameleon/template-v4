@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { CrmConfiguration } from '../../models/crm-configuration';
 
 export interface ConfigureCrm$Params {
-  organisation: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -22,7 +21,6 @@ export interface ConfigureCrm$Params {
 export function configureCrm(http: HttpClient, rootUrl: string, params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
   const rb = new RequestBuilder(rootUrl, configureCrm.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -37,4 +35,4 @@ export function configureCrm(http: HttpClient, rootUrl: string, params: Configur
   );
 }
 
-configureCrm.PATH = '/api/v1/auth/organisations/{organisation}/crm/configuration';
+configureCrm.PATH = '/api/v1/auth/organisation/crm/configuration';

@@ -42,11 +42,6 @@ public sealed partial class PrivacyService
         {
             await TemplateV4.Infrastructure.Customers.CustomerAccess.MutationLock(db, ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
-            if (await db.Set<MembershipRow>().AnyAsync(x => x.UserId == user.Id && x.Role == "Owner", ct) || await entitlements.HasObligations(user.Id, ct)) return Result.Fail("customers.deletion_obligations", ErrorKind.Conflict);
-            await db.Set<MembershipRow>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
-            await db.Set<CustomerInviteRow>().Where(x => x.Email == user.NormalizedEmail).ExecuteDeleteAsync(ct);
-            await db.Set<CustomerRow>().Where(x => x.PersonalUserId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(c => c.Name, "Deleted account").SetProperty(c => c.Version, Guid.NewGuid()), ct);
-            await db.Set<TemplateV4.Infrastructure.Storage.OrganisationFileRow>().Where(x => x.UploadedBy == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.UploadedBy, (Guid?)null), ct);
             // CRM customers are independent business records, not this identity account.
             // Remove staff assignment while retaining organisation records and issued snapshots.
             var assignments = await db.Set<TemplateV4.Infrastructure.Crm.CrmRecordRow>()
@@ -66,7 +61,7 @@ public sealed partial class PrivacyService
             user.Email = user.UserName = $"deleted-{user.Id:N}@example.invalid";
             user.NormalizedEmail = user.NormalizedUserName = user.Email.ToUpperInvariant();
             user.PasswordHash = null; user.PhoneNumber = null; user.PhoneNumberConfirmed = false;
-            user.EmailConfirmed = false; user.EmailMfaEnabled = false; user.TwoFactorEnabled = false; user.OptionalEmailEnabled = false; user.CurrentOrganisationId = null;
+            user.EmailConfirmed = false; user.EmailMfaEnabled = false; user.TwoFactorEnabled = false; user.OptionalEmailEnabled = false;
             user.SecurityStamp = Guid.NewGuid().ToString();
             user.PushEnabled = false; user.PushShowPreview = false;
             await db.Set<WebPushSubscription>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
@@ -101,9 +96,8 @@ public sealed partial class PrivacyService
             // Remove encrypted email action/recipient data as well as credentials. Fencing stops
             // stale workers committing completion; an SMTP call already in flight cannot be recalled.
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE messaging.outbox SET \"Payload\" = '{{}}', \"CompletedAt\" = {time.GetUtcNow()}, \"PoisonedAt\" = NULL, \"LeaseId\" = NULL, \"LeaseUntil\" = NULL WHERE \"Type\" = 'email.requested.v1' AND \"Payload\"::jsonb->>'UserId' = {user.Id.ToString()}", ct);
-            await db.Files.Where(x => x.OwnerId == user.Id && x.DeletedAt == null).ExecuteUpdateAsync(x => x.SetProperty(f => f.DeletedAt, time.GetUtcNow()), ct);
-            await db.Set<MyFileShare>().Where(x => x.RecipientId == user.Id || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == user.Id)).ExecuteDeleteAsync(ct);
-            await db.Files.Where(x => x.OwnerId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.Description, "").SetProperty(f => f.Tags, ""), ct);
+            await db.Set<MyFileShare>().Where(x => x.RecipientId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Files.Where(x => x.OwnerId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.OwnerId, (Guid?)null), ct);
             request.State = "Approved";
         }
         else

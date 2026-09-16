@@ -2,6 +2,9 @@
 
 Status: Accepted; initial implementation follows [ADR 0026](0026-customer-billing-implementation.md).
 
+The account ownership and tenant model below is historical and superseded by
+[ADR 0047](0047-single-organisation.md).
+
 ## Context
 
 The starter must support B2C, B2B or both in one deployment. Existing global Identity roles describe platform administration and must not inadvertently grant organisation access.

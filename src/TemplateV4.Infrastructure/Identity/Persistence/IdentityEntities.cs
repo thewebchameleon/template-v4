@@ -7,7 +7,6 @@ public sealed class AppUser : IdentityUser<Guid>
     public string RegistrationState { get; set; } = "NotRequired";
     public DateTimeOffset? RegistrationReviewedAt { get; set; }
     public Guid? RegistrationReviewedBy { get; set; }
-    public Guid? CurrentOrganisationId { get; set; }
     public long? StorageQuotaBytes { get; set; }
     public DateTimeOffset? InvitationSentAt { get; set; }
     public DateTimeOffset? InvitationExpiresAt { get; set; }

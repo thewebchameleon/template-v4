@@ -33,6 +33,39 @@ public sealed class WebsiteTests
     }
 
     [Fact]
+    public void Website_setup_requires_only_a_name_and_accepts_an_optional_logo()
+    {
+        var withoutLogo = WebsiteStore.Normalize(Details("Acme", ""));
+        var withLogo = WebsiteStore.Normalize(Details(" Acme ", "/api/v1/website/images/1435e55e-cf92-4619-baf4-b4a27327e98b"));
+
+        Assert.NotNull(withoutLogo);
+        Assert.Equal("Acme", withLogo!.Name);
+        Assert.Null(WebsiteStore.Normalize(Details(" ", "")));
+        Assert.Null(WebsiteStore.Normalize(Details("Acme", "javascript:alert(1)")));
+    }
+
+    [Fact]
+    public void Website_setup_clears_removed_values()
+    {
+        var details = WebsiteStore.Normalize(Details("Acme", "https://example.com/logo.png"));
+
+        Assert.NotNull(details);
+        Assert.Equal("", details!.Description);
+        Assert.Equal("", details.PrimaryColor);
+        Assert.Equal("", details.Email);
+        Assert.Equal("", details.Phone);
+        Assert.Equal("", details.Address);
+        Assert.Equal("", details.PublicUrl);
+        Assert.Equal("", details.AdminUrl);
+        Assert.Equal("", details.SeoTitle);
+        Assert.Equal("", details.SeoDescription);
+    }
+
+    private static BusinessDetails Details(string name, string logoUrl) => new(name, "description", logoUrl, "#245c46",
+        "hello@example.com", "+27 10 000 0000", "Address", "https://www.example.com", "https://admin.example.com",
+        "Title", "Description");
+
+    [Fact]
     public async Task Public_contact_and_cms_routes_have_independent_ownership_and_gates()
     {
         var builder = WebApplication.CreateBuilder();

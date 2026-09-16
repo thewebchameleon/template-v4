@@ -12,6 +12,6 @@ public sealed partial class MyFilesService
     public async Task<Result<FileDownload>> PublicDownload(Guid id, string token, CancellationToken ct)
     {
         var file = await Access(Guid.Empty, id, false, ct, token);
-        return file is null || file.IsFolder ? Result<FileDownload>.Fail("files.not_found", ErrorKind.NotFound) : Result<FileDownload>.Success(new(await storage.Read(file.Id.ToString("N"), ct), file.Name));
+        return file is null || file.IsFolder ? Result<FileDownload>.Fail("files.not_found", ErrorKind.NotFound) : Result<FileDownload>.Success(new(await storage.Read(file.ObjectKey, ct), file.Name));
     }
 }

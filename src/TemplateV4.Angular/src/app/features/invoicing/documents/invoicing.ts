@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { CommercialDocument, PageOfCommercialDocument } from '../../../api/models';
 import { I18n } from '../../../core/i18n';
@@ -23,14 +23,11 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
   imports: [WorkspaceUi, DataTable],
   template: ` <app-page-header title="invoicing" description="invoicingHelp">
       @if (features.enabled('invoicing')) {
-        <a
-          hlmBtn
-          variant="outline"
-          [routerLink]="['/organisations', organisation, 'invoicing', 'settings']"
-          >{{ 'issuerSettings' | t }}</a
-        >
+        <a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing', 'settings']">{{
+          'issuerSettings' | t
+        }}</a>
         @if (auth.has('invoicing.issue')) {
-          <a hlmBtn [routerLink]="['/organisations', organisation, 'invoicing', 'new']">{{
+          <a hlmBtn [routerLink]="['/organisation', 'invoicing', 'new']">{{
             'issueDocument' | t
           }}</a>
         }
@@ -80,7 +77,6 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
     </section>`,
 })
 export class InvoicingPage {
-  readonly organisation = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly i18n = inject(I18n);
@@ -120,12 +116,7 @@ export class InvoicingPage {
                 {
                   label: 'view',
                   run: () =>
-                    void this.router.navigate([
-                      '/organisations',
-                      this.organisation,
-                      'invoicing',
-                      row.original.id,
-                    ]),
+                    void this.router.navigate(['/organisation', 'invoicing', row.original.id]),
                 },
               ],
             },
@@ -150,7 +141,7 @@ export class InvoicingPage {
     if (
       await this.data.load((signal) =>
         this.api.get(
-          `organisations/${this.organisation}/invoicing`,
+          `organisation/invoicing`,
           {
             search: this.query.text('search'),
             pageNumber: this.query.page,

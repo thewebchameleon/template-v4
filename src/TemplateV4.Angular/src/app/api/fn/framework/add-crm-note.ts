@@ -11,7 +11,6 @@ import { AddCrmNote } from '../../models/add-crm-note';
 import { CrmNote } from '../../models/crm-note';
 
 export interface AddCrmNote$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -24,7 +23,6 @@ export interface AddCrmNote$Params {
 export function addCrmNote(http: HttpClient, rootUrl: string, params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
   const rb = new RequestBuilder(rootUrl, addCrmNote.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -40,4 +38,4 @@ export function addCrmNote(http: HttpClient, rootUrl: string, params: AddCrmNote
   );
 }
 
-addCrmNote.PATH = '/api/v1/auth/organisations/{organisation}/crm/{id}/notes';
+addCrmNote.PATH = '/api/v1/auth/organisation/crm/{id}/notes';

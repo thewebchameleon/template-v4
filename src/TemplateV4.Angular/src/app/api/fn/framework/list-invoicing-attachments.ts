@@ -10,14 +10,12 @@ import { RequestBuilder } from '../../request-builder';
 import { RecordAttachment } from '../../models/record-attachment';
 
 export interface ListInvoicingAttachments$Params {
-  organisation: string;
   id: string;
 }
 
 export function listInvoicingAttachments(http: HttpClient, rootUrl: string, params: ListInvoicingAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RecordAttachment>>> {
   const rb = new RequestBuilder(rootUrl, listInvoicingAttachments.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -31,4 +29,4 @@ export function listInvoicingAttachments(http: HttpClient, rootUrl: string, para
   );
 }
 
-listInvoicingAttachments.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments';
+listInvoicingAttachments.PATH = '/api/v1/auth/organisation/invoicing/{id}/attachments';

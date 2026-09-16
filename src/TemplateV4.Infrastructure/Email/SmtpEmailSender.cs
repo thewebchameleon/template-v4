@@ -24,7 +24,6 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
             EmailTemplate.RegistrationApproved => af ? "Registrasie goedgekeur" : "Registration approved",
             EmailTemplate.RegistrationRejected => af ? "Registrasie afgekeur" : "Registration rejected",
             EmailTemplate.SecurityNotification => af ? "Rekeningsekuriteit verander" : "Account security changed",
-            EmailTemplate.OrganisationInvitation => af ? "Jy is genooi na ’n organisasie" : "You have an organisation invitation",
             EmailTemplate.SupportTicket => af ? "Jou ondersteuningskaartjie is opgedateer" : "Your support ticket has been updated",
             EmailTemplate.ContactEnquiry => af ? "Nuwe webwerfnavraag" : "New website enquiry",
             EmailTemplate.MfaCode => af ? "Jou aanmeldkode" : "Your sign-in code",
@@ -40,9 +39,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
         var message = new MimeMessage { Subject = subject, MessageId = $"{messageId:N}@templatev4" };
         message.From.Add(MailboxAddress.Parse(config["Email:From"] ?? "no-reply@localhost")); message.To.Add(MailboxAddress.Parse(recipient));
         var url = email.ActionUrl is null ? null : protection.CreateProtector("TemplateV4.email.action.v1").Unprotect(email.ActionUrl);
-        if (email.Template == EmailTemplate.OrganisationInvitation) url = $"{config["Web:PublicUrl"]?.TrimEnd('/')}/organisations";
         var code = email.Template == EmailTemplate.MfaCode && email.ProtectedContent is not null ? _mfaCodeProtector.Unprotect(email.ProtectedContent) : null;
-        if (email.Template == EmailTemplate.OrganisationInvitation) customBody = af ? "Bevestig jou e-pos en stel jou wagwoord indien nodig. Meld dan aan en aanvaar die uitnodiging onder Rekeninge en spanne. Dit verval oor sewe dae." : "Verify your email and set your password if needed, then sign in and accept the invitation under Accounts & teams. It expires in seven days.";
         if (email.Template == EmailTemplate.RegistrationApproved) { url = $"{config["Web:PublicUrl"]?.TrimEnd('/')}/login"; customBody = af ? "Jou registrasie is goedgekeur. Jy kan nou aanmeld." : "Your registration has been approved. You can now sign in."; }
         if (email.Template == EmailTemplate.RegistrationRejected) customBody = af ? "Jou registrasie is afgekeur. Kontak die administrateur vir hulp." : "Your registration has been rejected. Contact the administrator for assistance.";
         var introduction = customBody ?? (code is null ? subject : af ? "Gebruik hierdie kode om aan te meld. Dit verval oor 10 minute." : "Use this code to sign in. It expires in 10 minutes.");

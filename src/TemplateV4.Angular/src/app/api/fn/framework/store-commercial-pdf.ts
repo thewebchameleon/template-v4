@@ -9,7 +9,6 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface StoreCommercialPdf$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -21,7 +20,6 @@ export interface StoreCommercialPdf$Params {
 export function storeCommercialPdf(http: HttpClient, rootUrl: string, params: StoreCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, storeCommercialPdf.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
@@ -36,4 +34,4 @@ export function storeCommercialPdf(http: HttpClient, rootUrl: string, params: St
   );
 }
 
-storeCommercialPdf.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/store-pdf';
+storeCommercialPdf.PATH = '/api/v1/auth/organisation/invoicing/{id}/store-pdf';

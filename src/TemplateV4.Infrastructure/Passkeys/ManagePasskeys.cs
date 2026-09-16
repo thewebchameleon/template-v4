@@ -11,9 +11,11 @@ public sealed partial class PasskeyService
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         var sessionId = EndpointSession(http);
-        if (sessionId is null || await security.RequiresRecentVerification(user, sessionId.Value, ct))
+        var setupEnrollment = string.IsNullOrEmpty(proof.Password);
+        if (sessionId is null || await security.RequiresRecentVerification(user, sessionId.Value, ct) ||
+            setupEnrollment && !await security.CanEnrollFromSetupSession(user, sessionId.Value, ct))
             return Result<PasskeyOptions>.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
-        if (!await security.Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<PasskeyOptions>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
+        if (!setupEnrollment && !await security.Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<PasskeyOptions>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if ((await users.GetPasskeysAsync(user)).Count >= 10) return Result<PasskeyOptions>.Fail("auth.passkey_limit", ErrorKind.Conflict);
         var options = await handler.MakeCreationOptionsAsync(new() { Id = id.ToString(), Name = user.Email!, DisplayName = user.Email! }, http);
         var challenge = await security.Challenge(user, "passkey-register", options.AttestationState ?? "", "", ct);

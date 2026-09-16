@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HostListener } from '@angular/core';
 import { protectUnload } from '../../../shared/confirmation';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
@@ -25,29 +25,31 @@ const column = createColumnHelper<DataTableFeatures, OrganisationFileItem>();
   selector: 'app-organisation-files',
   imports: [WorkspaceUi, RouterLink, DataTable],
   template: `<app-page-header title="organisationFiles" description="organisationFilesHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', id]">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation']">{{
         'organisationWorkspace' | t
       }}</a></app-page-header
     >
-    <section hlmCard class="mb-6">
-      <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'uploadFile' | t }}</h2>
-        <p hlmCardDescription>{{ 'organisationUploadHelp' | t }}</p>
-      </div>
-      <form hlmCardContent class="grid gap-4" (ngSubmit)="upload()">
-        <div hlmField>
-          <label hlmFieldLabel for="organisation-file">{{ 'chooseFile' | t }}</label
-          ><input
-            hlmInput
-            id="organisation-file"
-            type="file"
-            [disabled]="busy()"
-            (change)="choose($event)"
-          />
+    @if (auth.has('organisation.files.manage')) {
+      <section hlmCard class="mb-6">
+        <div hlmCardHeader>
+          <h2 hlmCardTitle>{{ 'uploadFile' | t }}</h2>
+          <p hlmCardDescription>{{ 'organisationUploadHelp' | t }}</p>
         </div>
-        <button hlmBtn [disabled]="busy() || !file()">{{ 'uploadFile' | t }}</button>
-      </form>
-    </section>
+        <form hlmCardContent class="grid gap-4" (ngSubmit)="upload()">
+          <div hlmField>
+            <label hlmFieldLabel for="organisation-file">{{ 'chooseFile' | t }}</label
+            ><input
+              hlmInput
+              id="organisation-file"
+              type="file"
+              [disabled]="busy()"
+              (change)="choose($event)"
+            />
+          </div>
+          <button hlmBtn [disabled]="busy() || !file()">{{ 'uploadFile' | t }}</button>
+        </form>
+      </section>
+    }
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'organisationFiles' | t }}</h2>
@@ -79,7 +81,6 @@ const column = createColumnHelper<DataTableFeatures, OrganisationFileItem>();
     </section>`,
 })
 export class OrganisationFilesPage {
-  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
   readonly http = inject(HttpClient);
@@ -114,7 +115,7 @@ export class OrganisationFilesPage {
                   disabled: this.busy(),
                   run: () =>
                     void this.api.download(
-                      `customers/${this.id}/files/${row.original.id}`,
+                      `organisation/files/${row.original.id}`,
                       row.original.name,
                     ),
                 },
@@ -159,7 +160,7 @@ export class OrganisationFilesPage {
     if (
       await this.data.load((signal) =>
         this.api.get(
-          `customers/${this.id}/files`,
+          `organisation/files`,
           {
             pageNumber: this.query.page,
             pageSize: this.pageSize(),
@@ -187,15 +188,11 @@ export class OrganisationFilesPage {
     try {
       const headers = await this.auth.browserHeaders();
       await firstValueFrom(
-        this.http.post(
-          `${this.runtime.apiUrl}/api/v1/auth/customers/${this.id}/files/upload`,
-          file,
-          {
-            params: { name: file.name },
-            headers: { ...headers, 'Content-Type': 'application/octet-stream' },
-            withCredentials: true,
-          },
-        ),
+        this.http.post(`${this.runtime.apiUrl}/api/v1/auth/organisation/files/upload`, file, {
+          params: { name: file.name },
+          headers: { ...headers, 'Content-Type': 'application/octet-stream' },
+          withCredentials: true,
+        }),
       );
       this.file.set(null);
       if (this.fileInput) this.fileInput.value = '';
@@ -212,7 +209,7 @@ export class OrganisationFilesPage {
       return;
     this.busy.set(true);
     try {
-      await this.api.post(`customers/${this.id}/files/${file.id}/delete`);
+      await this.api.post(`organisation/files/${file.id}/delete`);
       await this.load();
     } finally {
       this.busy.set(false);

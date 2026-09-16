@@ -6,7 +6,7 @@ namespace TemplateV4.Infrastructure.Crm;
 
 public sealed partial class CrmStore
 {
-    public async Task<Result<CrmRecord>> Save(Guid actor, Guid organisation, SaveCrmRecord request, CancellationToken ct)
+    public async Task<Result<CrmRecord>> Save(Guid actor, SaveCrmRecord request, CancellationToken ct)
     {
         var data = request.Data;
         if (data is null || !Enum.IsDefined(data.Kind) || !Enum.IsDefined(data.Outcome) || string.IsNullOrWhiteSpace(data.Name) || data.Name.Length > 250 ||
@@ -17,13 +17,13 @@ public sealed partial class CrmStore
             data.CustomFields.DistinctBy(x => x.FieldId).Count() != data.CustomFields.Length || data.Value is < 0 or > 1000000000000 ||
             data.Value.HasValue && decimal.Round(data.Value.Value, 2) != data.Value || data.Kind != CrmRecordKind.Contact && (data.Companies.Length != 0 || data.CustomFields.Length != 0))
             return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(organisation, ct);
-        if (!await access.Allowed(actor, organisation, OrganisationOperation.Operate, ct)) return Result<CrmRecord>.Fail("customers.not_found", ErrorKind.NotFound);
-        var row = request.Id.HasValue ? await Records(organisation).SingleOrDefaultAsync(x => x.Id == request.Id, ct) : new CrmRecordRow { OrganisationId = organisation, CreatedAt = time.GetUtcNow() };
+        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(ct);
+        if (!await access.Allowed(actor, OrganisationOperation.Operate, ct)) return Result<CrmRecord>.Fail("customers.not_found", ErrorKind.NotFound);
+        var row = request.Id.HasValue ? await Records().SingleOrDefaultAsync(x => x.Id == request.Id, ct) : new CrmRecordRow { CreatedAt = time.GetUtcNow() };
         if (row is null) return Result<CrmRecord>.Fail("resource.not_found", ErrorKind.NotFound);
         if (request.Id.HasValue && (row.Version != request.Version || row.Archived || row.Kind != data.Kind.ToString())) return Result<CrmRecord>.Fail("concurrency.conflict", ErrorKind.Conflict);
         var previous = request.Id.HasValue ? Read(row).Data : null;
-        var settings = ReadConfiguration(await Seed(organisation, ct));
+        var settings = ReadConfiguration(await Seed(ct));
         bool Option(CrmOption[] options, Guid id, bool retained) => options.Any(x => x.Id == id && (!x.Retired || retained));
         if (data.LifecycleStatusId is Guid lifecycle && !Option(settings.LifecycleStatuses, lifecycle, previous?.LifecycleStatusId == lifecycle) ||
             data.Tags.Any(id => !Option(settings.Tags, id, previous?.Tags.Contains(id) == true)) ||
@@ -33,18 +33,18 @@ public sealed partial class CrmStore
         if (data.Kind == CrmRecordKind.Deal && (!data.Value.HasValue || !settings.Pipelines.Any(p => p.Id == data.PipelineId &&
             (!p.Retired || previous?.PipelineId == p.Id) && p.Stages.Any(s => s.Id == data.StageId && (!s.Retired || previous?.StageId == s.Id)))))
             return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
-        if (data.OwnerId is Guid owner && !await access.Allowed(owner, organisation, OrganisationOperation.Read, ct)) return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
+        if (data.OwnerId is Guid owner && !await access.Allowed(owner, OrganisationOperation.Read, ct)) return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
         foreach (var relationship in data.Companies)
-            if (!await Records(organisation).AnyAsync(x => x.Id == relationship.CompanyId && x.Kind == "Company" && (!x.Archived || previous != null && previous.Companies.Select(c => c.CompanyId).Contains(x.Id)), ct))
+            if (!await Records().AnyAsync(x => x.Id == relationship.CompanyId && x.Kind == "Company" && (!x.Archived || previous != null && previous.Companies.Select(c => c.CompanyId).Contains(x.Id)), ct))
                 return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
         foreach (var reference in new[] { (data.CustomerId, previous?.CustomerId, false), (data.ContactId, previous?.ContactId, true) })
-            if (reference.Item1 is Guid target && !await Records(organisation).AnyAsync(x => x.Id == target && x.Kind != "Deal" && (!reference.Item3 || x.Kind == "Contact") && (!x.Archived || reference.Item2 == target), ct))
+            if (reference.Item1 is Guid target && !await Records().AnyAsync(x => x.Id == target && x.Kind != "Deal" && (!reference.Item3 || x.Kind == "Contact") && (!x.Archived || reference.Item2 == target), ct))
                 return Result<CrmRecord>.Fail("validation.failed", ErrorKind.Validation);
         row.Kind = data.Kind.ToString(); row.Name = data.Name.Trim(); row.Email = data.Email?.Trim() ?? ""; row.Phone = data.Phone?.Trim() ?? "";
         row.Outcome = data.Outcome.ToString(); row.Value = data.Value ?? 0; row.UpdatedAt = time.GetUtcNow(); row.Version = Guid.NewGuid();
         row.Data = JsonSerializer.Serialize(data with { Name = row.Name, Email = row.Email, Phone = row.Phone }, Json);
         if (!request.Id.HasValue) db.Set<CrmRecordRow>().Add(row);
-        Audit(actor, organisation, row.Id, request.Id.HasValue ? "crm.updated" : "crm.created",
+        Audit(actor, row.Id, request.Id.HasValue ? "crm.updated" : "crm.created",
             new("kind", previous?.Kind.ToString(), data.Kind.ToString()),
             new("outcome", previous?.Outcome.ToString(), data.Outcome.ToString()),
             new("relationshipCount", previous?.Companies.Length.ToString(), data.Companies.Length.ToString()),

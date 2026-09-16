@@ -65,7 +65,7 @@ for (const width of [390, 1440]) {
       ['invitations', 'Invitations'],
       ['administration/system-health', 'System Health'],
       ['notifications', 'Notifications'],
-      ['my-files', 'My Files'],
+      ['my-files', 'Files'],
       ['privacy', 'Privacy & data'],
       ['administration/users/privacy-requests', 'User Management'],
     ]) {

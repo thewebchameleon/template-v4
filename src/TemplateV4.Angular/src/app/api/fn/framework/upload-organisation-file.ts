@@ -9,7 +9,6 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface UploadOrganisationFile$Params {
-  customer: string;
   name: string;
 
 /**
@@ -21,7 +20,6 @@ export interface UploadOrganisationFile$Params {
 export function uploadOrganisationFile(http: HttpClient, rootUrl: string, params: UploadOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, uploadOrganisationFile.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.query('name', params.name, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
@@ -36,4 +34,4 @@ export function uploadOrganisationFile(http: HttpClient, rootUrl: string, params
   );
 }
 
-uploadOrganisationFile.PATH = '/api/v1/auth/customers/{customer}/files/upload';
+uploadOrganisationFile.PATH = '/api/v1/auth/organisation/files/upload';

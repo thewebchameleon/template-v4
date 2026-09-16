@@ -9,7 +9,6 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface CancelCustomerSubscription$Params {
-  customer: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -20,7 +19,6 @@ export interface CancelCustomerSubscription$Params {
 export function cancelCustomerSubscription(http: HttpClient, rootUrl: string, params: CancelCustomerSubscription$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, cancelCustomerSubscription.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
 
@@ -34,4 +32,4 @@ export function cancelCustomerSubscription(http: HttpClient, rootUrl: string, pa
   );
 }
 
-cancelCustomerSubscription.PATH = '/api/v1/auth/customers/{customer}/billing/cancel';
+cancelCustomerSubscription.PATH = '/api/v1/auth/billing/cancel';

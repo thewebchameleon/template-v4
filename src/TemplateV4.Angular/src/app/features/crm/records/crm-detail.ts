@@ -1,3 +1,4 @@
+import { Auth } from '../../../core/auth';
 import { BusinessDraft } from '../../../shared/business-draft';
 import { FOUNDATION_FEATURES } from '../../../core/feature-extensions';
 import { Features } from '../../../core/features';
@@ -24,7 +25,7 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
     HlmTextareaImports,
   ],
   template: `<app-page-header title="crmEdit" description="crmHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', organisation, 'crm']">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'crm']">{{
         'crm' | t
       }}</a></app-page-header
     >
@@ -35,7 +36,10 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
             <h2 hlmCardTitle>{{ draft.name || ('crmNew' | t) }}</h2>
           </div>
           <form hlmCardContent class="grid gap-5" (ngSubmit)="save()" #form="ngForm">
-            <fieldset [disabled]="busy() || archived()" class="grid gap-5">
+            <fieldset
+              [disabled]="busy() || archived() || !auth.has('crm.manage')"
+              class="grid gap-5"
+            >
               @for (key of textFields; track key) {
                 <div hlmField>
                   <label hlmFieldLabel [for]="'crm-' + key">{{ key | t }}</label
@@ -84,7 +88,6 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
                 @for (relation of draft.companies; track $index; let index = $index) {
                   <div class="grid gap-3 rounded-lg border p-4">
                     <app-crm-customer-picker
-                      [organisation]="organisation"
                       [controlId]="'company-' + index"
                       label="companies"
                       fixedKind="1"
@@ -134,13 +137,11 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
               }
               @if (draft.kind === 2) {
                 <app-crm-customer-picker
-                  [organisation]="organisation"
                   controlId="deal-customer"
                   [value]="draft.customerId ?? ''"
                   (valueChange)="draft.customerId = $event || null"
                 />
                 <app-crm-customer-picker
-                  [organisation]="organisation"
                   controlId="deal-contact"
                   label="contacts"
                   fixedKind="0"
@@ -203,7 +204,7 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
                 <a
                   hlmBtn
                   variant="outline"
-                  [routerLink]="['/organisations', organisation, action.segment]"
+                  [routerLink]="['/organisation', action.segment]"
                   [queryParams]="{ deal: recordId, customer: draft.customerId }"
                   >{{ action.label | t }}</a
                 >
@@ -241,12 +242,13 @@ import { CrmCustomerPicker } from '../../../shared/crm-customer-picker';
           </section>
         }
         @if (recordId !== 'new' && features.enabled('crm-files')) {
-          <app-record-attachments [organisation]="organisation" [record]="recordId" kind="crm" />
+          <app-record-attachments [record]="recordId" kind="crm" />
         }
       }
     </app-page-state>`,
 })
 export class CrmDetailPage extends BusinessDraft {
+  readonly auth = inject(Auth);
   protected draftValue() {
     return this.draft;
   }
@@ -256,7 +258,6 @@ export class CrmDetailPage extends BusinessDraft {
   private readonly router = inject(Router);
   private readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
-  readonly organisation = this.route.snapshot.paramMap.get('id')!;
   readonly recordId = this.route.snapshot.paramMap.get('recordId')!;
   readonly owners = signal<{ id: string; label: string }[]>([]);
   readonly data = new Resource<CrmDetail | null>();
@@ -292,10 +293,7 @@ export class CrmDetailPage extends BusinessDraft {
     super();
     void this.load();
     void this.api
-      .get<{ items: { userId: string; name: string }[] }>(
-        `organisations/${this.organisation}/members`,
-        { pageSize: 100 },
-      )
+      .get<{ items: { userId: string; name: string }[] }>(`organisation/users`, { pageSize: 100 })
       .then((page) => this.owners.set(page.items.map((x) => ({ id: x.userId, label: x.name }))))
       .catch(() => {
         /* The HTTP interceptor reports the error. */
@@ -307,18 +305,10 @@ export class CrmDetailPage extends BusinessDraft {
   async load() {
     await this.data.load(async (signal) => {
       const [config, detail] = await Promise.all([
-        this.api.get<CrmConfiguration>(
-          `organisations/${this.organisation}/crm/configuration`,
-          {},
-          signal,
-        ),
+        this.api.get<CrmConfiguration>(`organisation/crm/configuration`, {}, signal),
         this.recordId === 'new'
           ? Promise.resolve(null)
-          : this.api.get<CrmDetail>(
-              `organisations/${this.organisation}/crm/${this.recordId}`,
-              {},
-              signal,
-            ),
+          : this.api.get<CrmDetail>(`organisation/crm/${this.recordId}`, {}, signal),
       ]);
       this.configuration.set(config);
       if (detail) this.draft = structuredClone(detail.record.data);
@@ -364,14 +354,14 @@ export class CrmDetailPage extends BusinessDraft {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      const record = await this.api.post<CrmRecord>(`organisations/${this.organisation}/crm`, {
+      const record = await this.api.post<CrmRecord>(`organisation/crm`, {
         id: this.recordId === 'new' ? null : this.recordId,
         version: this.data.value()?.record.version ?? null,
         data: this.draft,
       });
       if (this.recordId === 'new') {
         this.markSaved();
-        await this.router.navigate(['/organisations', this.organisation, 'crm', record.id]);
+        await this.router.navigate(['/organisation', 'crm', record.id]);
       } else await this.load();
     } finally {
       this.busy.set(false);
@@ -381,7 +371,7 @@ export class CrmDetailPage extends BusinessDraft {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(`organisations/${this.organisation}/crm/${this.recordId}/notes`, {
+      await this.api.post(`organisation/crm/${this.recordId}/notes`, {
         text: this.note,
       });
       this.note = '';

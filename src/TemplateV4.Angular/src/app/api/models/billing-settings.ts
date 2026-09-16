@@ -4,7 +4,6 @@
 export interface BillingSettings {
   defaultProvider: string;
   graceDays: number;
-  ownership: string;
   payFastEnabled: boolean;
   stripeEnabled: boolean;
   trialDays: number;

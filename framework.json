@@ -62,8 +62,6 @@
     "CLI": "tools/framework.mjs",
     "SharedKernel": "src/TemplateV4.SharedKernel",
     "ApplicationTests": "src/TemplateV4.Application.Tests",
-    "UiTests": "src/TemplateV4.Ui.Tests",
-    "UtilityTests": "src/TemplateV4.Utility.Tests",
     "Http": "src/TemplateV4.Http"
   },
   "workloads": {
@@ -98,7 +96,7 @@
     "uiSounds": "Foley selected outcome cues; enabled by default with browser-local mute in the theme drawer",
     "access": "Identity roles with protected built-ins and delegated permissions",
     "configuration": "Administrator-only platform settings; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding, all 30 FeralUI login background types and 298 color presets and accessible light/dark palettes",
-    "personalFiles": "My Files (my-files): folders, metadata, independent Important/Starred flags, scoped recent files, viewer/editor user sharing, expiring public download links, recursive Trash and segmented owner quotas",
+    "organisationFiles": "Files (my-files): one organisation library, folders, metadata, Important/Starred flags, scoped recent files, expiring public download links, Trash and shared storage quota",
     "support": "Customer support portal with requester isolation, delegated agents, categories, ticket history, bounded attachments and runtime activation"
   },
   "cultures": {

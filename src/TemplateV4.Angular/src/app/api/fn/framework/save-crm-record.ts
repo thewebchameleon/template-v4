@@ -11,7 +11,6 @@ import { CrmRecord } from '../../models/crm-record';
 import { SaveCrmRecord } from '../../models/save-crm-record';
 
 export interface SaveCrmRecord$Params {
-  organisation: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -23,7 +22,6 @@ export interface SaveCrmRecord$Params {
 export function saveCrmRecord(http: HttpClient, rootUrl: string, params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
   const rb = new RequestBuilder(rootUrl, saveCrmRecord.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -38,4 +36,4 @@ export function saveCrmRecord(http: HttpClient, rootUrl: string, params: SaveCrm
   );
 }
 
-saveCrmRecord.PATH = '/api/v1/auth/organisations/{organisation}/crm';
+saveCrmRecord.PATH = '/api/v1/auth/organisation/crm';

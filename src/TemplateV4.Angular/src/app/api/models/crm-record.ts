@@ -7,7 +7,6 @@ export interface CrmRecord {
   createdAt: string;
   data: CrmRecordInput;
   id: string;
-  organisationId: string;
   updatedAt: string;
   version: string;
 }

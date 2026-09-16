@@ -19,7 +19,7 @@ public sealed partial class MyFilesService
         _ => "other"
     };
     private async Task<long> Used(Guid owner, CancellationToken ct) =>
-        await db.Files.Where(x => x.OwnerId == owner && x.PurgedAt == null).SumAsync(x => x.Size, ct);
+        await db.Files.Where(x => x.PurgedAt == null).SumAsync(x => x.Size, ct);
     private static HashSet<Guid> Descendants(IEnumerable<StoredFile> files, Guid id)
     {
         var children = files.ToLookup(x => x.ParentId);
@@ -29,8 +29,7 @@ public sealed partial class MyFilesService
     }
     private async Task<string?> Permission(Guid actor, StoredFile file, CancellationToken ct, string? token = null)
     {
-        if (!await Active(file.OwnerId, ct)) return null;
-        if (token is null && file.OwnerId == actor) return "owner";
+        if (token is null) return !await Active(actor, ct) ? null : await CanWrite(actor, ct) ? "owner" : "viewer";
         var ancestors = new HashSet<Guid> { file.Id }; var parent = file.ParentId;
         while (parent is { } id && ancestors.Add(id))
         {
@@ -46,8 +45,7 @@ public sealed partial class MyFilesService
             var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
             return await shares.AnyAsync(x => x.TokenHash == hash, ct) ? "viewer" : null;
         }
-        var permissions = await shares.Where(x => x.RecipientId == actor).Select(x => x.Permission).ToArrayAsync(ct);
-        return permissions.Contains("editor") ? "editor" : permissions.Length > 0 ? "viewer" : null;
+        return null;
     }
     private async Task<StoredFile?> Access(Guid actor, Guid id, bool edit, CancellationToken ct, string? token = null)
     {

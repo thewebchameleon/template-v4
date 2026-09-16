@@ -7,17 +7,18 @@ namespace TemplateV4.Infrastructure.Billing;
 
 public sealed partial class BillingStore
 {
-    public async Task<Result<CheckoutResponse>> Checkout(Guid actor, Guid customer, CheckoutRequest request, CancellationToken ct)
+    public async Task<Result<CheckoutResponse>> Checkout(Guid actor, CheckoutRequest request, CancellationToken ct)
     {
+        var customer = TemplateV4.Application.Customers.Organisation.Id;
         var plan = plans.Plans.SingleOrDefault(x => x.Id == request.PlanId && x.Id != "free");
         if (plan is null || request.Interval is not ("month" or "year") || request.Provider is not ("stripe" or "payfast") || request.RequestId == Guid.Empty || request.Seats is < 1 or > 1000 || request.Provider == "payfast" && plan.Currency != "ZAR") return Result<CheckoutResponse>.Fail("validation.failed", ErrorKind.Validation);
         PaymentOrderRow order;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
-            await customers.Lock(customer, ct); var account = await customers.Find(actor, customer, ct); var settings = await Settings(ct);
-            if (account?.Role != "Owner" || !Allowed(settings, account) || !await modules.Enabled(CapabilityIds.Billing, ct) || !(request.Provider == "stripe" ? settings.StripeEnabled : settings.PayFastEnabled)) return Result<CheckoutResponse>.Fail("authorization.denied", ErrorKind.Forbidden);
+            await customers.Lock(ct); var account = await customers.Find(actor, ct); var settings = await Settings(ct);
+            if (account?.CanManage != true || !await modules.Enabled(CapabilityIds.Billing, ct) || !(request.Provider == "stripe" ? settings.StripeEnabled : settings.PayFastEnabled)) return Result<CheckoutResponse>.Fail("authorization.denied", ErrorKind.Forbidden);
             if (!Provider(request.Provider).Configured) return Result<CheckoutResponse>.Fail("billing.not_configured", ErrorKind.Conflict);
-            if (plan.Pricing == "PerSeat" && request.Seats < account.Members) return Result<CheckoutResponse>.Fail("billing.seats", ErrorKind.Conflict);
+            if (plan.Pricing == "PerSeat" && request.Seats < account.Users) return Result<CheckoutResponse>.Fail("billing.seats", ErrorKind.Conflict);
             var previous = await db.Set<PaymentOrderRow>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.RequestId, ct);
             var quantity = plan.Pricing == "PerSeat" ? request.Seats : 1;
             if (previous != null && (previous.CustomerId != customer || previous.PlanId != plan.Id || previous.Provider != request.Provider || previous.Interval != request.Interval || previous.Quantity != quantity)) return Result<CheckoutResponse>.Fail("billing.request_conflict", ErrorKind.Conflict);

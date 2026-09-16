@@ -108,6 +108,6 @@ migration designers or model snapshots to accommodate a move; use their owning
 tools if their content must change.
 
 Run the manifest and scaffold/discovery checks, affected .NET builds and tests,
-and Angular formatting/lint/build. Persistence and session changes require real
-PostgreSQL integration coverage. Browser/E2E checks require explicit permission.
+and Angular formatting/lint/build. Persistence and session changes require focused
+behavioral coverage. Browser/E2E checks require explicit permission.
 See [verification](verification.md) and [ADR 0042](adr/0042-module-vertical-slices.md).

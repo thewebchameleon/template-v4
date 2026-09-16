@@ -120,7 +120,9 @@ CRM actions and optional `moduleIcon` metadata. Labels use the module ID and
 provider. Foundation code must never branch on a private module ID.
 
 Integration contracts include `ICrmCustomers`, `ICommercialDocuments`,
-`IOrganisationAttachments`, `IOrganisationObligations` and `IMigrationContributor`.
+`IOrganisationAttachments` and `IMigrationContributor`.
+Contracts use the deployment organisation implicitly; do not add tenant IDs or
+membership checks. Shared record writes use application permissions.
 Register migration contributors regardless of runtime activation. Keep domain code
 BCL-only and use separate owned contexts, schemas and permanent migration histories.
 

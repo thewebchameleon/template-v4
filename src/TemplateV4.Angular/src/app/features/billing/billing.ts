@@ -2,7 +2,7 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { Component, inject, signal } from '@angular/core';
 import { HostListener } from '@angular/core';
 import { protectUnload } from '../../shared/confirmation';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { BillingSummary, CheckoutResponse } from '../../api/models';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { I18n } from '../../core/i18n';
@@ -13,7 +13,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../../shared/workspace';
   selector: 'app-billing',
   imports: [HlmSelectImports, WorkspaceUi, RouterLink],
   template: `<app-page-header title="billing" description="billingHelp"
-      ><a hlmBtn variant="outline" routerLink="/organisations">{{ 'switchAccount' | t }}</a
+      ><a hlmBtn variant="outline" routerLink="/organisation">{{ 'organisation' | t }}</a
       ><button hlmBtn variant="outline" [disabled]="busy()" (click)="refresh()">
         {{ 'refresh' | t }}
       </button></app-page-header
@@ -29,7 +29,7 @@ import { Resource, WorkspaceUi, Confirmations } from '../../shared/workspace';
           <div hlmCardHeader>
             <h2 hlmCardTitle>{{ 'billing.' + billing.state | t }}</h2>
             <p hlmCardDescription>
-              {{ billing.planId }} · {{ 'storageQuota' | t }}: {{ bytes(billing.storageBytes) }}
+              {{ billing.planId }} Ã‚Â· {{ 'storageQuota' | t }}: {{ bytes(billing.storageBytes) }}
             </p>
           </div>
           <div hlmCardContent class="grid gap-2">
@@ -162,7 +162,6 @@ import { Resource, WorkspaceUi, Confirmations } from '../../shared/workspace';
     </app-page-state>`,
 })
 export class BillingPage {
-  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly confirm = inject(Confirmations);
@@ -187,7 +186,7 @@ export class BillingPage {
   }
   constructor() {
     try {
-      this.requestId = sessionStorage.getItem('billing-checkout-' + this.id) ?? this.requestId;
+      this.requestId = sessionStorage.getItem('billing-checkout') ?? this.requestId;
     } catch {
       /* Storage may be unavailable. */
     }
@@ -202,9 +201,7 @@ export class BillingPage {
     await this.load();
   }
   async load() {
-    if (
-      await this.data.load((signal) => this.api.get(`customers/${this.id}/billing`, {}, signal))
-    ) {
+    if (await this.data.load((signal) => this.api.get(`billing`, {}, signal))) {
       const b = this.data.value()!;
       if (b.state === 'Cancelled' || (!b.provider && b.state === 'Free'))
         this.requestId = crypto.randomUUID();
@@ -240,7 +237,7 @@ export class BillingPage {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(`customers/${this.id}/billing/trial`, { planId: this.planId });
+      await this.api.post(`billing/trial`, { planId: this.planId });
       await this.load();
       this.toast.success('customerSaved');
     } finally {
@@ -255,7 +252,7 @@ export class BillingPage {
       return;
     this.busy.set(true);
     try {
-      await this.api.post(`customers/${this.id}/billing/cancel`);
+      await this.api.post(`billing/cancel`);
       await this.load();
     } finally {
       this.busy.set(false);
@@ -266,20 +263,17 @@ export class BillingPage {
     this.busy.set(true);
     try {
       try {
-        sessionStorage.setItem('billing-checkout-' + this.id, this.requestId);
+        sessionStorage.setItem('billing-checkout', this.requestId);
       } catch {
         /* The server also prevents concurrent subscriptions. */
       }
-      const result = await this.api.post<CheckoutResponse>(
-        `customers/${this.id}/billing/checkout`,
-        {
-          planId: this.planId,
-          interval: this.interval,
-          provider: this.provider,
-          seats: this.seats,
-          requestId: this.requestId,
-        },
-      );
+      const result = await this.api.post<CheckoutResponse>(`billing/checkout`, {
+        planId: this.planId,
+        interval: this.interval,
+        provider: this.provider,
+        seats: this.seats,
+        requestId: this.requestId,
+      });
       const url = new URL(result.url);
       if (
         url.protocol !== 'https:' ||

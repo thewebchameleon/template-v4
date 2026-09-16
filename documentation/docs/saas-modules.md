@@ -13,7 +13,7 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Billing | `Modules:billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
 | My Files | `Modules:my-files` | File routes return 404; navigation is hidden; retention continues |
 | CRM | `Modules:crm` | New CRM work stops; records remain; disable Invoicing first |
-| Invoicing | `Modules:invoicing` | New issuance stops; retained documents, settlement and correction remain available |
+| Invoicing | `Modules:invoicing` | New issuance and navigation stop; retained documents, settlement and correction remain available through direct links |
 | Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
 | CMS | `Modules:cms` | Editing and published CMS APIs stop; the public website uses bundled content |
 | Contact | `Modules:contact` | Public submissions stop; retained inbox and accepted email notifications continue |
@@ -25,7 +25,7 @@ Set `ModulesPreset` to `baseline` (default, preserves existing behavior) or `min
 
 `node tools/framework.mjs modules minimal` prints a resolved JSON configuration suitable for merging into host settings. It does not mutate running hosts. `node tools/framework.mjs validate` validates the catalog and every preset, including unknown dependencies, cycles, required capabilities and disabled prerequisites. Hosts repeat those validations at startup. Invalid booleans and unknown module names fail startup.
 
-File and maintenance feature flags remain additional restrictions. For example, setting `Modules:my-files=true` still requires runtime activation and the `Features:my-files:Enabled` flag (both enabled by default) to expose files. User, tenant or environment feature overrides cannot enable a disabled deployment or runtime module. Permissions remain mandatory.
+File and maintenance feature flags remain additional restrictions. For example, setting `Modules:my-files=true` still requires runtime activation and the `Features:my-files:Enabled` flag (both enabled by default) to expose files. User or environment feature overrides cannot enable a disabled deployment or runtime module. Permissions remain mandatory.
 
 `GET /api/v1/capabilities` requires authentication and returns only effective boolean capabilities, never provider settings or secrets. The frontend uses this single response to hide destinations and guard direct routes. The former `/modules` and `/features` endpoints are removed. Failed loads clear capabilities; responses from a previous signed-in actor are discarded. Backend gates remain authoritative.
 
@@ -65,7 +65,7 @@ Give accepted-obligation HTTP operations `ContinuesWhenDisabled` metadata and a 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 1 | Catalog, validation, deployment switches, existing feature gates, presets, module scaffolding | Implemented; validation recorded in the change |
-| 2 | Personal/organisation/both modes, memberships, invitations, switching, fixed tenant roles and ownership transfer | Implemented; see customer billing guide |
+| 2 | One organisation, application roles and one shared subscription | Implemented; see customer billing guide |
 | 3 | Plans, storage entitlements, trials, purchased seats, subscriptions and Stripe/PayFast adapters | Implemented with documented limits; merchant sandbox verification pending |
 | 4 | Configurable onboarding, organisation files/quotas, branding and customer self-service | Planned |
 | 5 | API keys, service accounts, signed webhooks, retries and usage metering | Planned |
@@ -83,11 +83,11 @@ The catalog, rather than this document, is authoritative for supported switches.
 
 Activation controls show enable and disable blockers. A version conflict reloads current values and requires another deliberate choice. Module-specific settings load independently through editors; private features may contribute `moduleSettingsComponent` on `FoundationFeature`. An editor owns its request, version, errors and retry, and remains usable while its module is runtime-disabled. A failed settings request cannot disable other module controls.
 
-Enabling My Files demo mode requires an explicit destructive warning and the current administrator's password. The server verifies the password for every off-to-on transition, with five attempts per fixed 15-minute window shared across API instances. Attempts commit independently of the settings transaction. Cancel sends no request; failed proof changes no settings. The warning includes the configured expiry and covers existing personal files, permanent deletion, and cleanup continuing after module disablement. Turning demo mode off requires no password; it stops future demo expiry claims, but cannot cancel already claimed deletions. Active demo status stays visible when My Files is runtime-disabled. Before excluding My Files from a deployment, turn off demo mode if continued expiry is unwanted.
+Enabling My Files demo mode requires an explicit destructive warning and the current administrator's password. The server verifies the password for every off-to-on transition, with five attempts per fixed 15-minute window shared across API instances. Attempts commit independently of the settings transaction. Cancel sends no request; failed proof changes no settings. The warning includes the configured expiry and covers all existing organisation files, permanent deletion, and cleanup continuing after module disablement. Turning demo mode off requires no password; it stops future demo expiry claims, but cannot cancel already claimed deletions. Active demo status stays visible when My Files is runtime-disabled. Before excluding My Files from a deployment, turn off demo mode if continued expiry is unwanted.
 
-Invoicing navigation remains available for retained documents even when new work is disabled. Existing account membership discovery and selection remain available for reaching these obligations. Issuance/quotation acceptance requires `invoicing.issue`; payment recording requires `invoicing.settle`; credits/refunds require `invoicing.correct`. These are explicit role permissions in addition to live organisation membership. Run the Database Migrator to synchronize built-in Administrator claims; delegated roles receive no automatic financial grants. Configure their permissions deliberately.
+Invoicing navigation is hidden when the module is disabled. Retained documents remain available through existing direct links for viewing and permitted settlement or correction. Existing account membership discovery and selection remain available for reaching these obligations. Issuance/quotation acceptance requires `invoicing.issue`; payment recording requires `invoicing.settle`; credits/refunds require `invoicing.correct`. These are explicit role permissions in addition to live organisation membership. Run the Database Migrator to synchronize built-in Administrator claims; delegated roles receive no automatic financial grants. Configure their permissions deliberately.
 
-Capability discovery failures remain fail-closed and show a retryable page preserving the intended URL. Confirmed unavailability has a separate explanation. HTTP feature overrides currently support user, environment and default decisions. Tenant overrides are **unsupported for HTTP**: `HttpExecutionContext.TenantId` is deliberately null. They apply only to non-HTTP callers supplying an explicit trusted context; an organisation route or selected workspace is not such a context.
+Capability discovery failures remain fail-closed and show a retryable page preserving the intended URL. Confirmed unavailability has a separate explanation. HTTP feature overrides currently support user, environment and default decisions. Tenant overrides are removed; see [ADR 0047](adr/0047-single-organisation.md).
 
 Disabling stops new admissions after the committed activation change. Requests already admitted may finish; accepted jobs and retained obligations continue. Disablement is not cancellation or a guarantee that no later writes occur. See [ADR 0036](adr/0036-module-administration-safety.md).
 

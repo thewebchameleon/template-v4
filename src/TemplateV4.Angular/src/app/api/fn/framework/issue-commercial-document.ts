@@ -11,7 +11,6 @@ import { CommercialDocument } from '../../models/commercial-document';
 import { IssueCommercialDocument } from '../../models/issue-commercial-document';
 
 export interface IssueCommercialDocument$Params {
-  organisation: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -23,7 +22,6 @@ export interface IssueCommercialDocument$Params {
 export function issueCommercialDocument(http: HttpClient, rootUrl: string, params: IssueCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
   const rb = new RequestBuilder(rootUrl, issueCommercialDocument.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -38,4 +36,4 @@ export function issueCommercialDocument(http: HttpClient, rootUrl: string, param
   );
 }
 
-issueCommercialDocument.PATH = '/api/v1/auth/organisations/{organisation}/invoicing';
+issueCommercialDocument.PATH = '/api/v1/auth/organisation/invoicing';

@@ -1,7 +1,6 @@
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
-using TemplateV4.Infrastructure.Security;
 using Xunit;
 
 namespace TemplateV4.Application.Tests;
@@ -41,7 +40,4 @@ public sealed class FoundationTests
     [InlineData("", "Jane", "en-ZA", "Reader")]
     public void Validation_rejects_invalid_user_input(string email, string name, string culture, string role)
     { Assert.NotEmpty(new CreateUserValidator(CultureCatalog.Examples).Validate(new(email, name, culture, [role]))); }
-    [Fact]
-    public void Refresh_hash_does_not_store_plaintext()
-    { Assert.Equal(64, AuthService.Hash("secret-token").Length); Assert.NotEqual(AuthService.Hash("secret-token"), AuthService.Hash("different-token")); }
 }

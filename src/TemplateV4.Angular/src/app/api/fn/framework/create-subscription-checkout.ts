@@ -11,7 +11,6 @@ import { CheckoutRequest } from '../../models/checkout-request';
 import { CheckoutResponse } from '../../models/checkout-response';
 
 export interface CreateSubscriptionCheckout$Params {
-  customer: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -23,7 +22,6 @@ export interface CreateSubscriptionCheckout$Params {
 export function createSubscriptionCheckout(http: HttpClient, rootUrl: string, params: CreateSubscriptionCheckout$Params, context?: HttpContext): Observable<StrictHttpResponse<CheckoutResponse>> {
   const rb = new RequestBuilder(rootUrl, createSubscriptionCheckout.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -38,4 +36,4 @@ export function createSubscriptionCheckout(http: HttpClient, rootUrl: string, pa
   );
 }
 
-createSubscriptionCheckout.PATH = '/api/v1/auth/customers/{customer}/billing/checkout';
+createSubscriptionCheckout.PATH = '/api/v1/auth/billing/checkout';

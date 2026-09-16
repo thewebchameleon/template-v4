@@ -3043,185 +3043,6 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/admin/users/{owner}": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "ListUserMyFiles",
-        "parameters": [
-          {
-            "name": "owner",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "pageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 10
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "createdAt"
-            }
-          },
-          {
-            "name": "direction",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "desc"
-            }
-          },
-          {
-            "name": "parentId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "group",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "my-files"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilePage"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/my-files/admin/users/{owner}/quota": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SetUserMyFilesQuota",
-        "parameters": [
-          {
-            "name": "owner",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FileQuotaRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/my-files/admin/users/{owner}/{id}/download": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "DownloadUserMyFile",
-        "parameters": [
-          {
-            "name": "owner",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
     "/api/v1/auth/action-items": {
       "get": {
         "tags": [
@@ -4193,22 +4014,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm": {
+    "/api/v1/auth/organisation/crm": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "ListCrmRecords",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "kind",
             "in": "query",
@@ -4293,15 +4105,6 @@
         "operationId": "SaveCrmRecord",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "X-CSRF-TOKEN",
             "in": "header",
             "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
@@ -4340,23 +4143,12 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/overview": {
+    "/api/v1/auth/organisation/crm/overview": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetCrmOverview",
-        "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -4376,23 +4168,12 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/configuration": {
+    "/api/v1/auth/organisation/crm/configuration": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetCrmConfiguration",
-        "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -4417,15 +4198,6 @@
         ],
         "operationId": "ConfigureCrm",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -4465,22 +4237,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/{id}": {
+    "/api/v1/auth/organisation/crm/{id}": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetCrmDetail",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -4510,22 +4273,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/{id}/archive": {
+    "/api/v1/auth/organisation/crm/{id}/archive": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "ArchiveCrmRecord",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -4574,22 +4328,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/{id}/notes": {
+    "/api/v1/auth/organisation/crm/{id}/notes": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "AddCrmNote",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5233,22 +4978,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/store-pdf": {
+    "/api/v1/auth/organisation/invoicing/{id}/store-pdf": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "StoreCommercialPdf",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5280,22 +5016,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/preview": {
+    "/api/v1/auth/organisation/invoicing/preview": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "PreviewCommercialDocument",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -5335,22 +5062,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing": {
+    "/api/v1/auth/organisation/invoicing": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "IssueCommercialDocument",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -5395,15 +5113,6 @@
         ],
         "operationId": "ListCommercialDocuments",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "pageNumber",
             "in": "query",
@@ -5466,22 +5175,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/accept": {
+    "/api/v1/auth/organisation/invoicing/{id}/accept": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "AcceptCommercialQuotation",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5530,22 +5230,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/settings": {
+    "/api/v1/auth/organisation/invoicing/settings": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "ConfigureInvoicing",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -5589,17 +5280,6 @@
           "Framework"
         ],
         "operationId": "GetInvoicingSettings",
-        "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -5619,22 +5299,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/invoice": {
+    "/api/v1/auth/organisation/invoicing/{id}/invoice": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "InvoiceAcceptedQuotation",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5682,22 +5353,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/pdf": {
+    "/api/v1/auth/organisation/invoicing/{id}/pdf": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "DownloadCommercialPdf",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5728,22 +5390,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}": {
+    "/api/v1/auth/organisation/invoicing/{id}": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetCommercialDocument",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -5773,7 +5426,7 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/payment": {
+    "/api/v1/auth/organisation/invoicing/{id}/payment": {
       "post": {
         "tags": [
           "Framework"
@@ -5781,15 +5434,6 @@
         "operationId": "RecordCommercialPayment",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -5837,7 +5481,7 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/credit": {
+    "/api/v1/auth/organisation/invoicing/{id}/credit": {
       "post": {
         "tags": [
           "Framework"
@@ -5845,15 +5489,6 @@
         "operationId": "CreditCommercialInvoice",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -5901,7 +5536,7 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/refund": {
+    "/api/v1/auth/organisation/invoicing/{id}/refund": {
       "post": {
         "tags": [
           "Framework"
@@ -5909,15 +5544,6 @@
         "operationId": "RefundCommercialInvoice",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -5965,22 +5591,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/crm/{id}/attachments": {
+    "/api/v1/auth/organisation/crm/{id}/attachments": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "ListCrmAttachments",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -6019,15 +5636,6 @@
         "operationId": "ChangeCrmAttachment",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -6068,22 +5676,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments": {
+    "/api/v1/auth/organisation/invoicing/{id}/attachments": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "ListInvoicingAttachments",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -6122,15 +5721,6 @@
         "operationId": "ChangeInvoicingAttachment",
         "parameters": [
           {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -6171,22 +5761,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/attachments": {
+    "/api/v1/auth/organisation/attachments": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "ListOrganisationAttachments",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "pageNumber",
             "in": "query",
@@ -6225,22 +5806,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/attachments/{id}": {
+    "/api/v1/auth/organisation/attachments/{id}": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetOrganisationAttachment",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -6270,22 +5842,13 @@
         ]
       }
     },
-    "/api/v1/auth/organisations/{organisation}/attachments/upload": {
+    "/api/v1/auth/organisation/attachments/upload": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "UploadOrganisationAttachment",
         "parameters": [
-          {
-            "name": "organisation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "name",
             "in": "query",
@@ -6323,88 +5886,39 @@
         ]
       }
     },
-    "/api/v1/auth/customers/administration": {
+    "/api/v1/auth/organisation/users": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetOrganisationAdministration",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerHome"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "CreateOrganisation",
+        "operationId": "GetOrganisationUsers",
         "parameters": [
           {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
+            "name": "pageNumber",
+            "in": "query",
             "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganisation"
-              }
+              "type": "integer",
+              "format": "int32",
+              "default": 1
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerInfo"
-                }
-              }
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
             }
           }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      },
-      "get": {
-        "tags": [
-          "Framework"
         ],
-        "operationId": "GetCustomers",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerHome"
+                  "$ref": "#/components/schemas/PageOfOrganisationUser"
                 }
               }
             }
@@ -6417,22 +5931,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/rename": {
+    "/api/v1/auth/organisation/rename": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "RenameOrganisation",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -6465,64 +5970,19 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/members": {
+    "/api/v1/auth/organisation": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetOrganisationMembers",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "pageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 10
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "name"
-            }
-          },
-          {
-            "name": "direction",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "asc"
-            }
-          }
-        ],
+        "operationId": "GetOrganisation",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PageOfCustomerMember"
+                  "$ref": "#/components/schemas/CustomerInfo"
                 }
               }
             }
@@ -6535,386 +5995,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/invite": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "InviteOrganisationMember",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InviteMember"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/invitations/{invitation}/accept": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "AcceptOrganisationInvitation",
-        "parameters": [
-          {
-            "name": "invitation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/invitations/{invitation}/revoke": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "RevokeOrganisationInvitation",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "invitation",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/members/role": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "ChangeOrganisationRole",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ChangeMember"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/members/remove": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "RemoveOrganisationMember",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MemberAction"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/transfer": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "TransferOrganisationOwnership",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MemberAction"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/current": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SelectOrganisation",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SelectOrganisation"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/close": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "CloseOrganisation",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CloseOrganisation"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/customers/{customer}/files": {
+    "/api/v1/auth/organisation/files": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetOrganisationFiles",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "pageNumber",
             "in": "query",
@@ -6969,22 +6056,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/files/upload": {
+    "/api/v1/auth/organisation/files/upload": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "UploadOrganisationFile",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "name",
             "in": "query",
@@ -7015,22 +6093,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/files/{id}/delete": {
+    "/api/v1/auth/organisation/files/{id}/delete": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "DeleteOrganisationFile",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -7062,22 +6131,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/files/{id}": {
+    "/api/v1/auth/organisation/files/{id}": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "DownloadOrganisationFile",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "id",
             "in": "path",
@@ -7100,23 +6160,12 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/billing": {
+    "/api/v1/auth/billing": {
       "get": {
         "tags": [
           "Framework"
         ],
         "operationId": "GetCustomerBilling",
-        "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -7136,22 +6185,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/billing/trial": {
+    "/api/v1/auth/billing/trial": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "StartBillingTrial",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -7184,22 +6224,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/billing/checkout": {
+    "/api/v1/auth/billing/checkout": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "CreateSubscriptionCheckout",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -7239,22 +6270,13 @@
         ]
       }
     },
-    "/api/v1/auth/customers/{customer}/billing/cancel": {
+    "/api/v1/auth/billing/cancel": {
       "post": {
         "tags": [
           "Framework"
         ],
         "operationId": "CancelCustomerSubscription",
         "parameters": [
-          {
-            "name": "customer",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "X-CSRF-TOKEN",
             "in": "header",
@@ -8499,7 +7521,6 @@
       },
       "BillingSettings": {
         "required": [
-          "ownership",
           "stripeEnabled",
           "payFastEnabled",
           "defaultProvider",
@@ -8509,9 +7530,6 @@
         ],
         "type": "object",
         "properties": {
-          "ownership": {
-            "type": "string"
-          },
           "stripeEnabled": {
             "type": "boolean"
           },
@@ -8736,27 +7754,6 @@
           }
         }
       },
-      "ChangeMember": {
-        "required": [
-          "userId",
-          "role",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "role": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
       "ChangeRecordAttachment": {
         "required": [
           "fileId",
@@ -8834,18 +7831,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "CloseOrganisation": {
-        "required": [
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },
@@ -9016,7 +8001,6 @@
       "CommercialDocument": {
         "required": [
           "id",
-          "organisationId",
           "version",
           "number",
           "kind",
@@ -9039,10 +8023,6 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "organisationId": {
             "type": "string",
             "format": "uuid"
           },
@@ -9432,17 +8412,6 @@
           }
         }
       },
-      "CreateOrganisation": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      },
       "CreateTicket": {
         "required": [
           "subject",
@@ -9708,7 +8677,6 @@
       "CrmRecord": {
         "required": [
           "id",
-          "organisationId",
           "version",
           "data",
           "archived",
@@ -9718,10 +8686,6 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "organisationId": {
             "type": "string",
             "format": "uuid"
           },
@@ -9947,45 +8911,12 @@
           }
         }
       },
-      "CustomerHome": {
-        "required": [
-          "mode",
-          "accounts",
-          "invitations"
-        ],
-        "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string"
-          },
-          "accounts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerInfo"
-            }
-          },
-          "invitations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerInvitation"
-            }
-          },
-          "currentOrganisationId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          }
-        }
-      },
       "CustomerInfo": {
         "required": [
           "id",
           "name",
-          "kind",
-          "role",
-          "members",
+          "canManage",
+          "users",
           "version"
         ],
         "type": "object",
@@ -9997,73 +8928,16 @@
           "name": {
             "type": "string"
           },
-          "kind": {
-            "type": "string"
+          "canManage": {
+            "type": "boolean"
           },
-          "role": {
-            "type": "string"
-          },
-          "members": {
+          "users": {
             "type": "integer",
             "format": "int32"
           },
           "version": {
             "type": "string",
             "format": "uuid"
-          }
-        }
-      },
-      "CustomerInvitation": {
-        "required": [
-          "id",
-          "customerId",
-          "customerName",
-          "role",
-          "expiresAt"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "customerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "customerName": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "CustomerMember": {
-        "required": [
-          "userId",
-          "name",
-          "email",
-          "role"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
           }
         }
       },
@@ -10442,21 +9316,6 @@
           }
         }
       },
-      "FileQuotaRequest": {
-        "required": [
-          "quotaBytes"
-        ],
-        "type": "object",
-        "properties": {
-          "quotaBytes": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int64"
-          }
-        }
-      },
       "FileShareItem": {
         "required": [
           "id",
@@ -10779,21 +9638,6 @@
           }
         }
       },
-      "InviteMember": {
-        "required": [
-          "email",
-          "role"
-        ],
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          }
-        }
-      },
       "IssueCommercialDocument": {
         "required": [
           "idempotencyKey",
@@ -10957,23 +9801,6 @@
         "properties": {
           "html": {
             "type": "string"
-          }
-        }
-      },
-      "MemberAction": {
-        "required": [
-          "userId",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },
@@ -11306,6 +10133,22 @@
           }
         }
       },
+      "OrganisationUser": {
+        "required": [
+          "userId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "PageOfActionItemDto": {
         "required": [
           "items",
@@ -11509,35 +10352,6 @@
           }
         }
       },
-      "PageOfCustomerMember": {
-        "required": [
-          "items",
-          "total",
-          "pageNumber",
-          "pageSize"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomerMember"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "PageOfDeletionItem": {
         "required": [
           "items",
@@ -11667,6 +10481,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OrganisationFileItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageOfOrganisationUser": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganisationUser"
             }
           },
           "total": {
@@ -12775,18 +11618,6 @@
             "format": "date-time"
           },
           "version": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "SelectOrganisation": {
-        "required": [
-          "organisationId"
-        ],
-        "type": "object",
-        "properties": {
-          "organisationId": {
             "type": "string",
             "format": "uuid"
           }

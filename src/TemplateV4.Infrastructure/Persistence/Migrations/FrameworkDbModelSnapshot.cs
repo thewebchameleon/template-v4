@@ -334,25 +334,24 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmAttachmentRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("RecordId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("FileId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId", "RecordId", "FileId");
+                    b.HasKey("RecordId", "FileId");
 
                     b.ToTable("attachments", "crm");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmConfigurationRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Data")
                         .IsRequired()
@@ -362,17 +361,18 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId");
+                    b.HasKey("Id");
 
-                    b.ToTable("configuration", "crm");
+                    b.ToTable("configuration", "crm", t =>
+                        {
+                            t.HasCheckConstraint("CK_crm_configuration_singleton", "\"Id\" = 1");
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmNoteRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ActorId")
@@ -389,19 +389,17 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
 
-                    b.HasKey("OrganisationId", "Id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId", "RecordId", "At");
+                    b.HasIndex("RecordId", "At");
 
                     b.ToTable("notes", "crm");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.CrmRecordRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Archived")
@@ -450,25 +448,22 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId", "Id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId", "Kind", "Archived", "Name", "Id");
+                    b.HasIndex("Kind", "Archived", "Name", "Id");
 
                     b.ToTable("records", "crm");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Crm.InvoiceAttachmentRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("RecordId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("FileId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId", "RecordId", "FileId")
+                    b.HasKey("RecordId", "FileId")
                         .HasName("PK_attachments1");
 
                     b.ToTable("attachments", "invoicing");
@@ -476,10 +471,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("AcceptanceReference")
@@ -563,14 +556,14 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId", "Id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId", "Number")
+                    b.HasIndex("Number")
                         .IsUnique();
 
-                    b.HasIndex("OrganisationId", "IssuedAt", "Id");
+                    b.HasIndex("IssuedAt", "Id");
 
-                    b.HasIndex("OrganisationId", "OriginModule", "OriginType", "OriginId")
+                    b.HasIndex("OriginModule", "OriginType", "OriginId")
                         .IsUnique()
                         .HasFilter("\"Kind\" = 'Invoice' AND \"OriginId\" IS NOT NULL");
 
@@ -579,10 +572,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.CommercialOperationRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Key")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Fingerprint")
@@ -593,17 +584,15 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ResultId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId", "Key");
+                    b.HasKey("Key");
 
                     b.ToTable("operations", "invoicing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.FinancialEntryRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ActorId")
@@ -644,18 +633,20 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
-                    b.HasKey("OrganisationId", "Id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("OrganisationId", "DocumentId");
+                    b.HasIndex("DocumentId");
 
                     b.ToTable("entries", "invoicing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.IssuerSettingsRow", b =>
                 {
-                    b.Property<Guid>("OrganisationId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Data")
                         .IsRequired()
@@ -668,9 +659,12 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
-                    b.HasKey("OrganisationId");
+                    b.HasKey("Id");
 
-                    b.ToTable("issuer_settings", "invoicing");
+                    b.ToTable("issuer_settings", "invoicing", t =>
+                        {
+                            t.HasCheckConstraint("CK_issuer_settings_singleton", "\"Id\" = 1");
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Licensing.LicenseState", b =>
@@ -790,9 +784,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
-
-                    b.Property<Guid?>("CurrentOrganisationId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -1035,10 +1026,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<int>("GraceDays")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Ownership")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<bool>("PayFastEnabled")
                         .HasColumnType("boolean");
 
@@ -1065,45 +1052,11 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             Id = 1,
                             DefaultProvider = "payfast",
                             GraceDays = 7,
-                            Ownership = "Both",
                             PayFastEnabled = true,
                             StripeEnabled = true,
                             TrialDays = 14,
                             Version = new Guid("701d0245-9cc1-4028-a909-380f43739f13")
                         });
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerInviteRow", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<DateTimeOffset?>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId", "Email")
-                        .IsUnique();
-
-                    b.ToTable("invitations", "organisations");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
@@ -1112,16 +1065,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("ClosedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
-
-                    b.Property<Guid?>("PersonalUserId")
-                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
@@ -1129,10 +1076,18 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PersonalUserId")
-                        .IsUnique();
+                    b.ToTable("customers", "organisations", t =>
+                        {
+                            t.HasCheckConstraint("CK_organisation_singleton", "\"Id\" = '00000000-0000-0000-0000-000000000001'::uuid");
+                        });
 
-                    b.ToTable("customers", "organisations");
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Organisation",
+                            Version = new Guid("d473876e-a68f-4d80-8c97-ccdddcddbcdb")
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.DeletionRequest", b =>
@@ -1312,26 +1267,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("State", "AvailableAt");
 
                     b.ToTable("job_runs", "messaging");
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MembershipRow", b =>
-                {
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.HasKey("CustomerId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("memberships", "organisations");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
@@ -1771,7 +1706,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasMaxLength(180)
                         .HasColumnType("character varying(180)");
 
-                    b.Property<Guid>("OwnerId")
+                    b.Property<Guid?>("OwnerId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ParentId")
@@ -1795,6 +1730,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Starred")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("StorageKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -1810,11 +1749,11 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DeletedAt");
 
+                    b.HasIndex("ParentId");
+
                     b.HasIndex("OwnerId", "CreatedAt");
 
                     b.HasIndex("OwnerId", "ParentId");
-
-                    b.HasIndex("ParentId", "OwnerId");
 
                     b.ToTable("files", "files");
                 });
@@ -1858,7 +1797,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("NextCheckAt");
 
-                    b.ToTable("subscriptions", "billing");
+                    b.ToTable("subscriptions", "billing", t =>
+                        {
+                            t.HasCheckConstraint("CK_subscription_singleton", "\"CustomerId\" = '00000000-0000-0000-0000-000000000001'::uuid");
+                        });
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SupportAttachmentRow", b =>
@@ -2075,50 +2017,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("notifications", "app");
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Storage.OrganisationFileRow", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("character varying(180)");
-
-                    b.Property<DateTimeOffset?>("PurgeRetryAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("PurgedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Ready")
-                        .HasColumnType("boolean");
-
-                    b.Property<long>("Size")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid?>("UploadedBy")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedAt");
-
-                    b.HasIndex("CustomerId", "CreatedAt");
-
-                    b.ToTable("organisation_files", "files");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Updates.UpdateAnnouncement", b =>
@@ -2378,7 +2276,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("TemplateV4.Infrastructure.Crm.CrmRecordRow", null)
                         .WithMany()
-                        .HasForeignKey("OrganisationId", "RecordId")
+                        .HasForeignKey("RecordId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -2387,45 +2285,13 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", null)
                         .WithMany()
-                        .HasForeignKey("OrganisationId", "DocumentId")
+                        .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerInviteRow", b =>
-                {
-                    b.HasOne("TemplateV4.Infrastructure.Persistence.CustomerRow", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
-                {
-                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("PersonalUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.DeletionRequest", b =>
                 {
-                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MembershipRow", b =>
-                {
-                    b.HasOne("TemplateV4.Infrastructure.Persistence.CustomerRow", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -2479,13 +2345,11 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TemplateV4.Infrastructure.Persistence.StoredFile", null)
                         .WithMany()
-                        .HasForeignKey("ParentId", "OwnerId")
-                        .HasPrincipalKey("Id", "OwnerId")
+                        .HasForeignKey("ParentId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 

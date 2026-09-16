@@ -46,7 +46,8 @@ export const dictionary: Record<string, [string, string]> = {
     '’n Aksie-item benodig jou insette',
   ],
   registrationRequests: ['Registration requests', 'Registrasieversoeke'],
-  organisations: ['Organisations', 'Organisasies'],
+  organisationFiles: ['Shared organisation files', 'Gedeelde organisasielêers'],
+  billing: ['Subscription', 'Intekening'],
   organisation: ['Organisation', 'Organisasie'],
   billingSettings: ['Billing settings', 'Faktureringinstellings'],
   notificationOrganisation: [
@@ -88,12 +89,12 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   dashboardUnread: ['Unread notifications', 'Ongeleesde kennisgewings'],
   dashboardFilesHelp: [
-    'Upload, download and organize your personal files.',
-    'Laai jou persoonlike l�ers op of af en organiseer hulle.',
+    'Upload, download and organize your organisation’s files.',
+    'Laai jou organisasie se lêers op of af en organiseer hulle.',
   ],
   dashboardTeamsHelp: [
-    'Accept invitations and manage your organisation workspaces.',
-    'Aanvaar uitnodigings en bestuur jou organisasiewerkruimtes.',
+    'View the organisation shared by all users.',
+    'Bekyk die organisasie wat alle gebruikers deel.',
   ],
   dashboardSupportHelp: [
     'Follow your support requests or open a new ticket.',
@@ -146,7 +147,7 @@ export const dictionary: Record<string, [string, string]> = {
   noAccount: ['Don’t have an account?', 'Het jy nie ’n rekening nie?'],
   signUp: ['Sign up', 'Registreer'],
   orContinueWith: ['Or continue with', 'Of gaan voort met'],
-
+  or: ['OR', 'OF'],
   workspace: ['Workspace', 'Werkruimte'],
   administration: ['Administration', 'Administrasie'],
   accountSettings: ['Manage your account', 'Bestuur jou rekening'],
@@ -238,6 +239,10 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   forgotPasswordTitle: ['Reset your password', 'Stel jou wagwoord terug'],
   sendResetLink: ['Send reset link', 'Stuur herstelskakel'],
+  recoveryEmailSent: [
+    'If an account exists for that email address, a password reset link is on its way.',
+    'Indien ’n rekening vir daardie e-posadres bestaan, is ’n wagwoordherstelskakel op pad.',
+  ],
   confirmDisable: ['Disable account?', 'Deaktiveer rekening?'],
   disableHelp: [
     'This signs the user out of every session and prevents sign-in.',
@@ -291,13 +296,21 @@ export const dictionary: Record<string, [string, string]> = {
   chooseAnotherMethod: ['Choose another method', 'Kies ’n ander metode'],
   startAgain: ['Start again', 'Begin weer'],
   passkeySetupRequired: [
-    'Privileged accounts require a passkey. Add one below, then keep a second passkey on a separate device for recovery.',
-    'Bevoorregte rekeninge vereis �n toegangssleutel. Voeg een hieronder by en hou �n tweede op �n aparte toestel vir herstel.',
+    'Your account requires a passkey. Set one up with this device’s PIN, fingerprint or face. You can also add an authenticator for recovery.',
+    'Jou rekening vereis ’n toegangsleutel. Stel een op met hierdie toestel se PIN, vingerafdruk of gesig. Jy kan ook ’n verifikasie-app vir herstel byvoeg.',
   ],
   setupRequired: [
-    'Your account requires MFA. Enroll an authenticator or add a passkey to continue.',
-    'Jou rekening vereis MFA. Stel ’n verifikasie-app op of voeg ’n toegangsleutel by om voort te gaan.',
+    'Choose how you want to secure your account. Use an authenticator app on your phone or a passkey stored on this device.',
+    'Kies hoe jy jou rekening wil beveilig. Gebruik ’n verifikasie-app op jou foon of ’n toegangsleutel wat op hierdie toestel gestoor word.',
   ],
+  mfaSetupTitle: ['Secure your account', 'Beveilig jou rekening'],
+  mfaSetupSuccessTitle: ['You’re all set', 'Jy is gereed'],
+  mfaSetupComplete: [
+    'Your sign-in security is ready. Continue to your account.',
+    'Jou aanmeldsekuriteit is gereed. Gaan voort na jou rekening.',
+  ],
+  mfaSetupContinue: ['Continue', 'Gaan voort'],
+  backToSignIn: ['Back to the sign in page', 'Terug na die aanmeldblad'],
   mfaRequired: ['MFA required by policy', 'MFA deur beleid vereis'],
   mfaOptional: ['MFA optional', 'MFA opsioneel'],
   authenticatorEnabled: ['Authenticator enabled', 'Verifikasie-app geaktiveer'],
@@ -310,12 +323,27 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   savePreference: ['Save preference', 'Stoor voorkeur'],
   enrollAuthenticator: ['Set up authenticator', 'Stel verifikasie-app op'],
+  setupPasskey: ['Set up passkey', 'Stel toegangsleutel op'],
   rotateRecovery: ['Replace recovery codes', 'Vervang herstelkodes'],
   disableMfa: ['Disable authenticator MFA', 'Deaktiveer verifikasie-app MFA'],
   authenticatorSetupHelp: [
-    'Enter this setup key in your authenticator app, then enter its six-digit code.',
-    'Voer hierdie sleutel in jou verifikasie-app in en voer dan die ses-syferkode in.',
+    'Open your authenticator app and scan this QR code. Then enter the six-digit code shown in the app.',
+    'Maak jou verifikasie-app oop en skandeer hierdie QR-kode. Voer dan die ses-syferkode in wat die app wys.',
   ],
+  authenticatorSetupTitle: ['Scan the QR code', 'Skandeer die QR-kode'],
+  authenticatorQrLabel: [
+    'QR code for setting up your authenticator app',
+    'QR-kode om jou verifikasie-app op te stel',
+  ],
+  authenticatorNotWorking: ['Not working?', 'Werk dit nie?'],
+  manualSetupTitle: ['Set up manually', 'Stel handmatig op'],
+  manualSetupHelp: [
+    'In your authenticator app, choose the option to enter a setup key. Enter the key below, select a time-based code if asked, then return here.',
+    'Kies in jou verifikasie-app die opsie om ’n opstellingsleutel in te voer. Voer die sleutel hieronder in, kies ’n tydgebaseerde kode indien gevra, en keer dan hierheen terug.',
+  ],
+  setupKey: ['Setup key', 'Opstellingsleutel'],
+  showQrCode: ['Scan a QR code instead', 'Skandeer eerder ’n QR-kode'],
+  authenticatorCode: ['Six-digit code', 'Ses-syferkode'],
   saveRecovery: ['Save your recovery codes', 'Stoor jou herstelkodes'],
   recoveryHelp: [
     'Each code works once. Store them somewhere safe; they will not be shown again.',
@@ -380,7 +408,6 @@ export const dictionary: Record<string, [string, string]> = {
   passwordSaved: ['Password saved. You can now sign in.', 'Wagwoord gestoor. Jy kan nou aanmeld.'],
   currentSession: ['This session', 'Hierdie sessie'],
   noSessions: ['No active sessions', 'Geen aktiewe sessies nie'],
-
   users: ['Users', 'Gebruikers'],
   signIn: ['Sign in', 'Meld aan'],
   signOut: ['Sign out', 'Meld af'],
@@ -462,5 +489,4 @@ export const dictionary: Record<string, [string, string]> = {
   accountDisabled: ['Account disabled.', 'Rekening gedeaktiveer.'],
   rolesSaved: ['Roles saved.', 'Rolle gestoor.'],
 };
-
 Object.assign(dictionary, myFilesDictionary);

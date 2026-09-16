@@ -4,7 +4,7 @@ using TemplateV4.Domain.Invoicing;
 namespace TemplateV4.Application.Invoicing;
 
 public sealed record CommercialSnapshot(IssuerSettings Issuer, CrmRecordInput Customer, CommercialTotals Totals, string? Reference);
-public sealed record CommercialDocument(Guid Id, Guid OrganisationId, Guid Version, string Number,
+public sealed record CommercialDocument(Guid Id, Guid Version, string Number,
     CommercialDocumentKind Kind, Guid CustomerId, CommercialSnapshot Snapshot, DateTimeOffset IssuedAt, Guid ActorId,
     CommercialOrigin? Origin, Guid? QuotationId, Guid? PreviousRevisionId, Guid? CorrectsId,
     bool Accepted, DateTimeOffset? AcceptedAt, string? AcceptanceReference, decimal Credits, decimal Paid, decimal Refunded, decimal Amount);

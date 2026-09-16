@@ -10,17 +10,15 @@ import { RequestBuilder } from '../../request-builder';
 import { OrganisationFilePage } from '../../models/organisation-file-page';
 
 export interface GetOrganisationFiles$Params {
-  customer: string;
   pageNumber?: number;
   pageSize?: number;
   sort?: string;
   direction?: string;
 }
 
-export function getOrganisationFiles(http: HttpClient, rootUrl: string, params: GetOrganisationFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationFilePage>> {
+export function getOrganisationFiles(http: HttpClient, rootUrl: string, params?: GetOrganisationFiles$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationFilePage>> {
   const rb = new RequestBuilder(rootUrl, getOrganisationFiles.PATH, 'get');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
     rb.query('sort', params.sort, {});
@@ -37,4 +35,4 @@ export function getOrganisationFiles(http: HttpClient, rootUrl: string, params: 
   );
 }
 
-getOrganisationFiles.PATH = '/api/v1/auth/customers/{customer}/files';
+getOrganisationFiles.PATH = '/api/v1/auth/organisation/files';

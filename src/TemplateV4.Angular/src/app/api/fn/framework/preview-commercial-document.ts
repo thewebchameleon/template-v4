@@ -11,7 +11,6 @@ import { CommercialTotals } from '../../models/commercial-totals';
 import { PreviewCommercialDocument } from '../../models/preview-commercial-document';
 
 export interface PreviewCommercialDocument$Params {
-  organisation: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -23,7 +22,6 @@ export interface PreviewCommercialDocument$Params {
 export function previewCommercialDocument(http: HttpClient, rootUrl: string, params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialTotals>> {
   const rb = new RequestBuilder(rootUrl, previewCommercialDocument.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -38,4 +36,4 @@ export function previewCommercialDocument(http: HttpClient, rootUrl: string, par
   );
 }
 
-previewCommercialDocument.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/preview';
+previewCommercialDocument.PATH = '/api/v1/auth/organisation/invoicing/preview';

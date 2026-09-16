@@ -13,24 +13,24 @@ import { PageData, Section } from "./site";
   imports: [RouterLink, DatePipe, FormsModule],
   template: `
     @if (data().site.enabled && data().site.details; as business) {
-      <div class="site" [style.--brand]="business.primaryColor">
+      <div class="site" [style.--brand]="business.primaryColor || '#245c46'">
         <a class="skip" href="#main">Skip to content</a>
         <header class="header wrap">
-          <a class="brand" routerLink="/"
-            ><img
-              [src]="business.logoUrl"
-              alt=""
-              width="40"
-              height="40"
-            /><span>{{ business.name }}</span></a
-          >
+          <a class="brand" routerLink="/">
+            @if (business.logoUrl) {
+              <img [src]="business.logoUrl" alt="" width="40" height="40" />
+            }
+            <span>{{ business.name }}</span>
+          </a>
           <nav aria-label="Main navigation">
             <a routerLink="/">Home</a><a routerLink="/blog">Journal</a
             ><a routerLink="/contact">Contact</a>
           </nav>
-          <a class="signin" [href]="business.adminUrl + '/login'"
-            >Sign in <span aria-hidden="true">↗</span></a
-          >
+          @if (business.adminUrl) {
+            <a class="signin" [href]="business.adminUrl + '/login'"
+              >Sign in <span aria-hidden="true">↗</span></a
+            >
+          }
         </header>
         <main id="main">
           @switch (data().kind) {
@@ -223,15 +223,23 @@ import { PageData, Section } from "./site";
                   <p class="eyebrow">We’d like to hear from you</p>
                   <h1>Good things start with a conversation.</h1>
                   <p class="lead">Tell us what you have in mind.</p>
-                  <address>
-                    <a [href]="'mailto:' + business.email">{{
-                      business.email
-                    }}</a
-                    ><a [href]="'tel:' + business.phone">{{
-                      business.phone
-                    }}</a>
-                    <p>{{ business.address }}</p>
-                  </address>
+                  @if (business.email || business.phone || business.address) {
+                    <address>
+                      @if (business.email) {
+                        <a [href]="'mailto:' + business.email">{{
+                          business.email
+                        }}</a>
+                      }
+                      @if (business.phone) {
+                        <a [href]="'tel:' + business.phone">{{
+                          business.phone
+                        }}</a>
+                      }
+                      @if (business.address) {
+                        <p>{{ business.address }}</p>
+                      }
+                    </address>
+                  }
                 </div>
                 <div class="form-panel">
                   @if (data().site.contactEnabled) {
@@ -319,10 +327,15 @@ import { PageData, Section } from "./site";
         </main>
         <footer class="footer wrap">
           <a class="brand" routerLink="/">{{ business.name }}</a>
-          <p>{{ business.description }}</p>
+          @if (business.description) {
+            <p>{{ business.description }}</p>
+          }
           <nav aria-label="Footer">
-            <a routerLink="/blog">Journal</a><a routerLink="/contact">Contact</a
-            ><a [href]="business.adminUrl + '/login'">Admin sign in ↗</a>
+            <a routerLink="/blog">Journal</a
+            ><a routerLink="/contact">Contact</a>
+            @if (business.adminUrl) {
+              <a [href]="business.adminUrl + '/login'">Admin sign in ↗</a>
+            }
           </nav>
           <p class="small">© {{ year }} {{ business.name }}</p>
         </footer>
@@ -368,7 +381,11 @@ export class Page {
   section(key: string): Section {
     const d = this.data().site.details!;
     const fallback: Record<string, [string, string]> = {
-      hero: [d.name + ". Here for your next chapter.", d.description],
+      hero: [
+        d.name + ". Here for your next chapter.",
+        d.description ||
+          "A thoughtful approach to the work and opportunities ahead.",
+      ],
       about: [
         "People first. Purpose always.",
         "We believe the best outcomes begin with a shared understanding. Our approach combines a fresh perspective with care for the details that matter to you.",
@@ -409,7 +426,7 @@ export class Page {
               ? "Contact"
               : data.kind === "not-found"
                 ? "Page not found"
-                : d?.seoTitle;
+                : d?.seoTitle || d?.name || "Website";
       this.title.setTitle(
         d
           ? data.kind === "home"
@@ -418,9 +435,9 @@ export class Page {
           : "Coming soon",
       );
       const description =
-        data.article?.summary.excerpt ??
-        d?.seoDescription ??
-        "Our new website is coming soon.";
+        data.article?.summary.excerpt ||
+        d?.seoDescription ||
+        "A thoughtful approach to the work and opportunities ahead.";
       this.meta.updateTag({ name: "description", content: description });
       this.meta.updateTag({
         name: "robots",
@@ -440,22 +457,36 @@ export class Page {
             : data.kind === "contact"
               ? "/contact"
               : "/";
-      const url =
-        d.publicUrl.replace(/\/$/, "") +
-        path +
-        (data.kind === "blog" && (data.blog?.pageNumber ?? 1) > 1
-          ? "?page=" + data.blog!.pageNumber
-          : "");
-      const link = this.document.createElement("link");
-      link.rel = "canonical";
-      link.href = url;
-      this.document.head.appendChild(link);
+      const documentOrigin = this.document.location.origin;
+      const origin =
+        d.publicUrl ||
+        (documentOrigin.startsWith("http") ? documentOrigin : "");
+      const url = origin
+        ? origin.replace(/\/$/, "") +
+          path +
+          (data.kind === "blog" && (data.blog?.pageNumber ?? 1) > 1
+            ? "?page=" + data.blog!.pageNumber
+            : "")
+        : "";
+      const logo = d.logoUrl
+        ? d.logoUrl.startsWith("https://")
+          ? d.logoUrl
+          : origin
+            ? new URL(d.logoUrl, origin).href
+            : ""
+        : "";
+      if (url) {
+        const link = this.document.createElement("link");
+        link.rel = "canonical";
+        link.href = url;
+        this.document.head.appendChild(link);
+      }
       for (const [property, content] of Object.entries({
         "og:title": this.title.getTitle(),
         "og:description": description,
-        "og:url": url,
+        ...(url ? { "og:url": url } : {}),
         "og:type": data.kind === "article" ? "article" : "website",
-        "og:image": new URL(d.logoUrl, d.publicUrl).href,
+        ...(logo ? { "og:image": logo } : {}),
       }))
         this.meta.updateTag({ property, content });
       this.meta.updateTag({ name: "twitter:card", content: "summary" });
@@ -468,17 +499,17 @@ export class Page {
               datePublished: data.article!.summary.publishedAt,
               dateModified: data.article!.summary.updatedAt,
               author: { "@type": "Person", name: data.article!.summary.author },
-              mainEntityOfPage: url,
+              ...(url ? { mainEntityOfPage: url } : {}),
             }
           : {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: d.name,
-              url: d.publicUrl,
-              logo: new URL(d.logoUrl, d.publicUrl).href,
-              email: d.email,
-              telephone: d.phone,
-              address: d.address,
+              ...(url ? { url } : {}),
+              ...(logo ? { logo } : {}),
+              ...(d.email ? { email: d.email } : {}),
+              ...(d.phone ? { telephone: d.phone } : {}),
+              ...(d.address ? { address: d.address } : {}),
             };
       const script = this.document.createElement("script");
       script.id = "website-structured-data";

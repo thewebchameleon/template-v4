@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+File ownership and quota rules are superseded by [ADR 0048](0048-unified-organisation-files.md).
+
 ## Context
 
 Every user needs a file library backed by the configured object storage. Administrators need to browse and download user files and configure a default storage allowance with individual overrides. This updates the file-specific policies in ADRs 0015 and 0016.

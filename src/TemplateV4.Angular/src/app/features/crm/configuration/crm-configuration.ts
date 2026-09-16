@@ -1,7 +1,6 @@
 import { BusinessDraft } from '../../../shared/business-draft';
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { CrmConfiguration, CustomerHome } from '../../../api/models';
+import { CrmConfiguration, CustomerInfo } from '../../../api/models';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../../shared/workspace';
 
@@ -9,7 +8,7 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
   selector: 'app-crm-configuration',
   imports: [WorkspaceUi],
   template: ` <app-page-header title="crmConfiguration" description="retireHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', organisation, 'crm']">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'crm']">{{
         'crm' | t
       }}</a></app-page-header
     >
@@ -224,7 +223,6 @@ export class CrmConfigurationPage extends BusinessDraft {
   protected draftValue() {
     return this.draft;
   }
-  readonly organisation = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   private readonly api = inject(WorkspaceApi);
   readonly state = new Resource<CrmConfiguration>();
   readonly busy = signal(false);
@@ -244,18 +242,10 @@ export class CrmConfigurationPage extends BusinessDraft {
   async load() {
     await this.state.load(async (signal) => {
       const [config, home] = await Promise.all([
-        this.api.get<CrmConfiguration>(
-          `organisations/${this.organisation}/crm/configuration`,
-          {},
-          signal,
-        ),
-        this.api.get<CustomerHome>('customers/', {}, signal),
+        this.api.get<CrmConfiguration>(`organisation/crm/configuration`, {}, signal),
+        this.api.get<CustomerInfo>('organisation/', {}, signal),
       ]);
-      this.canConfigure.set(
-        ['Owner', 'Admin'].includes(
-          home.accounts.find((x) => x.id === this.organisation)?.role ?? '',
-        ),
-      );
+      this.canConfigure.set(home.canManage);
       this.draft = structuredClone(config);
       this.markSaved();
       return config;
@@ -265,7 +255,7 @@ export class CrmConfigurationPage extends BusinessDraft {
     if (this.busy() || !this.draft) return;
     this.busy.set(true);
     try {
-      await this.api.post(`organisations/${this.organisation}/crm/configuration`, this.draft);
+      await this.api.post(`organisation/crm/configuration`, this.draft);
       await this.load();
     } finally {
       this.busy.set(false);

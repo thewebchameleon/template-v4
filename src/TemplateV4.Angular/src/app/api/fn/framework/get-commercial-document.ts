@@ -10,14 +10,12 @@ import { RequestBuilder } from '../../request-builder';
 import { CommercialDetail } from '../../models/commercial-detail';
 
 export interface GetCommercialDocument$Params {
-  organisation: string;
   id: string;
 }
 
 export function getCommercialDocument(http: HttpClient, rootUrl: string, params: GetCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDetail>> {
   const rb = new RequestBuilder(rootUrl, getCommercialDocument.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -31,4 +29,4 @@ export function getCommercialDocument(http: HttpClient, rootUrl: string, params:
   );
 }
 
-getCommercialDocument.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}';
+getCommercialDocument.PATH = '/api/v1/auth/organisation/invoicing/{id}';

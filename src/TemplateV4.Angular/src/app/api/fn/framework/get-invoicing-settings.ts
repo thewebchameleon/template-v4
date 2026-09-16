@@ -10,13 +10,11 @@ import { RequestBuilder } from '../../request-builder';
 import { IssuerSettings } from '../../models/issuer-settings';
 
 export interface GetInvoicingSettings$Params {
-  organisation: string;
 }
 
-export function getInvoicingSettings(http: HttpClient, rootUrl: string, params: GetInvoicingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
+export function getInvoicingSettings(http: HttpClient, rootUrl: string, params?: GetInvoicingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
   const rb = new RequestBuilder(rootUrl, getInvoicingSettings.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
   }
 
   return http.request(
@@ -29,4 +27,4 @@ export function getInvoicingSettings(http: HttpClient, rootUrl: string, params: 
   );
 }
 
-getInvoicingSettings.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/settings';
+getInvoicingSettings.PATH = '/api/v1/auth/organisation/invoicing/settings';

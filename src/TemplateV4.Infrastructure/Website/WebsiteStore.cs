@@ -1,4 +1,3 @@
-using System.Net.Mail;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Modules;
@@ -23,21 +22,19 @@ public sealed class WebsiteStore(FrameworkDb db, IExecutionContext context, ICap
     public static bool ImageUrl(string? value) => value is { Length: > 0 and <= 2048 } &&
         (value.StartsWith("/api/v1/website/images/", StringComparison.Ordinal) && Guid.TryParse(value["/api/v1/website/images/".Length..], out _) ||
         Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.UserInfo == "");
-    private static bool Email(string? value) => value is { Length: > 0 and <= 254 } && MailAddress.TryCreate(value, out var address) && address.Address == value;
     private static bool Text(string? value, int max) => !string.IsNullOrWhiteSpace(value) && value.Length <= max;
+    public static BusinessDetails? Normalize(BusinessDetails? details) =>
+        details is { } d && Text(d.Name, 120) && (string.IsNullOrEmpty(d.LogoUrl) || ImageUrl(d.LogoUrl))
+            ? new(d.Name.Trim(), "", d.LogoUrl, "", "", "", "", "", "", "", "")
+            : null;
     public async Task<Result<WebsiteSettings>> Save(SaveWebsite request, CancellationToken ct)
     {
         if (context.ActorId is null || !context.Permissions.Contains(Permissions.Settings)) return Result<WebsiteSettings>.Fail("access.forbidden", ErrorKind.Forbidden);
-        var d = request.Details;
-        if (d is null || !Text(d.Name, 120) || !Text(d.Description, 1000) || !ImageUrl(d.LogoUrl) ||
-            d.PrimaryColor is not { Length: 7 } || d.PrimaryColor[0] != '#' || !d.PrimaryColor[1..].All(char.IsAsciiHexDigit) ||
-            !Email(d.Email) || !Text(d.Phone, 60) || !Text(d.Address, 500) || !Origin(d.PublicUrl) || !Origin(d.AdminUrl) ||
-            string.Equals(d.PublicUrl.TrimEnd('/'), d.AdminUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase) ||
-            !Text(d.SeoTitle, 200) || !Text(d.SeoDescription, 500) || !Email(request.NotificationEmail))
-            return Result<WebsiteSettings>.Fail("validation.failed", ErrorKind.Validation);
+        var details = Normalize(request.Details);
+        if (details is null) return Result<WebsiteSettings>.Fail("validation.failed", ErrorKind.Validation);
         return await Update(request.Version, row =>
         {
-            row.Details = JsonSerializer.Serialize(d with { PublicUrl = d.PublicUrl.TrimEnd('/'), AdminUrl = d.AdminUrl.TrimEnd('/') }, Json); row.NotificationEmail = request.NotificationEmail;
+            row.Details = JsonSerializer.Serialize(details, Json); row.NotificationEmail = "";
             row.Configured = true;
         }, "website.configured", ct);
     }
@@ -60,12 +57,13 @@ public sealed class WebsiteStore(FrameworkDb db, IExecutionContext context, ICap
     {
         var site = await Settings(ct);
         if (!site.Configured || !site.Enabled) return new(false, null, false, false);
-        return new(true, site.Details, await capabilities.Enabled(CapabilityIds.Cms, ct), await capabilities.Enabled("contact", ct));
+        var contactEnabled = !string.IsNullOrWhiteSpace(site.NotificationEmail) && await capabilities.Enabled("contact", ct);
+        return new(true, site.Details, await capabilities.Enabled(CapabilityIds.Cms, ct), contactEnabled);
     }
     public async Task<string?> NotificationRecipient(CancellationToken ct)
     {
         var site = await Settings(ct);
-        return site.Configured && site.Enabled ? site.NotificationEmail : null;
+        return site.Configured && site.Enabled && !string.IsNullOrWhiteSpace(site.NotificationEmail) ? site.NotificationEmail : null;
     }
     public async Task<Result<WebsiteImage>> Upload(byte[] bytes, CancellationToken ct)
     {

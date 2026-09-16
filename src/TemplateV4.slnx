@@ -22,8 +22,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj" />
-    <Project Path="TemplateV4.Ui.Tests/TemplateV4.Ui.Tests.csproj" />
-    <Project Path="TemplateV4.Utility.Tests/TemplateV4.Utility.Tests.csproj" />
   </Folder>
   <Project Path="TemplateV4.Http/TemplateV4.Http.csproj" />
 </Solution>

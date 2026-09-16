@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { ChangeRecordAttachment } from '../../models/change-record-attachment';
 
 export interface ChangeCrmAttachment$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -23,7 +22,6 @@ export interface ChangeCrmAttachment$Params {
 export function changeCrmAttachment(http: HttpClient, rootUrl: string, params: ChangeCrmAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, changeCrmAttachment.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -39,4 +37,4 @@ export function changeCrmAttachment(http: HttpClient, rootUrl: string, params: C
   );
 }
 
-changeCrmAttachment.PATH = '/api/v1/auth/organisations/{organisation}/crm/{id}/attachments';
+changeCrmAttachment.PATH = '/api/v1/auth/organisation/crm/{id}/attachments';

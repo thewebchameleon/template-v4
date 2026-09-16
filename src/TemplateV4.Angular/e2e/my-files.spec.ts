@@ -121,7 +121,7 @@ async function library(page: Page, moves: { id: string; parentId: string | null 
         accessToken: 'test-access',
         userId: 'test-user',
         culture: 'en-ZA',
-        permissions: [],
+        permissions: ['organisation.files.manage'],
         setupRequired: false,
       },
       '/api/v1/capabilities': { 'my-files': true },
@@ -133,7 +133,7 @@ async function library(page: Page, moves: { id: string; parentId: string | null 
   });
 }
 
-test('My Files keeps the parent item first and accepts list and grid drops', async ({ page }) => {
+test('Files keeps the parent item first and accepts list and grid drops', async ({ page }) => {
   const moves: { id: string; parentId: string | null }[] = [];
   await library(page, moves);
   await page.goto('/my-files?folder=folder-a');
@@ -159,9 +159,7 @@ test('My Files keeps the parent item first and accepts list and grid drops', asy
     ]);
 });
 
-test('My Files keeps compact card spacing and list-aligned grid sort headings', async ({
-  page,
-}) => {
+test('Files keeps compact card spacing and list-aligned grid sort headings', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await library(page);
   await page.goto('/my-files?folder=folder-a');
@@ -206,7 +204,7 @@ test('My Files keeps compact card spacing and list-aligned grid sort headings', 
 
 for (const width of [390, 1440])
   for (const dark of [false, true]) {
-    test(`My Files navigation, quota and recent cards at ${width}px ${dark ? 'dark' : 'light'}`, async ({
+    test(`Files navigation, quota and recent cards at ${width}px ${dark ? 'dark' : 'light'}`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 1000 });
@@ -215,7 +213,7 @@ for (const width of [390, 1440])
       await page.goto('/files?sort=name');
       await expect(page).toHaveURL(/\/my-files\?sort=name$/);
       await expect(
-        page.getByRole('heading', { level: 1, name: 'My Files', exact: true }),
+        page.getByRole('heading', { level: 1, name: 'Files', exact: true }),
       ).toBeVisible();
       await expect(page.locator('app-data-table [data-category="other"]')).toHaveCount(1);
       const recent = page.getByRole('region', { name: 'Recent', exact: true });

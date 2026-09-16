@@ -18,18 +18,6 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
           </div>
           <form hlmCardContent class="grid gap-4" (ngSubmit)="save()" #form="ngForm">
             <div hlmField>
-              <label hlmFieldLabel for="billing-ownership">{{ 'billingOwnership' | t }}</label
-              ><hlm-select name="ownership" [(ngModel)]="s.ownership"
-                ><hlm-select-trigger buttonId="billing-ownership"
-                  ><hlm-select-value /></hlm-select-trigger
-                ><hlm-select-content *hlmSelectPortal>
-                  @for (value of ['Both', 'Personal', 'Organisation']; track value) {
-                    <hlm-select-item [value]="value">{{ 'customer.' + value | t }}</hlm-select-item>
-                  }
-                </hlm-select-content></hlm-select
-              >
-            </div>
-            <div hlmField>
               <label hlmFieldLabel for="enable-stripe"
                 ><hlm-checkbox id="enable-stripe" name="stripe" [(ngModel)]="s.stripeEnabled" />
                 Stripe</label

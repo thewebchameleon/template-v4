@@ -2,7 +2,7 @@
 
 ## Modules
 
-Administrators can open **Administration → Modules** to enable or disable Files for the whole application. Change **Enable Files**, then **Save**. Disabling hides Files, File storage and user-file controls, and blocks personal and administrative file APIs. Existing files and quotas are preserved; normal retention and privacy processing continue. Re-enable Files to restore access. Other open browsers update navigation on their next navigation or reload; the API enforces changes on subsequent requests immediately.
+Administrators can open **Administration → Modules** to enable or disable Files for the whole application. Change **Enable Files**, then **Save**. Disabling hides Files and File storage, and blocks library and administrative storage APIs. Existing files and quotas are preserved; normal retention and privacy processing continue. Re-enable Files to restore access. Other open browsers update navigation on their next navigation or reload; the API enforces changes on subsequent requests immediately.
 
 Only the built-in Administrator role can manage modules; delegated settings operators cannot. Concurrent saves preserve the first committed change and ask the other administrator to reload. The setting cannot override a deployment-disabled module or restrictive file feature flags. Run DatabaseMigrator on upgrade. See [ADR 0023](adr/0023-runtime-module-administration.md) for extension guidance.
 
@@ -56,7 +56,7 @@ List requests are canceled when superseded or when the component is destroyed. R
 
 The initial performance baseline is 1,000+ accounts, not a claim of 1,000 concurrent users. Validate realistic traffic and query plans before adding indexes, caching, push delivery or background export jobs. Authenticated responses remain uncached. Production Nginx compresses static text and gives hashed JS/CSS a long cache lifetime; index/runtime configuration must stay fresh.
 
-For changes, complete documentation, formatting/lint, manifest checks and builds before running tests. Access/session/persistence behavior needs real PostgreSQL integration tests. E2E tests require explicit authorization before execution. Include both roles, cultures, themes, narrow viewports, failed saves and version conflicts in the browser review. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+For changes, complete documentation, formatting/lint, manifest checks and builds before running tests. Access/session/persistence behavior needs focused behavioral tests. E2E tests require explicit authorization before execution. Include both roles, cultures, themes, narrow viewports, failed saves and version conflicts in the browser review. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
 
 Account security is available at `/administration/users/account-security` with `settings.manage` permission, including for operators without directory or role access. It contains the MFA policy and public-registration controls and preserves version-conflict and unsaved-draft handling. The standalone `/settings` page and navigation entry are removed without a redirect. Extend the shared people navigation and permission-aware child routes when adding tabs.
 

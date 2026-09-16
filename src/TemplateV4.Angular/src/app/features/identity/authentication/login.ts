@@ -10,7 +10,6 @@ import { HlmInputOtpImports } from '@spartan-ng/helm/input-otp';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { AuthLayout } from './auth-layout';
 import { Registration } from '../../../core/registration';
 import { Auth } from '../../../core/auth';
@@ -31,7 +30,6 @@ import { UiSounds } from '../../../core/ui-sounds';
     HlmFieldImports,
     HlmCheckboxImports,
     HlmSpinnerImports,
-    HlmDialogImports,
     NgIcon,
     AuthLayout,
     RouterLink,
@@ -212,43 +210,8 @@ import { UiSounds } from '../../../core/ui-sounds';
             {{ 'startAgain' | t }}
           </button>
         }
-        <hlm-dialog [state]="forgotDialogState()" (stateChanged)="forgotDialogState.set($event)">
-          <button hlmBtn variant="link" hlmDialogTrigger [disabled]="busy()">
-            {{ 'forgot' | t }}
-          </button>
-          <hlm-dialog-content *hlmDialogPortal>
-            <hlm-dialog-header>
-              <h2 hlmDialogTitle>{{ 'forgotPasswordTitle' | t }}</h2>
-              <p hlmDialogDescription>{{ 'recoveryEmailHelp' | t }}</p>
-            </hlm-dialog-header>
-            <form #recoveryForm="ngForm" class="flex flex-col gap-6" (ngSubmit)="forgot()">
-              <div hlmField>
-                <label hlmFieldLabel for="recovery-email">{{ 'recoveryEmail' | t }}</label>
-                <input
-                  hlmInput
-                  id="recovery-email"
-                  name="recoveryEmail"
-                  type="email"
-                  autocomplete="email"
-                  [(ngModel)]="recoveryEmail"
-                  required
-                />
-              </div>
-              <hlm-dialog-footer>
-                <button hlmBtn type="submit" [disabled]="busy() || recoveryForm.invalid">
-                  @if (busy()) {
-                    <hlm-spinner />
-                  }
-                  {{ 'sendResetLink' | t }}
-                </button>
-              </hlm-dialog-footer>
-            </form>
-          </hlm-dialog-content>
-        </hlm-dialog>
+        <a hlmBtn variant="link" routerLink="/forgot-password">{{ 'forgot' | t }}</a>
       </div>
-      @if (recoverySent()) {
-        <p role="status" class="text-sm text-muted-foreground">{{ 'sent' | t }}</p>
-      }
       @if (!auth.challenge() && registrationEnabled()) {
         <p hlmFieldDescription class="text-center">
           {{ 'noAccount' | t }} <a routerLink="/signup">{{ 'signUp' | t }}</a>
@@ -272,9 +235,6 @@ export class LoginPage implements OnInit, OnDestroy {
   code = '';
   recovery = false;
   username = '';
-  recoveryEmail = '';
-  readonly recoverySent = signal(false);
-  readonly forgotDialogState = signal<'closed' | 'open'>('closed');
   password = '';
   readonly busy = signal(false);
   private readonly notifications = inject(Notifications);
@@ -412,21 +372,8 @@ export class LoginPage implements OnInit, OnDestroy {
       requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/login')
         ? requested
         : this.auth.landing();
-    await this.router.navigateByUrl(this.auth.access()?.setupRequired ? '/security' : safe);
-  }
-  async forgot() {
-    if (!this.recoveryEmail) return;
-    this.busy.set(true);
-    try {
-      await this.auth.action('forgot-password', { email: this.recoveryEmail });
-      this.notifications.success('sent');
-      this.recoverySent.set(true);
-      this.recoveryEmail = '';
-      this.forgotDialogState.set('closed');
-    } catch {
-      /* Central Problem Details UI. */
-    } finally {
-      this.busy.set(false);
-    }
+    if (this.auth.access()?.setupRequired)
+      await this.router.navigate(['/login/setup'], { queryParams: { returnUrl: safe } });
+    else await this.router.navigateByUrl(safe);
   }
 }

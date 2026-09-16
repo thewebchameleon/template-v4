@@ -46,7 +46,6 @@ import { BusinessSelect } from './business-select';
   </div>`,
 })
 export class CrmCustomerPicker {
-  readonly organisation = input.required<string>();
   readonly controlId = input.required<string>();
   readonly label = input('billTo');
   readonly fixedKind = input<string | null>(null);
@@ -63,7 +62,6 @@ export class CrmCustomerPicker {
   ];
   constructor() {
     effect((cleanup) => {
-      this.organisation();
       this.fixedKind();
       this.kind();
       this.search();
@@ -73,14 +71,12 @@ export class CrmCustomerPicker {
     });
     effect(() => {
       const value = this.value();
-      const organisation = this.organisation();
       this.selected.set(null);
       if (value)
         void this.api
-          .get<CrmDetail>(`organisations/${organisation}/crm/${value}`)
+          .get<CrmDetail>(`organisation/crm/${value}`)
           .then((x) => {
-            if (this.value() === value && this.organisation() === organisation)
-              this.selected.set(x.record);
+            if (this.value() === value) this.selected.set(x.record);
           })
           .catch(() => {
             /* Missing or revoked selections remain unavailable. */
@@ -103,7 +99,7 @@ export class CrmCustomerPicker {
   async load() {
     await this.data.load((signal) =>
       this.api.get(
-        `organisations/${this.organisation()}/crm`,
+        `organisation/crm`,
         {
           kind: this.fixedKind() ?? this.kind(),
           search: this.search(),

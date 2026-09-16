@@ -44,7 +44,7 @@ export class Auth {
   private csrf = '';
   private pending: Promise<boolean> | null = null;
   landing() {
-    return this.access()?.setupRequired ? '/security' : '/dashboard';
+    return this.access()?.setupRequired ? '/login/setup' : '/dashboard';
   }
   has(permission: string) {
     return this.access()?.permissions.includes(permission) ?? false;
@@ -181,24 +181,16 @@ export class Auth {
 export const authGuard: CanActivateFn = async (_route, state) => {
   const auth = inject(Auth);
   const router = inject(Router);
-  const http = inject(HttpClient);
-  const runtime = inject(Runtime);
   if (!auth.access() && !(await auth.refresh()))
     return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
-  if (auth.access()?.setupRequired && state.url.split('?')[0] !== '/security')
-    return router.createUrlTree(['/security']);
-  if (
-    auth.access()?.isAdministrator &&
-    !auth.access()?.setupRequired &&
-    !['/administration/website', '/security'].includes(state.url.split('?')[0])
-  ) {
-    return (await import('../features/website/website-guard')).websiteSetupRedirect(
-      http,
-      router,
-      runtime.apiUrl,
-    );
-  }
+  if (auth.access()?.setupRequired && state.url.split(/[?#]/)[0] !== '/login/setup')
+    return router.createUrlTree(['/login/setup'], { queryParams: { returnUrl: state.url } });
   return true;
+};
+
+export const mfaSetupGuard: CanActivateFn = () => {
+  const auth = inject(Auth);
+  return auth.access()?.setupRequired || inject(Router).createUrlTree([auth.landing()]);
 };
 
 export const adminGuard: CanActivateFn = async () => {

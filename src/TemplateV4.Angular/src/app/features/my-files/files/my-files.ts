@@ -1,3 +1,4 @@
+import { Auth } from '../../../core/auth';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { MyFilesDemoBanner } from './my-files-demo-banner';
 import { NgTemplateOutlet } from '@angular/common';
@@ -17,10 +18,8 @@ import {
   MyFilesNavigation,
   fileGroups,
 } from './my-files-components';
-import { ActivatedRoute } from '@angular/router';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { FileQuotaEditor } from '../configuration/file-quota-editor';
-import { Component, computed, effect, untracked, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, untracked, inject, signal } from '@angular/core';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import {
   WorkspaceUi,
@@ -53,7 +52,6 @@ const parentEntryId = '__my-files-parent__';
     MyFileActions,
     MyFilesActionDialog,
     HlmDialogImports,
-    FileQuotaEditor,
     MyFileIcon,
     HlmSelectImports,
     NgTemplateOutlet,
@@ -74,13 +72,13 @@ const parentEntryId = '__my-files-parent__';
           {{ 'folderDetails' | t }}
         </button>
       }
-      @if (!adminOwner && group !== 'trash' && group !== 'shared') {
+      @if (canManage() && group !== 'trash' && group !== 'shared') {
         <button hlmBtn [disabled]="busy()" (click)="showUpload()">
           <ng-icon name="lucideArrowUpFromLine" />{{ 'uploadFiles' | t }}</button
         ><button hlmBtn variant="outline" (click)="openCreateFolder()">
           {{ 'createFolder' | t }}
         </button>
-      } @else if (!adminOwner && group === 'trash') {
+      } @else if (canManage() && group === 'trash') {
         <button hlmBtn variant="destructive" [disabled]="busy()" (click)="emptyTrash()">
           <ng-icon name="lucideTrash2" aria-hidden="true" />{{ 'emptyTrash' | t }}
         </button>
@@ -90,11 +88,6 @@ const parentEntryId = '__my-files-parent__';
       [enabled]="data.value()?.demoMode ?? false"
       [minutes]="data.value()?.demoExpiryMinutes ?? 60"
     />
-    @if (adminOwner) {
-      <p class="mb-4 break-words" role="status">
-        {{ 'viewingUserFiles' | t }}: {{ data.value()?.ownerName }}
-      </p>
-    }
     <ng-template #fileGridCard let-file>
       <button
         class="my-files-card-open"
@@ -128,7 +121,7 @@ const parentEntryId = '__my-files-parent__';
         <app-my-file-actions [name]="file.name" [actions]="inlineActions(file, busy())" />
       }
     </ng-template>
-    @if (!adminOwner && group === 'my-files' && !query.text('folder')) {
+    @if (group === 'my-files' && !query.text('folder')) {
       <section hlmCard collapsible class="mb-4 min-w-0">
         <div hlmCardHeader>
           <h2 hlmCardTitle>{{ 'recentFiles' | t }}</h2>
@@ -281,7 +274,7 @@ const parentEntryId = '__my-files-parent__';
         </div>
       </section>
       <aside class="workspace-stack">
-        @if (!adminOwner && group !== 'trash' && group !== 'shared') {
+        @if (canManage() && group !== 'trash' && group !== 'shared') {
           <section hlmCard id="upload-panel" class="my-files-upload-card">
             <div hlmCardHeader>
               <h2 hlmCardTitle>{{ 'uploadFiles' | t }}</h2>
@@ -439,9 +432,6 @@ const parentEntryId = '__my-files-parent__';
                 </div>
               }
             }
-            @if (adminOwner) {
-              <app-file-quota-editor [owner]="adminOwner" (saved)="load()" />
-            }
             <p class="workspace-meta mt-4">{{ 'myFilesRetentionHelp' | t }}</p>
             <a routerLink="/privacy" class="workspace-link text-sm mt-3 inline-block">{{
               'privacyAndData' | t
@@ -557,12 +547,7 @@ const parentEntryId = '__my-files-parent__';
                   <dt>{{ 'sharePermission' | t }}</dt>
                   <dd>
                     {{
-                      (adminOwner
-                        ? 'fileAdminAccess'
-                        : file.permission === 'owner'
-                          ? 'fileOwner'
-                          : file.permission || 'viewer'
-                      ) | t
+                      (file.permission === 'owner' ? 'fileOwner' : file.permission || 'viewer') | t
                     }}
                   </dd>
                 </dl>
@@ -724,6 +709,8 @@ const parentEntryId = '__my-files-parent__';
     </hlm-drawer>`,
 })
 export class MyFilesPage {
+  readonly auth = inject(Auth);
+  readonly canManage = computed(() => this.auth.has('organisation.files.manage'));
   readonly Math = Math;
   readonly navigation = inject(MyFilesNavigation);
   readonly actionMode = signal<'create' | 'move' | ''>('');
@@ -765,10 +752,10 @@ export class MyFilesPage {
       : this.i18n.text(file.parentId ? 'fileSharedLocation' : 'rootFolder');
   }
   canEditDetails(file: FileItem) {
-    return !this.adminOwner && file.permission !== 'viewer';
+    return file.permission !== 'viewer';
   }
   canShare(file: FileItem) {
-    return !this.adminOwner && file.permission === 'owner';
+    return file.permission === 'owner';
   }
   detailActions(file: FileItem, busy: boolean) {
     return this.actions(file, busy).filter(
@@ -806,7 +793,7 @@ export class MyFilesPage {
     if (await this.mutate(`${file.id}/restore`)) this.detailMode.set('');
   }
   actions(file: FileItem, busy: boolean) {
-    if (this.group === 'trash' && this.adminOwner)
+    if (this.group === 'trash' && file.permission !== 'owner')
       return file.isFolder
         ? [{ label: 'openFolder', disabled: busy, run: () => this.openFolder(file.id) }]
         : [];
@@ -826,7 +813,7 @@ export class MyFilesPage {
         disabled: busy,
         run: () => (file.isFolder ? this.openFolder(file.id) : void this.download(file)),
       },
-      ...(!this.adminOwner && file.permission !== 'viewer'
+      ...(file.permission !== 'viewer'
         ? [
             {
               label: 'editMetadata',
@@ -835,7 +822,7 @@ export class MyFilesPage {
             },
           ]
         : []),
-      ...(!this.adminOwner && file.permission === 'owner'
+      ...(file.permission === 'owner'
         ? [
             { label: 'moveFile', disabled: busy, run: () => this.openMove(file) },
             { label: 'shareFile', disabled: busy, run: () => void this.openShare(file) },
@@ -1023,9 +1010,7 @@ export class MyFilesPage {
       /* Central errors. */
     }
   }
-  readonly quotaEditor = viewChild(FileQuotaEditor);
-  readonly adminOwner = inject(ActivatedRoute).snapshot.paramMap.get('ownerId');
-  readonly basePath = this.adminOwner ? `my-files/admin/users/${this.adminOwner}` : 'my-files';
+  readonly basePath = 'my-files';
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
@@ -1098,7 +1083,6 @@ export class MyFilesPage {
   });
   readonly canDragEntry = (file: FileItem) =>
     !this.busy() &&
-    !this.adminOwner &&
     this.group === 'my-files' &&
     !this.isParentEntry(file) &&
     file.permission === 'owner';
@@ -1221,8 +1205,7 @@ export class MyFilesPage {
       this.actionMode() !== '' ||
       this.shareOpen() ||
       (this.detailMode() === 'fileDetails' && this.detailsDirty()) ||
-      (this.detailMode() !== '' && this.detailMode() !== 'fileDetails') ||
-      (this.quotaEditor()?.hasUnsavedChanges() ?? false)
+      (this.detailMode() !== '' && this.detailMode() !== 'fileDetails')
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {
@@ -1306,6 +1289,7 @@ export class MyFilesPage {
     this.uploadController?.abort();
   }
   async upload(files: readonly File[]) {
+    if (!this.canManage()) return;
     if (!files.length || this.busy()) return;
     const maxUploadBytes = this.data.value()?.maxUploadBytes ?? 20 * 1024 * 1024;
     this.validation.set(

@@ -162,7 +162,8 @@ public static class FoundationHost
         {
             await app.StartAsync();
             using var client = new HttpClient();
-            var document = await client.GetStringAsync(app.Urls.First() + "/openapi/v1.json");
+            var documentName = builder.Configuration["OpenApi:DocumentName"] ?? "v1";
+            var document = await client.GetStringAsync(app.Urls.First() + "/openapi/" + Uri.EscapeDataString(documentName) + ".json");
             await File.WriteAllTextAsync(Path.GetFullPath(exportPath), document.Replace(app.Urls.First() + "/", "https://localhost/", StringComparison.Ordinal).Replace("\r\n", "\n") + "\n");
             await app.StopAsync();
             return;

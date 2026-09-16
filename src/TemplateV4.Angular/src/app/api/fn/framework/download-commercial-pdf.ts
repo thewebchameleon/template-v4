@@ -9,14 +9,12 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface DownloadCommercialPdf$Params {
-  organisation: string;
   id: string;
 }
 
 export function downloadCommercialPdf(http: HttpClient, rootUrl: string, params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
   const rb = new RequestBuilder(rootUrl, downloadCommercialPdf.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -30,4 +28,4 @@ export function downloadCommercialPdf(http: HttpClient, rootUrl: string, params:
   );
 }
 
-downloadCommercialPdf.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/pdf';
+downloadCommercialPdf.PATH = '/api/v1/auth/organisation/invoicing/{id}/pdf';

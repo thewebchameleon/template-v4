@@ -11,7 +11,6 @@ import { CrmRecordKind } from '../../models/crm-record-kind';
 import { PageOfCrmRecord } from '../../models/page-of-crm-record';
 
 export interface ListCrmRecords$Params {
-  organisation: string;
   kind?: CrmRecordKind;
   search?: string;
   archived?: boolean;
@@ -21,10 +20,9 @@ export interface ListCrmRecords$Params {
   direction?: string;
 }
 
-export function listCrmRecords(http: HttpClient, rootUrl: string, params: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
+export function listCrmRecords(http: HttpClient, rootUrl: string, params?: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
   const rb = new RequestBuilder(rootUrl, listCrmRecords.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.query('kind', params.kind, {});
     rb.query('search', params.search, {});
     rb.query('archived', params.archived, {});
@@ -44,4 +42,4 @@ export function listCrmRecords(http: HttpClient, rootUrl: string, params: ListCr
   );
 }
 
-listCrmRecords.PATH = '/api/v1/auth/organisations/{organisation}/crm';
+listCrmRecords.PATH = '/api/v1/auth/organisation/crm';

@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { OrganisationAttachment } from '../../models/organisation-attachment';
 
 export interface UploadOrganisationAttachment$Params {
-  organisation: string;
   name: string;
 
 /**
@@ -22,7 +21,6 @@ export interface UploadOrganisationAttachment$Params {
 export function uploadOrganisationAttachment(http: HttpClient, rootUrl: string, params: UploadOrganisationAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationAttachment>> {
   const rb = new RequestBuilder(rootUrl, uploadOrganisationAttachment.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.query('name', params.name, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
@@ -37,4 +35,4 @@ export function uploadOrganisationAttachment(http: HttpClient, rootUrl: string, 
   );
 }
 
-uploadOrganisationAttachment.PATH = '/api/v1/auth/organisations/{organisation}/attachments/upload';
+uploadOrganisationAttachment.PATH = '/api/v1/auth/organisation/attachments/upload';

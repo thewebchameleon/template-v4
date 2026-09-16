@@ -1,3 +1,4 @@
+import { Auth } from '../core/auth';
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { WorkspaceApi } from '../core/workspace-api';
 import { Resource, WorkspaceUi } from './workspace';
@@ -26,7 +27,7 @@ interface Attachment {
             <button
               hlmBtn
               variant="outline"
-              [disabled]="busy()"
+              [disabled]="busy() || !canManage()"
               (click)="change(file.fileId, false)"
             >
               {{ 'remove' | t }}
@@ -34,19 +35,22 @@ interface Attachment {
           </div>
         }
       </app-page-state>
-      <app-attachment-picker
-        [organisation]="organisation()"
-        controlId="record-file"
-        [(value)]="selected"
-      />
-      <button hlmBtn [disabled]="busy() || !selected" (click)="change(selected, true)">
+      <app-attachment-picker controlId="record-file" [(value)]="selected" />
+      <button
+        hlmBtn
+        [disabled]="busy() || !selected || !canManage()"
+        (click)="change(selected, true)"
+      >
         {{ 'attachFile' | t }}
       </button>
     </div>
   </section>`,
 })
 export class RecordAttachments {
-  readonly organisation = input.required<string>();
+  private readonly auth = inject(Auth);
+  canManage() {
+    return this.auth.has(this.kind() === 'crm' ? 'crm.manage' : 'invoicing.issue');
+  }
   readonly record = input.required<string>();
   readonly kind = input.required<'crm' | 'invoicing'>();
   readonly data = new Resource<Attachment[]>();
@@ -55,14 +59,13 @@ export class RecordAttachments {
   private readonly api = inject(WorkspaceApi);
   constructor() {
     effect(() => {
-      this.organisation();
       this.record();
       this.kind();
       void this.load();
     });
   }
   path() {
-    return `organisations/${this.organisation()}/${this.kind()}/${this.record()}/attachments`;
+    return `organisation/${this.kind()}/${this.record()}/attachments`;
   }
   async load() {
     await this.data.load((signal) => this.api.get(this.path(), {}, signal));
@@ -81,9 +84,6 @@ export class RecordAttachments {
     }
   }
   download(file: Attachment) {
-    void this.api.download(
-      `organisations/${this.organisation()}/files/${file.fileId}`,
-      file.name ?? 'document',
-    );
+    void this.api.download(`organisation/files/${file.fileId}`, file.name ?? 'document');
   }
 }

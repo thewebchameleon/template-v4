@@ -92,6 +92,10 @@ test("scaffold is discovered without host edits, and removal clears registration
     backend(modules, "TemplateV4.DatabaseMigrator"),
     /Reports.Infrastructure.ModuleServices.Register/,
   );
+  assert.match(
+    backend(modules, "TemplateV4.DatabaseMigrator"),
+    /Microsoft.Extensions.Hosting.IHostApplicationBuilder/,
+  );
   assert.match(frontend(modules), /reports\/Frontend\/public-api/);
   fs.renameSync(
     path.join(root, "business-modules"),

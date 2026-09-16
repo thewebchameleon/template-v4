@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { PageOfCommercialDocument } from '../../models/page-of-commercial-document';
 
 export interface ListCommercialDocuments$Params {
-  organisation: string;
   pageNumber?: number;
   pageSize?: number;
   search?: string;
@@ -18,10 +17,9 @@ export interface ListCommercialDocuments$Params {
   direction?: string;
 }
 
-export function listCommercialDocuments(http: HttpClient, rootUrl: string, params: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
+export function listCommercialDocuments(http: HttpClient, rootUrl: string, params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
   const rb = new RequestBuilder(rootUrl, listCommercialDocuments.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
     rb.query('search', params.search, {});
@@ -39,4 +37,4 @@ export function listCommercialDocuments(http: HttpClient, rootUrl: string, param
   );
 }
 
-listCommercialDocuments.PATH = '/api/v1/auth/organisations/{organisation}/invoicing';
+listCommercialDocuments.PATH = '/api/v1/auth/organisation/invoicing';

@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { ChangeRecordAttachment } from '../../models/change-record-attachment';
 
 export interface ChangeInvoicingAttachment$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -23,7 +22,6 @@ export interface ChangeInvoicingAttachment$Params {
 export function changeInvoicingAttachment(http: HttpClient, rootUrl: string, params: ChangeInvoicingAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, changeInvoicingAttachment.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -39,4 +37,4 @@ export function changeInvoicingAttachment(http: HttpClient, rootUrl: string, par
   );
 }
 
-changeInvoicingAttachment.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/attachments';
+changeInvoicingAttachment.PATH = '/api/v1/auth/organisation/invoicing/{id}/attachments';

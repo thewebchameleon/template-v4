@@ -15,7 +15,7 @@ public sealed class CommercialPdfTests
         var totals = CommercialRules.Price(lines);
         var snapshot = new CommercialSnapshot(new(Guid.NewGuid(), "Voorbeeld (Pty) Ltd", "123 Example Street\nCape Town\n8001", "accounts@example.test", "EFT payments\nUse the invoice number as reference.", true, "4123456789", "TEST"),
             new(CrmRecordKind.Company, "Long customer name — Voorbeeld-vloot", "customer@example.test", "0210000000", "1 Customer Road\nJohannesburg", null, [], null, [], [], null, null, null, null, null, null, DealOutcome.Open), totals, "Fleet processing");
-        var document = new CommercialDocument(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "TEST-I-00000001", CommercialDocumentKind.Invoice, Guid.NewGuid(), snapshot,
+        var document = new CommercialDocument(Guid.NewGuid(), Guid.NewGuid(), "TEST-I-00000001", CommercialDocumentKind.Invoice, Guid.NewGuid(), snapshot,
             new DateTimeOffset(2026, 9, 13, 10, 0, 0, TimeSpan.Zero), Guid.NewGuid(), null, null, null, null, false, null, null, 0, 0, 0, totals.Total);
         var pdf = CommercialPdf.Render(new(document, [], []));
         Assert.True(pdf.Length > 10000); Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));

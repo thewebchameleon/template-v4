@@ -314,7 +314,10 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   finishingUpload: ['Finishing your upload…', 'Voltooi jou oplaai…'],
   uploading: ['Uploading', 'Besig om op te laai'],
   storageUsage: ['Storage usage', 'Berginggebruik'],
-  storageUsageHelp: ['Your personal storage allowance.', 'Jou persoonlike bergingtoelaag.'],
+  storageUsageHelp: [
+    'Your organisation’s shared storage allowance.',
+    'Jou organisasie se gedeelde bergingtoelaag.',
+  ],
   fileRetentionHelp: [
     'Deleted files lose access immediately and count toward your quota until retention cleanup completes.',
     'Verwyderde lêers verloor onmiddellik toegang en tel by jou kwota totdat opruiming voltooi is.',
@@ -350,18 +353,18 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   manageUserFiles: ['Files and storage quota', 'Lêers en bergingkwota'],
   storageSettings: ['File storage', 'Lêerberging'],
   storageSettingsHelp: [
-    'Set the default allowance and maximum upload size. Open a user’s details to browse their files and change their individual quota.',
-    'Stel die verstektoelaag en maksimum oplaaigrootte. Maak ’n gebruiker se besonderhede oop om hul lêers te sien en individuele kwota te verander.',
+    'Set the organisation’s storage allowance and maximum upload size.',
+    'Stel die organisasie se bergingtoelaag en maksimum oplaaigrootte.',
   ],
   userQuota: ['User quota (MB)', 'Gebruikerkwota (MB)'],
-  defaultQuota: ['Default quota per user (MB)', 'Verstekkwota per gebruiker (MB)'],
+  defaultQuota: ['Organisation quota (MB)', 'Organisasiekwota (MB)'],
   userQuotaHelp: [
     'Leave blank to use the default. Zero blocks storage. Maximum 102,400 MB.',
     'Laat leeg om die verstek te gebruik. Nul blokkeer berging. Maksimum 102 400 MB.',
   ],
   defaultQuotaHelp: [
-    'Applies to every user without an individual override.',
-    'Geld vir elke gebruiker sonder ’n individuele kwota.',
+    'Shared by all organisation files. The subscription allowance takes precedence.',
+    'Word deur alle organisasielêers gedeel. Die intekeningstoelaag geniet voorkeur.',
   ],
   quotaValidation: [
     'Enter a number from 0 to 102,400 MB.',

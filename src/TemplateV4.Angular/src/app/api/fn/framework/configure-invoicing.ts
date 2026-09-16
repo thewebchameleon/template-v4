@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { IssuerSettings } from '../../models/issuer-settings';
 
 export interface ConfigureInvoicing$Params {
-  organisation: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -22,7 +21,6 @@ export interface ConfigureInvoicing$Params {
 export function configureInvoicing(http: HttpClient, rootUrl: string, params: ConfigureInvoicing$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
   const rb = new RequestBuilder(rootUrl, configureInvoicing.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -37,4 +35,4 @@ export function configureInvoicing(http: HttpClient, rootUrl: string, params: Co
   );
 }
 
-configureInvoicing.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/settings';
+configureInvoicing.PATH = '/api/v1/auth/organisation/invoicing/settings';

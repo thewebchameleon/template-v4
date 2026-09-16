@@ -17,7 +17,7 @@ import { CommercialLines } from '../../../shared/commercial-lines';
   selector: 'app-commercial-editor',
   imports: [WorkspaceUi, BusinessSelect, CrmCustomerPicker, CommercialLines],
   template: ` <app-page-header title="issueDocument" description="invoicingHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', organisation, 'invoicing']">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing']">{{
         'invoicing' | t
       }}</a></app-page-header
     >
@@ -35,11 +35,7 @@ import { CommercialLines } from '../../../shared/commercial-lines';
             [allowEmpty]="false"
             [disabled]="!!source"
           />
-          <app-crm-customer-picker
-            [organisation]="organisation"
-            controlId="document-customer"
-            [(value)]="customer"
-          />
+          <app-crm-customer-picker controlId="document-customer" [(value)]="customer" />
           <div hlmField>
             <label hlmFieldLabel for="document-reference">{{ 'reference' | t }}</label
             ><input
@@ -78,7 +74,6 @@ export class CommercialEditorPage extends BusinessDraft {
   private readonly api = inject(WorkspaceApi);
   private readonly router = inject(Router);
   readonly i18n = inject(I18n);
-  readonly organisation = this.route.snapshot.paramMap.get('id')!;
   readonly source = this.route.snapshot.queryParamMap.get('source');
   readonly mode = this.route.snapshot.queryParamMap.get('mode');
   readonly kinds = [
@@ -105,12 +100,12 @@ export class CommercialEditorPage extends BusinessDraft {
       this.generation++;
     });
     if (this.source && this.mode === 'invoice') {
-      void this.router.navigate(['/organisations', this.organisation, 'invoicing', this.source]);
+      void this.router.navigate(['/organisation', 'invoicing', this.source]);
       return;
     }
     if (this.source)
       void this.api
-        .get<CommercialDetail>(`organisations/${this.organisation}/invoicing/${this.source}`)
+        .get<CommercialDetail>(`organisation/invoicing/${this.source}`)
         .then((detail) => {
           this.customer = detail.document.customerId;
           this.lines = structuredClone(detail.document.snapshot.totals.lines.map((x) => x.source));
@@ -130,7 +125,7 @@ export class CommercialEditorPage extends BusinessDraft {
     if (this.lines.some((x) => !x.description.trim() || x.quantity <= 0 || x.unitPrice < 0)) return;
     this.timer = setTimeout(() => {
       void this.api
-        .post<CommercialTotals>(`organisations/${this.organisation}/invoicing/preview`, {
+        .post<CommercialTotals>(`organisation/invoicing/preview`, {
           lines: this.lines,
         })
         .then((result) => {
@@ -157,21 +152,18 @@ export class CommercialEditorPage extends BusinessDraft {
         this.key = crypto.randomUUID();
         this.submitted = fingerprint;
       }
-      const result = await this.api.post<CommercialDocument>(
-        `organisations/${this.organisation}/invoicing`,
-        {
-          idempotencyKey: this.key,
-          customerId: this.customer,
-          kind: Number(this.kind),
-          lines: this.lines,
-          origin: null,
-          acceptedQuotationId: this.mode === 'invoice' ? this.source : null,
-          previousRevisionId: this.mode === 'revision' ? this.source : null,
-          reference: this.reference || null,
-        },
-      );
+      const result = await this.api.post<CommercialDocument>(`organisation/invoicing`, {
+        idempotencyKey: this.key,
+        customerId: this.customer,
+        kind: Number(this.kind),
+        lines: this.lines,
+        origin: null,
+        acceptedQuotationId: this.mode === 'invoice' ? this.source : null,
+        previousRevisionId: this.mode === 'revision' ? this.source : null,
+        reference: this.reference || null,
+      });
       this.markSaved();
-      await this.router.navigate(['/organisations', this.organisation, 'invoicing', result.id]);
+      await this.router.navigate(['/organisation', 'invoicing', result.id]);
     } finally {
       this.busy.set(false);
     }

@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { RenameOrganisation } from '../../models/rename-organisation';
 
 export interface RenameOrganisation$Params {
-  customer: string;
 
 /**
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
@@ -22,7 +21,6 @@ export interface RenameOrganisation$Params {
 export function renameOrganisation(http: HttpClient, rootUrl: string, params: RenameOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, renameOrganisation.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
   }
@@ -37,4 +35,4 @@ export function renameOrganisation(http: HttpClient, rootUrl: string, params: Re
   );
 }
 
-renameOrganisation.PATH = '/api/v1/auth/customers/{customer}/rename';
+renameOrganisation.PATH = '/api/v1/auth/organisation/rename';

@@ -10,15 +10,13 @@ import { RequestBuilder } from '../../request-builder';
 import { PageOfOrganisationAttachment } from '../../models/page-of-organisation-attachment';
 
 export interface ListOrganisationAttachments$Params {
-  organisation: string;
   pageNumber?: number;
   pageSize?: number;
 }
 
-export function listOrganisationAttachments(http: HttpClient, rootUrl: string, params: ListOrganisationAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfOrganisationAttachment>> {
+export function listOrganisationAttachments(http: HttpClient, rootUrl: string, params?: ListOrganisationAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfOrganisationAttachment>> {
   const rb = new RequestBuilder(rootUrl, listOrganisationAttachments.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.query('pageNumber', params.pageNumber, {});
     rb.query('pageSize', params.pageSize, {});
   }
@@ -33,4 +31,4 @@ export function listOrganisationAttachments(http: HttpClient, rootUrl: string, p
   );
 }
 
-listOrganisationAttachments.PATH = '/api/v1/auth/organisations/{organisation}/attachments';
+listOrganisationAttachments.PATH = '/api/v1/auth/organisation/attachments';

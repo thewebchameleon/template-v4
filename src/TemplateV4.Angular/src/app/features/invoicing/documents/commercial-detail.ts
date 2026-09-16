@@ -15,7 +15,7 @@ import { commercialKinds } from './invoicing';
   selector: 'app-commercial-detail',
   imports: [RecordAttachments, WorkspaceUi, BusinessSelect, BusinessDate],
   template: ` <app-page-header title="invoicing" description="immutableDocument"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', organisation, 'invoicing']">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing']">{{
         'invoicing' | t
       }}</a></app-page-header
     >
@@ -46,7 +46,7 @@ import { commercialKinds } from './invoicing';
                   <a
                     hlmBtn
                     variant="outline"
-                    [routerLink]="['/organisations', organisation, 'invoicing', 'new']"
+                    [routerLink]="['/organisation', 'invoicing', 'new']"
                     [queryParams]="{ source: doc.id, mode: 'revision' }"
                     >{{ 'reviseQuotation' | t }}</a
                   >
@@ -245,21 +245,14 @@ import { commercialKinds } from './invoicing';
               </article>
             }
             @for (related of detail.related; track related.id) {
-              <a
-                hlmBtn
-                variant="outline"
-                [routerLink]="['/organisations', organisation, 'invoicing', related.id]"
+              <a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing', related.id]"
                 >{{ related.number }} — {{ kinds[related.kind] | t }}</a
               >
             }
           </div>
         </section>
         @if (features.enabled('invoicing-files')) {
-          <app-record-attachments
-            [organisation]="organisation"
-            [record]="documentId"
-            kind="invoicing"
-          />
+          <app-record-attachments [record]="documentId" kind="invoicing" />
         }
       }
     </app-page-state>`,
@@ -271,7 +264,6 @@ export class CommercialDetailPage {
   readonly i18n = inject(I18n);
   readonly features = inject(Features);
   readonly auth = inject(Auth);
-  readonly organisation = this.route.snapshot.paramMap.get('id')!;
   readonly documentId = this.route.snapshot.paramMap.get('documentId')!;
   readonly data = new Resource<CommercialDetail>();
   readonly busy = signal(false);
@@ -295,7 +287,7 @@ export class CommercialDetailPage {
   }
   async load() {
     await this.data.load((signal) =>
-      this.api.get(`organisations/${this.organisation}/invoicing/${this.documentId}`, {}, signal),
+      this.api.get(`organisation/invoicing/${this.documentId}`, {}, signal),
     );
   }
   outstanding() {
@@ -319,9 +311,7 @@ export class CommercialDetailPage {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(
-        `organisations/${this.organisation}/invoicing/${this.documentId}/store-pdf`,
-      );
+      await this.api.post(`organisation/invoicing/${this.documentId}/store-pdf`);
       await this.load();
     } finally {
       this.busy.set(false);
@@ -329,20 +319,16 @@ export class CommercialDetailPage {
   }
   async download() {
     const d = this.data.value()?.document;
-    if (d)
-      await this.api.download(
-        `organisations/${this.organisation}/invoicing/${d.id}/pdf`,
-        d.number + '.pdf',
-      );
+    if (d) await this.api.download(`organisation/invoicing/${d.id}/pdf`, d.number + '.pdf');
   }
   async accept() {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(
-        `organisations/${this.organisation}/invoicing/${this.documentId}/accept`,
-        { version: this.data.value()!.document.version, reference: this.acceptance },
-      );
+      await this.api.post(`organisation/invoicing/${this.documentId}/accept`, {
+        version: this.data.value()!.document.version,
+        reference: this.acceptance,
+      });
       await this.load();
     } finally {
       this.busy.set(false);
@@ -353,9 +339,9 @@ export class CommercialDetailPage {
     this.busy.set(true);
     try {
       const result = await this.api.post<{ id: string }>(
-        `organisations/${this.organisation}/invoicing/${this.documentId}/invoice?idempotencyKey=${this.key}`,
+        `organisation/invoicing/${this.documentId}/invoice?idempotencyKey=${this.key}`,
       );
-      await this.router.navigate(['/organisations', this.organisation, 'invoicing', result.id]);
+      await this.router.navigate(['/organisation', 'invoicing', result.id]);
     } finally {
       this.busy.set(false);
     }
@@ -375,10 +361,10 @@ export class CommercialDetailPage {
       const fingerprint = JSON.stringify({ action: this.action, ...payload });
       if (this.submitted && this.submitted !== fingerprint) this.key = crypto.randomUUID();
       this.submitted = fingerprint;
-      await this.api.post(
-        `organisations/${this.organisation}/invoicing/${this.documentId}/${this.action}`,
-        { idempotencyKey: this.key, ...payload },
-      );
+      await this.api.post(`organisation/invoicing/${this.documentId}/${this.action}`, {
+        idempotencyKey: this.key,
+        ...payload,
+      });
       this.action = '';
       await this.load();
     } finally {

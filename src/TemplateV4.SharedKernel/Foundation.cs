@@ -36,7 +36,6 @@ public interface IExecutionContext
     Guid? ActorId { get; }
     IReadOnlySet<string> Permissions { get; }
     string Culture { get; }
-    string? TenantId { get; }
     string? TraceParent { get; }
 }
 public interface IUnitOfWork

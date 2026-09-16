@@ -1,18 +1,21 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Persistence;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 TemplateV4.Host.BusinessModules.ConfigureClient(builder);
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, TemplateV4.Host.BusinessModules.Descriptors);
 TemplateV4.Host.BusinessModules.Configure(builder);
 builder.Services.AddScoped<IExecutionContext, BackgroundExecutionContext>();
-await using var app = builder.Build();
+using var app = builder.Build();
 await using var scope = app.Services.CreateAsyncScope();
 var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
 await db.Database.OpenConnectionAsync();

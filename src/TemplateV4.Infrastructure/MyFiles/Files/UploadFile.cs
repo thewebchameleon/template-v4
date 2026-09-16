@@ -23,11 +23,11 @@ public sealed partial class MyFilesService
         await using (var reserve = await db.Database.BeginTransactionAsync(ct))
         {
             await Lock(actor, ct);
-            if (!await Active(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
+            if (!await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
             if (!await FolderExists(actor, parentId, ct)) return Result<FileItem>.Fail("files.not_found", ErrorKind.NotFound);
             var used = await Used(actor, ct);
             var quota = await Quota(actor, ct);
-            if (quota == 0 || quota > 0 && used + file.Size > quota) return Result<FileItem>.Fail("files.quota", ErrorKind.Conflict);
+            if (quota == 0 || quota > 0 && used + file.Size > quota || !await entitlements.CanStore(file.Size, ct)) return Result<FileItem>.Fail("files.quota", ErrorKind.Conflict);
             db.Files.Add(file); await db.SaveChangesAsync(ct); await reserve.CommitAsync(ct);
         }
         // Durable reservations allow maintenance to reconcile uploads interrupted between storage and DB.
@@ -36,7 +36,7 @@ public sealed partial class MyFilesService
         await using var finish = await db.Database.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         await db.Entry(file).ReloadAsync(ct);
-        if (file.DeletedAt != null || !await Active(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
+        if (file.DeletedAt != null || !await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
         file.Ready = true;
         db.Audit.Add(new() { ActorId = actor, SubjectId = file.Id, Action = "file.uploaded", SubjectType = "file", SubjectNameSnapshot = file.Name, MetadataJson = JsonSerializer.Serialize(new Dictionary<string, string> { ["sizeBytes"] = file.Size.ToString(CultureInfo.InvariantCulture), ["contentType"] = file.ContentType }), RelatedEntitiesJson = JsonSerializer.Serialize(new[] { new AuditRelatedEntity("user", actor, null) }), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await finish.CommitAsync(ct);

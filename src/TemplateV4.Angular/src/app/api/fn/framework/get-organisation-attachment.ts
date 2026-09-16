@@ -10,14 +10,12 @@ import { RequestBuilder } from '../../request-builder';
 import { OrganisationAttachment } from '../../models/organisation-attachment';
 
 export interface GetOrganisationAttachment$Params {
-  organisation: string;
   id: string;
 }
 
 export function getOrganisationAttachment(http: HttpClient, rootUrl: string, params: GetOrganisationAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<OrganisationAttachment>> {
   const rb = new RequestBuilder(rootUrl, getOrganisationAttachment.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -31,4 +29,4 @@ export function getOrganisationAttachment(http: HttpClient, rootUrl: string, par
   );
 }
 
-getOrganisationAttachment.PATH = '/api/v1/auth/organisations/{organisation}/attachments/{id}';
+getOrganisationAttachment.PATH = '/api/v1/auth/organisation/attachments/{id}';

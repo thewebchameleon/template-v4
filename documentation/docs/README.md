@@ -54,7 +54,7 @@ Define a Domain invariant only when it represents business behavior. Add an Appl
 
 Dispatcher ordering is tracing → authorization → validation → custom decorators → handler, with the decorator/handler chain wrapped in a database transaction for commands. Expected failures are `Result<T>`; exceptions represent failures the caller did not reasonably cause. Error codes are the client contract; translated text is display-only. Pagination is 1-based, capped at 100 items, with stable secondary identifier sorting.
 
-See [user file library and storage quotas](adr/0021-user-file-library.md) for the enabled personal library, administrator access, folder and quota conventions.
+See [the organisation file library](adr/0048-unified-organisation-files.md) for shared access, folders, attachments and storage quotas.
 
 ## Extension points
 
@@ -79,7 +79,10 @@ Account and security HTTP handlers are contract adapters and do not access EF or
 
 ## Localisation and UI
 
-The Account rail item includes an Organisation link immediately after Profile for selecting the current organisation. The selection persists on the user account across navigation, refreshes and sign-ins on different devices. System administrators manage every organisation under Administration → Organisations. Organisation modules such as CRM and Invoicing reuse the saved selection and retain their own rail destinations.
+Each deployment has one organisation. Administration → Organisation edits its details.
+CRM, Invoicing, shared files and billing open directly. Existing application roles
+control access; there is no organisation selector or membership management. See
+[the single-organisation decision](adr/0047-single-organisation.md).
 
 Selected audible feedback uses [Foley interface sounds](ui-sounds.md), with enabled-by-default soft cues and a browser-local mute setting in the theme drawer. See [ADR 0030](adr/0030-interface-sounds.md) for ownership and lifecycle rules.
 

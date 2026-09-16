@@ -10,13 +10,11 @@ import { RequestBuilder } from '../../request-builder';
 import { BillingSummary } from '../../models/billing-summary';
 
 export interface GetCustomerBilling$Params {
-  customer: string;
 }
 
-export function getCustomerBilling(http: HttpClient, rootUrl: string, params: GetCustomerBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<BillingSummary>> {
+export function getCustomerBilling(http: HttpClient, rootUrl: string, params?: GetCustomerBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<BillingSummary>> {
   const rb = new RequestBuilder(rootUrl, getCustomerBilling.PATH, 'get');
   if (params) {
-    rb.path('customer', params.customer, {});
   }
 
   return http.request(
@@ -29,4 +27,4 @@ export function getCustomerBilling(http: HttpClient, rootUrl: string, params: Ge
   );
 }
 
-getCustomerBilling.PATH = '/api/v1/auth/customers/{customer}/billing';
+getCustomerBilling.PATH = '/api/v1/auth/billing';

@@ -1,14 +1,13 @@
 import { BusinessDraft } from '../../../shared/business-draft';
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { CustomerHome, IssuerSettings } from '../../../api/models';
+import { CustomerInfo, IssuerSettings } from '../../../api/models';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../../shared/workspace';
 @Component({
   selector: 'app-issuer-settings',
   imports: [WorkspaceUi],
   template: ` <app-page-header title="issuerSettings" description="invoicingHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisations', organisation, 'invoicing']">{{
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing']">{{
         'invoicing' | t
       }}</a></app-page-header
     >
@@ -71,7 +70,6 @@ export class IssuerSettingsPage extends BusinessDraft {
   protected draftValue() {
     return this.draft;
   }
-  readonly organisation = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   private readonly api = inject(WorkspaceApi);
   readonly state = new Resource<IssuerSettings>();
   readonly busy = signal(false);
@@ -91,18 +89,10 @@ export class IssuerSettingsPage extends BusinessDraft {
   async load() {
     await this.state.load(async (signal) => {
       const [settings, home] = await Promise.all([
-        this.api.get<IssuerSettings>(
-          `organisations/${this.organisation}/invoicing/settings`,
-          {},
-          signal,
-        ),
-        this.api.get<CustomerHome>('customers/', {}, signal),
+        this.api.get<IssuerSettings>(`organisation/invoicing/settings`, {}, signal),
+        this.api.get<CustomerInfo>('organisation/', {}, signal),
       ]);
-      this.canConfigure.set(
-        ['Owner', 'Admin'].includes(
-          home.accounts.find((x) => x.id === this.organisation)?.role ?? '',
-        ),
-      );
+      this.canConfigure.set(home.canManage);
       this.draft = structuredClone(settings);
       this.markSaved();
       return settings;
@@ -112,7 +102,7 @@ export class IssuerSettingsPage extends BusinessDraft {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(`organisations/${this.organisation}/invoicing/settings`, this.draft);
+      await this.api.post(`organisation/invoicing/settings`, this.draft);
       await this.load();
     } finally {
       this.busy.set(false);

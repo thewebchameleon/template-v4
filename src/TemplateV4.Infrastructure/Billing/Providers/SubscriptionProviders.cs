@@ -42,7 +42,7 @@ public sealed class StripeSubscriptions(HttpClient http, IConfiguration config, 
     }
     public async Task<CheckoutResponse> Checkout(PaymentOrder order, CancellationToken ct)
     {
-        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisations/" + order.CustomerId + "/billing";
+        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisation/billing";
         using var request = Request(HttpMethod.Post, "checkout/sessions", new()
         {
             ["mode"] = "subscription",
@@ -152,7 +152,7 @@ public sealed class PayFastSubscriptions(HttpClient http, IConfiguration config,
     public Task<CheckoutResponse> Checkout(PaymentOrder order, CancellationToken ct)
     {
         if (order.Currency != "ZAR" || order.UnitMinor * order.Quantity < 500) throw new PaymentProviderException();
-        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisations/" + order.CustomerId + "/billing";
+        var url = PaymentHttp.PublicUrl(config, "Web:PublicUrl") + "/organisation/billing";
         var amount = (order.UnitMinor * order.Quantity / 100m).ToString("F2", CultureInfo.InvariantCulture);
         var fields = new Dictionary<string, string>
         {

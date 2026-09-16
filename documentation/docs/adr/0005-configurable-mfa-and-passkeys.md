@@ -14,6 +14,8 @@ Optional passkeys use .NET 10 IPasskeyHandler with required user verification an
 
 No MFA bypass is granted to administrators. Users should keep a second passkey/device or authenticator recovery codes. Password reset does not disable MFA. If every factor is lost, use a separately governed operator recovery procedure with identity verification; this release does not expose an administrative bypass endpoint.
 
+Required initial enrollment uses the shared authentication layout. Enrollment alone may reuse a password login from the previous five minutes when the persisted session is setup-only and unverified, belongs to the current user, has the current security stamp, and is neither expired nor revoked. The account must still require setup and have no configured method eligible under its current policy. Session refresh does not renew this authorization. Once enrolled, later factor management continues to require the existing password and factor proof. No password is retained by the browser between login and enrollment.
+
 Browser refresh, password login, passkey login and logout use one Web Lock. Cross-tab logout clears local state. CSRF tokens deliberately use the anonymous principal both when issued and verified: the double-submit cookie/token remains required, alongside exact Origin validation, but token validity is independent of expiring JWT identities. Authorization still uses the original authenticated principal.
 
 Validation: PostgreSQL challenge, email cooldown, recovery and permission tests; Playwright virtual-authenticator enrollment and login; generated OpenAPI contracts. Hardware, OS account recovery and platform-specific passkey syncing remain deployment acceptance checks.

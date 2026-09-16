@@ -1,34 +1,56 @@
-# Organisations and subscriptions
+# Organisation and subscription
 
-Account → Organisation selects the organisation used when opening any enabled organisation module. The preference is stored in PostgreSQL and reused across navigation, refreshes, sign-ins and devices. Only current memberships are selectable. A sole organisation is selected automatically; several organisations require an initial choice. Removed membership or closure clears the preference, and module entry revalidates it. Organisation identifiers remain explicit in data URLs and every data operation still checks live membership.
+Each deployment has one organisation and one shared subscription. Administrators
+manage its name under Administration → Organisation. Appearance, website details,
+issuer address and account-security settings retain their existing settings pages.
+CRM, invoicing, shared files and billing open directly without selecting an account.
+See [ADR 0047](adr/0047-single-organisation.md).
 
-System administrators manage every organisation through Administration → Organisations, including organisations they do not belong to. Management access does not grant access to files, billing or business data. Organisation roles remain Owner, Admin and Member for existing data permissions; those roles no longer grant organisation configuration or membership-management permissions.
+## Access and files
 
-Set `Customers:Mode` to `Both` (default), `Personal` or `Organisations` on API and Worker. Organisations and Billing are deployment modules, enabled in baseline and disabled in minimal. Billing depends on Organisations. Disabling checkout retains callbacks, reconciliation and cancellation APIs. Keep customer modes available until existing billing obligations are settled. Runtime activation under Modules currently remains limited to Files and Support.
+Public registration, invitations and administrator-created accounts remain
+configurable in User Management. Email confirmation and optional registration
+approval still apply. There is no separate organisation membership or role.
+Application roles grant permissions: `crm.manage` for business-record writes,
+`organisation.files.manage` for shared-file writes, and existing invoicing
+permissions for financial operations. Administrators configure the organisation
+and manage its subscription. Reader accounts can read shared records and files.
 
-## Membership and files
-
-Only system administrators create, rename and close organisations, assign existing users, change membership roles, remove members and transfer ownership. Assigning an existing active user by email grants membership immediately, subject to membership and billing seat limits. Unknown users must first be created through User Management; assignment does not send an invitation or provision an account. Previously issued invitations can still be accepted or revoked. Ownership transfer atomically makes the previous owner an Admin. Closure retains obligation checks, removes memberships and invitations, clears saved selections and marks shared files for retention deletion. The closed customer row remains for historical references.
-
-Shared organisation files use a distinct library and account-prefixed object keys. Members can upload and download; members delete their own uploads, while Owners/Admins can delete any workspace file. The shared library is flat; existing personal libraries retain their folders. Uploads reserve quota under the same customer lock used by billing transitions. Retained deleted files and unfinished uploads count toward storage until cleanup purges them. The worker cleans retained files even when their entry points are disabled.
-
-Privacy export includes the user's memberships, pending invitations and personal subscription summary. Erasure requires organisation ownership transfer or closure and settlement of personal subscription obligations. Shared organisation files remain organisation-owned after a contributor is erased; the contributor identifier is removed.
+Files is one organisation-wide library, including former personal files and record
+attachments. All active users can read it; `organisation.files.manage` controls
+writes. A subscription supplies the shared storage quota; otherwise the configured
+organisation allowance applies. Retained trash and unfinished uploads count once.
+Reservations serialize across users. Cleanup continues while Files is disabled.
+Account erasure removes uploader attribution and preserves organisation files.
+See [the file-library merge](adr/0048-unified-organisation-files.md).
 
 ## Plans and settings
 
-Administrators use Administration → Billing settings to select eligible account types, enabled providers, the checkout default, trial days and grace days. Defaults are both account types, both providers enabled, PayFast preferred, a 14-day trial and seven-day payment grace period. Credentials are required before a provider appears as ready at checkout. `CanCancel` is independent of entitlements; an overdue provider subscription remains cancellable after storage falls back to Free. `EntitlementState` describes paid/free access separately from payment state. Checkout is hidden while an existing subscription or paid period blocks a new order.
+Administration → Billing settings configures providers, checkout default, trial
+days and grace days. There is no personal/organisation ownership setting. Defaults
+remain Stripe and PayFast enabled, PayFast preferred, a 14-day trial and seven-day
+grace period. Credentials are required before a provider is ready at checkout.
 
-The configurable demonstration catalog uses ZAR:
-
-| Plan | Monthly | Annual | Storage per account |
+| Plan | Monthly | Annual | Storage for the deployment |
 | --- | --- | --- | --- |
 | Free | R0 | R0 | 100 MiB |
 | Standard (flat) | R99 | R990 | 10 GiB |
 | Team (per seat) | R49 per seat | R490 per seat | 50 GiB |
 
-Override the complete `Billing:Plans` array with `Id`, `Name`, `Pricing` (`Flat` or `PerSeat`), `Currency`, `MonthlyMinor`, `YearlyMinor` and `StorageBytes`. Amounts are integer minor currency units. Keep existing plan identifiers available while subscriptions reference them. Prices are snapshotted on checkout orders. Storage is per account, not multiplied by seats. Per-seat subscriptions require enough purchased seats for members; assignment and legacy invitation acceptance cannot exceed purchased seats.
+Override `Billing:Plans` with `Id`, `Name`, `Pricing` (`Flat` or `PerSeat`),
+`Currency`, `MonthlyMinor`, `YearlyMinor` and `StorageBytes`. Prices use integer minor
+units and are snapshotted at checkout. Keep plan IDs available while retained
+subscriptions reference them. Per-seat checkout requires enough seats for enabled
+user profiles; storage is not multiplied by seats. Account creation continues to
+follow the configured registration policy, independently of checkout.
 
-Trials are local and require no payment method. Starting checkout begins a paid subscription immediately. No automatic conversion or charge follows a local trial. Expired trials immediately use the free storage allowance. Paid access lasts through the paid period plus the configured grace period; cancelled subscriptions receive no extra grace. Files remain downloadable when over quota, but uploads stop. Personal accounts that have never started a subscription retain their existing administrator-configured file quota. Once subscribed, billing storage entitlements take precedence.
+Trials require no payment method and do not automatically convert or charge.
+Checkout starts paid billing immediately. Expired trials use the free allowance;
+paid access lasts through the paid period and configured grace period. Cancelled
+subscriptions receive no additional grace. Downloads remain available over quota,
+but new uploads stop. Cancellation remains available independently of entitlements,
+including when checkout is disabled. A current subscription or paid period prevents
+a second checkout.
 
 ## Provider setup
 

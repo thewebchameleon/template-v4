@@ -131,8 +131,7 @@ the coordinated redeployment command.
 
 ## Verification
 
-The private module contains PostgreSQL integration tests. Set
-`CLIENT_MANAGEMENT_TEST_POSTGRES` to a disposable database and run its Tests project.
+The private module's Tests project contains database-free licensing policy checks.
 Generate the module OpenAPI contract through `Tools/ContractExporter`, passing an
 absolute output path, then run its `ng-openapi-gen.json` with the foundation's generator.
 Never edit generated contracts, clients or migrations by hand.

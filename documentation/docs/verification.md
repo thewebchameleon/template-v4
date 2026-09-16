@@ -19,3 +19,8 @@ Container images run nonroot with ICU-enabled .NET runtime images for localisati
 `node --test tools/auth-retry.test.mjs` runs isolated Node/RxJS regression checks against the actual interceptor and route-reuse source. It launches no browser. Browser/E2E and merchant sandbox verification remain separate.
 
 Module/capability changes also use `node --test tools/cli.test.mjs tools/capabilities.test.mjs` and `node tools/framework.mjs validate`. `CapabilityTests` covers graph composition and runtime transition rules. See [ADR 0031](adr/0031-declarative-capabilities.md).
+
+Export contracts using the API host's development-only `OpenApi:ExportPath` setting.
+`OpenApi:DocumentName` defaults to `v1`; select a registered module document such as
+`vehicle-licensing` when regenerating that module's contracts. Use the owning client
+generators after exporting; never edit generated contracts by hand.

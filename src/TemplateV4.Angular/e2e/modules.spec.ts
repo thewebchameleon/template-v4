@@ -78,7 +78,7 @@ async function modulesApp(page: Page, administrator = true, available = true) {
 }
 
 const myFilesModuleControl = (page: Page) =>
-  page.getByRole('switch', { name: 'My Files', exact: true });
+  page.getByRole('switch', { name: 'Files', exact: true });
 
 test('modules save application-wide Files state, refresh navigation and guard disabled routes', async ({
   page,
@@ -127,7 +127,7 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await expect(modulesNavigation.getByRole('link', { name: 'File storage' })).toBeVisible();
   await page
     .getByRole('navigation', { name: 'Destinations' })
-    .getByRole('link', { name: 'My Files', exact: true })
+    .getByRole('link', { name: 'Files', exact: true })
     .click();
   await expect(page).toHaveURL(/\/my-files\?group=my-files$/);
 });

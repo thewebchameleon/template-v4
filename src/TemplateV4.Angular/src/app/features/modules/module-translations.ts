@@ -1,4 +1,8 @@
 export const moduleDictionary: Record<string, [string, string]> = {
+  'permission.crm.manage': ['Manage business records', 'Bestuur besigheidsrekords'],
+  'permission.organisation.files.manage': ['Manage shared files', 'Bestuur gedeelde lêers'],
+  'permissionGroup.crm': ['CRM', 'CRM'],
+  'permissionGroup.organisation': ['Organisation', 'Organisasie'],
   moduleConflict: [
     'Another administrator changed these settings. Review the latest values before trying again.',
     'Nog ’n administrateur het hierdie instellings verander. Hersien die jongste waardes voordat jy weer probeer.',
@@ -20,13 +24,13 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Modulebeskikbaarheid bygewerk. Aanvaarde werk en geskeduleerde opruiming gaan voort.',
   ],
   demoActiveWarning: [
-    'Demo expiry is active for everyone’s personal files, even while My Files is disabled. Turn it off to stop scheduling further demo deletions. Already scheduled deletions cannot be undone.',
-    'Demo-verval is aktief vir almal se persoonlike lêers, selfs wanneer My Files gedeaktiveer is. Skakel dit af om verdere demo-verwyderings te stop. Reeds geskeduleerde verwyderings kan nie ongedaan gemaak word nie.',
+    'Demo expiry is active for the organisation’s files, even while Files is disabled. Turn it off to stop scheduling further demo deletions. Already scheduled deletions cannot be undone.',
+    'Demo-verval is aktief vir die organisasie se lêers, selfs wanneer Files gedeaktiveer is. Skakel dit af om verdere demo-verwyderings te stop. Reeds geskeduleerde verwyderings kan nie ongedaan gemaak word nie.',
   ],
   demoConfirmTitle: ['Enable demo mode', 'Aktiveer demomodus'],
   demoConfirmWarning: [
-    'This starts expiry for all existing and new personal files and empty folders, for every user. Expired items are permanently deleted. Cleanup continues when My Files is disabled. Disabling demo mode later cannot restore deleted items or cancel deletions already scheduled.',
-    'Dit begin verval vir alle bestaande en nuwe persoonlike lêers en leë vouers, vir elke gebruiker. Verstreke items word permanent verwyder. Opruiming gaan voort wanneer My Files gedeaktiveer is. Latere deaktivering van demomodus herstel nie verwyderde items of kanselleer reeds geskeduleerde verwyderings nie.',
+    'This starts expiry for all existing and new organisation files and empty folders. Expired items are permanently deleted. Cleanup continues when Files is disabled. Disabling demo mode later cannot restore deleted items or cancel deletions already scheduled.',
+    'Dit begin verval vir alle bestaande en nuwe organisasielêers en leë vouers. Verstreke items word permanent verwyder. Opruiming gaan voort wanneer Files gedeaktiveer is. Latere deaktivering van demomodus herstel nie verwyderde items of kanselleer reeds geskeduleerde verwyderings nie.',
   ],
   demoPasswordHelp: [
     'Enter your administrator password to confirm. Verification is limited to five attempts per 15 minutes.',
@@ -62,8 +66,8 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Krediteer fakture en teken terugbetalings aan',
   ],
   'permissionGroup.invoicing': ['Commercial invoicing', 'Kommersiële fakturering'],
-  'audit.module.my-files_enabled': ['My Files module enabled', 'Lêermodule geaktiveer'],
-  'audit.module.my-files_disabled': ['My Files module disabled', 'Lêermodule gedeaktiveer'],
+  'audit.module.my-files_enabled': ['Files module enabled', 'Lêermodule geaktiveer'],
+  'audit.module.my-files_disabled': ['Files module disabled', 'Lêermodule gedeaktiveer'],
   moduleDependencyBlockers: [
     'Module dependencies block this change:',
     'Module-afhanklikhede blokkeer hierdie verandering:',
@@ -81,9 +85,9 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Personal file libraries, folders and storage allowances.',
     'Persoonlike lêerbiblioteke, vouers en bergingtoelaes.',
   ],
-  enableFilesModule: ['Enable My Files', 'Aktiveer Lêers'],
+  enableFilesModule: ['Enable Files', 'Aktiveer Lêers'],
   'my-filesModuleDisableHelp': [
-    'Disabling My Files hides file pages and storage settings and blocks file access for everyone. Existing files are preserved and become available again when enabled. Changes apply immediately.',
+    'Disabling Files hides file pages and storage settings and blocks file access for everyone. Existing files are preserved and become available again when enabled. Changes apply immediately.',
     'Deaktivering versteek lêerbladsye en berginginstellings en blokkeer lêertoegang vir almal. Bestaande lêers word behou en is weer beskikbaar wanneer dit geaktiveer word. Veranderinge word onmiddellik toegepas.',
   ],
   moduleUnavailable: [
@@ -91,11 +95,11 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Hierdie module is nie in hierdie ontplooiing beskikbaar nie. Kontak jou ontplooiingsadministrateur om dit beskikbaar te maak.',
   ],
   filesModuleEnabled: [
-    'My Files enabled for this application.',
+    'Files enabled for this application.',
     'Lêers is vir hierdie toepassing geaktiveer.',
   ],
   filesModuleDisabled: [
-    'My Files disabled. Existing files are preserved.',
+    'Files disabled. Existing files are preserved.',
     'Lêers is gedeaktiveer. Bestaande lêers word behou.',
   ],
 };

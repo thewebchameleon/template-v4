@@ -10,14 +10,12 @@ import { RequestBuilder } from '../../request-builder';
 import { RecordAttachment } from '../../models/record-attachment';
 
 export interface ListCrmAttachments$Params {
-  organisation: string;
   id: string;
 }
 
 export function listCrmAttachments(http: HttpClient, rootUrl: string, params: ListCrmAttachments$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<RecordAttachment>>> {
   const rb = new RequestBuilder(rootUrl, listCrmAttachments.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -31,4 +29,4 @@ export function listCrmAttachments(http: HttpClient, rootUrl: string, params: Li
   );
 }
 
-listCrmAttachments.PATH = '/api/v1/auth/organisations/{organisation}/crm/{id}/attachments';
+listCrmAttachments.PATH = '/api/v1/auth/organisation/crm/{id}/attachments';

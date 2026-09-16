@@ -509,7 +509,10 @@ test('dashboard is available through the mobile navigation sheet', async ({ page
 test('dashboard retains required security setup and authentication guards', async ({ page }) => {
   await mockApp(page, [], false, undefined, true);
   await page.goto('/dashboard');
-  await expect(page).toHaveURL(/\/security$/);
+  await expect(page).toHaveURL(/\/login\/setup\?returnUrl=%2Fdashboard$/);
+  await expect(page.locator('app-auth-layout')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Secure your account' })).toBeVisible();
+  await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Dashboard' }),
   ).toHaveCount(0);

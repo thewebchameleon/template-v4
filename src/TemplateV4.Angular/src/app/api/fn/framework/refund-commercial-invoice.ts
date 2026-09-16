@@ -11,7 +11,6 @@ import { CommercialAction } from '../../models/commercial-action';
 import { FinancialEntry } from '../../models/financial-entry';
 
 export interface RefundCommercialInvoice$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -24,7 +23,6 @@ export interface RefundCommercialInvoice$Params {
 export function refundCommercialInvoice(http: HttpClient, rootUrl: string, params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
   const rb = new RequestBuilder(rootUrl, refundCommercialInvoice.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -40,4 +38,4 @@ export function refundCommercialInvoice(http: HttpClient, rootUrl: string, param
   );
 }
 
-refundCommercialInvoice.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/refund';
+refundCommercialInvoice.PATH = '/api/v1/auth/organisation/invoicing/{id}/refund';

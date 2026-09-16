@@ -103,7 +103,7 @@ type RailLink = Destination & {
   ],
   template: `
     <a href="#main" class="skip-link">{{ 'skipContent' | t }}</a>
-    @if (auth.access()) {
+    @if (auth.access() && !fullPageSetup()) {
       <div
         hlmSidebarWrapper
         sidebarWidth="var(--app-sidebar-total-width)"
@@ -476,6 +476,10 @@ export class App {
   private readonly navigationEnd = toSignal(
     this.router.events.pipe(filter((event) => event instanceof NavigationEnd)),
   );
+  readonly fullPageSetup = computed(() => {
+    this.navigationEnd();
+    return ['/administration/website', '/login/setup'].includes(this.router.url.split(/[?#]/)[0]);
+  });
   private readonly breadcrumbs = inject(Breadcrumbs);
   private readonly i18n = inject(I18n);
   private readonly dashboardLink = {
@@ -535,27 +539,15 @@ export class App {
   });
   readonly organisationRailLinks = computed<RailLink[]>(() => {
     this.navigationEnd();
-    let route = this.router.routerState.snapshot.root.firstChild;
-    let organisation: string | null = null;
-    while (route) {
-      if (route.routeConfig?.path?.startsWith('organisations/:id')) {
-        organisation = route.paramMap.get('id');
-        break;
-      }
-      route = route.firstChild;
-    }
-    const prefix = organisation ? `/organisations/${encodeURIComponent(organisation)}/` : null;
     return [
       ...organisationDestinations,
       ...this.extensions.flatMap((feature) => feature.organisationDestinations ?? []),
     ].map((item) => ({
       ...item,
-      path: `/module-workspaces/${encodeURIComponent(item.path)}`,
-      destination: '/module-workspaces',
-      destinationQueryParams: { module: item.path },
-      activePath: prefix
-        ? prefix + (item.activePath ?? item.path)
-        : `/module-workspaces/${encodeURIComponent(item.path)}`,
+      path: `/organisation/${item.path}`,
+      destination: `/organisation/${item.path}`,
+      destinationQueryParams: null,
+      activePath: `/organisation/${item.activePath ?? item.path}`,
       hasPanel: false,
     }));
   });

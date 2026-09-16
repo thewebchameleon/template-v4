@@ -7,20 +7,19 @@ namespace TemplateV4.Infrastructure.Billing;
 
 public sealed class StorageEntitlements(FrameworkDb db, PlanCatalog plans, TimeProvider time) : IStorageEntitlements
 {
-    public async Task<long?> Quota(Guid customer, CancellationToken ct)
+    public async Task<long?> Quota(CancellationToken ct)
     {
-        var sub = await db.Set<SubscriptionRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
-        // Existing contracts survive disabling checkout. Unsubscribed legacy personal libraries keep their configured quota.
+        var sub = await db.Set<SubscriptionRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == TemplateV4.Application.Customers.Organisation.Id, ct);
+        // One deployment subscription supplies entitlements for all users.
         if (sub is null) return null;
         var grace = await db.Set<BillingSettingsRow>().Select(x => x.GraceDays).SingleAsync(ct);
         return CustomerRules.Paid(time.GetUtcNow(), sub.PaidUntil, sub.TrialUntil, grace, sub.Cancelled) ? (plans.Plans.SingleOrDefault(x => x.Id == sub.PlanId) ?? plans.Free).StorageBytes : plans.Free.StorageBytes;
     }
-    public async Task<bool> CanAddMember(Guid customer, int memberCount, CancellationToken ct)
+    public async Task<bool> CanStore(long additionalBytes, CancellationToken ct)
     {
-        var sub = await db.Set<SubscriptionRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == customer, ct);
-        if (sub?.OrderId is null) return true;
-        var plan = await db.Set<PaymentOrderRow>().Where(x => x.Id == sub.OrderId).Select(x => x.PlanId).SingleAsync(ct);
-        return plans.Plans.SingleOrDefault(x => x.Id == plan)?.Pricing != "PerSeat" || memberCount <= sub.Seats;
+        var quota = await Quota(ct);
+        if (quota is null) return true;
+        var used = await db.Files.Where(x => x.PurgedAt == null).SumAsync(x => x.Size, ct);
+        return additionalBytes >= 0 && additionalBytes <= quota.Value - used;
     }
-    public Task<bool> HasObligations(Guid customer, CancellationToken ct) => db.Set<SubscriptionRow>().AnyAsync(x => x.CustomerId == customer && x.OrderId != null && (!x.Cancelled || x.PaidUntil > time.GetUtcNow()), ct);
 }

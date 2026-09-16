@@ -16,7 +16,7 @@ public sealed partial class BillingStore
             // Old hosted forms must not revive replaced checkouts or continue charging indefinitely.
             await Provider(provider).Cancel(snapshot.Id, ct); return;
         }
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(order.CustomerId, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(ct);
         if (!reconciliation && await db.Set<PaymentReceiptRow>().AnyAsync(x => x.Provider == provider && x.Id == receiptId, ct)) return;
         var sub = await db.Set<SubscriptionRow>().SingleAsync(x => x.CustomerId == order.CustomerId, ct);
         if (sub.OrderId != order.Id) throw new PaymentProviderException();
@@ -36,7 +36,7 @@ public sealed partial class BillingStore
         PaymentOrderRow? order; bool cancel;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
-            await customers.Lock(customer, ct);
+            await customers.Lock(ct);
             var sub = await db.Set<SubscriptionRow>().SingleAsync(x => x.CustomerId == customer, ct);
             if (sub.OrderId is null || sub.NextCheckAt > time.GetUtcNow()) return;
             sub.NextCheckAt = time.GetUtcNow().AddMinutes(5); cancel = sub.CancelRequested;
@@ -55,7 +55,7 @@ public sealed partial class BillingStore
         {
             if ((cancel || order.CreatedAt.AddHours(24) < time.GetUtcNow()) && (order.Provider == "payfast" || await stripe.ExpireCheckout(Order(order), ct)))
             {
-                await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(customer, ct);
+                await using var tx = await db.Database.BeginTransactionAsync(ct); await customers.Lock(ct);
                 await db.Set<PaymentOrderRow>().Where(x => x.Id == order.Id && x.ProtectedSubscription == null).ExecuteUpdateAsync(x => x.SetProperty(o => o.Abandoned, true), ct);
                 if (await db.Set<PaymentOrderRow>().AnyAsync(x => x.Id == order.Id && x.Abandoned, ct))
                     await db.Set<SubscriptionRow>().Where(x => x.CustomerId == customer && x.OrderId == order.Id).ExecuteUpdateAsync(x => x.SetProperty(s => s.OrderId, (Guid?)null).SetProperty(s => s.CancelRequested, false).SetProperty(s => s.Cancelled, true), ct);

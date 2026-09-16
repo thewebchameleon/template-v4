@@ -10,13 +10,11 @@ import { RequestBuilder } from '../../request-builder';
 import { CrmOverview } from '../../models/crm-overview';
 
 export interface GetCrmOverview$Params {
-  organisation: string;
 }
 
-export function getCrmOverview(http: HttpClient, rootUrl: string, params: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
+export function getCrmOverview(http: HttpClient, rootUrl: string, params?: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
   const rb = new RequestBuilder(rootUrl, getCrmOverview.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
   }
 
   return http.request(
@@ -29,4 +27,4 @@ export function getCrmOverview(http: HttpClient, rootUrl: string, params: GetCrm
   );
 }
 
-getCrmOverview.PATH = '/api/v1/auth/organisations/{organisation}/crm/overview';
+getCrmOverview.PATH = '/api/v1/auth/organisation/crm/overview';

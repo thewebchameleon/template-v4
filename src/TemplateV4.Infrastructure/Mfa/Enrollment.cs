@@ -10,9 +10,10 @@ public sealed partial class SecurityService
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
-        if (await RequiresRecentVerification(user, sessionId, ct))
+        var setupEnrollment = string.IsNullOrEmpty(proof.Password);
+        if (await RequiresRecentVerification(user, sessionId, ct) || setupEnrollment && !await CanEnrollFromSetupSession(user, sessionId, ct))
             return Result<MfaEnrollment>.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
-        if (!await Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<MfaEnrollment>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
+        if (!setupEnrollment && !await Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<MfaEnrollment>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if (user.TwoFactorEnabled) return Result<MfaEnrollment>.Fail("auth.already_enrolled", ErrorKind.Conflict);
         await users.ResetAuthenticatorKeyAsync(user);
         // Identity rotates the security stamp when resetting the key. Preserve only this setup session.

@@ -11,7 +11,6 @@ import { AcceptQuotation } from '../../models/accept-quotation';
 import { CommercialDocument } from '../../models/commercial-document';
 
 export interface AcceptCommercialQuotation$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -24,7 +23,6 @@ export interface AcceptCommercialQuotation$Params {
 export function acceptCommercialQuotation(http: HttpClient, rootUrl: string, params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
   const rb = new RequestBuilder(rootUrl, acceptCommercialQuotation.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -40,4 +38,4 @@ export function acceptCommercialQuotation(http: HttpClient, rootUrl: string, par
   );
 }
 
-acceptCommercialQuotation.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/accept';
+acceptCommercialQuotation.PATH = '/api/v1/auth/organisation/invoicing/{id}/accept';

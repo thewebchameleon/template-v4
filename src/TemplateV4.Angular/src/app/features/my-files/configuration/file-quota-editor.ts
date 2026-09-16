@@ -1,8 +1,8 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, inject, output, signal } from '@angular/core';
 import { WorkspaceUi, Resource, Confirmations } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Notifications } from '../../notifications/notifications';
-import { FilePage, FileStorageSettings } from '../../../api/models';
+import { FileStorageSettings } from '../../../api/models';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { I18n } from '../../../core/i18n';
 
@@ -29,100 +29,75 @@ const defaultQuotaOptionsMb = [
     (retry)="load()"
   >
     <form class="grid gap-4 mt-4" (ngSubmit)="save()">
-      @if (owner()) {
-        <div hlmField>
-          <label hlmFieldLabel for="user-quota">{{ 'userQuota' | t }}</label>
-          <input
-            hlmInput
-            id="user-quota"
-            name="quota"
-            type="number"
-            min="0"
-            max="102400"
-            step="any"
-            [(ngModel)]="quotaMb"
-            [disabled]="busy()"
-            aria-describedby="quota-help"
-            [attr.aria-invalid]="!valid() ? true : null"
-          />
-          <p hlmFieldDescription id="quota-help">{{ 'userQuotaHelp' | t }}</p>
-          @if (!valid()) {
-            <hlm-field-error forceShow>{{ 'quotaValidation' | t }}</hlm-field-error>
-          }
+      <div hlmField>
+        <div class="flex items-center justify-between gap-3">
+          <span hlmFieldLabel id="default-quota-label">{{ 'defaultQuota' | t }}</span>
+          <output id="default-quota-value" for="default-quota" class="text-sm tabular-nums">
+            @if (quotaMb === -1) {
+              {{ 'maxUploadNoLimit' | t }}
+            } @else {
+              {{ storageSize(quotaMb) }}
+            }
+          </output>
         </div>
-      } @else {
-        <div hlmField>
-          <div class="flex items-center justify-between gap-3">
-            <span hlmFieldLabel id="default-quota-label">{{ 'defaultQuota' | t }}</span>
-            <output id="default-quota-value" for="default-quota" class="text-sm tabular-nums">
-              @if (quotaMb === -1) {
-                {{ 'maxUploadNoLimit' | t }}
-              } @else {
-                {{ storageSize(quotaMb) }}
-              }
-            </output>
-          </div>
-          <hlm-slider
-            id="default-quota"
-            [value]="[defaultQuotaPosition()]"
-            [min]="0"
-            [max]="defaultQuotaOptionsMb.length - 1"
-            [step]="1"
-            [disabled]="busy()"
-            aria-labelledby="default-quota-label default-quota-value"
-            aria-describedby="quota-help"
-            (valueChange)="setDefaultQuotaPosition($event)"
-          ></hlm-slider>
-          <p hlmFieldDescription id="quota-help">{{ 'defaultQuotaHelp' | t }}</p>
-        </div>
-      }
+        <hlm-slider
+          id="default-quota"
+          [value]="[defaultQuotaPosition()]"
+          [min]="0"
+          [max]="defaultQuotaOptionsMb.length - 1"
+          [step]="1"
+          [disabled]="busy()"
+          aria-labelledby="default-quota-label default-quota-value"
+          aria-describedby="quota-help"
+          (valueChange)="setDefaultQuotaPosition($event)"
+        ></hlm-slider>
+        <p hlmFieldDescription id="quota-help">{{ 'defaultQuotaHelp' | t }}</p>
+      </div>
       <p class="workspace-meta">{{ 'quotaReductionHelp' | t }}</p>
-      @if (!owner()) {
-        <div hlmField>
-          <div class="flex items-center justify-between gap-3">
-            <span hlmFieldLabel id="max-upload-label">{{ 'maxUploadSize' | t }}</span>
-            <output id="max-upload-value" for="max-upload" class="text-sm tabular-nums">
-              @if (maxUploadMb === 0) {
-                {{ 'maxUploadNoLimit' | t }}
-              } @else {
-                {{ storageSize(maxUploadMb) }}
-              }
-            </output>
-          </div>
-          <hlm-slider
-            id="max-upload"
-            [value]="[maxUploadPosition()]"
-            [min]="0"
-            [max]="maxUploadOptionsMb.length - 1"
-            [step]="1"
-            [disabled]="busy()"
-            aria-labelledby="max-upload-label max-upload-value"
-            aria-describedby="max-upload-help"
-            (valueChange)="setMaxUploadPosition($event)"
-          ></hlm-slider>
-          <p hlmFieldDescription id="max-upload-help">{{ 'maxUploadSizeHelp' | t }}</p>
+      <div hlmField>
+        <div class="flex items-center justify-between gap-3">
+          <span hlmFieldLabel id="max-upload-label">{{ 'maxUploadSize' | t }}</span>
+          <output id="max-upload-value" for="max-upload" class="text-sm tabular-nums">
+            @if (maxUploadMb === 0) {
+              {{ 'maxUploadNoLimit' | t }}
+            } @else {
+              {{ storageSize(maxUploadMb) }}
+            }
+          </output>
         </div>
-        <div hlmField>
-          <label hlmFieldLabel for="demo-expiry">{{ 'myFilesDemoExpiry' | t }}</label>
-          <input
-            hlmInput
-            id="demo-expiry"
-            name="demoExpiryMinutes"
-            type="number"
-            min="1"
-            max="525600"
-            step="1"
-            [(ngModel)]="demoExpiryMinutes"
-            [disabled]="busy()"
-            aria-describedby="demo-expiry-help"
-            [attr.aria-invalid]="!validExpiry() ? true : null"
-          />
-          <p hlmFieldDescription id="demo-expiry-help">{{ 'myFilesDemoExpiryHelp' | t }}</p>
-          @if (!validExpiry()) {
-            <hlm-field-error forceShow>{{ 'myFilesDemoExpiryValidation' | t }}</hlm-field-error>
-          }
-        </div>
-      }
+        <hlm-slider
+          id="max-upload"
+          [value]="[maxUploadPosition()]"
+          [min]="0"
+          [max]="maxUploadOptionsMb.length - 1"
+          [step]="1"
+          [disabled]="busy()"
+          aria-labelledby="max-upload-label max-upload-value"
+          aria-describedby="max-upload-help"
+          (valueChange)="setMaxUploadPosition($event)"
+        ></hlm-slider>
+        <p hlmFieldDescription id="max-upload-help">{{ 'maxUploadSizeHelp' | t }}</p>
+      </div>
+      <div hlmField>
+        <label hlmFieldLabel for="demo-expiry">{{ 'myFilesDemoExpiry' | t }}</label>
+        <input
+          hlmInput
+          id="demo-expiry"
+          name="demoExpiryMinutes"
+          type="number"
+          min="1"
+          max="525600"
+          step="1"
+          [(ngModel)]="demoExpiryMinutes"
+          [disabled]="busy()"
+          aria-describedby="demo-expiry-help"
+          [attr.aria-invalid]="!validExpiry() ? true : null"
+        />
+        <p hlmFieldDescription id="demo-expiry-help">{{ 'myFilesDemoExpiryHelp' | t }}</p>
+        @if (!validExpiry()) {
+          <hlm-field-error forceShow>{{ 'myFilesDemoExpiryValidation' | t }}</hlm-field-error>
+        }
+      </div>
       <button hlmBtn variant="outline" type="button" [disabled]="busy()" (click)="reload()">
         {{ 'reloadQuota' | t }}
       </button>
@@ -139,13 +114,12 @@ const defaultQuotaOptionsMb = [
   </app-page-state>`,
 })
 export class FileQuotaEditor implements OnInit {
-  readonly owner = input<string | null>(null);
   readonly saved = output<void>();
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
   readonly confirm = inject(Confirmations);
-  readonly data = new Resource<FilePage | FileStorageSettings>();
+  readonly data = new Resource<FileStorageSettings>();
   readonly busy = signal(false);
   readonly maxUploadOptionsMb = maxUploadOptionsMb;
   readonly defaultQuotaOptionsMb = defaultQuotaOptionsMb;
@@ -161,16 +135,11 @@ export class FileQuotaEditor implements OnInit {
   }
   async load() {
     const loaded = await this.data.load((signal) =>
-      this.api.get(
-        this.owner() ? `my-files/admin/users/${this.owner()}` : 'my-files/admin/settings',
-        {},
-        signal,
-      ),
+      this.api.get('my-files/admin/settings', {}, signal),
     );
     if (!loaded) return;
     const value = this.data.value()!;
-    const bytes =
-      'quotaOverrideBytes' in value ? value.quotaOverrideBytes : value.defaultQuotaBytes;
+    const bytes = value.defaultQuotaBytes;
     this.quotaMb = bytes == null ? null : bytes === -1 ? -1 : bytes / 1048576;
     this.original = this.quotaMb;
     this.version = 'version' in value ? (value.version ?? '') : '';
@@ -182,10 +151,7 @@ export class FileQuotaEditor implements OnInit {
     this.originalExpiry = this.demoExpiryMinutes;
   }
   valid() {
-    if (!this.owner()) return this.quotaMb != null && defaultQuotaOptionsMb.includes(this.quotaMb);
-    return this.quotaMb == null
-      ? true
-      : Number.isFinite(this.quotaMb) && this.quotaMb >= 0 && this.quotaMb <= 102400;
+    return this.quotaMb != null && defaultQuotaOptionsMb.includes(this.quotaMb);
   }
   defaultQuotaPosition() {
     const position = defaultQuotaOptionsMb.indexOf(this.quotaMb ?? 100);
@@ -204,15 +170,12 @@ export class FileQuotaEditor implements OnInit {
   hasUnsavedChanges() {
     return (
       this.quotaMb !== this.original ||
-      (!this.owner() &&
-        (this.maxUploadMb !== this.originalMaxUpload ||
-          this.demoExpiryMinutes !== this.originalExpiry))
+      this.maxUploadMb !== this.originalMaxUpload ||
+      this.demoExpiryMinutes !== this.originalExpiry
     );
   }
   validMaxUpload() {
-    return (
-      !!this.owner() || (this.maxUploadMb != null && maxUploadOptionsMb.includes(this.maxUploadMb))
-    );
+    return this.maxUploadMb != null && maxUploadOptionsMb.includes(this.maxUploadMb);
   }
   maxUploadPosition() {
     const position = maxUploadOptionsMb.indexOf(this.maxUploadMb ?? 20);
@@ -224,11 +187,10 @@ export class FileQuotaEditor implements OnInit {
   }
   validExpiry() {
     return (
-      !!this.owner() ||
-      (this.demoExpiryMinutes != null &&
-        Number.isInteger(this.demoExpiryMinutes) &&
-        this.demoExpiryMinutes >= 1 &&
-        this.demoExpiryMinutes <= 525600)
+      this.demoExpiryMinutes != null &&
+      Number.isInteger(this.demoExpiryMinutes) &&
+      this.demoExpiryMinutes >= 1 &&
+      this.demoExpiryMinutes <= 525600
     );
   }
   async reload() {
@@ -248,18 +210,13 @@ export class FileQuotaEditor implements OnInit {
     try {
       const bytes =
         this.quotaMb == null ? null : this.quotaMb === -1 ? -1 : Math.round(this.quotaMb * 1048576);
-      await this.api.post(
-        this.owner() ? `my-files/admin/users/${this.owner()}/quota` : 'my-files/admin/settings',
-        this.owner()
-          ? { quotaBytes: bytes }
-          : {
-              defaultQuotaBytes: bytes,
-              maxUploadBytes: Math.round(this.maxUploadMb! * 1048576),
-              version: this.version,
-              demoExpiryMinutes: this.demoExpiryMinutes,
-            },
-      );
-      this.toast.success(this.owner() ? 'quotaSaved' : 'myFilesStorageSaved');
+      await this.api.post('my-files/admin/settings', {
+        defaultQuotaBytes: bytes,
+        maxUploadBytes: Math.round(this.maxUploadMb! * 1048576),
+        version: this.version,
+        demoExpiryMinutes: this.demoExpiryMinutes,
+      });
+      this.toast.success('myFilesStorageSaved');
       await this.load();
       this.saved.emit();
     } catch {

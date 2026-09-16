@@ -50,15 +50,6 @@ public static class MyFilesEndpoints
             .WithName("GetMyFilesStorageSettings").Produces<FileStorageSettings>();
         admin.MapPost("/settings", async (StorageSettingsRequest request, ClaimsPrincipal principal, MyFilesService service, CancellationToken ct) => (await service.SaveSettings(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
             .WithName("SaveMyFilesStorageSettings");
-        admin.MapGet("/users/{owner:guid}", async (Guid owner, MyFilesService service, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string? search = null, string sort = "createdAt", string direction = "desc", Guid? parentId = null, string group = "my-files") => (await service.List(owner, pageNumber, pageSize, search, sort, direction, ct, parentId, group)).ToHttp())
-            .WithName("ListUserMyFiles").Produces<FilePage>();
-        admin.MapPost("/users/{owner:guid}/quota", async (Guid owner, FileQuotaRequest request, ClaimsPrincipal principal, MyFilesService service, CancellationToken ct) => (await service.SetQuota(EndpointSecurity.Actor(principal), owner, request, ct)).ToHttp())
-            .WithName("SetUserMyFilesQuota");
-        admin.MapGet("/users/{owner:guid}/{id:guid}/download", async (Guid owner, Guid id, ClaimsPrincipal principal, MyFilesService service, CancellationToken ct) =>
-        {
-            var result = await service.Download(owner, id, ct, EndpointSecurity.Actor(principal));
-            return result.IsSuccess ? Results.File(result.Value!.Content, "application/octet-stream", result.Value.Name, enableRangeProcessing: false) : ApiResults.Failure(result.Error!);
-        }).WithName("DownloadUserMyFile").Produces(200, contentType: "application/octet-stream");
         return group;
     }
     private static string ShareToken(HttpContext context, string? shareToken)

@@ -47,19 +47,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18.4-alpine
-        env:
-          POSTGRES_PASSWORD: integration-test-only
-          POSTGRES_DB: module_tests
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s --health-timeout 5s --health-retries 12
     timeout-minutes: 60
     env:
-      TEMPLATEV4_TEST_POSTGRES: Host=localhost;Port=5432;Database=module_tests;Username=postgres;Password=integration-test-only
       FOUNDATION_REF: ${{ inputs.foundation_ref || 'main' }}
       BUSINESS_REPOSITORY: ${{ inputs.business_repository }}
       BUSINESS_REF: ${{ inputs.business_ref || 'main' }}

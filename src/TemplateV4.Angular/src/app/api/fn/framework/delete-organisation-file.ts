@@ -9,7 +9,6 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface DeleteOrganisationFile$Params {
-  customer: string;
   id: string;
 
 /**
@@ -21,7 +20,6 @@ export interface DeleteOrganisationFile$Params {
 export function deleteOrganisationFile(http: HttpClient, rootUrl: string, params: DeleteOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, deleteOrganisationFile.PATH, 'post');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
   }
@@ -36,4 +34,4 @@ export function deleteOrganisationFile(http: HttpClient, rootUrl: string, params
   );
 }
 
-deleteOrganisationFile.PATH = '/api/v1/auth/customers/{customer}/files/{id}/delete';
+deleteOrganisationFile.PATH = '/api/v1/auth/organisation/files/{id}/delete';

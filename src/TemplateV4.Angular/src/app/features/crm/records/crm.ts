@@ -1,5 +1,6 @@
+import { Auth } from '../../../core/auth';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { CrmRecord, CrmOverview, PageOfCrmRecord } from '../../../api/models';
 import { WorkspaceApi } from '../../../core/workspace-api';
@@ -21,18 +22,17 @@ const column = createColumnHelper<DataTableFeatures, CrmRecord>();
   selector: 'app-crm',
   imports: [WorkspaceUi, DataTable, BusinessSelect],
   template: `<app-page-header title="crm" description="crmHelp">
-      <a
-        hlmBtn
-        variant="outline"
-        [routerLink]="['/organisations', organisation, 'crm', 'configuration']"
-        >{{ 'crmConfiguration' | t }}</a
-      >
-      <a
-        hlmBtn
-        [routerLink]="['/organisations', organisation, 'crm', 'new']"
-        [queryParams]="{ kind: query.text('kind', '0') }"
-        >{{ 'crmNew' | t }}</a
-      >
+      <a hlmBtn variant="outline" [routerLink]="['/organisation', 'crm', 'configuration']">{{
+        'crmConfiguration' | t
+      }}</a>
+      @if (auth.has('crm.manage')) {
+        <a
+          hlmBtn
+          [routerLink]="['/organisation', 'crm', 'new']"
+          [queryParams]="{ kind: query.text('kind', '0') }"
+          >{{ 'crmNew' | t }}</a
+        >
+      }
     </app-page-header>
     @if (overview.value(); as overview) {
       <section hlmCard class="mb-6">
@@ -45,9 +45,7 @@ const column = createColumnHelper<DataTableFeatures, CrmRecord>();
           <ul>
             @for (record of overview.recent; track record.id) {
               <li>
-                <a [routerLink]="['/organisations', organisation, 'crm', record.id]">{{
-                  record.data.name
-                }}</a>
+                <a [routerLink]="['/organisation', 'crm', record.id]">{{ record.data.name }}</a>
                 � {{ i18n.date(record.updatedAt) }}
               </li>
             }
@@ -121,7 +119,7 @@ const column = createColumnHelper<DataTableFeatures, CrmRecord>();
     </section>`,
 })
 export class CrmPage {
-  readonly organisation = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  readonly auth = inject(Auth);
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly i18n = inject(I18n);
@@ -163,17 +161,11 @@ export class CrmPage {
               actions: [
                 {
                   label: 'view',
-                  run: () =>
-                    void this.router.navigate([
-                      '/organisations',
-                      this.organisation,
-                      'crm',
-                      row.original.id,
-                    ]),
+                  run: () => void this.router.navigate(['/organisation', 'crm', row.original.id]),
                 },
                 {
                   label: row.original.archived ? 'restore' : 'archive',
-                  disabled: this.busy(),
+                  disabled: this.busy() || !this.auth.has('crm.manage'),
                   run: () => void this.archive(row.original),
                 },
               ],
@@ -187,9 +179,7 @@ export class CrmPage {
       this.search.sync(this.query.text('search'));
       void this.load();
     });
-    void this.overview.load((signal) =>
-      this.api.get(`organisations/${this.organisation}/crm/overview`, {}, signal),
-    );
+    void this.overview.load((signal) => this.api.get(`organisation/crm/overview`, {}, signal));
   }
   size() {
     const value = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
@@ -202,7 +192,7 @@ export class CrmPage {
     if (
       await this.data.load((signal) =>
         this.api.get(
-          `organisations/${this.organisation}/crm`,
+          `organisation/crm`,
           {
             kind: Number(this.query.text('kind', '0')),
             search: this.query.text('search'),
@@ -222,7 +212,7 @@ export class CrmPage {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.api.post(`organisations/${this.organisation}/crm/${record.id}/archive`, {
+      await this.api.post(`organisation/crm/${record.id}/archive`, {
         version: record.version,
         archived: !record.archived,
       });

@@ -62,7 +62,7 @@ Describe what stops accepting new work and what continues: accepted jobs/message
 
 ## Verify and document
 
-Run catalog/ID validation and relevant CLI regression tests. Cover composed capability restrictions, missing runtime state, endpoint gates and lifecycle exceptions. Runtime/persistence changes require real PostgreSQL tests for cross-instance visibility, conflicts, transactional audit and dependency races. Use synthetic test modules to exercise dependency relationships without adding product switches.
+Follow the root minimum-test policy: reuse existing coverage and add only the fewest cases needed for changed behavior or a regression. Run catalog/ID validation and relevant CLI regression tests when their contracts change. For affected capability restrictions, missing runtime state, endpoint gates and lifecycle exceptions, cover only the distinct risks introduced by the change; do not expand every scenario for each module edit. Runtime/persistence changes still require real PostgreSQL tests for affected cross-instance visibility, conflicts, transactional audit and dependency races; use existing cases where they demonstrate correctness. Reuse synthetic test modules when dependency relationships need coverage, without adding product switches or elaborate fixtures.
 
 Regenerate OpenAPI and Angular clients for API changes through the owning tools. Run relevant builds, lint/format checks, and the browser-free capability regression tests. Browser/E2E execution follows root permission rules. Update the module guide and relevant ADR when introducing a new convention; link to canonical guidance rather than duplicating it here.
 

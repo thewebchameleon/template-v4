@@ -11,7 +11,6 @@ import { ArchiveCrmRecord } from '../../models/archive-crm-record';
 import { CrmRecord } from '../../models/crm-record';
 
 export interface ArchiveCrmRecord$Params {
-  organisation: string;
   id: string;
 
 /**
@@ -24,7 +23,6 @@ export interface ArchiveCrmRecord$Params {
 export function archiveCrmRecord(http: HttpClient, rootUrl: string, params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
   const rb = new RequestBuilder(rootUrl, archiveCrmRecord.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
     rb.body(params.body, 'application/json');
@@ -40,4 +38,4 @@ export function archiveCrmRecord(http: HttpClient, rootUrl: string, params: Arch
   );
 }
 
-archiveCrmRecord.PATH = '/api/v1/auth/organisations/{organisation}/crm/{id}/archive';
+archiveCrmRecord.PATH = '/api/v1/auth/organisation/crm/{id}/archive';

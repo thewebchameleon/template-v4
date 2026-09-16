@@ -10,13 +10,11 @@ import { RequestBuilder } from '../../request-builder';
 import { CrmConfiguration } from '../../models/crm-configuration';
 
 export interface GetCrmConfiguration$Params {
-  organisation: string;
 }
 
-export function getCrmConfiguration(http: HttpClient, rootUrl: string, params: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+export function getCrmConfiguration(http: HttpClient, rootUrl: string, params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
   const rb = new RequestBuilder(rootUrl, getCrmConfiguration.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
   }
 
   return http.request(
@@ -29,4 +27,4 @@ export function getCrmConfiguration(http: HttpClient, rootUrl: string, params: G
   );
 }
 
-getCrmConfiguration.PATH = '/api/v1/auth/organisations/{organisation}/crm/configuration';
+getCrmConfiguration.PATH = '/api/v1/auth/organisation/crm/configuration';

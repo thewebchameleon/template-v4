@@ -27,7 +27,8 @@ export const administrationLandingGuard: CanActivateFn = async (route, state) =>
     return router.createUrlTree(['/module-unavailable'], {
       queryParams: { returnUrl: state.url, reason: 'error' },
     });
-  return router.createUrlTree([navigation.links()[0]?.path ?? '/forbidden'], {
+  const destination = navigation.links().find((item) => item.section === 'administration');
+  return router.createUrlTree([destination?.path ?? '/forbidden'], {
     queryParams: route.queryParams,
     fragment: route.fragment ?? undefined,
   });

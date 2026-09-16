@@ -2,12 +2,11 @@
 
 ## Organisation spelling
 
-Organisation naming now applies to routes (`/organisations` and `/api/v1/auth/organisations`),
-module and capability IDs (`organisations`, `organisation-files`), API operation/type names,
-JSON properties (`organisationId`), source filenames and extension properties
-(`organisationDestinations`). Update callers, bookmarks, module configuration and
-`Customers:Mode=Organisations` together with the application. Regenerate both API clients
-from their respective OpenAPI documents.
+The single-organisation model uses `/organisation` UI routes and
+`/api/v1/auth/organisation` API routes, with `/api/v1/auth/billing` for the shared
+subscription. Existing multi-organisation databases are not automatically
+consolidated: this change targets fresh installations. Retain all migration history
+and apply the forward migrations. See [ADR 0047](adr/0047-single-organisation.md).
 
 Stop API and worker instances before running the database migrator, then start the updated
 application. The new `RenameOrganisations` migrations preserve data while renaming the

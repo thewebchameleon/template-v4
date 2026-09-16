@@ -5,7 +5,6 @@ namespace TemplateV4.Infrastructure.Invoicing;
 public sealed class CommercialDocumentRow
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid OrganisationId { get; set; }
     public Guid Version { get; set; } = Guid.NewGuid();
     public string Number { get; set; } = "";
     public string Kind { get; set; } = "";
@@ -31,14 +30,13 @@ public sealed class CommercialDocumentRow
 }
 public sealed class IssuerSettingsRow
 {
-    public Guid OrganisationId { get; set; }
+    public int Id { get; set; } = 1;
     public Guid Version { get; set; } = Guid.NewGuid();
     public long NextNumber { get; set; } = 1;
     public string Data { get; set; } = "{}";
 }
 public sealed class CommercialOperationRow
 {
-    public Guid OrganisationId { get; set; }
     public Guid Key { get; set; }
     public string Fingerprint { get; set; } = "";
     public Guid ResultId { get; set; }
@@ -46,7 +44,6 @@ public sealed class CommercialOperationRow
 public sealed class FinancialEntryRow
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid OrganisationId { get; set; }
     public Guid DocumentId { get; set; }
     public string Kind { get; set; } = "";
     public decimal Amount { get; set; }
@@ -62,19 +59,19 @@ public static class CommercialMappings
 {
     public static void Configure(ModelBuilder model)
     {
-        var d = model.Entity<CommercialDocumentRow>(); d.ToTable("documents", "invoicing"); d.HasKey(x => new { x.OrganisationId, x.Id });
+        var d = model.Entity<CommercialDocumentRow>(); d.ToTable("documents", "invoicing"); d.HasKey(x => x.Id);
         d.Property(x => x.Version).IsConcurrencyToken(); d.Property(x => x.Snapshot).HasColumnType("jsonb");
         d.Property(x => x.Kind).HasMaxLength(20); d.Property(x => x.Number).HasMaxLength(80); d.Property(x => x.CustomerName).HasMaxLength(250);
         d.Property(x => x.OriginModule).HasMaxLength(100); d.Property(x => x.OriginType).HasMaxLength(100); d.Property(x => x.AcceptanceReference).HasMaxLength(1000);
         d.Property(x => x.Total).HasPrecision(18, 2); d.Property(x => x.Credits).HasPrecision(18, 2); d.Property(x => x.Paid).HasPrecision(18, 2); d.Property(x => x.Refunded).HasPrecision(18, 2);
-        d.HasIndex(x => new { x.OrganisationId, x.Number }).IsUnique();
-        d.HasIndex(x => new { x.OrganisationId, x.OriginModule, x.OriginType, x.OriginId }).IsUnique().HasFilter("\"Kind\" = 'Invoice' AND \"OriginId\" IS NOT NULL");
-        d.HasIndex(x => new { x.OrganisationId, x.IssuedAt, x.Id });
-        var s = model.Entity<IssuerSettingsRow>(); s.ToTable("issuer_settings", "invoicing"); s.HasKey(x => x.OrganisationId); s.Property(x => x.Version).IsConcurrencyToken(); s.Property(x => x.Data).HasColumnType("jsonb");
-        var o = model.Entity<CommercialOperationRow>(); o.ToTable("operations", "invoicing"); o.HasKey(x => new { x.OrganisationId, x.Key }); o.Property(x => x.Fingerprint).HasMaxLength(64);
-        var e = model.Entity<FinancialEntryRow>(); e.ToTable("entries", "invoicing"); e.HasKey(x => new { x.OrganisationId, x.Id });
+        d.HasIndex(x => x.Number).IsUnique();
+        d.HasIndex(x => new { x.OriginModule, x.OriginType, x.OriginId }).IsUnique().HasFilter("\"Kind\" = 'Invoice' AND \"OriginId\" IS NOT NULL");
+        d.HasIndex(x => new { x.IssuedAt, x.Id });
+        var s = model.Entity<IssuerSettingsRow>(); s.ToTable("issuer_settings", "invoicing", t => t.HasCheckConstraint("CK_issuer_settings_singleton", "\"Id\" = 1")); s.HasKey(x => x.Id); s.Property(x => x.Version).IsConcurrencyToken(); s.Property(x => x.Data).HasColumnType("jsonb");
+        var o = model.Entity<CommercialOperationRow>(); o.ToTable("operations", "invoicing"); o.HasKey(x => x.Key); o.Property(x => x.Fingerprint).HasMaxLength(64);
+        var e = model.Entity<FinancialEntryRow>(); e.ToTable("entries", "invoicing"); e.HasKey(x => x.Id);
         e.Property(x => x.Amount).HasPrecision(18, 2); e.Property(x => x.Kind).HasMaxLength(20); e.Property(x => x.Method).HasMaxLength(10);
         e.Property(x => x.Reason).HasMaxLength(1000); e.Property(x => x.Reference).HasMaxLength(250);
-        e.HasOne<CommercialDocumentRow>().WithMany().HasForeignKey(x => new { x.OrganisationId, x.DocumentId }).OnDelete(DeleteBehavior.Restrict);
+        e.HasOne<CommercialDocumentRow>().WithMany().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.Restrict);
     }
 }

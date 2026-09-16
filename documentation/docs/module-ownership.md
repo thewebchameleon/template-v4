@@ -78,6 +78,6 @@ Neither command silently grants permissions or activates an unfinished feature.
 
 Use the CLI regression tests and manifest validation after scaffold changes. Run
 `ModuleOwnershipTests`, affected builds and existing workflow tests after conversions;
-use real PostgreSQL for persistence, sessions and messaging. Browser/E2E tests still
+use focused behavioral tests for persistence, sessions and messaging. Browser/E2E tests still
 follow the root permission policy. See [verification](verification.md) and
 [ADR 0043](adr/0043-module-owned-composition.md).

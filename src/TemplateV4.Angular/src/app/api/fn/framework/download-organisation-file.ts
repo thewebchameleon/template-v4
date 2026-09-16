@@ -9,14 +9,12 @@ import { RequestBuilder } from '../../request-builder';
 
 
 export interface DownloadOrganisationFile$Params {
-  customer: string;
   id: string;
 }
 
 export function downloadOrganisationFile(http: HttpClient, rootUrl: string, params: DownloadOrganisationFile$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, downloadOrganisationFile.PATH, 'get');
   if (params) {
-    rb.path('customer', params.customer, {});
     rb.path('id', params.id, {});
   }
 
@@ -30,4 +28,4 @@ export function downloadOrganisationFile(http: HttpClient, rootUrl: string, para
   );
 }
 
-downloadOrganisationFile.PATH = '/api/v1/auth/customers/{customer}/files/{id}';
+downloadOrganisationFile.PATH = '/api/v1/auth/organisation/files/{id}';

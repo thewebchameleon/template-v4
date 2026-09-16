@@ -161,8 +161,9 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.Tags).HasMaxLength(1000);
             entity.HasIndex(x => new { x.OwnerId, x.CreatedAt }); entity.HasIndex(x => x.DeletedAt);
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.OwnerId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasAlternateKey(x => new { x.Id, x.OwnerId });
-            entity.HasOne<StoredFile>().WithMany().HasForeignKey(x => new { x.ParentId, x.OwnerId }).HasPrincipalKey(x => new { x.Id, x.OwnerId }).OnDelete(DeleteBehavior.Restrict);
+            entity.Ignore(x => x.ObjectKey);
+            entity.Property(x => x.StorageKey).HasMaxLength(100);
+            entity.HasOne<StoredFile>().WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.OwnerId, x.ParentId });
         });
         model.Entity<MyFileShare>(entity =>
@@ -210,13 +211,6 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         Contact.ContactMappings.Configure(model);
         Crm.RecordAttachmentMappings.Configure(model);
         Invoicing.CommercialMappings.Configure(model);
-        model.Entity<TemplateV4.Infrastructure.Storage.OrganisationFileRow>(entity =>
-        {
-            entity.ToTable("organisation_files", "files"); entity.HasKey(x => x.Id);
-            entity.Property(x => x.Name).HasMaxLength(180);
-            entity.HasIndex(x => new { x.CustomerId, x.CreatedAt });
-            entity.HasIndex(x => x.DeletedAt);
-        });
         model.Entity<DeletionRequest>(entity =>
         {
             entity.ToTable("deletion_requests", "app"); entity.Property(x => x.State).HasMaxLength(30);

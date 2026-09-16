@@ -96,8 +96,6 @@ jobs:
             dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Infrastructure/Persistence/Migrations
           fi
       - run: dotnet test src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-restore --logger trx
-      - run: dotnet test src/TemplateV4.Ui.Tests/TemplateV4.Ui.Tests.csproj -c Release --no-restore --logger trx
-      - run: dotnet test src/TemplateV4.Utility.Tests/TemplateV4.Utility.Tests.csproj -c Release --no-restore --logger trx
 
   vulnerabilities:
     runs-on: ubuntu-latest

@@ -39,7 +39,6 @@ public sealed class PaymentReceiptRow
 public sealed class BillingSettingsRow
 {
     public int Id { get; set; } = 1;
-    public string Ownership { get; set; } = "Both";
     public bool StripeEnabled { get; set; } = true;
     public bool PayFastEnabled { get; set; } = true;
     public string DefaultProvider { get; set; } = "payfast";

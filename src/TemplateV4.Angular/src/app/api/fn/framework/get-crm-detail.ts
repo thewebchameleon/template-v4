@@ -10,14 +10,12 @@ import { RequestBuilder } from '../../request-builder';
 import { CrmDetail } from '../../models/crm-detail';
 
 export interface GetCrmDetail$Params {
-  organisation: string;
   id: string;
 }
 
 export function getCrmDetail(http: HttpClient, rootUrl: string, params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
   const rb = new RequestBuilder(rootUrl, getCrmDetail.PATH, 'get');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
   }
 
@@ -31,4 +29,4 @@ export function getCrmDetail(http: HttpClient, rootUrl: string, params: GetCrmDe
   );
 }
 
-getCrmDetail.PATH = '/api/v1/auth/organisations/{organisation}/crm/{id}';
+getCrmDetail.PATH = '/api/v1/auth/organisation/crm/{id}';

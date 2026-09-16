@@ -7,7 +7,8 @@ public sealed partial class MyFilesService
     public async Task<Result<Unit>> Move(Guid actor, Guid id, FileMoveRequest request, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
-        var entries = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor && x.DeletedAt == null && x.PurgedAt == null).ToArrayAsync(ct);
+        if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+        var entries = await db.Files.AsNoTracking().Where(x => x.DeletedAt == null && x.PurgedAt == null).ToArrayAsync(ct);
         var file = entries.SingleOrDefault(x => x.Id == id && x.Ready);
         if (file is null || !await FolderExists(actor, request.ParentId, ct)) return Result.Fail("files.not_found", ErrorKind.NotFound);
         if (request.ParentId is { } parent && Descendants(entries, id).Contains(parent)) return Result.Fail("files.invalid_move", ErrorKind.Validation);

@@ -10,7 +10,6 @@ import { RequestBuilder } from '../../request-builder';
 import { CommercialDocument } from '../../models/commercial-document';
 
 export interface InvoiceAcceptedQuotation$Params {
-  organisation: string;
   id: string;
   idempotencyKey: string;
 
@@ -23,7 +22,6 @@ export interface InvoiceAcceptedQuotation$Params {
 export function invoiceAcceptedQuotation(http: HttpClient, rootUrl: string, params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
   const rb = new RequestBuilder(rootUrl, invoiceAcceptedQuotation.PATH, 'post');
   if (params) {
-    rb.path('organisation', params.organisation, {});
     rb.path('id', params.id, {});
     rb.query('idempotencyKey', params.idempotencyKey, {});
     rb.header('X-CSRF-TOKEN', params['X-CSRF-TOKEN'], {});
@@ -39,4 +37,4 @@ export function invoiceAcceptedQuotation(http: HttpClient, rootUrl: string, para
   );
 }
 
-invoiceAcceptedQuotation.PATH = '/api/v1/auth/organisations/{organisation}/invoicing/{id}/invoice';
+invoiceAcceptedQuotation.PATH = '/api/v1/auth/organisation/invoicing/{id}/invoice';

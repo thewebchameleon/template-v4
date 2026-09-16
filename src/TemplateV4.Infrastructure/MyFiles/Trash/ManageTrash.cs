@@ -8,11 +8,12 @@ public sealed partial class MyFilesService
     public async Task<Result<Unit>> Trash(Guid actor, Guid? id, bool restore, bool purge, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
-        var entries = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor && x.PurgedAt == null && !x.PurgeRequested).ToArrayAsync(ct);
+        if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+        var entries = await db.Files.AsNoTracking().Where(x => x.PurgedAt == null && !x.PurgeRequested).ToArrayAsync(ct);
         var root = entries.SingleOrDefault(x => x.Id == id);
         if (id != null && (root is null || restore && root.DeletedAt == null || purge && root.DeletedAt == null)) return Result.Fail("files.not_found", ErrorKind.NotFound);
         if (id == null && !purge) return Result.Fail("validation.failed", ErrorKind.Validation);
-        if (!restore && !purge && root?.IsFolder == true && await db.Files.AnyAsync(x => x.OwnerId == actor && x.ParentId == id && x.DeletedAt == null && x.PurgedAt == null, ct)) return Result.Fail("files.folder_not_empty", ErrorKind.Conflict);
+        if (!restore && !purge && root?.IsFolder == true && await db.Files.AnyAsync(x => x.ParentId == id && x.DeletedAt == null && x.PurgedAt == null, ct)) return Result.Fail("files.folder_not_empty", ErrorKind.Conflict);
         var ids = id is null ? entries.Where(x => x.DeletedAt != null).Select(x => x.Id).ToHashSet() : Descendants(entries, id.Value);
         if (restore)
         {
