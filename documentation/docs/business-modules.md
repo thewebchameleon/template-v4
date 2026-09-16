@@ -154,6 +154,13 @@ Foundation tests use synthetic business examples and run without private source.
 
 ## Updates and removal
 
+Commercial descriptors may set `licenseRequired: true`. Generated hosts embed that
+requirement and require enrolled licensing configuration. Ordinary capabilities then
+apply signed use rights and dependency restrictions. Keep authorized export and
+retained-operation paths outside ordinary capability gates. See
+[client management and licensing](client-management.md) for deployment configuration,
+expiry policies, central module ownership and validation prerequisites.
+
 For independent module versions and package-based source delivery, use
 [release updates](release-updates.md). A pinned client composition can select each
 module's artifact independently and notify deployed administrators of new releases.

@@ -1,8 +1,9 @@
 # Client deployments and commercial modules
 
-Status: Proposed architecture, 2026-09-15. This document records agreed product
-requirements and recommends an implementation sequence. It does not describe
-implemented licensing or approve changes to running deployments.
+Status: Finalized architecture proposal. This document records agreed product
+requirements and the implementation sequence. Licensing and deployment-management
+implementation is tracked in [client management operations](client-management.md),
+which distinguishes available functionality from remaining rollout and commercial automation work.
 
 ## Agreed requirements
 
@@ -19,7 +20,13 @@ implemented licensing or approve changes to running deployments.
 - Expiry either disables ordinary module operations or permits continued use of only
   the version installed in that deployment, with updates blocked. Data is retained.
 - Renewal administration and authorized data export remain accessible after expiry.
-- Every deployment, including initial installation, requires explicit client approval.
+- Clients receive module update notifications and redeploy to obtain eligible latest
+  versions. There is no separate approval workflow and publication never auto-deploys.
+- Clients can trigger redeployment immediately or schedule it for a maintenance window.
+- Provider administrators create clients and issue single-use enrollment tokens.
+- Only central administrators configure expiry policies; clients can view their terms.
+- Paid operations tolerate licensing-service outages for up to 24 hours since the last
+  successful verification, while enforcing already-known license expiry.
 - Deployments require internet access; disconnected operation is not a product mode.
 - The provider's central deployment hosts a private licensing and deployment-management
   module. Authorized provider administrators can see all enrolled clients and deployments.
@@ -29,10 +36,10 @@ implemented licensing or approve changes to running deployments.
 | Area | Present in this repository | Proposed addition |
 | --- | --- | --- |
 | Composition | `client-modules.json`, private source mount, generated registration across hosts | Central per-deployment desired composition |
-| Versions | Immutable component metadata, digests, compatibility ranges, `client-template.json` | Approved release plans tied to exact artifacts and deployed state |
+| Versions | Immutable component metadata, digests, compatibility ranges, `client-template.json` | Redeployment plans tied to exact artifacts and deployed state |
 | Distribution | Private GitHub Packages source bundles and coordinated image builds | Organization eligibility, scoped artifact delivery and deployment receipts |
-| Release feed | Separate Node service with mounted credential/module allowlists | Durable client, licensing and approval records in a central service |
-| Client updates | Worker notifications, Updates page, draft upgrade PRs, manual release build | Explicit client approval and authenticated deployment execution |
+| Release feed | Separate Node service with mounted credential/module allowlists | Durable client, licensing and deployment records in a central service |
+| Client updates | Worker notifications, Updates page, draft upgrade PRs, manual release build | License-aware notifications and client-triggered redeployment |
 | Runtime access | Catalog, runtime activation, feature flags and independent authorization | License use gate, dependency propagation and retained-operation classification |
 | VPS deployment | Digest-pinned Compose releases and migration-before-start upgrade helper | Deployment locking, backup verification, health reporting and recovery state |
 | Billing | In-application subscriptions for accounts/storage | Separate commercial module entitlements for purchasing organizations |
@@ -42,15 +49,15 @@ These observations follow [business module integration](business-modules.md),
 and the inspected `ModuleActivationStore`, `CapabilityEvaluator`, release contract
 validator and `services/release-feed/server.mjs` implementations.
 
-The feed currently filters metadata by component ID. That is neither runtime license
-enforcement nor approval for a particular deployment. A merged upgrade PR or a manual
-build is also not sufficient evidence of the client's deployment approval.
+The feed currently filters metadata by component ID; runtime licensing and deployment
+tracking are additional responsibilities. Existing source-review PRs may remain an
+engineering process, but introduce no client approval step in the product.
 
 ## Recommended architecture
 
 Run the fixed template foundation with a private management module in the provider's
 central deployment. The module owns clients, module offers, entitlements, release
-proposals, approvals and the connected-client dashboard. Reuse foundation authentication,
+availability, deployment history and the connected-client dashboard. Reuse foundation authentication,
 administration, permissions and audit through explicit contracts. Follow the existing
 private-module composition convention, including module-owned persistence and migrations.
 The central deployment has its own database and identity boundary, separate from every
@@ -64,10 +71,17 @@ The management module must not require a renewable license issued by itself; lic
 failure must not lock out the service responsible for renewal and recovery. Deployment
 execution remains in the separate runner.
 
+The designated private source repository is
+[brinksolutions/business-modules](https://github.com/brinksolutions/business-modules).
+Keep the management module and paid modules there using the existing private-module
+layout. This proposal does not assert that repository access or its contents have been
+verified. Public foundation code contains only shared integration contracts and examples.
+
 ```mermaid
 flowchart TD
     Publisher[Provider administrator] --> Central[Central template with private management module]
-    Client[Authorized client approver] --> Central
+    Central --> Updates[Client application update notifications]
+    Client[Client deployment operator] --> Runner
     Source[Private module repositories] --> CI[Isolated CI composition and validation]
     Central --> CI
     CI --> Registry[Immutable deployment images]
@@ -78,19 +92,20 @@ flowchart TD
     VPS --> Central
 ```
 
-The provider assigns access and proposes a deployment. CI builds and validates the
-exact candidate. The client reviews that candidate and approves its deployment. A
-deployment runner retrieves the approved plan over outbound HTTPS and executes it.
+The provider assigns access and publishes module releases. CI builds and validates
+deployable compositions. Clients see update notifications in their own application
+and redeploy when ready. A runner executes the client-triggered plan immediately or
+at the selected maintenance time; there is no separate central or local approval step.
 The application refreshes license state over a separate, read-only credential.
 
 Initially run the runner on provider-managed infrastructure, with a narrowly scoped
 adapter for the existing Compose deployment path. Later support a client-operated
-runner using the same enrollment and approval protocol. The application API must not
+runner using the same enrollment and deployment protocol. The application API must not
 receive Docker socket access, host administration credentials or arbitrary shell jobs.
 
 Keep the existing release-feed contract working during transition. Add a versioned
 adapter backed by central records before retiring mounted allowlists. The current
-strict release metadata validator rejects unknown fields: licensing and approval
+strict release metadata validator rejects unknown fields: licensing and deployment
 records need separate versioned contracts, not extra fields injected into v1 records.
 
 ## Connected-client dashboard
@@ -106,7 +121,7 @@ client disappear from the management view.
 | Deployment | Environment, registered application URL, installed foundation/module versions and last successful release |
 | Connection | Separate application and runner last-contact times, recent/stale/never-connected/revoked status |
 | Licensing | Active, expired-disabled or frozen-version rights, renewal dates and dependency blockers |
-| Deployment activity | Pending client approval, scheduled/active attempt, last outcome and sanitized failure summary |
+| Deployment activity | Available updates, scheduled/active attempt, last outcome and sanitized failure summary |
 
 Enrollment binds a unique deployment identity to a provider-authorized client and
 environment. Use a short-lived, single-use enrollment credential; later authenticated
@@ -119,18 +134,26 @@ configured heartbeat interval. Record server receipt time and apply a configured
 staleness threshold. A recent heartbeat establishes recent contact, not proof that
 all application functions are healthy. Show reported health separately and preserve
 last-known values with their timestamps during an outage. Reconcile observed installed
-versions with approved releases and flag unexpected differences.
+versions with recorded deployment targets and flag unexpected differences.
 
 The dashboard supports filtering by organization, environment, connection state,
 license state and deployment outcome. Selecting a deployment opens its module access,
-release history and proposed updates; visibility never bypasses client approval.
+release history and available updates. Publishing or assigning a module does not
+automatically redeploy the client's application.
 Client representatives can see only their own organization's authorized information.
 Provider-wide operational visibility does not grant access to client business records.
 Do not transmit customer payloads, secrets, authorization headers or unrestricted logs.
 
-Central-portal approval remains the recommended initial experience because it works
-before installation and during application outages. The connected-client dashboard
-does not depend on where the eventual client approval UI is hosted.
+Clients receive update notices in their own application's Updates page and existing
+administrator notification channel. Show installed/latest versions, release notes,
+compatibility, license eligibility and the requirement to redeploy. Include installed
+runtime-disabled modules; never reveal modules restricted to another client. Renewing
+update rights restores eligibility without installing anything automatically.
+Deduplicate notices per deployment, module and release using the existing notification
+receipt pattern. Show a published update as blocked when licensing or compatibility
+prevents installation; an update notice never grants download or deployment rights.
+Initial installation and recovery use the deployment tooling directly, so they do not
+depend on an already-running client application or a central approval portal.
 
 ## Identity and records
 
@@ -142,23 +165,23 @@ user permission or access to an internal organization's records.
 
 | Proposed record | Essential facts |
 | --- | --- |
-| ClientOrganization | Stable ID, status, authorized approvers |
+| ClientOrganization | Stable ID, status, authorized contacts and deployment operators |
 | Deployment | Organization ID, environment, application URL, application/runner identities and separate last-contact times, installed release, reported health and enrollment/revocation state |
 | ModuleOffer | Module ID, shared/restricted eligibility, explicit allowed client IDs for restricted offers |
 | ModuleRelease | Existing immutable version, source digest, compatibility and migration metadata |
 | Entitlement | Organization/module, manual or purchase origin, use period, update period, expiry policy, revision |
 | InstalledModuleAllowance | Deployment/module, version and digest frozen at entitlement expiry |
 | DeploymentPlan | Target deployment, expected installed release, candidate digests, selection, settings delta, migrations, validation evidence and recovery plan |
-| Approval | Client actor, live organization authority, plan digest, deployment ID, time and validity deadline |
-| DeploymentAttempt | Plan/approval, execution lease, stage, observed images/schema, result and timestamps |
+| DeploymentRequest | Initiating operator, deployment ID, immutable plan digest, requested execution time and idempotency key |
+| DeploymentAttempt | Plan/request, execution lease, stage, observed images/schema, result and timestamps |
 
 Keep commercial eligibility separate from purchase entitlement. An exclusive module
 requires both explicit client eligibility and a valid entitlement. Apply that check to
 catalog results, release resolution, builds and artifact delivery; a guessed module ID
 or image location must not provide another client's module.
 
-Central provider administration must not implicitly grant client approval authority.
-Use separately assigned client approvers with live membership checks. Store audit and
+Authenticate deployment operators and check their authority for the target deployment.
+There is no approval role, approval record or approval state machine. Store audit and
 state changes atomically; use idempotency and optimistic concurrency for transitions.
 
 ## Licensing and expiry
@@ -172,31 +195,34 @@ browser payment-return pages never grant access.
 
 | State | Ordinary operations | Installing a different version |
 | --- | --- | --- |
-| Active use and update rights | Allowed subject to all other gates | Eligible, with client approval |
+| Active use and update rights | Allowed subject to all other gates | Eligible through redeployment |
 | Expired: disable access | Denied; retain data and recovery access | Blocked until eligible again |
 | Expired: keep installed version | Allowed for the recorded deployment-specific version/digest | Blocked until eligible again |
-| Renewed | Re-evaluate rights without changing stored activation preference | Eligible; deployment still needs approval |
+| Renewed | Re-evaluate rights without changing stored activation preference | Eligible; redeployment obtains updates |
 
 Freeze allowances from the last successfully installed release per deployment at the
 expiry boundary. Production and staging may retain different versions. An installation
 in progress must be reconciled through its attempt record and entitlement revision;
-approval before expiry does not authorize a new version after expiry. Recheck before
+a request before expiry does not authorize a new version after expiry. Recheck before
 stopping workloads and before admitting the new release, and retain recovery access
 if entitlement changes during execution.
 
 Do not extend a frozen allowance to a newly enrolled deployment. Reinstallation for
-disaster recovery uses the same deployment identity and exact allowed artifact, with
-explicit client approval. Retain those artifacts and their source inputs for supported
+disaster recovery uses the same deployment identity and exact allowed artifact through
+authenticated deployment tooling. Retain those artifacts and their source inputs for supported
 recovery periods; garbage collection must respect installed allowances.
 
-Online refresh should run outside ordinary request handling, with a short-lived signed
+Online refresh should run outside ordinary request handling, with a signed
 snapshot bound to organization, deployment and entitlement revision. Locally evaluate
 known expiry timestamps even when the central service is unavailable. Reject expired,
 wrong-deployment or replayed older snapshots. On loss of a valid snapshot, block paid
 ordinary operations and deployment execution while preserving core administration and
-exports. A finite freshness window provides transient outage tolerance, not indefinite
-offline licensing. Refresh frequency and snapshot lifetime are implementation settings
-to specify before rollout; the existing six-hour update check is not a license check.
+exports. Snapshots permit at most 24 hours of use since the last successful verification;
+failed refreshes and restarts do not extend that deadline. Known entitlement expiry
+still applies within this window, including frozen-version behavior. Redeployment
+requires a fresh online entitlement check and is blocked while that check is unavailable.
+Use a dedicated periodic license refresh; the existing six-hour update check is not a
+license check. Heartbeat staleness and license freshness are separate states.
 
 ## Runtime enforcement and retained access
 
@@ -228,25 +254,31 @@ Each module must classify its operations:
 
 This extends [retained-access rules](adr/0036-module-administration-safety.md).
 License expiry itself never deletes data; established retention and lawful privacy
-erasure policies still apply. Physical code removal is a separate approved release
+erasure policies still apply. Physical code removal is a separate redeployment
 requiring an export/recovery solution for the retained schema and records.
 
-## Deployment and approval protocol
+## Update notifications and redeployment protocol
 
-1. Enroll a deployment and establish its client approvers. Initial base installation
-   is approved centrally before a client application exists.
-2. The provider proposes exact foundation/module versions and configuration changes.
+1. A provider administrator creates the client and issues a single-use enrollment token.
+   Initial base installation uses authenticated deployment tooling without an approval step.
+2. The provider publishes module releases; clients receive update notifications.
+   When the client chooses to redeploy, select exact foundation/module versions and configuration changes.
    Resolve every dependency, including disabled but compiled modules, against eligibility,
    entitlement and frozen-version constraints.
+   Target the latest eligible compatible composition. If the newest versions conflict,
+   report the blockers rather than silently changing module selections or bypassing pins.
 3. CI uses a clean workspace, current source-bundle verification and reviewed dependency
    locks to publish an immutable candidate. Include all participating workloads, the
    Migrator, release metadata and configuration template digests. Keep secrets separate.
-4. Present a reviewable plan: versions, added/removed modules, activation changes,
+4. Record a deployment plan: versions, added/removed modules, activation changes,
    release notes, migrations, expected interruption, validation results and recovery
-   constraints. The client approves its digest for one deployment and a bounded window.
-5. The runner rechecks approval authority, expiry/revocation, entitlements, artifact
-   signatures/digests and the expected installed baseline. Any changed candidate or
-   baseline requires a new plan and approval. Never resolve mutable tags after approval.
+   constraints. Bind the client's redeployment request to this plan and target deployment,
+   for immediate execution or a selected maintenance time. Do not add an approval gate.
+5. The runner rechecks operator authority, credential revocation, online entitlements,
+   artifact signatures/digests and the expected installed baseline. A changed baseline
+   invalidates the request; show the conflict so the client can initiate a fresh plan.
+   Pin versions when the request is created; never silently adopt newer releases while
+   a scheduled deployment waits.
 6. Acquire one deployment execution lease, pull images, enter maintenance and stop all
    affected writers. Capture a verified database backup and the relevant object-storage,
    configuration and key recovery references. Run the Migrator once per attempt using
@@ -255,18 +287,18 @@ requiring an export/recovery solution for the retained schema and records.
    and report it centrally. Handle duplicate commands idempotently; an expired runner
    lease requires inspection of actual state before another runner continues.
 
-Suggested plan states: Draft, Building, AwaitingApproval, Approved, Deploying,
-Succeeded, Failed, Cancelled and Expired. Approval never authorizes a different
-deployment or a later candidate. Runtime licensing renewal is not a deployment;
+Suggested plan states: Draft, Building, Ready, Scheduled, Deploying,
+Succeeded, Failed, Cancelled and Stale. Deployment requests identify one exact
+deployment and candidate. Runtime licensing renewal is not a deployment;
 installing code always is. Include intended initial activation in installation plans,
 since private modules currently initialize disabled.
 
 Migration failure leaves maintenance active and stops rollout. Redeploying an old image
 is safe only when it supports the resulting schema. Prefer a forward correction;
-database restore can lose later writes and requires a concrete client-approved recovery
-plan. Never delete/regenerate EF migration history. Recovery actions may execute under
-the original approval only when its exact recovery targets and conditions were included;
-otherwise obtain new client approval.
+database restore can lose later writes and must be an explicit operator recovery action
+with the recovery point and data-loss impact visible. Never delete/regenerate EF
+migration history. Only schema-compatible, preconfigured recovery actions may run
+automatically; do not silently restore a database after a failed update.
 
 The inspected upgrade helper currently stops Web/API/Worker. The working tree also
 contains ongoing public Website work. Implementation must inventory all release
@@ -282,7 +314,7 @@ foundation 0.3.0 while retaining that module, even if the module is runtime-disa
 
 The release resolver must surface this blocker and preserve the installed release.
 Resolution requires renewed update rights, an explicit compatible grant, or an
-approved removal with retained-data access. Do not promise unlimited base upgrades
+explicit removal with retained-data access. Do not promise unlimited base upgrades
 alongside permanently frozen modules. Reusing the same verified source version in a
 new foundation composition requires compatibility validation; changing module source
 requires a new module release and eligible update rights.
@@ -293,14 +325,14 @@ requires a new module release and eligible update rights.
 | --- | --- | --- |
 | 1. Contracts and registry | Proposed ADRs, central private management module, connected-client dashboard, enrollment/heartbeats, catalog eligibility, manual entitlements, versioned API | PostgreSQL tests for isolation, concurrency, credential scoping/revocation and stale-client visibility; no automatic rollout |
 | 2. Runtime licensing | Signed snapshots, use/update separation, dependency gating, retained exports and renewal | Real PostgreSQL tests for expiry, renewal, frozen versions, replay/outage behavior and retained operations |
-| 3. Release plans and approval | Existing build tooling integration, immutable candidates, per-deployment client approvals | Tampered plans, stale baselines, revoked approvers, cross-client artifacts and post-expiry installs rejected |
-| 4. Managed VPS execution | Enrolled runner, leases, coordinated migrations, backups and deployment receipts | Approved installation/update and failure/recovery drill on a disposable VPS |
+| 3. Update notifications and release plans | License-aware client notifications, existing build tooling integration, immutable candidates, client-triggered immediate/scheduled redeployment | Deduplicated notices; tampered plans, stale baselines, unauthorized operators, cross-client artifacts and post-expiry installs rejected |
+| 4. Managed VPS execution | Enrolled runner, leases, coordinated migrations, backups and deployment receipts | Client-triggered installation/update and failure/recovery drill on a disposable VPS |
 | 5. Commercial automation | One-time purchases, subscriptions and verified payment reconciliation | Duplicate/out-of-order payment events cannot overgrant; merchant sandbox verification |
-| 6. Client-operated deployments | Self-hosted runner enrollment, credential rotation, diagnostics and operator guide | Same approval/license protocol exercised on client-controlled infrastructure |
+| 6. Client-operated deployments | Self-hosted runner enrollment, credential rotation, diagnostics and operator guide | Same deployment/license protocol exercised on client-controlled infrastructure |
 
 The first usable pilot ends after phase 4: one managed client organization with
 production and staging, one shared paid module and one restricted module, manual
-entitlement grants, both expiry policies and explicit approval for every rollout.
+entitlement grants, both expiry policies, update notifications and client-triggered redeployment.
 Payment automation follows once licensing and deployment behavior are proven.
 
 Before implementing new contracts, write proposed ADRs extending

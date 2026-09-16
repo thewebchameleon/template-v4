@@ -6,7 +6,7 @@ namespace TemplateV4.Application.Modules;
 public sealed record ModuleDefinition([property: JsonRequired] string Id, [property: JsonRequired] bool Required,
     [property: JsonRequired] bool EnabledByDefault, [property: JsonRequired] IReadOnlyList<string> Dependencies,
     bool RuntimeConfigurable = false, string? FeatureFlag = null, IReadOnlyList<CapabilityDefinition>? Capabilities = null,
-    string Category = "foundation");
+    string Category = "foundation", bool LicenseRequired = false);
 public sealed record CapabilityDefinition([property: JsonRequired] string Id, [property: JsonRequired] IReadOnlyList<string> Requires, string? FeatureFlag = null);
 
 /// <summary>Immutable deployment capabilities. Feature flags and permissions can restrict these further.</summary>
@@ -111,14 +111,15 @@ public sealed class ModuleCatalog
             definition.Dependencies.All(x => EffectiveModule(x, runtime));
     }
 
-    public Dictionary<string, bool> Evaluate(IReadOnlyDictionary<string, bool> runtime, Func<string, bool> flag)
+    public Dictionary<string, bool> Evaluate(IReadOnlyDictionary<string, bool> runtime, Func<string, bool> flag,
+        Func<string, bool>? licensed = null)
     {
         var result = new Dictionary<string, bool>(StringComparer.Ordinal);
         bool EvaluateOne(string id)
         {
             if (result.TryGetValue(id, out var value)) return value;
             var definition = Capabilities[id];
-            return result[id] = EffectiveModule(CapabilityOwners[id], runtime) &&
+            return result[id] = EffectiveModule(CapabilityOwners[id], runtime) && (licensed?.Invoke(CapabilityOwners[id]) ?? true) &&
                 (definition.FeatureFlag is null || flag(definition.FeatureFlag)) && definition.Requires.All(EvaluateOne);
         }
         foreach (var id in Capabilities.Keys) EvaluateOne(id);

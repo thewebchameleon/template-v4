@@ -1,4 +1,12 @@
 export const updateDictionary: Record<string, [string, string]> = {
+  'releaseComponent_license-unavailable': [
+    'License unavailable or expired — contact your provider to renew access.',
+    'Lisensie onbeskikbaar of verval — kontak jou verskaffer om toegang te hernu.',
+  ],
+  'releaseComponent_license-frozen': [
+    'Installed version retained; renew update rights for newer versions.',
+    'Geïnstalleerde weergawe behou; hernu opdateringsregte vir nuwer weergawes.',
+  ],
   releaseUpdates: ['Updates', 'Opdaterings'],
   releaseUpdatesHelp: [
     'Installed foundation and business-module releases.',
@@ -6,8 +14,12 @@ export const updateDictionary: Record<string, [string, string]> = {
   ],
   releaseCheckStatus: ['Release checks', 'Weergawekontroles'],
   releaseManualDeployment: [
-    'Available updates require review, a new client build and a manual deployment.',
-    'Beskikbare opdaterings vereis hersiening, ’n nuwe kliëntbou en ’n handmatige ontplooiing.',
+    'Redeploy your application to install eligible updates. Updates are never installed automatically.',
+    'Herontplooi jou toepassing om geskikte opdaterings te installeer. Opdaterings word nooit outomaties geïnstalleer nie.',
+  ],
+  releaseLicenseRequired: [
+    'Renew update rights before installing this version.',
+    'Hernu opdateringsregte voordat jy hierdie weergawe installeer.',
   ],
   releaseFeed_disabled: [
     'Update checks have not been configured for this installation.',

@@ -9,8 +9,11 @@ follow [module ownership](module-ownership.md).
 For independent module versions, central release-feed hosting, administrator update
 notifications and client upgrade PRs, see [release updates](release-updates.md).
 
-For the proposed organization licensing, commercial module distribution and explicit
-client-approved VPS rollouts, see [client deployment architecture](client-deployment-proposal.md).
+For the finalized proposal covering organization licensing, commercial module distribution
+and client-triggered VPS redeployment, see [client deployment architecture](client-deployment-proposal.md).
+
+For the implemented private management module, enrollment and license setup, see
+[client management operations](client-management.md).
 
 For native Docker Compose deployments of the foundation demo and a generic client,
 see [EasyPanel deployment examples](easypanel.md) and [Coolify deployment examples](coolify.md).

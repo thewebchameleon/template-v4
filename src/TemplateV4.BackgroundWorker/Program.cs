@@ -23,6 +23,7 @@ builder.Services.AddHostedService<StorageRetention>();
 builder.Services.AddHostedService<BillingReconciler>();
 builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddHostedService<UpdateChecker>();
+builder.Services.AddHostedService<LicenseRefresher>();
 builder.Services.AddQuartz(options =>
 {
     options.ConfigureScheduler(scheduler =>

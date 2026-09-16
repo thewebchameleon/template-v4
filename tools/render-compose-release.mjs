@@ -18,7 +18,13 @@ export function renderRelease(
     if (!/^[a-f0-9]{40}$/.test(commit))
       throw new Error("Expected immutable source commits.");
   const images = {};
-  for (const service of ["api", "worker", "migrator", "web"]) {
+  let compose = fs.readFileSync(
+    path.join(root, "compose.production.yaml"),
+    "utf8",
+  );
+  const workloads = ["api", "worker", "migrator", "web"];
+  if (/^  website:/m.test(compose)) workloads.push("website");
+  for (const service of workloads) {
     const metadata = JSON.parse(
       fs.readFileSync(path.join(output, `${service}.metadata.json`), "utf8"),
     );
@@ -27,15 +33,17 @@ export function renderRelease(
       throw new Error(`Missing image digest for ${service}.`);
     images[service] = `${imageRoot}/${service}@${digest}`;
   }
-  let compose = fs.readFileSync(
-    path.join(root, "compose.production.yaml"),
-    "utf8",
-  );
   for (const [service, image] of Object.entries(images)) {
-    const sourceBuild = new RegExp(`^  ${service}:\\r?\\n    build: [^\\r\\n]+`, "m");
+    const sourceBuild = new RegExp(
+      `^  ${service}:\\r?\\n    build: [^\\r\\n]+`,
+      "m",
+    );
     if (!sourceBuild.test(compose))
       throw new Error(`Missing production build for ${service}.`);
-    compose = compose.replace(sourceBuild, `  ${service}:\n    image: ${image}`);
+    compose = compose.replace(
+      sourceBuild,
+      `  ${service}:\n    image: ${image}`,
+    );
   }
   fs.mkdirSync(path.join(output, "deploy"), { recursive: true });
   fs.writeFileSync(path.join(output, "compose.yaml"), compose);
@@ -49,12 +57,7 @@ export function renderRelease(
     path.join(root, "deploy/init-database.sh"),
     path.join(output, "deploy/init-database.sh"),
   );
-  for (const name of [
-    ".env.example",
-    "upgrade.sh",
-    "README.md",
-    "COOLIFY.md",
-  ])
+  for (const name of [".env.example", "upgrade.sh", "README.md", "COOLIFY.md"])
     fs.copyFileSync(
       path.join(root, "deploy/compose-platforms", name),
       path.join(output, name),

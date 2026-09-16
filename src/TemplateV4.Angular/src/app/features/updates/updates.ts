@@ -70,7 +70,13 @@ import { UpdateSummary } from '../../api/models';
                       <div hlmAlertDescription>
                         <ul>
                           @for (requirement of component.requirements; track requirement) {
-                            <li>{{ requirement }}</li>
+                            <li>
+                              {{
+                                requirement === 'license.update-required'
+                                  ? ('releaseLicenseRequired' | t)
+                                  : requirement
+                              }}
+                            </li>
                           }
                         </ul>
                       </div>

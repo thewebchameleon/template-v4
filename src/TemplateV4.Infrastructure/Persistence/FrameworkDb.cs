@@ -37,6 +37,11 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).IsRequired();
         });
         foreach (var entity in model.Model.GetEntityTypes()) entity.SetSchema("identity");
+        model.Entity<TemplateV4.Infrastructure.Licensing.LicenseState>(entity =>
+        {
+            entity.ToTable("deployment_license", "app"); entity.HasKey(x => x.Id);
+            entity.Property(x => x.Payload).HasMaxLength(131072); entity.Property(x => x.Signature).HasMaxLength(2048);
+        });
         model.Entity<ActionItemRow>(entity =>
         {
             entity.ToTable("action_items", "app", table => table.HasCheckConstraint("CK_action_items_assignment", "(\"AssigneeId\" IS NULL) <> (\"QueueId\" IS NULL)"));
