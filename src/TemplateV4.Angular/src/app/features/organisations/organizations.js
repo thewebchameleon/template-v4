@@ -192,7 +192,7 @@ export class OrganizationsPage {
     static ɵfac = function OrganizationsPage_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || OrganizationsPage)(); };
     static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: OrganizationsPage, selectors: [["app-organizations"]], hostBindings: function OrganizationsPage_HostBindings(rf, ctx) { if (rf & 1) {
             i0.ɵɵlistener("beforeunload", function OrganizationsPage_beforeunload_HostBindingHandler($event) { return ctx.beforeUnload($event); }, i0.ɵɵresolveWindow);
-        } }, decls: 3, vars: 4, consts: [["form", "ngForm"], ["title", "organizations", "description", "organizationsHelp"], [3, "retry", "state", "refreshing", "refreshError"], [1, "grid", "gap-6"], ["hlmCard", ""], ["hlmCardHeader", ""], ["hlmCardTitle", ""], ["hlmCardDescription", ""], ["hlmCardFooter", ""], ["hlmBtn", "", 3, "click", "disabled"], ["hlmCardFooter", "", 1, "flex-wrap", "gap-2"], ["hlmBtn", "", 3, "routerLink"], ["hlmBtn", "", "routerLink", "/my-files"], ["hlmBtn", "", "variant", "outline", 3, "routerLink"], ["hlmCardContent", "", 1, "grid", "gap-4", 3, "ngSubmit"], ["hlmField", ""], ["hlmFieldLabel", "", "for", "organization-name"], ["hlmInput", "", "id", "organization-name", "name", "name", "required", "", "maxlength", "120", 3, "ngModelChange", "ngModel"], ["hlmBtn", "", 3, "disabled"]], template: function OrganizationsPage_Template(rf, ctx) { if (rf & 1) {
+        } }, decls: 3, vars: 4, consts: [["form", "ngForm"], ["title", "organizations", "description", "organizationsHelp"], [3, "retry", "state", "refreshing", "refreshError"], [1, "grid", "gap-6"], ["hlmCard", ""], ["hlmCardHeader", ""], ["hlmCardTitle", ""], ["hlmCardDescription", ""], ["hlmCardFooter", ""], ["hlmBtn", "", 3, "click", "disabled"], ["hlmCardFooter", "", 1, "flex-wrap", "gap-2"], ["hlmBtn", "", 3, "routerLink"], ["hlmBtn", "", "routerLink", "/file-storage"], ["hlmBtn", "", "variant", "outline", 3, "routerLink"], ["hlmCardContent", "", 1, "grid", "gap-4", 3, "ngSubmit"], ["hlmField", ""], ["hlmFieldLabel", "", "for", "organization-name"], ["hlmInput", "", "id", "organization-name", "name", "name", "required", "", "maxlength", "120", 3, "ngModelChange", "ngModel"], ["hlmBtn", "", 3, "disabled"]], template: function OrganizationsPage_Template(rf, ctx) { if (rf & 1) {
             i0.ɵɵelement(0, "app-page-header", 1);
             i0.ɵɵelementStart(1, "app-page-state", 2);
             i0.ɵɵlistener("retry", function OrganizationsPage_Template_app_page_state_retry_1_listener() { return ctx.load(); });
@@ -249,7 +249,7 @@ export class OrganizationsPage {
                     'openWorkspace' | t
                   }}</a>
                 } @else {
-                  <a hlmBtn routerLink="/my-files">{{ 'files' | t }}</a>
+                  <a hlmBtn routerLink="/file-storage">{{ 'files' | t }}</a>
                 }
                 <a
                   hlmBtn

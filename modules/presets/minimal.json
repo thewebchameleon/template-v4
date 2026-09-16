@@ -1,7 +1,7 @@
 {
   "Modules": {
     "cms": false,
-    "my-files": false,
+    "file-storage": false,
     "maintenance": false,
     "operations": false,
     "audit-history": false,

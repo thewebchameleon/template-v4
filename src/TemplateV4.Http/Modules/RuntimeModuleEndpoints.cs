@@ -14,10 +14,10 @@ public static class RuntimeModuleEndpoints
             .WithName("ListModuleActivations").Produces<ModuleActivation[]>();
         admin.MapPost("/activation", async (SaveModuleActivation request, Dispatcher<SaveModuleActivation, ModuleActivation> dispatcher, CancellationToken ct) =>
             (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveModuleActivation").Produces<ModuleActivation>();
-        admin.MapGet("/my-files/settings", async (IMyFilesModuleSettings settings, CancellationToken ct) => Results.Ok(await settings.Read(ct)))
-            .WithName("GetMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
-        admin.MapPost("/my-files/settings", async (SaveMyFilesModuleSettings request, Dispatcher<SaveMyFilesModuleSettings, MyFilesModuleSettings> dispatcher, CancellationToken ct) =>
-            (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
+        admin.MapGet("/file-storage/settings", async (IFileStorageModuleSettings settings, CancellationToken ct) => Results.Ok(await settings.Read(ct)))
+            .WithName("GetFileStorageModuleSettings").Produces<FileStorageModuleSettings>();
+        admin.MapPost("/file-storage/settings", async (SaveFileStorageModuleSettings request, Dispatcher<SaveFileStorageModuleSettings, FileStorageModuleSettings> dispatcher, CancellationToken ct) =>
+            (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveFileStorageModuleSettings").Produces<FileStorageModuleSettings>();
         admin.MapGet("/support/settings", async (ISupportModuleSettings settings, CancellationToken ct) => (await settings.Read(ct)).ToHttp())
             .ContinuesWhenDisabled(ModuleIds.Support, "Feature settings remain editable while Support is disabled.")
             .WithName("GetSupportModuleSettings").Produces<SupportModuleSettings>();

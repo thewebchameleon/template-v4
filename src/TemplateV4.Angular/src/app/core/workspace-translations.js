@@ -321,7 +321,7 @@ export const workspaceDictionary = {
     ],
     viewingUserFiles: ['Files belonging to', 'Lêers wat behoort aan'],
     manageUserFiles: ['Files and storage quota', 'Lêers en bergingkwota'],
-    storageSettings: ['File storage', 'Lêerberging'],
+    storageSettings: ['File Storage', 'Lêerberging'],
     storageSettingsHelp: [
         'Set the default allowance and maximum upload size. Open a user’s details to browse their files and change their individual quota.',
         'Stel die verstektoelaag en maksimum oplaaigrootte. Maak ’n gebruiker se besonderhede oop om hul lêers te sien en individuele kwota te verander.',

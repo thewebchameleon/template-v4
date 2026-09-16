@@ -23,7 +23,7 @@ import * as i9 from "@spartan-ng/helm/checkbox";
 import * as i10 from "@spartan-ng/helm/switch";
 import * as i11 from "../../core/i18n";
 const _c0 = () => [];
-const _c1 = a0 => ["/administration/users", a0, "my-files"];
+const _c1 = a0 => ["/administration/users", a0, "file-storage"];
 const _c2 = (a0, a1) => ({ subjectId: a0, subjectName: a1 });
 const _forTrack0 = ($index, $item) => $item.id;
 function UserDetailPage_Conditional_0_Template(rf, ctx) { if (rf & 1) {
@@ -203,7 +203,7 @@ function UserDetailPage_Conditional_2_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵadvance(2);
     i0.ɵɵtextInterpolate(detail_r2.user.email);
     i0.ɵɵadvance();
-    i0.ɵɵconditional(ctx_r2.auth.has("settings.manage") && ctx_r2.features.enabled("my-files") ? 7 : -1);
+    i0.ɵɵconditional(ctx_r2.auth.has("settings.manage") && ctx_r2.features.enabled("file-storage") ? 7 : -1);
     i0.ɵɵadvance(4);
     i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(12, 19, "roles"));
     i0.ɵɵadvance(3);
@@ -385,11 +385,11 @@ export class UserDetailPage {
             <div hlmCardHeader>
               <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
               <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
-              @if (auth.has('settings.manage') && features.enabled('my-files')) {
+              @if (auth.has('settings.manage') && features.enabled('file-storage')) {
                 <a
                   hlmBtn
                   variant="outline"
-                  [routerLink]="['/administration/users', detail.user.id, 'my-files']"
+                  [routerLink]="['/administration/users', detail.user.id, 'file-storage']"
                   >{{ 'manageUserFiles' | t }}</a
                 >
               }

@@ -59,15 +59,15 @@ type OrganisationDraft = Pick<
                     aria-describedby="organisation-logo-help"
                   />
                   @if (busyLogo()) {
-                    <div class="my-files-dropzone" role="status" aria-live="polite">
+                    <div class="file-storage-dropzone" role="status" aria-live="polite">
                       <hlm-spinner />
                       <span class="font-medium">{{ 'organisationLogoUploading' | t }}</span>
                     </div>
                   } @else {
                     <button
                       type="button"
-                      class="my-files-dropzone"
-                      [class.my-files-drop-target]="logoDragOver()"
+                      class="file-storage-dropzone"
+                      [class.file-storage-drop-target]="logoDragOver()"
                       [disabled]="busy() || !state.value()?.canManage"
                       (click)="showLogoPicker()"
                       (dragover)="overLogo($event)"

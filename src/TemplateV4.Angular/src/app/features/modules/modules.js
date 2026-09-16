@@ -51,20 +51,20 @@ function ModulesPage_For_3_Conditional_18_Template(rf, ctx) { if (rf & 1) {
     const ctx_r2 = i0.ɵɵnextContext();
     i0.ɵɵadvance(2);
     i0.ɵɵproperty("ngModel", ctx_r2.demoModes[module_r2.id])("disabled", ctx_r2.busy() || ctx_r2.data.refreshing() || !module_r2.available);
-    i0.ɵɵattribute("aria-label", i0.ɵɵpipeBind1(3, 10, "myFilesDemoMode"));
+    i0.ɵɵattribute("aria-label", i0.ɵɵpipeBind1(3, 10, "fileStorageDemoMode"));
     i0.ɵɵcontrol();
     i0.ɵɵadvance(4);
-    i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(7, 12, "myFilesDemoMode"));
+    i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(7, 12, "fileStorageDemoMode"));
     i0.ɵɵadvance(3);
-    i0.ɵɵtextInterpolate1(" ", i0.ɵɵpipeBind1(10, 14, "myFilesDemoHelp"), " ");
+    i0.ɵɵtextInterpolate1(" ", i0.ɵɵpipeBind1(10, 14, "fileStorageDemoHelp"), " ");
     i0.ɵɵadvance(4);
     i0.ɵɵproperty("ngModel", ctx_r2.slowUploadModes[module_r2.id])("disabled", ctx_r2.busy() || ctx_r2.data.refreshing() || !module_r2.available);
-    i0.ɵɵattribute("aria-label", i0.ɵɵpipeBind1(14, 16, "myFilesSlowUploadMode"));
+    i0.ɵɵattribute("aria-label", i0.ɵɵpipeBind1(14, 16, "fileStorageSlowUploadMode"));
     i0.ɵɵcontrol();
     i0.ɵɵadvance(4);
-    i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(18, 18, "myFilesSlowUploadMode"));
+    i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(18, 18, "fileStorageSlowUploadMode"));
     i0.ɵɵadvance(3);
-    i0.ɵɵtextInterpolate1(" ", i0.ɵɵpipeBind1(21, 20, "myFilesSlowUploadHelp"), " ");
+    i0.ɵɵtextInterpolate1(" ", i0.ɵɵpipeBind1(21, 20, "fileStorageSlowUploadHelp"), " ");
 } }
 function ModulesPage_For_3_Conditional_19_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵelementStart(0, "p", 13);
@@ -152,7 +152,7 @@ function ModulesPage_For_3_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵproperty("for", module_r2.id + "-enabled");
     i0.ɵɵadvance(2);
     i0.ɵɵclassProp("text-primary", ctx_r2.enabled[module_r2.id])("text-muted-foreground", !ctx_r2.enabled[module_r2.id]);
-    i0.ɵɵproperty("name", module_r2.id === "my-files" ? "lucideFolderOpen" : module_r2.id === "support" ? "lucideLifeBuoy" : "lucideBoxes");
+    i0.ɵɵproperty("name", module_r2.id === "file-storage" ? "lucideFolderOpen" : module_r2.id === "support" ? "lucideLifeBuoy" : "lucideBoxes");
     i0.ɵɵadvance(2);
     i0.ɵɵproperty("id", module_r2.id + "-module-label");
     i0.ɵɵadvance();
@@ -174,9 +174,9 @@ function ModulesPage_For_3_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵadvance();
     i0.ɵɵtextInterpolate(i0.ɵɵpipeBind1(17, 32, "moduleFeatures"));
     i0.ɵɵadvance(2);
-    i0.ɵɵconditional(module_r2.id === "my-files" ? 18 : 19);
+    i0.ɵɵconditional(module_r2.id === "file-storage" ? 18 : 19);
     i0.ɵɵadvance(2);
-    i0.ɵɵconditional(module_r2.id === "my-files" ? 20 : -1);
+    i0.ɵɵconditional(module_r2.id === "file-storage" ? 20 : -1);
     i0.ɵɵadvance();
     i0.ɵɵconditional((module_r2.enabled ? module_r2.disableBlockers : module_r2.enableBlockers).length ? 21 : -1);
     i0.ɵɵadvance();
@@ -199,13 +199,13 @@ export class ModulesPage {
     async load() {
         if (await this.data.load((signal) => Promise.all([
             this.api.get('administration/modules/activation', {}, signal),
-            this.api.get('administration/modules/my-files/settings', {}, signal),
+            this.api.get('administration/modules/file-storage/settings', {}, signal),
         ]).then(([modules, settings]) => {
             this.fileSettings = settings;
             return modules.map((module) => ({
                 ...module,
-                demoMode: module.id === 'my-files' && settings.demoMode,
-                slowUploadMode: module.id === 'my-files' && settings.slowUploadMode,
+                demoMode: module.id === 'file-storage' && settings.demoMode,
+                slowUploadMode: module.id === 'file-storage' && settings.slowUploadMode,
             }));
         }))) {
             this.enabled = Object.fromEntries((this.data.value() ?? []).map((m) => [m.id, m.enabled]));
@@ -233,7 +233,7 @@ export class ModulesPage {
             if (demoMode !== undefined || slowUploadMode !== undefined) {
                 if (!this.fileSettings)
                     return;
-                this.fileSettings = await this.api.post('administration/modules/my-files/settings', {
+                this.fileSettings = await this.api.post('administration/modules/file-storage/settings', {
                     demoMode: demoMode ?? this.fileSettings.demoMode,
                     slowUploadMode: slowUploadMode ?? this.fileSettings.slowUploadMode,
                     version: this.fileSettings.version,
@@ -259,13 +259,13 @@ export class ModulesPage {
             this.features.reset();
             await this.features.load();
             this.toast.success(slowUploadMode !== undefined
-                ? 'myFilesSlowUploadSaved'
+                ? 'fileStorageSlowUploadSaved'
                 : demoMode !== undefined
-                    ? 'myFilesDemoSaved'
-                    : saved.id === 'my-files'
+                    ? 'fileStorageDemoSaved'
+                    : saved.id === 'file-storage'
                         ? saved.enabled
-                            ? 'filesModuleEnabled'
-                            : 'filesModuleDisabled'
+                            ? 'fileStorageModuleEnabled'
+                            : 'fileStorageModuleDisabled'
                         : 'commercialSaved');
         }
         catch (error) {
@@ -290,7 +290,7 @@ export class ModulesPage {
         }
     }
     static ɵfac = function ModulesPage_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || ModulesPage)(); };
-    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: ModulesPage, selectors: [["app-modules"]], features: [i0.ɵɵProvidersFeature([provideIcons({ lucideFolderOpen, lucideLifeBuoy, lucideBoxes })])], decls: 4, vars: 3, consts: [["title", "modules", "description", "modulesHelp", "eyebrow", "administration"], [3, "retry", "state", "refreshing", "refreshError"], ["hlmCard", "", "collapsible", "", 1, "mb-6", 3, "collapsibleHeader", "expanded"], ["hlmCardHeader", ""], ["hlmFieldLabel", "", 1, "bg-transparent", "cursor-pointer", "has-data-checked:border-transparent", "has-data-checked:bg-transparent", "has-[>[data-slot=field]]:border-0", "has-[[data-disabled=true]]:cursor-not-allowed", "dark:has-data-checked:border-transparent", "dark:has-data-checked:bg-transparent", "*:data-[slot=field]:p-0", 3, "for"], ["hlmField", "", "orientation", "horizontal", 1, "items-center"], ["size", "3rem", "aria-hidden", "true", 1, "shrink-0", 3, "name"], ["hlmFieldContent", "", 1, "min-w-0"], ["hlmCardTitle", "", 3, "id"], ["hlmCardDescription", "", 3, "id"], [1, "self-center", 3, "ngModelChange", "inputId", "name", "ngModel", "disabled"], ["hlmCardContent", "", 1, "grid", "gap-4", 3, "id"], [1, "grid", "gap-3"], [1, "workspace-meta"], [1, "flex", "flex-wrap", "gap-2"], ["hlmAlert", ""], ["hlmFieldLabel", "", "for", "my-files-demo", 1, "cursor-pointer", "has-[[data-disabled=true]]:cursor-not-allowed"], ["hlmField", "", "orientation", "horizontal"], ["inputId", "my-files-demo", "name", "myFilesDemoMode", "aria-describedby", "my-files-demo-help", 1, "self-center", 3, "ngModelChange", "ngModel", "disabled"], ["hlmFieldContent", ""], ["hlmFieldTitle", ""], ["hlmFieldDescription", "", "id", "my-files-demo-help"], ["hlmFieldLabel", "", "for", "my-files-slow-upload", 1, "cursor-pointer", "has-[[data-disabled=true]]:cursor-not-allowed"], ["inputId", "my-files-slow-upload", "name", "myFilesSlowUploadMode", "aria-describedby", "my-files-slow-upload-help", 1, "self-center", 3, "ngModelChange", "ngModel", "disabled"], ["hlmFieldDescription", "", "id", "my-files-slow-upload-help"], ["hlmBtn", "", "variant", "outline", "routerLink", "/administration/storage"], ["hlmAlertDescription", ""]], template: function ModulesPage_Template(rf, ctx) { if (rf & 1) {
+    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: ModulesPage, selectors: [["app-modules"]], features: [i0.ɵɵProvidersFeature([provideIcons({ lucideFolderOpen, lucideLifeBuoy, lucideBoxes })])], decls: 4, vars: 3, consts: [["title", "modules", "description", "modulesHelp", "eyebrow", "administration"], [3, "retry", "state", "refreshing", "refreshError"], ["hlmCard", "", "collapsible", "", 1, "mb-6", 3, "collapsibleHeader", "expanded"], ["hlmCardHeader", ""], ["hlmFieldLabel", "", 1, "bg-transparent", "cursor-pointer", "has-data-checked:border-transparent", "has-data-checked:bg-transparent", "has-[>[data-slot=field]]:border-0", "has-[[data-disabled=true]]:cursor-not-allowed", "dark:has-data-checked:border-transparent", "dark:has-data-checked:bg-transparent", "*:data-[slot=field]:p-0", 3, "for"], ["hlmField", "", "orientation", "horizontal", 1, "items-center"], ["size", "3rem", "aria-hidden", "true", 1, "shrink-0", 3, "name"], ["hlmFieldContent", "", 1, "min-w-0"], ["hlmCardTitle", "", 3, "id"], ["hlmCardDescription", "", 3, "id"], [1, "self-center", 3, "ngModelChange", "inputId", "name", "ngModel", "disabled"], ["hlmCardContent", "", 1, "grid", "gap-4", 3, "id"], [1, "grid", "gap-3"], [1, "workspace-meta"], [1, "flex", "flex-wrap", "gap-2"], ["hlmAlert", ""], ["hlmFieldLabel", "", "for", "file-storage-demo", 1, "cursor-pointer", "has-[[data-disabled=true]]:cursor-not-allowed"], ["hlmField", "", "orientation", "horizontal"], ["inputId", "file-storage-demo", "name", "fileStorageDemoMode", "aria-describedby", "file-storage-demo-help", 1, "self-center", 3, "ngModelChange", "ngModel", "disabled"], ["hlmFieldContent", ""], ["hlmFieldTitle", ""], ["hlmFieldDescription", "", "id", "file-storage-demo-help"], ["hlmFieldLabel", "", "for", "file-storage-slow-upload", 1, "cursor-pointer", "has-[[data-disabled=true]]:cursor-not-allowed"], ["inputId", "file-storage-slow-upload", "name", "fileStorageSlowUploadMode", "aria-describedby", "file-storage-slow-upload-help", 1, "self-center", 3, "ngModelChange", "ngModel", "disabled"], ["hlmFieldDescription", "", "id", "file-storage-slow-upload-help"], ["hlmBtn", "", "variant", "outline", "routerLink", "/administration/file-storage"], ["hlmAlertDescription", ""]], template: function ModulesPage_Template(rf, ctx) { if (rf & 1) {
             i0.ɵɵelement(0, "app-page-header", 0);
             i0.ɵɵelementStart(1, "app-page-state", 1);
             i0.ɵɵlistener("retry", function ModulesPage_Template_app_page_state_retry_1_listener() { return ctx.reload(); });
@@ -333,7 +333,7 @@ export class ModulesPage {
               <div hlmField orientation="horizontal" class="items-center">
                 <ng-icon
                   [name]="
-                    module.id === 'my-files'
+                    module.id === 'file-storage'
                       ? 'lucideFolderOpen'
                       : module.id === 'support'
                         ? 'lucideLifeBuoy'
@@ -369,51 +369,51 @@ export class ModulesPage {
           <div hlmCardContent [id]="module.id + '-module-content'" class="grid gap-4">
             <section class="grid gap-3" [attr.aria-labelledby]="module.id + '-features-title'">
               <h3 hlmCardTitle [id]="module.id + '-features-title'">{{ 'moduleFeatures' | t }}</h3>
-              @if (module.id === 'my-files') {
+              @if (module.id === 'file-storage') {
                 <label
                   hlmFieldLabel
-                  for="my-files-demo"
+                  for="file-storage-demo"
                   class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
                 >
                   <div hlmField orientation="horizontal">
                     <hlm-switch
-                      inputId="my-files-demo"
-                      name="myFilesDemoMode"
+                      inputId="file-storage-demo"
+                      name="fileStorageDemoMode"
                       [ngModel]="demoModes[module.id]"
                       (ngModelChange)="save(module, !!module.enabled, $event)"
                       [disabled]="busy() || data.refreshing() || !module.available"
-                      [attr.aria-label]="'myFilesDemoMode' | t"
-                      aria-describedby="my-files-demo-help"
+                      [attr.aria-label]="'fileStorageDemoMode' | t"
+                      aria-describedby="file-storage-demo-help"
                       class="self-center"
                     />
                     <div hlmFieldContent>
-                      <span hlmFieldTitle>{{ 'myFilesDemoMode' | t }}</span>
-                      <p hlmFieldDescription id="my-files-demo-help">
-                        {{ 'myFilesDemoHelp' | t }}
+                      <span hlmFieldTitle>{{ 'fileStorageDemoMode' | t }}</span>
+                      <p hlmFieldDescription id="file-storage-demo-help">
+                        {{ 'fileStorageDemoHelp' | t }}
                       </p>
                     </div>
                   </div>
                 </label>
                 <label
                   hlmFieldLabel
-                  for="my-files-slow-upload"
+                  for="file-storage-slow-upload"
                   class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
                 >
                   <div hlmField orientation="horizontal">
                     <hlm-switch
-                      inputId="my-files-slow-upload"
-                      name="myFilesSlowUploadMode"
+                      inputId="file-storage-slow-upload"
+                      name="fileStorageSlowUploadMode"
                       [ngModel]="slowUploadModes[module.id]"
                       (ngModelChange)="save(module, !!module.enabled, undefined, $event)"
                       [disabled]="busy() || data.refreshing() || !module.available"
-                      [attr.aria-label]="'myFilesSlowUploadMode' | t"
-                      aria-describedby="my-files-slow-upload-help"
+                      [attr.aria-label]="'fileStorageSlowUploadMode' | t"
+                      aria-describedby="file-storage-slow-upload-help"
                       class="self-center"
                     />
                     <div hlmFieldContent>
-                      <span hlmFieldTitle>{{ 'myFilesSlowUploadMode' | t }}</span>
-                      <p hlmFieldDescription id="my-files-slow-upload-help">
-                        {{ 'myFilesSlowUploadHelp' | t }}
+                      <span hlmFieldTitle>{{ 'fileStorageSlowUploadMode' | t }}</span>
+                      <p hlmFieldDescription id="file-storage-slow-upload-help">
+                        {{ 'fileStorageSlowUploadHelp' | t }}
                       </p>
                     </div>
                   </div>
@@ -422,9 +422,9 @@ export class ModulesPage {
                 <p class="workspace-meta">{{ 'moduleNoFeatures' | t }}</p>
               }
             </section>
-            @if (module.id === 'my-files') {
+            @if (module.id === 'file-storage') {
               <div class="flex flex-wrap gap-2">
-                <a hlmBtn variant="outline" routerLink="/administration/storage">
+                <a hlmBtn variant="outline" routerLink="/administration/file-storage">
                   {{ 'storageSettings' | t }}
                 </a>
               </div>

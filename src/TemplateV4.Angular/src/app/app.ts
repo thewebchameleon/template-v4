@@ -6,7 +6,7 @@ import {
   destinationAvailable,
   Destination,
 } from './core/destinations';
-import { MyFilesTree } from './features/my-files/files/my-files-components';
+import { FileStorageTree } from './features/file-storage/files/file-storage-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -74,7 +74,7 @@ type RailLink = Destination & {
     HlmDrawerImports,
     HlmTooltip,
     Preferences,
-    MyFilesTree,
+    FileStorageTree,
     Translate,
     Confirmation,
     NotificationDrawer,
@@ -244,9 +244,11 @@ type RailLink = Destination & {
                   </ul>
                 </nav>
               }
-              @if (features.enabled('my-files') && (sidebar.isMobile() || myFilesPanelActive())) {
+              @if (
+                features.enabled('file-storage') && (sidebar.isMobile() || fileStoragePanelActive())
+              ) {
                 @defer (on immediate) {
-                  <app-my-files-tree />
+                  <app-file-storage-tree />
                 }
               }
               @if (sidebar.isMobile() || accountPanelActive()) {
@@ -640,7 +642,7 @@ export class App {
           destination: railItem.destination ?? item.path,
           destinationQueryParams:
             railItem.destinationQueryParams ??
-            (item.capability === 'my-files' ? { group: 'my-files' } : null),
+            (item.capability === 'file-storage' ? { group: 'file-storage' } : null),
         };
       }),
     ...(this.availableAdminLinks().length
@@ -664,10 +666,12 @@ export class App {
     return activeDestinationIndex(this.railLinks(), this.router.url.split(/[?#]/)[0]);
   });
 
-  readonly myFilesPanelActive = computed(() => this.railPanelActive('/my-files'));
+  readonly fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'));
   readonly hasSecondaryNavigation = computed(
     () =>
-      this.accountPanelActive() || this.administrationPanelActive() || this.myFilesPanelActive(),
+      this.accountPanelActive() ||
+      this.administrationPanelActive() ||
+      this.fileStoragePanelActive(),
   );
 
   railPanelActive(path: string): boolean {

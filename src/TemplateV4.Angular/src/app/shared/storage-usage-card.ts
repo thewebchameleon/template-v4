@@ -19,7 +19,7 @@ import { WorkspaceUi } from './workspace';
           {{ value.quotaBytes === -1 ? ('maxUploadNoLimit' | t) : bytes(value.quotaBytes) }}
         </p>
         <div
-          class="my-files-quota"
+          class="file-storage-quota"
           role="img"
           [attr.aria-label]="
             ('storageUsage' | t) +
@@ -40,10 +40,10 @@ import { WorkspaceUi } from './workspace';
             ></span>
           }
         </div>
-        <ul class="my-files-quota-legend">
+        <ul class="file-storage-quota-legend">
           @for (segment of value.usage; track segment.category) {
             <li>
-              <span class="my-files-swatch" [attr.data-category]="segment.category"></span
+              <span class="file-storage-swatch" [attr.data-category]="segment.category"></span
               ><span
                 >{{ 'fileType.' + segment.category | t }}
                 <small>({{ i18n.number(segment.count) }})</small></span
@@ -51,7 +51,7 @@ import { WorkspaceUi } from './workspace';
             </li>
           }
           <li>
-            <span class="my-files-swatch" data-category="remaining"></span
+            <span class="file-storage-swatch" data-category="remaining"></span
             ><span>{{ 'remainingStorage' | t }}</span
             ><strong>{{
               value.quotaBytes === -1
@@ -69,7 +69,7 @@ import { WorkspaceUi } from './workspace';
           </div>
         }
       }
-      <p class="workspace-meta mt-4">{{ 'myFilesRetentionHelp' | t }}</p>
+      <p class="workspace-meta mt-4">{{ 'fileStorageRetentionHelp' | t }}</p>
       <a routerLink="/privacy" class="workspace-link text-sm mt-3 inline-block">{{
         'privacyAndData' | t
       }}</a>

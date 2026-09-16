@@ -109,13 +109,16 @@ export const routes: Routes = [
   {
     path: 'files',
     pathMatch: 'full',
-    redirectTo: ({ queryParams }) => inject(Router).createUrlTree(['/my-files'], { queryParams }),
+    redirectTo: ({ queryParams }) =>
+      inject(Router).createUrlTree(['/file-storage'], { queryParams }),
   },
   {
     path: 'shared-files/:id',
     data: { breadcrumb: 'sharedWithMe' },
     loadComponent: () =>
-      import('./features/my-files/sharing/public-my-files').then((m) => m.PublicMyFilesPage),
+      import('./features/file-storage/sharing/public-file-storage').then(
+        (m) => m.PublicFileStoragePage,
+      ),
   },
   {
     path: 'organisation',
@@ -137,7 +140,8 @@ export const routes: Routes = [
   {
     path: 'organisation/files',
     pathMatch: 'full',
-    redirectTo: ({ queryParams }) => inject(Router).createUrlTree(['/my-files'], { queryParams }),
+    redirectTo: ({ queryParams }) =>
+      inject(Router).createUrlTree(['/file-storage'], { queryParams }),
   },
   { path: '', pathMatch: 'full', canActivate: [bootstrapLandingGuard], children: [] },
   {
@@ -294,11 +298,12 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'my-files',
+    path: 'file-storage',
     data: { breadcrumb: 'files' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.myFiles)],
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.fileStorage)],
     canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/my-files/files/my-files').then((m) => m.MyFilesPage),
+    loadComponent: () =>
+      import('./features/file-storage/files/file-storage').then((m) => m.FileStoragePage),
   },
   {
     path: 'privacy',
@@ -394,13 +399,13 @@ export const routes: Routes = [
             path: ':ownerId/files',
             pathMatch: 'full',
             redirectTo: ({ queryParams }) =>
-              inject(Router).createUrlTree(['/my-files'], { queryParams }),
+              inject(Router).createUrlTree(['/file-storage'], { queryParams }),
           },
           {
-            path: ':ownerId/my-files',
+            path: ':ownerId/file-storage',
             pathMatch: 'full',
             redirectTo: ({ queryParams }) =>
-              inject(Router).createUrlTree(['/my-files'], { queryParams }),
+              inject(Router).createUrlTree(['/file-storage'], { queryParams }),
           },
           {
             path: ':id',
@@ -456,13 +461,13 @@ export const routes: Routes = [
           import('./features/configuration/configuration').then((m) => m.ConfigurationPage),
       },
       {
-        path: 'storage',
+        path: 'file-storage',
         resolve: { moduleSettingsTranslations },
         data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.storage)],
         canDeactivate: [unsavedGuard],
         loadComponent: () =>
-          import('./features/my-files/configuration/storage-settings').then(
+          import('./features/file-storage/configuration/storage-settings').then(
             (m) => m.StorageSettingsPage,
           ),
       },

@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 async function modulesApp(page: Page, administrator = true, available = true) {
   let saved = {
-    id: 'my-files',
+    id: 'file-storage',
     enabled: true,
     available,
     initialized: available,
@@ -34,7 +34,7 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       }
       return route.fulfill({ json: [saved] });
     }
-    if (path === '/api/v1/auth/administration/modules/my-files/settings') {
+    if (path === '/api/v1/auth/administration/modules/file-storage/settings') {
       if (route.request().method() === 'POST') {
         settingsPosts++;
         const body = route.request().postDataJSON();
@@ -63,7 +63,7 @@ async function modulesApp(page: Page, administrator = true, available = true) {
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/capabilities': { 'my-files': saved.enabled && available },
+      '/api/v1/capabilities': { 'file-storage': saved.enabled && available },
     };
     return route.fulfill({ json: responses[path] ?? {} });
   });
@@ -77,22 +77,22 @@ async function modulesApp(page: Page, administrator = true, available = true) {
   };
 }
 
-const myFilesModuleControl = (page: Page) =>
-  page.getByRole('switch', { name: 'Files', exact: true });
+const fileStorageModuleControl = (page: Page) =>
+  page.getByRole('switch', { name: 'File Storage', exact: true });
 
 test('modules save application-wide Files state, refresh navigation and guard disabled routes', async ({
   page,
 }) => {
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = myFilesModuleControl(page);
+  const control = fileStorageModuleControl(page);
   const features = page.getByRole('heading', { name: 'Features', exact: true });
   const settingsButton = page
-    .locator('#module-my-files')
+    .locator('#module-file-storage')
     .getByRole('link', { name: 'Settings', exact: true });
   await expect(control).toBeChecked();
   await expect(features).toBeVisible();
-  await expect(settingsButton).toHaveAttribute('href', '/administration/storage');
+  await expect(settingsButton).toHaveAttribute('href', '/administration/file-storage');
   await control.click();
   await expect(control).not.toBeChecked();
   await expect(features).toBeVisible();
@@ -100,17 +100,17 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await expect.poll(app.enabled).toBe(false);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Reload saved settings' })).toHaveCount(0);
-  await expect(page.locator('a[href="/my-files"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/file-storage"]')).toHaveCount(0);
   await expect(
     page
       .getByRole('navigation', { name: 'Administration', exact: true })
-      .getByRole('link', { name: 'Files', exact: true }),
+      .getByRole('link', { name: 'File Storage', exact: true }),
   ).toHaveCount(0);
   await page.reload();
   await expect(control).not.toBeChecked();
   for (const path of [
-    '/my-files',
-    '/administration/storage',
+    '/file-storage',
+    '/administration/file-storage',
     '/administration/users/owner/files',
   ]) {
     await page.goto(path);
@@ -124,18 +124,20 @@ test('modules save application-wide Files state, refresh navigation and guard di
   const modulesNavigation = page
     .getByRole('navigation', { name: 'Administration', exact: true })
     .getByRole('group', { name: 'Module settings', exact: true });
-  await expect(modulesNavigation.getByRole('link', { name: 'Files', exact: true })).toBeVisible();
+  await expect(
+    modulesNavigation.getByRole('link', { name: 'File Storage', exact: true }),
+  ).toBeVisible();
   await page
     .getByRole('navigation', { name: 'Destinations' })
-    .getByRole('link', { name: 'Files', exact: true })
+    .getByRole('link', { name: 'File Storage', exact: true })
     .click();
-  await expect(page).toHaveURL(/\/my-files\?group=my-files$/);
+  await expect(page).toHaveURL(/\/file-storage\?group=file-storage$/);
 });
 
 test('modules restore the saved state when an immediate update fails', async ({ page }) => {
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = myFilesModuleControl(page);
+  const control = fileStorageModuleControl(page);
   app.fail();
   await control.click();
   await expect(
@@ -155,7 +157,7 @@ test('modules deny delegated settings operators and explain unavailable deployme
   await page.unrouteAll();
   await modulesApp(page, true, false);
   await page.goto('/administration/modules');
-  await expect(myFilesModuleControl(page)).toBeDisabled();
+  await expect(fileStorageModuleControl(page)).toBeDisabled();
   await expect(page.getByText('Module setup is incomplete.', { exact: false })).toBeVisible();
 });
 
@@ -165,7 +167,7 @@ test('modules are accessible in both themes and reflow at enlarged text on mobil
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await modulesApp(page);
   await page.goto('/administration/modules');
-  const control = myFilesModuleControl(page);
+  const control = fileStorageModuleControl(page);
   await expect(control).toBeVisible();
   for (const dark of [false, true]) {
     await page.evaluate((value) => document.documentElement.classList.toggle('dark', value), dark);
@@ -220,7 +222,7 @@ test('demo enabling requires warning confirmation and password; cancellation is 
   await dialog.getByRole('button', { name: 'Enable demo mode', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(demo).toBeChecked();
-  await myFilesModuleControl(page).click();
+  await fileStorageModuleControl(page).click();
   await expect(
     page.getByText('Demo expiry is active for everyone', { exact: false }),
   ).toBeVisible();

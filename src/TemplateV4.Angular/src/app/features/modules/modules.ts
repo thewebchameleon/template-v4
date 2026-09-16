@@ -175,7 +175,7 @@ export class ModulesPage implements OnInit {
   }
   settingsDestination(id: string) {
     const destinations: Record<string, { path: string; label: string }> = {
-      'my-files': { path: '/administration/storage', label: 'storageSettings' },
+      'file-storage': { path: '/administration/file-storage', label: 'storageSettings' },
       support: { path: '/administration/support', label: 'support' },
       crm: { path: '/administration/crm', label: 'crmConfiguration' },
       invoicing: { path: '/administration/invoicing', label: 'issuerSettings' },

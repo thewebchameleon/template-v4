@@ -2209,12 +2209,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files": {
+    "/api/v1/auth/file-storage": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListMyFiles",
+        "operationId": "ListFileStorage",
         "parameters": [
           {
             "name": "pageNumber",
@@ -2270,7 +2270,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "default": "my-files"
+              "default": "file-storage"
             }
           }
         ],
@@ -2293,12 +2293,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/upload": {
+    "/api/v1/auth/file-storage/upload": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "UploadMyFile",
+        "operationId": "UploadFileStorageFile",
         "parameters": [
           {
             "name": "name",
@@ -2356,12 +2356,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/download": {
+    "/api/v1/auth/file-storage/{id}/download": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DownloadMyFile",
+        "operationId": "DownloadFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2385,12 +2385,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/delete": {
+    "/api/v1/auth/file-storage/{id}/delete": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DeleteMyFile",
+        "operationId": "DeleteFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2423,12 +2423,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/folders": {
+    "/api/v1/auth/file-storage/folders": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "CreateMyFilesFolder",
+        "operationId": "CreateFileStorageFolder",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -2469,12 +2469,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/rename": {
+    "/api/v1/auth/file-storage/{id}/rename": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "RenameMyFile",
+        "operationId": "RenameFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2517,12 +2517,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/metadata": {
+    "/api/v1/auth/file-storage/{id}/metadata": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "UpdateMyFileMetadata",
+        "operationId": "UpdateFileStorageFileMetadata",
         "parameters": [
           {
             "name": "id",
@@ -2565,12 +2565,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/move": {
+    "/api/v1/auth/file-storage/{id}/move": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "MoveMyFile",
+        "operationId": "MoveFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2613,12 +2613,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/restore": {
+    "/api/v1/auth/file-storage/{id}/restore": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "RestoreMyFile",
+        "operationId": "RestoreFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2651,12 +2651,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/purge": {
+    "/api/v1/auth/file-storage/{id}/purge": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "PurgeMyFile",
+        "operationId": "PurgeFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2689,12 +2689,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/trash/empty": {
+    "/api/v1/auth/file-storage/trash/empty": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "EmptyMyFilesTrash",
+        "operationId": "EmptyFileStorageTrash",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -2718,12 +2718,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/shares": {
+    "/api/v1/auth/file-storage/{id}/shares": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListMyFileShares",
+        "operationId": "ListFileStorageShares",
         "parameters": [
           {
             "name": "id",
@@ -2760,7 +2760,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "ShareMyFile",
+        "operationId": "ShareFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2810,12 +2810,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/{id}/shares/{shareId}/revoke": {
+    "/api/v1/auth/file-storage/{id}/shares/{shareId}/revoke": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "RevokeMyFileShare",
+        "operationId": "RevokeFileStorageShare",
         "parameters": [
           {
             "name": "id",
@@ -2857,12 +2857,12 @@
         ]
       }
     },
-    "/api/v1/auth/my-files/public/{id}": {
+    "/api/v1/auth/file-storage/public/{id}": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetPublicMyFile",
+        "operationId": "GetPublicFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2895,12 +2895,12 @@
         }
       }
     },
-    "/api/v1/auth/my-files/public/{id}/download": {
+    "/api/v1/auth/file-storage/public/{id}/download": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "DownloadPublicMyFile",
+        "operationId": "DownloadPublicFileStorageFile",
         "parameters": [
           {
             "name": "id",
@@ -2926,12 +2926,12 @@
         }
       }
     },
-    "/api/v1/auth/my-files/public/{id}/children": {
+    "/api/v1/auth/file-storage/public/{id}/children": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ListPublicMyFiles",
+        "operationId": "ListPublicFileStorage",
         "parameters": [
           {
             "name": "id",
@@ -3005,12 +3005,12 @@
         }
       }
     },
-    "/api/v1/auth/my-files/admin/settings": {
+    "/api/v1/auth/file-storage/admin/settings": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetMyFilesStorageSettings",
+        "operationId": "GetFileStorageStorageSettings",
         "responses": {
           "200": {
             "description": "OK",
@@ -3033,7 +3033,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "SaveMyFilesStorageSettings",
+        "operationId": "SaveFileStorageStorageSettings",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -3541,19 +3541,19 @@
         ]
       }
     },
-    "/api/v1/auth/administration/modules/my-files/settings": {
+    "/api/v1/auth/administration/modules/file-storage/settings": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetMyFilesModuleSettings",
+        "operationId": "GetFileStorageModuleSettings",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyFilesModuleSettings"
+                  "$ref": "#/components/schemas/FileStorageModuleSettings"
                 }
               }
             }
@@ -3569,7 +3569,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "SaveMyFilesModuleSettings",
+        "operationId": "SaveFileStorageModuleSettings",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -3585,7 +3585,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveMyFilesModuleSettings"
+                "$ref": "#/components/schemas/SaveFileStorageModuleSettings"
               }
             }
           },
@@ -3597,7 +3597,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyFilesModuleSettings"
+                  "$ref": "#/components/schemas/FileStorageModuleSettings"
                 }
               }
             }
@@ -9658,6 +9658,31 @@
           }
         }
       },
+      "FileStorageModuleSettings": {
+        "required": [
+          "demoMode",
+          "slowUploadMode",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "demoMode": {
+            "type": "boolean"
+          },
+          "slowUploadMode": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "demoExpiryMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
+          }
+        }
+      },
       "FileStorageSettings": {
         "type": "object",
         "properties": {
@@ -10197,31 +10222,6 @@
           "initialized": {
             "type": "boolean",
             "default": true
-          }
-        }
-      },
-      "MyFilesModuleSettings": {
-        "required": [
-          "demoMode",
-          "slowUploadMode",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "demoMode": {
-            "type": "boolean"
-          },
-          "slowUploadMode": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "demoExpiryMinutes": {
-            "type": "integer",
-            "format": "int32",
-            "default": 60
           }
         }
       },
@@ -11679,33 +11679,7 @@
           }
         }
       },
-      "SaveModuleActivation": {
-        "required": [
-          "id",
-          "enabled",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "permission": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "SaveMyFilesModuleSettings": {
+      "SaveFileStorageModuleSettings": {
         "required": [
           "demoMode",
           "slowUploadMode",
@@ -11728,6 +11702,32 @@
               "null",
               "string"
             ]
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SaveModuleActivation": {
+        "required": [
+          "id",
+          "enabled",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           },
           "permission": {
             "type": [

@@ -1,6 +1,6 @@
-using TemplateV4.Application.Customers;
 using System.Security.Claims;
 using TemplateV4.Application.Crm;
+using TemplateV4.Application.Customers;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 
@@ -17,7 +17,7 @@ public static class OrganisationAttachmentEndpoints
             (await library.List(Guid.Parse(user.FindFirstValue("sub")!), pageNumber, pageSize, ct)).ToHttp()).WithName("ListOrganisationAttachments").Produces<Page<OrganisationAttachment>>();
         files.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, IOrganisationAttachments library, CancellationToken ct) =>
             (await library.Resolve(Guid.Parse(user.FindFirstValue("sub")!), id, ct)).ToHttp()).WithName("GetOrganisationAttachment").Produces<OrganisationAttachment>();
-        files.MapPost("/upload", async (string name, ClaimsPrincipal user, HttpContext context, IOrganisationAttachments library, TemplateV4.Infrastructure.Storage.MyFilesService settings, CancellationToken ct) =>
+        files.MapPost("/upload", async (string name, ClaimsPrincipal user, HttpContext context, IOrganisationAttachments library, TemplateV4.Infrastructure.Storage.FileStorageService settings, CancellationToken ct) =>
         {
             var max = (await settings.Settings(ct)).MaxUploadBytes;
             var limit = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>();

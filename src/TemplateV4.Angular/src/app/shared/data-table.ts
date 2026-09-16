@@ -106,7 +106,7 @@ export interface DataTableRowDragEvent<TData> {
                 [class.cursor-pointer]="!!rowActionLabel()"
                 [attr.draggable]="rowDraggable()?.(row.original) ? 'true' : null"
                 [class.opacity-50]="rowDragging()?.(row.original)"
-                [class.my-files-drop-target]="rowDropActive()?.(row.original)"
+                [class.file-storage-drop-target]="rowDropActive()?.(row.original)"
                 (click)="activateRow($event, row.original)"
                 (keydown)="rowKeydown($event, row.original)"
                 (dragstart)="rowDragStart.emit({ event: $event, row: row.original })"

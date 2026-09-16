@@ -66,12 +66,12 @@ export const routes = [
     {
         path: 'files',
         pathMatch: 'full',
-        redirectTo: ({ queryParams }) => inject(Router).createUrlTree(['/my-files'], { queryParams }),
+        redirectTo: ({ queryParams }) => inject(Router).createUrlTree(['/file-storage'], { queryParams }),
     },
     {
         path: 'shared-files/:id',
         data: { breadcrumb: 'sharedWithMe' },
-        loadComponent: () => import('./features/my-files/sharing/public-my-files').then((m) => m.PublicMyFilesPage),
+        loadComponent: () => import('./features/file-storage/sharing/public-file-storage').then((m) => m.PublicFileStoragePage),
     },
     {
         path: 'organizations',
@@ -209,11 +209,11 @@ export const routes = [
         ],
     },
     {
-        path: 'my-files',
+        path: 'file-storage',
         data: { breadcrumb: 'files' },
-        canActivate: [authGuard, destinationGuard(workspaceDestinations.myFiles)],
+        canActivate: [authGuard, destinationGuard(workspaceDestinations.fileStorage)],
         canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/my-files/files/my-files').then((m) => m.MyFilesPage),
+        loadComponent: () => import('./features/file-storage/files/file-storage').then((m) => m.FileStoragePage),
     },
     {
         path: 'privacy',
@@ -281,14 +281,14 @@ export const routes = [
                     {
                         path: ':ownerId/files',
                         pathMatch: 'full',
-                        redirectTo: ({ params, queryParams }) => inject(Router).createUrlTree(['/administration/users', params['ownerId'], 'my-files'], { queryParams }),
+                        redirectTo: ({ params, queryParams }) => inject(Router).createUrlTree(['/administration/users', params['ownerId'], 'file-storage'], { queryParams }),
                     },
                     {
-                        path: ':ownerId/my-files',
+                        path: ':ownerId/file-storage',
                         data: { breadcrumb: 'files', permission: 'settings.manage' },
-                        canActivate: [permissionGuard, capabilityGuard('my-files')],
+                        canActivate: [permissionGuard, capabilityGuard('file-storage')],
                         canDeactivate: [unsavedGuard],
-                        loadComponent: () => import('./features/my-files/files/my-files').then((m) => m.MyFilesPage),
+                        loadComponent: () => import('./features/file-storage/files/file-storage').then((m) => m.FileStoragePage),
                     },
                     {
                         path: ':id',
@@ -321,11 +321,11 @@ export const routes = [
                 loadComponent: () => import('./features/configuration/configuration').then((m) => m.ConfigurationPage),
             },
             {
-                path: 'storage',
+                path: 'file-storage',
                 data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.storage)],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/my-files/configuration/storage-settings').then((m) => m.StorageSettingsPage),
+                loadComponent: () => import('./features/file-storage/configuration/storage-settings').then((m) => m.StorageSettingsPage),
             },
             {
                 path: 'audit-history',

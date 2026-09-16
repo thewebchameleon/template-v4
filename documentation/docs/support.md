@@ -61,7 +61,7 @@ Public replies and status/attachment changes notify the other participant when t
 
 Attachments are public within their ticket: requester and support staff can download them through an authenticated, no-store, attachment-only response. Private-note attachments are not supported. The portal uploads attachments after ticket creation.
 
-Files are limited to 5 MiB each, ten files and 20 MiB total per ticket. They are stored in PostgreSQL `bytea` so the file, ticket version, history, audit and notifications commit atomically and erase together. They do not depend on the personal Files module or its quotas. No inline preview or malware scanning is provided; downloaded content remains untrusted. See [ADR 0025](adr/0025-customer-support-portal.md) for this storage tradeoff.
+Files are limited to 5 MiB each, ten files and 20 MiB total per ticket. They are stored in PostgreSQL `bytea` so the file, ticket version, history, audit and notifications commit atomically and erase together. They do not depend on the personal File Storage module or its quotas. No inline preview or malware scanning is provided; downloaded content remains untrusted. See [ADR 0025](adr/0025-customer-support-portal.md) for this storage tradeoff.
 
 Account export includes requester tickets, public conversation and attachment metadata; file contents remain available through ticket downloads. Approved account erasure deletes requester tickets and their cascading messages/attachments, removes authored contributions elsewhere, and clears assignments. Erasure continues when the module is disabled. Audit retains event identifiers/actions but never ticket subjects, descriptions, message bodies or attachment names. No automatic ticket retention schedule is introduced.
 

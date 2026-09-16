@@ -1,6 +1,6 @@
 @layer components {
   [data-slot='card']:has(app-data-table),
-  [data-slot='card']:has(.my-files-controls) {
+  [data-slot='card']:has(.file-storage-controls) {
     --panel-content-spacing: calc(var(--spacing) * 4);
     --panel-header-padding-inline: var(--card-spacing);
   }
@@ -240,7 +240,7 @@
   }
 }
 
-/* Shared My Files surfaces consume semantic file-category tokens. */
+/* Shared File Storage surfaces consume semantic file-category tokens. */
 [data-category='images'] {
   --file-color: var(--file-images);
 }
@@ -285,13 +285,13 @@
   block-size: 2.75rem;
   color: var(--file-color, var(--muted-foreground));
 }
-.my-files-grid {
+.file-storage-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 0.75rem;
   padding-block: var(--card-spacing);
 }
-.my-files-grid-card {
+.file-storage-grid-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -302,27 +302,27 @@
   background: var(--card);
   color: var(--card-foreground);
 }
-.my-files-grid-card:focus-within {
+.file-storage-grid-card:focus-within {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
-.my-files-tree .my-file-icon {
+.file-storage-tree .my-file-icon {
   inline-size: 1.5rem;
   block-size: 1.5rem;
   background: transparent;
 }
-.my-files-tree {
+.file-storage-tree {
   margin-block: 0.25rem;
 }
-.my-files-recent-content {
+.file-storage-recent-content {
   --card-spacing: calc(var(--spacing) * 4);
 }
-.my-files-recent {
+.file-storage-recent {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 0.75rem;
 }
-.my-files-quota {
+.file-storage-quota {
   display: flex;
   inline-size: 100%;
   block-size: 0.875rem;
@@ -330,27 +330,27 @@
   border-radius: var(--radius);
   background: var(--muted);
 }
-.my-files-quota > span {
+.file-storage-quota > span {
   display: block;
   background: var(--file-color);
 }
-.my-files-quota-legend {
+.file-storage-quota-legend {
   display: grid;
   gap: 0.75rem;
   margin-block-start: 1rem;
 }
-.my-files-quota-legend li {
+.file-storage-quota-legend li {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
   flex-wrap: wrap;
 }
-.my-files-quota-legend strong {
+.file-storage-quota-legend strong {
   margin-inline-start: auto;
   font-weight: 500;
 }
-.my-files-swatch {
+.file-storage-swatch {
   display: inline-block;
   inline-size: 0.65rem;
   block-size: 0.65rem;
@@ -360,7 +360,7 @@
   border: 1px solid var(--border);
 }
 
-.my-files-nav-count {
+.file-storage-nav-count {
   margin-inline-start: auto;
   flex-shrink: 0;
   color: var(--muted-foreground);
@@ -368,21 +368,21 @@
   font-size: 0.75rem;
 }
 
-.my-files-view-controls {
+.file-storage-view-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
 }
-.my-files-search {
+.file-storage-search {
   flex: 1 1 14rem;
   min-inline-size: 0;
   max-inline-size: 24rem;
 }
-.my-files-filter-toolbar {
+.file-storage-filter-toolbar {
   flex-basis: 28rem;
 }
-.my-files-grid-sort {
+.file-storage-grid-sort {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -392,19 +392,19 @@
   background: var(--table-header);
 }
 @media (max-width: 40rem) {
-  .my-files-controls,
-  .my-files-filter-toolbar {
+  .file-storage-controls,
+  .file-storage-filter-toolbar {
     align-items: stretch;
   }
-  .my-files-view-controls,
-  .my-files-filter-toolbar {
+  .file-storage-view-controls,
+  .file-storage-filter-toolbar {
     inline-size: 100%;
   }
-  .my-files-search {
+  .file-storage-search {
     max-inline-size: none;
   }
 }
-.my-files-card-open {
+.file-storage-card-open {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -413,23 +413,23 @@
   text-align: start;
   border-radius: var(--radius);
 }
-.my-files-card-open:disabled {
+.file-storage-card-open:disabled {
   opacity: 0.5;
 }
-.my-files-card-open:focus-visible,
-.my-files-dropzone:focus-visible {
+.file-storage-card-open:focus-visible,
+.file-storage-dropzone:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
-.my-files-upload-content {
+.file-storage-upload-content {
   position: relative;
   isolation: isolate;
   overflow: hidden;
 }
-.my-files-upload-content > :not(.my-files-upload-progress) {
+.file-storage-upload-content > :not(.file-storage-upload-progress) {
   position: relative;
 }
-.my-files-dropzone {
+.file-storage-dropzone {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -446,15 +446,15 @@
   background: var(--card);
   text-align: center;
 }
-.my-files-dropzone:disabled {
+.file-storage-dropzone:disabled {
   color: var(--muted-foreground);
 }
-button.my-files-dropzone:hover:not(:disabled),
-.my-files-drop-target {
+button.file-storage-dropzone:hover:not(:disabled),
+.file-storage-drop-target {
   background: var(--accent);
   border-color: var(--primary);
 }
-.my-files-upload-progress {
+.file-storage-upload-progress {
   position: absolute;
   inset-block: 0;
   left: 0;
@@ -471,29 +471,29 @@ button.my-files-dropzone:hover:not(:disabled),
     transparent
   );
   background-size: 2rem 2rem;
-  animation: my-files-upload-stripes 1s linear infinite;
+  animation: file-storage-upload-stripes 1s linear infinite;
   transition: width 200ms ease-out;
 }
-@keyframes my-files-upload-stripes {
+@keyframes file-storage-upload-stripes {
   to {
     background-position: 2rem 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .my-files-upload-progress {
+  .file-storage-upload-progress {
     animation: none;
     transition: none;
   }
 }
-.my-files-metadata {
+.file-storage-metadata {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 0.75rem 1rem;
 }
-.my-files-metadata dt {
+.file-storage-metadata dt {
   color: var(--muted-foreground);
 }
-.my-files-metadata dd {
+.file-storage-metadata dd {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }

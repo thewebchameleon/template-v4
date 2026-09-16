@@ -8,7 +8,7 @@ namespace TemplateV4.Infrastructure.Storage;
 
 public sealed record OrganisationFileItem(Guid Id, string Name, long Size, DateTimeOffset CreatedAt, bool CanDelete);
 public sealed record OrganisationFilePage(Page<OrganisationFileItem> Page, long UsedBytes, long QuotaBytes);
-public sealed class OrganisationFiles(FrameworkDb db, ICustomerAccess customers, IStorageEntitlements entitlements, MyFilesService library)
+public sealed class OrganisationFiles(FrameworkDb db, ICustomerAccess customers, IStorageEntitlements entitlements, FileStorageService library)
 {
     private async Task<bool> Access(Guid actor, CancellationToken ct) => await customers.Find(actor, ct) is not null;
     private Task<bool> CanWrite(Guid actor, CancellationToken ct) => (from assignment in db.UserRoles

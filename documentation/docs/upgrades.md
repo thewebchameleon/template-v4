@@ -55,14 +55,15 @@ Run the PostgreSQL suite, independent package consumer and isolated browser harn
 
 ## Delegated access upgrade
 
-Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:my-files:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:file-storage:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
 
-## My Files upgrade
+## File Storage upgrade
 
-Apply `MyFilesLibrary` and `RenameMyFilesModule` with the DatabaseMigrator before starting the updated API and Worker. Existing file objects keep their keys, and the module rename preserves the stored activation setting. Change deployment overrides from `Modules:files` to `Modules:my-files` and feature overrides from `Features:files:*` to `Features:my-files:*`, including environment-specific/user/tenant settings. The browser redirects `/files` and old administrator file URLs with their query state. API clients must regenerate against `/api/v1/auth/my-files`; old personal API paths are retired. Organisation file API paths remain unchanged.
+Stop API and Worker, then apply the forward `RenameFileStorageModule` migration with DatabaseMigrator before restarting the updated workloads. Existing migration IDs and files remain unchanged. The migration renames the runtime module from `my-files` to `file-storage` in place, preserving its enabled state and version. It moves the library, settings and shares to the `file_storage` schema and renames `my_file_shares` to `file_shares` without deleting records or changing object keys or share tokens.
 
-The `files` PostgreSQL schema remains in place because it also contains organisation storage. New personal versions and shares are mapped there. Downgrading after users create new versions or shares would lose their metadata; restore a coordinated database/object-store backup instead of dropping these tables on an active library.
+Change deployment overrides from `Modules:my-files` to `Modules:file-storage` and feature overrides from `Features:my-files:*` to `Features:file-storage:*`, including user/environment overrides and environment variables. Update bookmarks to `/file-storage` and `/administration/file-storage`. Regenerate API clients for `/api/v1/auth/file-storage` and the typed settings endpoint `/api/v1/auth/administration/modules/file-storage/settings`. Old module API paths are retired. Organisation attachment paths and permissions remain unchanged.
 
+The rename migration supports rollback while preserving activation, settings and shares; coordinate the application version and configuration with any rollback. Older migrations retain their historical names, including `MyFilesLibrary` and `RenameMyFilesModule`.
 
 ## Foundation 0.2.0
 

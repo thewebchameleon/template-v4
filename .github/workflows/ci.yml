@@ -46,8 +46,8 @@ jobs:
           tools/capabilities.test.mjs
           tools/gradient-quality.test.mjs
           tools/module-administration.test.mjs
-          tools/my-files-ui.test.mjs
-          tools/my-files-upload.test.mjs
+          tools/file-storage-ui.test.mjs
+          tools/file-storage-upload.test.mjs
           tools/ui-sounds.test.mjs
           tools/web-push.test.mjs
 

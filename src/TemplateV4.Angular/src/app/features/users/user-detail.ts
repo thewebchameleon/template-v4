@@ -44,8 +44,8 @@ import { AccessCatalog, UserAccessDetail } from '../../api/models';
             <div hlmCardHeader>
               <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
               <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
-              @if (auth.has('settings.manage') && features.enabled('my-files')) {
-                <a hlmBtn variant="outline" routerLink="/my-files">{{ 'files' | t }}</a>
+              @if (auth.has('settings.manage') && features.enabled('file-storage')) {
+                <a hlmBtn variant="outline" routerLink="/file-storage">{{ 'files' | t }}</a>
               }
             </div>
             <form hlmCardContent class="grid gap-5" (ngSubmit)="save()">

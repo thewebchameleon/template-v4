@@ -36,7 +36,7 @@ public static partial class Registration
         AddSupport(services);
         AddNotifications(services);
         AddActionItems(services);
-        AddMyFiles(services);
+        AddFileStorage(services);
         AddModules(services);
         AddConfiguration(services);
         AddUsers(services);

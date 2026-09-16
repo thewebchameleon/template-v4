@@ -74,7 +74,7 @@ for (const switched of [false, true])
     });
     const payload = new Uint8Array([1, 2, 3]);
     const request = {
-      url: "/api/v1/auth/my-files/upload",
+      url: "/api/v1/auth/file-storage/upload",
       body: payload,
       context: { get: () => "" },
       clone(options) {

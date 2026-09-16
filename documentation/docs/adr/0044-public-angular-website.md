@@ -40,7 +40,7 @@ Accepted notifications use the existing outbox, SMTP and retry/lease mechanism a
 continue after module disablement. Email contains a link to the inbox, not visitor text.
 
 Uploaded website images use the existing provider-neutral storage contract, independent
-of My Files activation. Accept bounded PNG/JPEG/WebP files and generate opaque storage
+of File Storage activation. Accept bounded PNG/JPEG/WebP files and generate opaque storage
 keys. These are explicitly public assets; the administration upload control explains
 that fact. External image URLs must use HTTPS. Canonical origins allow no credentials,
 path, query or fragment. Admin setup endpoints retain role, permission and CSRF checks.

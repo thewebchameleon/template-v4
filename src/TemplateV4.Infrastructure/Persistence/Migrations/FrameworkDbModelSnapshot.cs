@@ -1185,7 +1185,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("file_storage_settings", "files");
+                    b.ToTable("file_storage_settings", "file_storage");
 
                     b.HasData(
                         new
@@ -1198,6 +1198,45 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             SlowUploadMode = false,
                             Version = new Guid("df8c4bbd-18fb-45f8-8f13-a4c58a334660")
                         });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.FileStorageShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<Guid?>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("file_shares", "file_storage");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.IdempotencyRecord", b =>
@@ -1292,45 +1331,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasIndex("State", "AvailableAt");
 
                     b.ToTable("job_runs", "messaging");
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("FileId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Permission")
-                        .IsRequired()
-                        .HasMaxLength(12)
-                        .HasColumnType("character varying(12)");
-
-                    b.Property<Guid?>("RecipientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TokenHash")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("RecipientId");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
-                    b.ToTable("my_file_shares", "files");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.OrganisationLogoRow", b =>
@@ -1621,7 +1621,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = "my-files",
+                            Id = "file-storage",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")
                         },
@@ -1792,7 +1792,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerId", "ParentId");
 
-                    b.ToTable("files", "files");
+                    b.ToTable("files", "file_storage");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SubscriptionRow", b =>
@@ -2383,7 +2383,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.MyFileShare", b =>
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.FileStorageShare", b =>
                 {
                     b.HasOne("TemplateV4.Infrastructure.Persistence.StoredFile", null)
                         .WithMany()

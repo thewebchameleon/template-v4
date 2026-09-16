@@ -25,15 +25,17 @@ function harness(file, name, api) {
   const prefix = file === 'modules' ? '../..' : '../../..';
   const dependencies = {
     '@angular/core': { Component: () => target => target, inject: token => { assert.ok(token in tokens, token); return tokens[token]; }, signal },
+    [prefix + '/core/destinations']: { administrationDestinations: {}, workspaceDestinations: {}, organisationDestinations: [] },
+    '../support/configuration/support-settings-editor': { SupportSettingsEditor: class {} },
     '@angular/common': {}, '@angular/common/http': { HttpErrorResponse }, '@spartan-ng/helm/dialog': { HlmDialogImports: [] },
     '@spartan-ng/helm/tooltip': {}, [prefix + '/core/i18n']: { I18n: 'i18n' },
     '@ng-icons/core': { provideIcons: () => ({}) }, '@ng-icons/lucide': {},
     [prefix + '/core/features']: { Features: 'features' }, [prefix + '/core/feature-extensions']: { FOUNDATION_FEATURES: 'contributions' },
     [file === 'modules' ? '../notifications/notifications' : '../../notifications/notifications']: { Notifications: 'toast' }, [prefix + '/core/workspace-api']: { WorkspaceApi: 'api' },
-    [prefix + '/shared/workspace']: { Resource, WorkspaceUi: [] }, '../my-files/configuration/my-files-settings-editor': { MyFilesSettingsEditor: class {} },
+    [prefix + '/shared/workspace']: { Resource, WorkspaceUi: [] }, '../file-storage/configuration/file-storage-settings-editor': { FileStorageSettingsEditor: class {} },
   };
   const exports = {};
-  const source = readFileSync(new URL(`../src/TemplateV4.Angular/src/app/features/${file === 'modules' ? 'modules/modules' : 'my-files/configuration/my-files-settings-editor'}.ts`, import.meta.url), 'utf8');
+  const source = readFileSync(new URL(`../src/TemplateV4.Angular/src/app/features/${file === 'modules' ? 'modules/modules' : 'file-storage/configuration/file-storage-settings-editor'}.ts`, import.meta.url), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, experimentalDecorators: true } }).outputText;
   vm.runInNewContext(compiled, { exports, require: id => { assert.ok(id in dependencies, id); return dependencies[id]; } });
   return new exports[name]();
@@ -65,7 +67,7 @@ test('known disable blockers prevent posting an invalid activation change', asyn
 test('demo cancellation sends no request; enabling sends proof once and clears it', async () => {
   const requests = [];
   let settings = { demoMode: false, slowUploadMode: false, version: 'first', demoExpiryMinutes: 60 };
-  const editor = harness('my-files-settings-editor', 'MyFilesSettingsEditor', {
+  const editor = harness('file-storage-settings-editor', 'FileStorageSettingsEditor', {
     get: async () => settings,
     post: async (_path, body) => { requests.push(body); settings = { ...settings, demoMode: body.demoMode, version: 'saved' }; return settings; },
   });
@@ -81,7 +83,7 @@ test('demo cancellation sends no request; enabling sends proof once and clears i
 test('failed demo proof leaves activation unchanged and a stale settings version reloads without retrying', async () => {
   let status = 403, calls = 0;
   let settings = { demoMode: false, slowUploadMode: false, version: 'first' };
-  const editor = harness('my-files-settings-editor', 'MyFilesSettingsEditor', {
+  const editor = harness('file-storage-settings-editor', 'FileStorageSettingsEditor', {
     get: async () => settings,
     post: async () => { calls++; throw new HttpErrorResponse(status); },
   });

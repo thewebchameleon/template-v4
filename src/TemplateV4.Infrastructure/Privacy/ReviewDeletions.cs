@@ -96,7 +96,7 @@ public sealed partial class PrivacyService
             // Remove encrypted email action/recipient data as well as credentials. Fencing stops
             // stale workers committing completion; an SMTP call already in flight cannot be recalled.
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE messaging.outbox SET \"Payload\" = '{{}}', \"CompletedAt\" = {time.GetUtcNow()}, \"PoisonedAt\" = NULL, \"LeaseId\" = NULL, \"LeaseUntil\" = NULL WHERE \"Type\" = 'email.requested.v1' AND \"Payload\"::jsonb->>'UserId' = {user.Id.ToString()}", ct);
-            await db.Set<MyFileShare>().Where(x => x.RecipientId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<FileStorageShare>().Where(x => x.RecipientId == user.Id).ExecuteDeleteAsync(ct);
             await db.Files.Where(x => x.OwnerId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(f => f.OwnerId, (Guid?)null), ct);
             request.State = "Approved";
         }

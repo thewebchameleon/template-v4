@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "foundation": {
-    "my-files": true,
+    "file-storage": true,
     "support": true,
     "crm": true,
     "invoicing": true,

@@ -59,11 +59,11 @@ export const workspaceDestinations = {
     help: 'dashboardTeamsHelp',
     hasPanel: false,
   },
-  myFiles: {
-    path: '/my-files',
+  fileStorage: {
+    path: '/file-storage',
     label: 'files',
     icon: 'lucideFolderOpen',
-    capability: 'my-files',
+    capability: 'file-storage',
     help: 'dashboardFilesHelp',
     hasPanel: true,
   },
@@ -132,12 +132,12 @@ export const administrationDestinations = {
     administratorOnly: true,
   },
   storage: {
-    path: '/administration/storage',
+    path: '/administration/file-storage',
     label: 'files',
     icon: 'lucideFolderOpen',
     section: 'modules',
     permissions: ['settings.manage'],
-    capability: 'my-files',
+    capability: 'file-storage',
   },
   crmConfiguration: {
     path: '/administration/crm',

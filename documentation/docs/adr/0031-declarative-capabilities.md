@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Decision
 
-Keep the modular monolith, explicit service registration and shared EF migration stream. Extend `modules/catalog.json` with `runtimeConfigurable`, optional `featureFlag`, and optional additional `capabilities` containing `id`, `requires` and optional `featureFlag`. The module ID is its base capability. Additional capabilities automatically require their owning module. `organisation-files` composes Organisations and My Files without requiring every organisation to use file storage.
+Keep the modular monolith, explicit service registration and shared EF migration stream. Extend `modules/catalog.json` with `runtimeConfigurable`, optional `featureFlag`, and optional additional `capabilities` containing `id`, `requires` and optional `featureFlag`. The module ID is its base capability. Additional capabilities automatically require their owning module. `organisation-files` composes Organisations and File Storage without requiring every organisation to use file storage.
 
 `ModuleCatalog` validates module and capability graphs and evaluates immutable deployment state with supplied runtime state and feature decisions. `ICapabilities` owns request-time availability discovery. Its Infrastructure implementation reads committed runtime state once per evaluation; it has no process-local cache. Unknown capabilities and missing runtime rows fail closed. Permissions, customer ownership, storage quotas and subscription obligations remain separate operation checks.
 
@@ -14,11 +14,11 @@ Generate C# module/capability constants and TypeScript identifier unions using `
 
 ## Runtime administration and concurrency
 
-Runtime switches are declared by the current catalog and selected private descriptors. My Files, Support, CRM and Invoicing are the current foundation switches. Generic activation discovery derives supported modules from catalog metadata and returns activation versions plus enable/disable blockers to Administrators. The activation store rejects enabling an unavailable prerequisite and disabling a prerequisite with enabled dependents; there is no implicit cascade.
+Runtime switches are declared by the current catalog and selected private descriptors. File Storage, Support, CRM and Invoicing are the current foundation switches. Generic activation discovery derives supported modules from catalog metadata and returns activation versions plus enable/disable blockers to Administrators. The activation store rejects enabling an unavailable prerequisite and disabling a prerequisite with enabled dependents; there is no implicit cascade.
 
 All activation writers lock runtime rows in ID order inside the dispatcher transaction before validating the graph or taking module-settings locks. This serializes graph transitions across API instances. A stale version returns conflict. Updates and audit entries commit together. Required foundations cannot be runtime switches. Future switches need seeded rows in a new forward migration; existing migration history is permanent.
 
-The clean activation API lives at `/api/v1/auth/administration/modules/activation`. Typed My Files behavior settings live at `/api/v1/auth/administration/modules/my-files/settings`, with their own settings version and existing file-settings locking. File behavior and activation versions are independent. The original combined module API and its contracts are removed. No database schema change is needed for this refactoring.
+The clean activation API lives at `/api/v1/auth/administration/modules/activation`. Typed File Storage behavior settings live at `/api/v1/auth/administration/modules/file-storage/settings`, with their own settings version and existing file-settings locking. File behavior and activation versions are independent. The original combined module API and its contracts are removed. No database schema change is needed for this refactoring.
 
 ## Endpoint and frontend conventions
 

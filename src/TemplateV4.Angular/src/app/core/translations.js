@@ -1,5 +1,5 @@
 import { businessDictionary } from './business-translations';
-import { myFilesDictionary } from '../features/my-files/my-files-translations';
+import { fileStorageDictionary } from '../features/file-storage/file-storage-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
@@ -446,4 +446,4 @@ export const dictionary = {
     accountDisabled: ['Account disabled.', 'Rekening gedeaktiveer.'],
     rolesSaved: ['Roles saved.', 'Rolle gestoor.'],
 };
-Object.assign(dictionary, myFilesDictionary);
+Object.assign(dictionary, fileStorageDictionary);

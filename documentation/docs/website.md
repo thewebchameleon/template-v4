@@ -50,7 +50,7 @@ Administrator receives it through Migrator permission synchronization. See
 [Support features](support.md) for upgrade and configuration details.
 
 Website image uploads accept PNG/JPEG/WebP up to 1 MB, through the existing local/S3
-storage provider. My Files need not be enabled. Uploaded assets are public and retained.
+storage provider. File Storage need not be enabled. Uploaded assets are public and retained.
 External image URLs must use HTTPS. Provide meaningful alternative text for section images.
 
 ## Run and deploy

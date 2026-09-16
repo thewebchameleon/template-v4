@@ -29,7 +29,7 @@ import * as i3 from "@spartan-ng/helm/sidebar";
 import * as i4 from "@spartan-ng/helm/separator";
 import * as i5 from "@spartan-ng/helm/drawer";
 const App_Conditional_3_Conditional_20_Defer_1_DepsFn = () => [/* @ts-ignore */
-    import("./features/my-files/files/my-files-components").then(m => m.MyFilesTree)];
+    import("./features/file-storage/files/file-storage-components").then(m => m.FileStorageTree)];
 const App_Conditional_3_Conditional_29_Defer_2_DepsFn = () => [/* @ts-ignore */
     import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer)];
 const App_Conditional_3_hlm_drawer_content_35_Defer_10_DepsFn = () => [i1.HlmButton, i5.HlmDrawerBody, i5.HlmDrawerFooter, /* @ts-ignore */
@@ -146,7 +146,7 @@ function App_Conditional_3_Conditional_19_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵrepeater(ctx_r4.railLinks());
 } }
 function App_Conditional_3_Conditional_20_Defer_0_Template(rf, ctx) { if (rf & 1) {
-    i0.ɵɵelement(0, "app-my-files-tree");
+    i0.ɵɵelement(0, "app-file-storage-tree");
 } }
 function App_Conditional_3_Conditional_20_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵdomTemplate(0, App_Conditional_3_Conditional_20_Defer_0_Template, 1, 0);
@@ -412,7 +412,7 @@ function App_Conditional_3_Template(rf, ctx) { if (rf & 1) {
     i0.ɵɵadvance(3);
     i0.ɵɵconditional(ctx_r4.sidebar.isMobile() ? 19 : -1);
     i0.ɵɵadvance();
-    i0.ɵɵconditional(ctx_r4.features.enabled("my-files") && (ctx_r4.sidebar.isMobile() || ctx_r4.myFilesPanelActive()) ? 20 : -1);
+    i0.ɵɵconditional(ctx_r4.features.enabled("file-storage") && (ctx_r4.sidebar.isMobile() || ctx_r4.fileStoragePanelActive()) ? 20 : -1);
     i0.ɵɵadvance();
     i0.ɵɵconditional(ctx_r4.sidebar.isMobile() || ctx_r4.accountPanelActive() ? 21 : -1);
     i0.ɵɵadvance();
@@ -591,7 +591,7 @@ export class App {
             .map((item) => ({
             ...item,
             destination: item.path,
-            destinationQueryParams: item.capability === 'my-files' ? { group: 'my-files' } : null,
+            destinationQueryParams: item.capability === 'file-storage' ? { group: 'file-storage' } : null,
         })),
         ...(this.availableAdminLinks().length
             ? [
@@ -617,9 +617,9 @@ export class App {
         return activeDestinationIndex(this.railLinks(), this.router.url.split(/[?#]/)[0]);
     }, /* @ts-ignore */
     ...(ngDevMode ? [{ debugName: "activeRailIndex" }] : /* istanbul ignore next */ []));
-    myFilesPanelActive = computed(() => this.railPanelActive('/my-files'), /* @ts-ignore */
-    ...(ngDevMode ? [{ debugName: "myFilesPanelActive" }] : /* istanbul ignore next */ []));
-    hasSecondaryNavigation = computed(() => this.accountPanelActive() || this.administrationPanelActive() || this.myFilesPanelActive(), /* @ts-ignore */
+    fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'), /* @ts-ignore */
+    ...(ngDevMode ? [{ debugName: "fileStoragePanelActive" }] : /* istanbul ignore next */ []));
+    hasSecondaryNavigation = computed(() => this.accountPanelActive() || this.administrationPanelActive() || this.fileStoragePanelActive(), /* @ts-ignore */
     ...(ngDevMode ? [{ debugName: "hasSecondaryNavigation" }] : /* istanbul ignore next */ []));
     railPanelActive(path) {
         this.navigationEnd();
@@ -735,9 +735,9 @@ export class App {
             Translate], encapsulation: 2 });
 }
 (() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadataAsync(App, () => [/* @ts-ignore */
-    import("./features/my-files/files/my-files-components").then(m => m.MyFilesTree), /* @ts-ignore */
+    import("./features/file-storage/files/file-storage-components").then(m => m.FileStorageTree), /* @ts-ignore */
     import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer), /* @ts-ignore */
-    import("./core/preferences").then(m => m.Preferences)], (MyFilesTree, NotificationDrawer, Preferences) => { i0.ɵsetClassMetadata(App, [{
+    import("./core/preferences").then(m => m.Preferences)], (FileStorageTree, NotificationDrawer, Preferences) => { i0.ɵsetClassMetadata(App, [{
         type: Component,
         args: [{
                 selector: 'app-root',
@@ -756,7 +756,7 @@ export class App {
                     HlmDrawerImports,
                     HlmTooltip,
                     Preferences,
-                    MyFilesTree,
+                    FileStorageTree,
                     Translate,
                     Confirmation,
                     NotificationDrawer,
@@ -908,9 +908,9 @@ export class App {
                   </ul>
                 </nav>
               }
-              @if (features.enabled('my-files') && (sidebar.isMobile() || myFilesPanelActive())) {
+              @if (features.enabled('file-storage') && (sidebar.isMobile() || fileStoragePanelActive())) {
                 @defer (on immediate) {
-                  <app-my-files-tree />
+                  <app-file-storage-tree />
                 }
               }
               @if (sidebar.isMobile() || accountPanelActive()) {

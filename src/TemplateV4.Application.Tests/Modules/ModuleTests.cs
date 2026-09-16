@@ -12,8 +12,8 @@ public sealed class ModuleTests
     [Theory]
     [InlineData("Modules:unknown", "true")]
     [InlineData("Modules:identity", "false")]
-    [InlineData("Modules:my-files", "yes")]
-    [InlineData("Modules:my-files:Enabled", "true")]
+    [InlineData("Modules:file-storage", "yes")]
+    [InlineData("Modules:file-storage:Enabled", "true")]
     [InlineData("ModulesPreset", "combined")]
     public void Invalid_deployment_configuration_fails_closed(string key, string value)
         => Assert.Throws<InvalidOperationException>(() => ModuleConfiguration.Load(
@@ -25,15 +25,15 @@ public sealed class ModuleTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ModulesPreset"] = "minimal",
-            ["Modules:my-files"] = "true"
+            ["Modules:file-storage"] = "true"
         }).Build();
         var modules = ModuleConfiguration.Load(configuration);
         Assert.True(modules.Enabled("identity"));
-        Assert.True(modules.Enabled("my-files"));
+        Assert.True(modules.Enabled("file-storage"));
         Assert.False(modules.Enabled("operations"));
         Assert.False(modules.Enabled("billing"));
-        configuration["Modules:my-files"] = "false";
-        Assert.True(modules.Enabled("my-files")); // Activation is a startup snapshot.
+        configuration["Modules:file-storage"] = "false";
+        Assert.True(modules.Enabled("file-storage")); // Activation is a startup snapshot.
     }
 
     [Fact]
@@ -53,12 +53,12 @@ public sealed class ModuleTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ModulesPreset"] = "minimal",
-            ["Features:my-files:Enabled"] = "true",
-            [$"Features:my-files:Users:{actor.ActorId}"] = "true"
+            ["Features:file-storage:Enabled"] = "true",
+            [$"Features:file-storage:Users:{actor.ActorId}"] = "true"
         });
         var flags = new ConfigurationFlags(builder.Configuration, builder.Environment);
         var catalog = ModuleConfiguration.Load(builder.Configuration);
-        Assert.True(flags.Enabled("my-files", actor)); // The provider evaluates rollout; the catalog imposes hard bounds.
-        Assert.False(catalog.Evaluate(new Dictionary<string, bool> { ["my-files"] = true }, feature => flags.Enabled(feature, actor))["my-files"]);
+        Assert.True(flags.Enabled("file-storage", actor)); // The provider evaluates rollout; the catalog imposes hard bounds.
+        Assert.False(catalog.Evaluate(new Dictionary<string, bool> { ["file-storage"] = true }, feature => flags.Enabled(feature, actor))["file-storage"]);
     }
 }

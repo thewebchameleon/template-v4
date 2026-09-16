@@ -35,22 +35,22 @@ test('capability discovery coalesces requests and refreshes on later navigation'
   assert.equal(features.load(), first);
   assert.equal(requests.length, 1);
   assert.equal(requests[0].url, 'https://api.test/api/v1/capabilities');
-  requests[0].response.next({ 'my-files': true });
+  requests[0].response.next({ 'file-storage': true });
   await first;
-  assert.equal(features.enabled('my-files'), true);
+  assert.equal(features.enabled('file-storage'), true);
   assert.equal(features.state(), 'ready');
   assert.equal(features.enabled('support'), false);
   const refresh = features.load();
   requests[1].response.error(new Error('offline'));
   await refresh;
-  assert.equal(features.enabled('my-files'), false);
+  assert.equal(features.enabled('file-storage'), false);
   assert.equal(features.state(), 'error');
   const retry = features.load();
   assert.equal(features.state(), 'loading');
-  requests[2].response.next({ 'my-files': false });
+  requests[2].response.next({ 'file-storage': false });
   await retry;
   assert.equal(features.state(), 'ready');
-  assert.equal(features.enabled('my-files'), false);
+  assert.equal(features.enabled('file-storage'), false);
 });
 
 test('a previous actor response cannot restore stale capabilities or finish the new actor guard early', async () => {
@@ -58,12 +58,12 @@ test('a previous actor response cannot restore stale capabilities or finish the 
   const previous = features.load();
   features.reset();
   const current = features.load();
-  requests[0].response.next({ 'my-files': true });
+  requests[0].response.next({ 'file-storage': true });
   await Promise.resolve();
-  assert.equal(features.enabled('my-files'), false);
+  assert.equal(features.enabled('file-storage'), false);
   requests[1].response.next({ support: true });
   await Promise.all([previous, current]);
-  assert.equal(features.enabled('my-files'), false);
+  assert.equal(features.enabled('file-storage'), false);
   assert.equal(features.enabled('support'), true);
   assert.equal(requests.length, 2);
 });

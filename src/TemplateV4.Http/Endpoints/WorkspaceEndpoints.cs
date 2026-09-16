@@ -8,7 +8,7 @@ public static class WorkspaceEndpoints
         group.MapInvitationEndpoints();
         group.MapOperationsOverviewEndpoints();
         group.MapNotificationEndpoints();
-        group.MapMyFilesEndpoints();
+        group.MapFileStorageEndpoints();
         group.MapWebPushEndpoints();
         group.MapPrivacyEndpoints();
         return group;

@@ -6,7 +6,7 @@ Extends [ADR 0034](0034-private-client-module-composition.md). The catalog expli
 distinguishes `core`, `foundation` and `private`. Core includes identity, audit recording,
 delivery, maintenance, operations, audit history and organisations. These retain existing
 configuration and permissions. Core cannot expose runtime module activation switches.
-Optional foundation modules are My Files, support, CRM, invoicing and SaaS billing.
+Optional foundation modules are File Storage, support, CRM, invoicing and SaaS billing.
 Foundation features remain compiled; private module exclusion remains physical.
 
 Ignored `client-modules.json` holds schemaVersion 1, a `foundation` map of optional

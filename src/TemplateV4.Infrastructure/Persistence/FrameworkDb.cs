@@ -155,7 +155,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         });
         model.Entity<StoredFile>(entity =>
         {
-            entity.ToTable("files", "files"); entity.Property(x => x.Name).HasMaxLength(180);
+            entity.ToTable("files", "file_storage"); entity.Property(x => x.Name).HasMaxLength(180);
             entity.Property(x => x.ContentType).HasMaxLength(100);
             entity.Property(x => x.Description).HasMaxLength(4000);
             entity.Property(x => x.Tags).HasMaxLength(1000);
@@ -166,9 +166,9 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasOne<StoredFile>().WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.OwnerId, x.ParentId });
         });
-        model.Entity<MyFileShare>(entity =>
+        model.Entity<FileStorageShare>(entity =>
         {
-            entity.ToTable("my_file_shares", "files");
+            entity.ToTable("file_shares", "file_storage");
             entity.Property(x => x.TokenHash).HasMaxLength(64);
             entity.Property(x => x.Permission).HasMaxLength(12);
             entity.HasIndex(x => x.TokenHash).IsUnique();
@@ -178,7 +178,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         });
         model.Entity<FileStorageSettings>(entity =>
         {
-            entity.ToTable("file_storage_settings", "files");
+            entity.ToTable("file_storage_settings", "file_storage");
             entity.Property(x => x.DemoExpiryMinutes).HasDefaultValue(60);
             entity.Property(x => x.MaxUploadBytes).HasDefaultValue(20L * 1024 * 1024);
             entity.Property(x => x.Version).IsConcurrencyToken();
@@ -201,7 +201,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasData(new RuntimeModuleSettings { Id = "support", Enabled = true, Version = new Guid("b6c2b6df-1f86-46ea-90f1-c7bc3b61ba49") });
             entity.HasData(new RuntimeModuleSettings { Id = "crm", Enabled = true, Version = new Guid("34c03708-6e53-4c4b-8bfa-d79ed6744c9c") });
             entity.HasData(new RuntimeModuleSettings { Id = "invoicing", Enabled = true, Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383") });
-            entity.HasData(new RuntimeModuleSettings { Id = "my-files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
+            entity.HasData(new RuntimeModuleSettings { Id = "file-storage", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         SupportModel.Configure(model);
         Support.SupportSettingsMappings.Configure(model);

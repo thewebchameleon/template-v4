@@ -32,12 +32,12 @@
     "category": "core"
   },
   {
-    "id": "my-files",
+    "id": "file-storage",
     "required": false,
     "enabledByDefault": true,
     "dependencies": ["identity", "audit-recording"],
     "runtimeConfigurable": true,
-    "featureFlag": "my-files",
+    "featureFlag": "file-storage",
     "category": "foundation"
   },
   {
@@ -92,7 +92,7 @@
     "capabilities": [
       {
         "id": "organisation-files",
-        "requires": ["my-files"]
+        "requires": ["file-storage"]
       }
     ],
     "category": "core"

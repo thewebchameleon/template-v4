@@ -16,7 +16,7 @@ public sealed partial class PrivacyService
         var sessions = await db.Sessions.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Device, x.CreatedAt, x.ExpiresAt, x.RevokedAt }).ToArrayAsync(ct);
         var notifications = await db.Notifications.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.Kind, x.Link, x.CreatedAt, x.ReadAt }).ToArrayAsync(ct);
         var files = await db.Files.AsNoTracking().Where(x => x.OwnerId == actor).Select(x => new { x.Id, x.Name, x.Size, x.ContentType, x.CreatedAt, x.DeletedAt, x.PurgedAt, x.IsFolder, x.ParentId, x.Description, x.Tags, x.Important, x.Starred, x.UpdatedAt }).ToArrayAsync(ct);
-        var fileShares = await db.Set<MyFileShare>().AsNoTracking().Where(x => x.RecipientId == actor || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == actor)).Select(x => new { x.FileId, x.RecipientId, x.Permission, x.ExpiresAt }).ToArrayAsync(ct);
+        var fileShares = await db.Set<FileStorageShare>().AsNoTracking().Where(x => x.RecipientId == actor || db.Files.Any(f => f.Id == x.FileId && f.OwnerId == actor)).Select(x => new { x.FileId, x.RecipientId, x.Permission, x.ExpiresAt }).ToArrayAsync(ct);
         var requests = await db.DeletionRequests.AsNoTracking().Where(x => x.UserId == actor).Select(x => new { x.State, x.RequestedAt, x.ReviewedAt }).ToArrayAsync(ct);
         var actionItemsExport = await db.Set<ActionItemRow>().AsNoTracking().Where(x => x.CreatorId == actor || x.AssigneeId == actor).Select(x => new { x.Title, x.Description, x.Link, x.State, x.CreatedAt, x.CompletedAt }).ToArrayAsync(ct);
         var activity = await db.Audit.AsNoTracking().Where(x => x.SubjectId == actor || x.ActorId == actor).Select(x => new { x.Action, x.At }).ToArrayAsync(ct);

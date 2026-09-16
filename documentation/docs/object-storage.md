@@ -38,7 +38,7 @@ The file library accepts all file types and always downloads them as attachments
 
 ## File library extension points
 
-[ADR 0021](adr/0021-user-file-library.md) defines folder ownership and administrator quota management. Folder metadata stays in PostgreSQL; object keys never contain user names or folder paths. `FileService.MaxUploadBytes` defines the 20 MiB cap enforced while reading the request and advertised to the UI. Keep reverse-proxy body limits aligned when changing it. The old `Storage:QuotaBytes` configuration is replaced by database settings: configure the default through Administration → File storage and individual overrides through user details. Run the migrator before restarting API and Worker. Existing files migrate into the root folder.
+[ADR 0021](adr/0021-user-file-library.md) defines folder ownership and administrator quota management. Folder metadata stays in PostgreSQL; object keys never contain user names or folder paths. `FileService.MaxUploadBytes` defines the 20 MiB cap enforced while reading the request and advertised to the UI. Keep reverse-proxy body limits aligned when changing it. The old `Storage:QuotaBytes` configuration is replaced by database settings: configure the default through Administration → File Storage and individual overrides through user details. Run the migrator before restarting API and Worker. Existing files migrate into the root folder.
 
 ## Retention processing
 

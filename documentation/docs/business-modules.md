@@ -22,7 +22,7 @@ The canonical client file is ignored `client-modules.json`:
 ```
 
 The catalog's `category` is `core`, `foundation`, or `private`. Core services retain
-existing presets/settings and permissions. Only optional foundation IDs (My Files,
+existing presets/settings and permissions. Only optional foundation IDs (File Storage,
 support, CRM, invoicing, billing) are accepted in `foundation`. Omitted settings retain
 preset defaults; supplied settings override the preset, while runtime configuration can
 further restrict them. A client exclusion cannot be overridden by `Modules:<id> = true`.

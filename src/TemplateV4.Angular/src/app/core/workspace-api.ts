@@ -31,7 +31,7 @@ export class WorkspaceApi {
     signal?.throwIfAborted();
     await firstValueFrom(
       this.http
-        .post(`${this.runtime.apiUrl}/api/v1/auth/my-files/upload`, file, {
+        .post(`${this.runtime.apiUrl}/api/v1/auth/file-storage/upload`, file, {
           params: { name: file.name, ...(parentId ? { parentId } : {}) },
           headers: { ...headers, 'Content-Type': 'application/octet-stream' },
           withCredentials: true,

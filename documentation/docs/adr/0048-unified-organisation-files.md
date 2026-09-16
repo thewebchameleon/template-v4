@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Decision
 
-The single organisation has one **Files** page using the existing folder, metadata,
+The single organisation has one **File Storage** page using the existing folder, metadata,
 sharing, recent-files and trash interface. Former personal files are organisation
 files visible to all enabled, confirmed, approved users. The existing
 `organisation.files.manage` permission authorizes upload, folder changes, metadata,
@@ -12,7 +12,7 @@ sharing and trash operations. Uploader identity is nullable attribution, not acc
 control. User shares remain references in Shared with me; they do not override
 organisation write permissions. Public links remain token-scoped read access.
 
-Organisation attachment operations and Files use the same stored-file table and
+Organisation attachment operations and File Storage use the same stored-file table and
 object keys. A single quota includes every user's uploads, reservations and retained
 trash. Subscription entitlements take precedence over the configured organisation
 quota. Per-user quota overrides and administrative user-library endpoints no longer
