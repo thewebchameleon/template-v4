@@ -179,6 +179,10 @@ export type { GetMyFilesModuleSettings$Params as GetMyFilesModuleSettings$Params
 export { getMyFilesModuleSettings as getMyFilesModuleSettings } from './fn/framework/get-my-files-module-settings';
 export type { SaveMyFilesModuleSettings$Params as SaveMyFilesModuleSettings$Params } from './fn/framework/save-my-files-module-settings';
 export { saveMyFilesModuleSettings as saveMyFilesModuleSettings } from './fn/framework/save-my-files-module-settings';
+export type { GetSupportModuleSettings$Params as GetSupportModuleSettings$Params } from './fn/framework/get-support-module-settings';
+export { getSupportModuleSettings as getSupportModuleSettings } from './fn/framework/get-support-module-settings';
+export type { SaveSupportModuleSettings$Params as SaveSupportModuleSettings$Params } from './fn/framework/save-support-module-settings';
+export { saveSupportModuleSettings as saveSupportModuleSettings } from './fn/framework/save-support-module-settings';
 export type { ListSupportTickets$Params as ListSupportTickets$Params } from './fn/framework/list-support-tickets';
 export { listSupportTickets as listSupportTickets } from './fn/framework/list-support-tickets';
 export type { CreateSupportTicket$Params as CreateSupportTicket$Params } from './fn/framework/create-support-ticket';

@@ -1,13 +1,5 @@
 [
   {
-    "id": "contact",
-    "required": false,
-    "enabledByDefault": true,
-    "dependencies": ["identity", "audit-recording", "delivery"],
-    "runtimeConfigurable": true,
-    "category": "foundation"
-  },
-  {
     "id": "cms",
     "required": false,
     "enabledByDefault": true,
@@ -79,7 +71,17 @@
     "enabledByDefault": true,
     "dependencies": ["identity", "audit-recording", "delivery"],
     "runtimeConfigurable": true,
-    "category": "foundation"
+    "category": "foundation",
+    "capabilities": [
+      {
+        "id": "support-enquiries",
+        "requires": []
+      },
+      {
+        "id": "support-tickets",
+        "requires": []
+      }
+    ]
   },
   {
     "id": "organisations",

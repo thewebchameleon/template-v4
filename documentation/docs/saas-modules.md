@@ -14,9 +14,8 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | My Files | `Modules:my-files` | File routes return 404; navigation is hidden; retention continues |
 | CRM | `Modules:crm` | New CRM work stops; records remain; disable Invoicing first |
 | Invoicing | `Modules:invoicing` | New issuance and navigation stop; retained documents, settlement and correction remain available through direct links |
-| Support | `Modules:support` | Ticket APIs return 404; portal is hidden; data is retained and privacy erasure continues |
+| Support | `Modules:support` | New enquiries and ticket access stop; retained enquiry inbox, accepted delivery and privacy erasure continue |
 | CMS | `Modules:cms` | Editing and published CMS APIs stop; the public website uses bundled content |
-| Contact | `Modules:contact` | Public submissions stop; retained inbox and accepted email notifications continue |
 | Maintenance | `Modules:maintenance` | New HTTP and cron requests stop; accepted jobs drain |
 | Operations | `Modules:operations` | Queue browsing/replay APIs and navigation are unavailable; worker delivery continues |
 | Audit history | `Modules:audit-history` | Audit browsing API and navigation are unavailable; recording continues |
@@ -55,6 +54,14 @@ To add a feature to an existing module, run `node tools/framework.mjs new featur
 Generic runtime activation is exposed at `/api/v1/auth/administration/modules/activation`. It reports versioned activation plus enable/disable blockers. The catalog currently declares My Files, Support, CRM and Invoicing as foundation runtime switches; selected private modules contribute their own switches. Enabling requires available prerequisites; disabling with enabled dependents is rejected, never cascaded. Adding a runtime switch requires a new migration seeding its row, localized presentation and a disable policy. Missing rows fail closed.
 
 Runtime updates serialize on runtime rows in stable ID order within the dispatcher transaction before acquiring module-settings locks. Preserve this order in every activation/settings writer. Audit and updates commit together; stale versions return 409. Typed My Files demo/slow-upload settings use `/api/v1/auth/administration/modules/my-files/settings` and their own file-settings version. Activation and file settings have independent versions; the original combined API and its contracts are removed.
+
+Support is the reference for independently configured features: Enquiries and Tickets (including attachments) use typed versioned Support settings and module-owned
+`ICapabilityRestrictions`. Providers return restrictive capability decisions, combined
+before catalog dependencies are evaluated; they cannot enable an otherwise disabled
+capability. Register providers explicitly and fail closed for missing owned settings.
+Use contextual feature flags only for rollout restrictions. Settings writers preserve
+the runtime-row-before-settings-row lock order. See
+[ADR 0049](adr/0049-support-features.md) and [Support](support.md).
 
 Give accepted-obligation HTTP operations `ContinuesWhenDisabled` metadata and a concrete reason outside entry-point gates. Callbacks, cancellation, closure, retained-data cleanup and accepted delivery preserve their existing rules. New module URLs must extend the independent endpoint-boundary assertions in `CapabilityTests`. Do not apply the HTTP maintenance feature flag to cron: scheduled admission retains its separate `Maintenance:Enabled` setting.
 

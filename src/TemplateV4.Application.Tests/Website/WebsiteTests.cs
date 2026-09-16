@@ -79,8 +79,8 @@ public sealed class WebsiteTests
         var routes = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints).OfType<RouteEndpoint>().ToArray();
         foreach (var route in routes.Where(route => route.RoutePattern.RawText!.Contains("/contact", StringComparison.Ordinal)))
         {
-            Assert.Equal(ModuleIds.Contact, route.Metadata.GetMetadata<ModuleOwnership>()?.Id);
-            Assert.True(route.Metadata.GetMetadata<CapabilityRequirement>()?.Id == CapabilityIds.Contact || route.Metadata.GetMetadata<ModuleLifecycleException>() is not null);
+            Assert.Equal(ModuleIds.Support, route.Metadata.GetMetadata<ModuleOwnership>()?.Id);
+            Assert.True(route.Metadata.GetMetadata<CapabilityRequirement>()?.Id == CapabilityIds.SupportEnquiries || route.Metadata.GetMetadata<ModuleLifecycleException>() is not null);
         }
         foreach (var route in routes.Where(route => route.RoutePattern.RawText!.Contains("/cms", StringComparison.Ordinal)))
         {

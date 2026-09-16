@@ -25,6 +25,7 @@ import { I18n } from '../../core/i18n';
 import { Notifications } from '../notifications/notifications';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../shared/workspace';
+import { SupportSettingsEditor } from '../support/configuration/support-settings-editor';
 import { MyFilesSettingsEditor } from '../my-files/configuration/my-files-settings-editor';
 
 @Component({
@@ -152,6 +153,7 @@ export class ModulesPage implements OnInit {
   private readonly toast = inject(Notifications);
   enabled: Record<string, boolean> = {};
   moduleIcon(id: string) {
+    if (id === 'support') return 'lucideLifeBuoy';
     const foundationDestinations: readonly Destination[] = [
       ...Object.values(workspaceDestinations),
       ...organisationDestinations,
@@ -169,6 +171,7 @@ export class ModulesPage implements OnInit {
     );
   }
   editor(id: string) {
+    if (id === 'support') return SupportSettingsEditor;
     return id === 'my-files'
       ? MyFilesSettingsEditor
       : this.contributions.find((feature) => feature.id === id)?.moduleSettingsComponent;
@@ -176,6 +179,7 @@ export class ModulesPage implements OnInit {
   settingsDestination(id: string) {
     const destinations: Record<string, { path: string; label: string }> = {
       'my-files': { path: '/administration/storage', label: 'storageSettings' },
+      support: { path: '/administration/support', label: 'support' },
       crm: { path: '/administration/crm', label: 'crmConfiguration' },
       invoicing: { path: '/administration/invoicing', label: 'issuerSettings' },
     };

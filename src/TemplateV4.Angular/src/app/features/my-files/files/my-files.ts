@@ -1,3 +1,4 @@
+import { StorageUsageCard } from '../../../shared/storage-usage-card';
 import { Auth } from '../../../core/auth';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { MyFilesDemoBanner } from './my-files-demo-banner';
@@ -47,6 +48,7 @@ const parentEntryId = '__my-files-parent__';
   imports: [
     WorkspaceUi,
     MyFilesDemoBanner,
+    StorageUsageCard,
     DataTable,
     HlmDrawerImports,
     MyFileActions,
@@ -370,74 +372,7 @@ const parentEntryId = '__my-files-parent__';
             </div>
           </section>
         }
-        <section hlmCard>
-          <div hlmCardHeader>
-            <h2 hlmCardTitle>{{ 'storageUsage' | t }}</h2>
-            <p hlmCardDescription>{{ 'storageUsageHelp' | t }}</p>
-          </div>
-          <div hlmCardContent>
-            @if (data.value(); as value) {
-              <p class="font-medium mb-3">
-                {{ bytes(value.usedBytes) }} /
-                {{ value.quotaBytes === -1 ? ('maxUploadNoLimit' | t) : bytes(value.quotaBytes) }}
-              </p>
-              <div
-                class="my-files-quota"
-                role="img"
-                [attr.aria-label]="
-                  ('storageUsage' | t) +
-                  ': ' +
-                  bytes(value.usedBytes) +
-                  ' / ' +
-                  (value.quotaBytes === -1 ? ('maxUploadNoLimit' | t) : bytes(value.quotaBytes))
-                "
-              >
-                @for (segment of value.usage; track segment.category) {
-                  <span
-                    [attr.data-category]="segment.category"
-                    [style.width.%]="
-                      (100 * segment.bytes) /
-                      Math.max(value.usedBytes, value.quotaBytes > 0 ? value.quotaBytes : 0, 1)
-                    "
-                    [title]="('fileType.' + segment.category | t) + ': ' + bytes(segment.bytes)"
-                  ></span>
-                }
-              </div>
-              <ul class="my-files-quota-legend">
-                @for (segment of value.usage; track segment.category) {
-                  <li>
-                    <span class="my-files-swatch" [attr.data-category]="segment.category"></span
-                    ><span
-                      >{{ 'fileType.' + segment.category | t }}
-                      <small>({{ i18n.number(segment.count) }})</small></span
-                    ><strong>{{ bytes(segment.bytes) }}</strong>
-                  </li>
-                }
-                <li>
-                  <span class="my-files-swatch" data-category="remaining"></span
-                  ><span>{{ 'remainingStorage' | t }}</span
-                  ><strong>{{
-                    value.quotaBytes === -1
-                      ? ('maxUploadNoLimit' | t)
-                      : bytes(Math.max(0, value.quotaBytes - value.usedBytes))
-                  }}</strong>
-                </li>
-              </ul>
-            }
-            @if (data.value(); as value) {
-              @if (value.quotaBytes >= 0 && value.usedBytes >= value.quotaBytes) {
-                <div hlmAlert class="mt-4" role="status">
-                  <h3 hlmAlertTitle>{{ 'quotaReached' | t }}</h3>
-                  <p hlmAlertDescription>{{ 'quotaReachedHelp' | t }}</p>
-                </div>
-              }
-            }
-            <p class="workspace-meta mt-4">{{ 'myFilesRetentionHelp' | t }}</p>
-            <a routerLink="/privacy" class="workspace-link text-sm mt-3 inline-block">{{
-              'privacyAndData' | t
-            }}</a>
-          </div>
-        </section>
+        <app-storage-usage-card [usage]="data.value()" />
       </aside>
     </div>
     <app-my-files-action-dialog

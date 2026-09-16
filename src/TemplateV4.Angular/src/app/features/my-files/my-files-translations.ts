@@ -1,8 +1,8 @@
 export const myFilesDictionary: Record<string, [string, string]> = {
   moduleFeatures: ['Features', 'Kenmerke'],
   myFilesStorageHelp: [
-    'Configure default storage allowances, maximum upload size, and the demo expiry duration.',
-    'Stel verstekbergingtoelaes, maksimum oplaaigrootte en die demo-vervaltyd in.',
+    'Configure default storage allowances and maximum upload size.',
+    'Stel verstekbergingtoelaes en maksimum oplaaigrootte in.',
   ],
   myFilesStorageSaved: ['Storage settings saved.', 'Berginginstellings gestoor.'],
   moduleNoFeatures: [
@@ -41,8 +41,8 @@ export const myFilesDictionary: Record<string, [string, string]> = {
   maxUploadSizeHelp: ['Applies to all organisation files.', 'Geld vir alle organisasielêers.'],
   maxUploadNoLimit: ['No limit', 'Geen limiet'],
   myFilesDemoExpiryHelp: [
-    'Defaults to 60 minutes. Changing this value while demo mode is enabled restarts the timers for all existing files and folders.',
-    'Die verstek is 60 minute. As hierdie waarde verander terwyl demomodus aktief is, herbegin alle bestaande lêers en vouers se tydtellers.',
+    'Deletes files after a configured set of time specified below.',
+    'Verwyder lêers ná die ingestelde tyd wat hieronder gespesifiseer word.',
   ],
   myFilesDemoExpiryValidation: [
     'Enter a whole number from 1 to 525600 minutes.',

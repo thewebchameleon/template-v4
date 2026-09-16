@@ -3586,6 +3586,75 @@
         ]
       }
     },
+    "/api/v1/auth/administration/modules/support/settings": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetSupportModuleSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportModuleSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveSupportModuleSettings",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSupportModuleSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportModuleSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/support": {
       "get": {
         "tags": [
@@ -11553,11 +11622,40 @@
           }
         }
       },
+      "SaveSupportModuleSettings": {
+        "required": [
+          "enquiriesEnabled",
+          "ticketsEnabled",
+          "notificationEmail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "enquiriesEnabled": {
+            "type": "boolean"
+          },
+          "ticketsEnabled": {
+            "type": "boolean"
+          },
+          "notificationEmail": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SaveWebsite": {
         "required": [
           "version",
-          "details",
-          "notificationEmail"
+          "details"
         ],
         "type": "object",
         "properties": {
@@ -11567,9 +11665,6 @@
           },
           "details": {
             "$ref": "#/components/schemas/BusinessDetails"
-          },
-          "notificationEmail": {
-            "type": "string"
           }
         }
       },
@@ -11763,6 +11858,30 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SupportModuleSettings": {
+        "required": [
+          "enquiriesEnabled",
+          "ticketsEnabled",
+          "notificationEmail",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "enquiriesEnabled": {
+            "type": "boolean"
+          },
+          "ticketsEnabled": {
+            "type": "boolean"
+          },
+          "notificationEmail": {
+            "type": "string"
           },
           "version": {
             "type": "string",
@@ -12334,7 +12453,6 @@
         "required": [
           "version",
           "details",
-          "notificationEmail",
           "configured",
           "enabled"
         ],
@@ -12346,9 +12464,6 @@
           },
           "details": {
             "$ref": "#/components/schemas/BusinessDetails"
-          },
-          "notificationEmail": {
-            "type": "string"
           },
           "configured": {
             "type": "boolean"

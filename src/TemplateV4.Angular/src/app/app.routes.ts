@@ -10,6 +10,7 @@ import {
   workspaceDestinations,
   administrationDestinations,
 } from './core/destinations';
+import { moduleSettingsTranslations } from './features/modules/module-settings-resolver';
 import { supportTranslations } from './features/support/support-resolver';
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
@@ -321,7 +322,7 @@ export const routes: Routes = [
       {
         path: 'contact',
         loadChildren: () =>
-          import('./features/contact/contact-routes').then((m) => m.contactRoutes),
+          import('./features/support/enquiries/contact-routes').then((m) => m.contactRoutes),
       },
       {
         path: 'organisation',
@@ -418,7 +419,19 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'support',
+        data: { breadcrumb: 'support' },
+        resolve: { supportTranslations, moduleSettingsTranslations },
+        canActivate: [destinationGuard(administrationDestinations.supportSettings)],
+        canDeactivate: [unsavedGuard],
+        loadComponent: () =>
+          import('./features/support/configuration/support-settings').then(
+            (m) => m.SupportSettingsPage,
+          ),
+      },
+      {
         path: 'modules',
+        resolve: { moduleSettingsTranslations },
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.modules)],
         loadComponent: () => import('./features/modules/modules').then((m) => m.ModulesPage),

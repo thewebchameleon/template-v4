@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, output, signal } from '@angular/core';
-import { WorkspaceUi, Resource, Confirmations } from '../../../shared/workspace';
+import { WorkspaceUi, Resource } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Notifications } from '../../notifications/notifications';
 import { FileStorageSettings } from '../../../api/models';
@@ -78,35 +78,10 @@ const defaultQuotaOptionsMb = [
         ></hlm-slider>
         <p hlmFieldDescription id="max-upload-help">{{ 'maxUploadSizeHelp' | t }}</p>
       </div>
-      <div hlmField>
-        <label hlmFieldLabel for="demo-expiry">{{ 'myFilesDemoExpiry' | t }}</label>
-        <input
-          hlmInput
-          id="demo-expiry"
-          name="demoExpiryMinutes"
-          type="number"
-          min="1"
-          max="525600"
-          step="1"
-          [(ngModel)]="demoExpiryMinutes"
-          [disabled]="busy()"
-          aria-describedby="demo-expiry-help"
-          [attr.aria-invalid]="!validExpiry() ? true : null"
-        />
-        <p hlmFieldDescription id="demo-expiry-help">{{ 'myFilesDemoExpiryHelp' | t }}</p>
-        @if (!validExpiry()) {
-          <hlm-field-error forceShow>{{ 'myFilesDemoExpiryValidation' | t }}</hlm-field-error>
-        }
-      </div>
-      <button hlmBtn variant="outline" type="button" [disabled]="busy()" (click)="reload()">
-        {{ 'reloadQuota' | t }}
-      </button>
       <button
         hlmBtn
         type="submit"
-        [disabled]="
-          busy() || !valid() || !validMaxUpload() || !validExpiry() || !hasUnsavedChanges()
-        "
+        [disabled]="busy() || !valid() || !validMaxUpload() || !hasUnsavedChanges()"
       >
         {{ 'save' | t }}
       </button>
@@ -118,22 +93,22 @@ export class FileQuotaEditor implements OnInit {
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly toast = inject(Notifications);
-  readonly confirm = inject(Confirmations);
   readonly data = new Resource<FileStorageSettings>();
   readonly busy = signal(false);
   readonly maxUploadOptionsMb = maxUploadOptionsMb;
   readonly defaultQuotaOptionsMb = defaultQuotaOptionsMb;
   quotaMb: number | null = null;
   maxUploadMb: number | null = 20;
-  demoExpiryMinutes: number | null = 60;
+  private demoExpiryMinutes = 60;
   private originalMaxUpload = 20;
-  private originalExpiry = 60;
   private original: number | null = null;
   private version = '';
   ngOnInit() {
     void this.load();
   }
-  async load() {
+  async load(preserveDraft = false) {
+    const quotaDraft = this.quotaMb;
+    const maxUploadDraft = this.maxUploadMb;
     const loaded = await this.data.load((signal) =>
       this.api.get('my-files/admin/settings', {}, signal),
     );
@@ -148,7 +123,10 @@ export class FileQuotaEditor implements OnInit {
     this.maxUploadMb = maxUploadBytes / 1048576;
     this.originalMaxUpload = this.maxUploadMb;
     this.demoExpiryMinutes = value.demoExpiryMinutes ?? 60;
-    this.originalExpiry = this.demoExpiryMinutes;
+    if (preserveDraft) {
+      this.quotaMb = quotaDraft;
+      this.maxUploadMb = maxUploadDraft;
+    }
   }
   valid() {
     return this.quotaMb != null && defaultQuotaOptionsMb.includes(this.quotaMb);
@@ -168,11 +146,7 @@ export class FileQuotaEditor implements OnInit {
       : `${this.i18n.number(megabytes)} MB`;
   }
   hasUnsavedChanges() {
-    return (
-      this.quotaMb !== this.original ||
-      this.maxUploadMb !== this.originalMaxUpload ||
-      this.demoExpiryMinutes !== this.originalExpiry
-    );
+    return this.quotaMb !== this.original || this.maxUploadMb !== this.originalMaxUpload;
   }
   validMaxUpload() {
     return this.maxUploadMb != null && maxUploadOptionsMb.includes(this.maxUploadMb);
@@ -185,27 +159,8 @@ export class FileQuotaEditor implements OnInit {
     const position = Math.round(value[0] ?? this.maxUploadPosition());
     this.maxUploadMb = maxUploadOptionsMb[position] ?? this.maxUploadMb;
   }
-  validExpiry() {
-    return (
-      this.demoExpiryMinutes != null &&
-      Number.isInteger(this.demoExpiryMinutes) &&
-      this.demoExpiryMinutes >= 1 &&
-      this.demoExpiryMinutes <= 525600
-    );
-  }
-  async reload() {
-    if (!this.hasUnsavedChanges() || (await this.confirm.ask('unsavedTitle', 'unsavedHelp')))
-      await this.load();
-  }
   async save() {
-    if (
-      this.busy() ||
-      !this.valid() ||
-      !this.validMaxUpload() ||
-      !this.validExpiry() ||
-      !this.hasUnsavedChanges()
-    )
-      return;
+    if (this.busy() || !this.valid() || !this.validMaxUpload() || !this.hasUnsavedChanges()) return;
     this.busy.set(true);
     try {
       const bytes =

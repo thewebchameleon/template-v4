@@ -1,4 +1,5 @@
 using TemplateV4.Application.Modules;
+using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
 
 namespace TemplateV4.ApiService.Endpoints;
@@ -17,6 +18,13 @@ public static class RuntimeModuleEndpoints
             .WithName("GetMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
         admin.MapPost("/my-files/settings", async (SaveMyFilesModuleSettings request, Dispatcher<SaveMyFilesModuleSettings, MyFilesModuleSettings> dispatcher, CancellationToken ct) =>
             (await dispatcher.Send(request, ct)).ToHttp()).WithName("SaveMyFilesModuleSettings").Produces<MyFilesModuleSettings>();
+        admin.MapGet("/support/settings", async (ISupportModuleSettings settings, CancellationToken ct) => (await settings.Read(ct)).ToHttp())
+            .ContinuesWhenDisabled(ModuleIds.Support, "Feature settings remain editable while Support is disabled.")
+            .WithName("GetSupportModuleSettings").Produces<SupportModuleSettings>();
+        admin.MapPost("/support/settings", async (SaveSupportModuleSettings request, Dispatcher<SaveSupportModuleSettings, SupportModuleSettings> dispatcher, CancellationToken ct) =>
+            (await dispatcher.Send(request, ct)).ToHttp())
+            .ContinuesWhenDisabled(ModuleIds.Support, "Feature settings remain editable while Support is disabled.")
+            .WithName("SaveSupportModuleSettings").Produces<SupportModuleSettings>();
         return group;
     }
 }

@@ -1,6 +1,5 @@
 {
   "Modules": {
-    "contact": false,
     "cms": false,
     "my-files": false,
     "maintenance": false,

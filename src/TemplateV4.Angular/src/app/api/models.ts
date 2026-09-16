@@ -160,6 +160,7 @@ export type { SaveMyFilesModuleSettings } from './models/save-my-files-module-se
 export type { SavePlatformAppearance } from './models/save-platform-appearance';
 export type { SaveRoleRequest } from './models/save-role-request';
 export type { SaveSupportCategory } from './models/save-support-category';
+export type { SaveSupportModuleSettings } from './models/save-support-module-settings';
 export type { SaveWebsite } from './models/save-website';
 export type { SecurityPolicyRequest } from './models/security-policy-request';
 export type { SecurityProof } from './models/security-proof';
@@ -170,6 +171,7 @@ export type { StartTrial } from './models/start-trial';
 export type { StorageSettingsRequest } from './models/storage-settings-request';
 export type { SupportAgent } from './models/support-agent';
 export type { SupportCategory } from './models/support-category';
+export type { SupportModuleSettings } from './models/support-module-settings';
 export type { SupportOptions } from './models/support-options';
 export type { TaxTreatment } from './models/tax-treatment';
 export type { TicketAttachment } from './models/ticket-attachment';

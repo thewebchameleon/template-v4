@@ -71,13 +71,21 @@ export const workspaceDestinations = {
     path: '/support',
     label: 'support',
     icon: 'lucideLifeBuoy',
-    capability: 'support',
+    capability: 'support-tickets',
     help: 'dashboardSupportHelp',
     hasPanel: false,
   },
 } as const satisfies Record<string, Destination>;
 
 export const administrationDestinations = {
+  supportSettings: {
+    path: '/administration/support',
+    label: 'support',
+    icon: 'lucideLifeBuoy',
+    section: 'modules',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
   contact: {
     path: '/administration/contact',
     label: 'contact',

@@ -7,7 +7,6 @@ public static class ModuleIds
     public const string AuditRecording = "audit-recording";
     public const string Billing = "billing";
     public const string Cms = "cms";
-    public const string Contact = "contact";
     public const string Crm = "crm";
     public const string Delivery = "delivery";
     public const string Identity = "identity";
@@ -25,7 +24,6 @@ public static class CapabilityIds
     public const string AuditRecording = "audit-recording";
     public const string Billing = "billing";
     public const string Cms = "cms";
-    public const string Contact = "contact";
     public const string Crm = "crm";
     public const string CrmFiles = "crm-files";
     public const string Delivery = "delivery";
@@ -38,4 +36,6 @@ public static class CapabilityIds
     public const string OrganisationFiles = "organisation-files";
     public const string Organisations = "organisations";
     public const string Support = "support";
+    public const string SupportEnquiries = "support-enquiries";
+    public const string SupportTickets = "support-tickets";
 }

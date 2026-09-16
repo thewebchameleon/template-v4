@@ -112,7 +112,7 @@ public sealed class ModuleCatalog
     }
 
     public Dictionary<string, bool> Evaluate(IReadOnlyDictionary<string, bool> runtime, Func<string, bool> flag,
-        Func<string, bool>? licensed = null)
+        Func<string, bool>? licensed = null, Func<string, bool>? permitted = null)
     {
         var result = new Dictionary<string, bool>(StringComparer.Ordinal);
         bool EvaluateOne(string id)
@@ -120,7 +120,7 @@ public sealed class ModuleCatalog
             if (result.TryGetValue(id, out var value)) return value;
             var definition = Capabilities[id];
             return result[id] = EffectiveModule(CapabilityOwners[id], runtime) && (licensed?.Invoke(CapabilityOwners[id]) ?? true) &&
-                (definition.FeatureFlag is null || flag(definition.FeatureFlag)) && definition.Requires.All(EvaluateOne);
+                (permitted?.Invoke(id) ?? true) && (definition.FeatureFlag is null || flag(definition.FeatureFlag)) && definition.Requires.All(EvaluateOne);
         }
         foreach (var id in Capabilities.Keys) EvaluateOne(id);
         return result;

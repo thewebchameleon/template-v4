@@ -4,6 +4,5 @@
 import { BusinessDetails } from '../models/business-details';
 export interface SaveWebsite {
   details: BusinessDetails;
-  notificationEmail: string;
   version: string;
 }

@@ -36,7 +36,7 @@ product modules, with their existing business scopes and tests:
 
 | Need | Existing workflow | Starting points beneath `src/` |
 | --- | --- | --- |
-| Explicit handler/validator registration and delegated permission | Support category editing | `TemplateV4.Application/Support/Categories/SaveSupportCategory.cs`, `TemplateV4.Infrastructure/Support/SupportRegistration.cs`, `TemplateV4.Http/Support/SupportEndpoints.cs` |
+| Explicit handler/validator registration and delegated permission | Support category editing | `TemplateV4.Application/Support/Categories/SaveSupportCategory.cs`, `TemplateV4.Infrastructure/Support/SupportRegistration.cs`, `TemplateV4.Http/Support/Categories/CategoriesEndpoints.cs` |
 | Public reads, protected editing and runtime gates | CMS publishing | `TemplateV4.Infrastructure/Cms/Articles`, `TemplateV4.Infrastructure/Cms/Blog`, `TemplateV4.Application.Tests/Cms/CmsTests.cs` |
 | Organisation isolation and public integration contracts | CRM records | `TemplateV4.Application/Crm/Contracts`, `TemplateV4.Infrastructure/Crm/Records`, `TemplateV4.Application.Tests/Invoicing/CommercialTests.cs` |
 | Cross-module calls and obligations retained after disablement | Invoicing | `TemplateV4.Infrastructure/Invoicing/InvoicingStore.cs`, `TemplateV4.Application/Invoicing/Contracts`, `TemplateV4.Application.Tests/Invoicing/CommercialBoundaryTests.cs` |

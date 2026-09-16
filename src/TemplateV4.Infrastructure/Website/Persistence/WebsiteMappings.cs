@@ -7,6 +7,7 @@ public sealed class WebsiteRow
     public int Id { get; set; } = 1;
     public Guid Version { get; set; }
     public string Details { get; set; } = "{}";
+    // Historical column retained for the forward Support settings migration; no longer exposed or edited by Website.
     public string NotificationEmail { get; set; } = "";
     public bool Configured { get; set; }
     public bool Enabled { get; set; }

@@ -9,5 +9,5 @@ public sealed class SaveSupportCategoryValidator : IValidator<SaveSupportCategor
     public Dictionary<string, string[]> Validate(SaveSupportCategory q) => string.IsNullOrWhiteSpace(q.Name) || q.Name.Length > 80 || q.Id != null && q.Version == Guid.Empty
         ? new() { ["category"] = ["validation.failed"] } : [];
 }
-public sealed class SaveSupportCategoryHandler(ISupportTickets store) : IHandler<SaveSupportCategory, Unit>
+public sealed class SaveSupportCategoryHandler(ISupportCategories store) : IHandler<SaveSupportCategory, Unit>
 { public Task<Result<Unit>> Handle(SaveSupportCategory q, CancellationToken ct) => store.Category(q, ct); }

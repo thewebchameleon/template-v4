@@ -14,6 +14,8 @@ public sealed class CapabilityTests
         Assert.False(catalog.Evaluate(new Dictionary<string, bool>(), _ => true)["files"]);
         var runtime = new Dictionary<string, bool> { ["files"] = true };
         Assert.True(catalog.Evaluate(runtime, _ => true)["team-files"]);
+        Assert.False(catalog.Evaluate(runtime, _ => true, permitted: id => id != "files")["team-files"]);
+        Assert.True(catalog.Evaluate(runtime, _ => true, permitted: id => id != "files")["teams"]);
         Assert.False(catalog.Evaluate(runtime, _ => false)["team-files"]);
         Assert.True(catalog.Evaluate(runtime, _ => false)["teams"]);
         runtime["files"] = false;

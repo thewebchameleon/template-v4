@@ -15,7 +15,7 @@ public sealed class WebsiteStore(FrameworkDb db, IExecutionContext context, ICap
     private static readonly BusinessDetails Empty = new("", "", "", "#245c46", "", "", "", "", "", "", "");
     private static WebsiteSettings Read(WebsiteRow row) => new(row.Version,
         row.Configured ? JsonSerializer.Deserialize<BusinessDetails>(row.Details, Json)! : Empty,
-        row.NotificationEmail, row.Configured, row.Enabled);
+        row.Configured, row.Enabled);
     public async Task<WebsiteSettings> Settings(CancellationToken ct) => Read(await db.Set<WebsiteRow>().AsNoTracking().SingleAsync(ct));
     public static bool Origin(string? value) => value is { Length: <= 2048 } && Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
         uri.Scheme is "https" or "http" && uri.UserInfo == "" && uri.AbsolutePath == "/" && uri.Query == "" && uri.Fragment == "";
@@ -34,7 +34,7 @@ public sealed class WebsiteStore(FrameworkDb db, IExecutionContext context, ICap
         if (details is null) return Result<WebsiteSettings>.Fail("validation.failed", ErrorKind.Validation);
         return await Update(request.Version, row =>
         {
-            row.Details = JsonSerializer.Serialize(details, Json); row.NotificationEmail = "";
+            row.Details = JsonSerializer.Serialize(details, Json);
             row.Configured = true;
         }, "website.configured", ct);
     }
@@ -57,13 +57,8 @@ public sealed class WebsiteStore(FrameworkDb db, IExecutionContext context, ICap
     {
         var site = await Settings(ct);
         if (!site.Configured || !site.Enabled) return new(false, null, false, false);
-        var contactEnabled = !string.IsNullOrWhiteSpace(site.NotificationEmail) && await capabilities.Enabled("contact", ct);
+        var contactEnabled = await capabilities.Enabled(CapabilityIds.SupportEnquiries, ct);
         return new(true, site.Details, await capabilities.Enabled(CapabilityIds.Cms, ct), contactEnabled);
-    }
-    public async Task<string?> NotificationRecipient(CancellationToken ct)
-    {
-        var site = await Settings(ct);
-        return site.Configured && site.Enabled && !string.IsNullOrWhiteSpace(site.NotificationEmail) ? site.NotificationEmail : null;
     }
     public async Task<Result<WebsiteImage>> Upload(byte[] bytes, CancellationToken ct)
     {

@@ -12,7 +12,7 @@ namespace TemplateV4.Application.Tests;
 
 public sealed class ModuleOwnershipTests
 {
-    private static readonly string[] BusinessModules = ["Cms", "Crm", "Invoicing", "Support", "Website", "Contact"];
+    private static readonly string[] BusinessModules = ["Cms", "Crm", "Invoicing", "Support", "Website"];
 
     [Theory]
     [InlineData("baseline")]

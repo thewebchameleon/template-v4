@@ -9,10 +9,10 @@ public sealed partial class SupportTicketStore
 {
     public async Task<Result<Page<TicketItem>>> List(ListTickets q, CancellationToken ct)
     {
-        if (!await Available(ct)) return Result<Page<TicketItem>>.Fail("support.not_found", ErrorKind.NotFound);
-        var agent = await Agent(ct);
+        if (!await tickets.Available(ct)) return Result<Page<TicketItem>>.Fail("support.not_found", ErrorKind.NotFound);
+        var agent = await tickets.Agent(ct);
         if (q.Queue && !agent) return Result<Page<TicketItem>>.Fail("authorization.denied", ErrorKind.Forbidden);
-        var source = Visible(q.Queue && agent).AsNoTracking().Where(x => x.Subject.Contains(q.Search));
+        var source = tickets.Visible(q.Queue && agent).AsNoTracking().Where(x => x.Subject.Contains(q.Search));
         if (q.Status != "") source = source.Where(x => x.Status == q.Status);
         if (q.Priority != "") source = source.Where(x => x.Priority == q.Priority);
         if (Guid.TryParse(q.Category, out var category)) source = source.Where(x => x.CategoryId == category);
@@ -30,6 +30,6 @@ public sealed partial class SupportTicketStore
             "createdAt" => desc ? items.OrderByDescending(x => x.CreatedAt) : items.OrderBy(x => x.CreatedAt),
             _ => desc ? items.OrderByDescending(x => x.UpdatedAt) : items.OrderBy(x => x.UpdatedAt)
         };
-        return Result<Page<TicketItem>>.Success(new(await Items(ordered.ThenBy(x => x.Id).Skip((q.PageNumber - 1) * q.PageSize).Take(q.PageSize)).ToArrayAsync(ct), total, q.PageNumber, q.PageSize));
+        return Result<Page<TicketItem>>.Success(new(await tickets.Items(ordered.ThenBy(x => x.Id).Skip((q.PageNumber - 1) * q.PageSize).Take(q.PageSize)).ToArrayAsync(ct), total, q.PageNumber, q.PageSize));
     }
 }

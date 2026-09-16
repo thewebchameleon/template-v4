@@ -45,9 +45,7 @@ const column = createColumnHelper<DataTableFeatures, TicketItem>();
         </hlm-drawer-content>
       </hlm-drawer>
       @if (options.value()?.administrator) {
-        <a hlmBtn variant="outline" routerLink="/support/categories">{{
-          'supportCategories' | t
-        }}</a>
+        <a hlmBtn variant="outline" routerLink="/support/categories">{{ 'supportCategories' | t }}</a>
       }
     </app-page-header>
     <app-page-state [state]="options.state()" (retry)="loadOptions()">

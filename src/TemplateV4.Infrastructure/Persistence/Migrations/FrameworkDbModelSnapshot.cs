@@ -1587,12 +1587,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             Id = "cms",
                             Enabled = true,
                             Version = new Guid("a274bd77-60b9-4128-af9d-1084b2d8a34e")
-                        },
-                        new
-                        {
-                            Id = "contact",
-                            Enabled = true,
-                            Version = new Guid("1435e55e-cf92-4619-baf4-b4a27327e98b")
                         });
                 });
 
@@ -2019,6 +2013,45 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("notifications", "app");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Support.SupportSettingsRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EnquiriesEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NotificationEmail")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<bool>("TicketsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id")
+                        .HasName("PK_settings1");
+
+                    b.ToTable("settings", "support");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            EnquiriesEnabled = true,
+                            NotificationEmail = "",
+                            TicketsEnabled = true,
+                            Version = new Guid("e8627a13-b631-4c13-a33f-e31fa8d5b2f1")
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Updates.UpdateAnnouncement", b =>
                 {
                     b.Property<string>("Component")
@@ -2145,7 +2178,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id")
-                        .HasName("PK_settings1");
+                        .HasName("PK_settings2");
 
                     b.ToTable("settings", "website");
 

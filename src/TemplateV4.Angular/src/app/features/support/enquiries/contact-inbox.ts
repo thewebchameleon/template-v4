@@ -8,11 +8,11 @@ import {
   DebouncedSearch,
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
-} from '../../shared/workspace';
-import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
-import { WorkspaceApi } from '../../core/workspace-api';
-import { I18n } from '../../core/i18n';
-import { ContactEnquiry, PageOfContactEnquiry } from '../../api/models';
+} from '../../../shared/workspace';
+import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
+import { WorkspaceApi } from '../../../core/workspace-api';
+import { I18n } from '../../../core/i18n';
+import { ContactEnquiry, PageOfContactEnquiry } from '../../../api/models';
 
 @Component({
   selector: 'app-contact-read',

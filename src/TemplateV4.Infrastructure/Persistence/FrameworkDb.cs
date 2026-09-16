@@ -204,6 +204,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasData(new RuntimeModuleSettings { Id = "my-files", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         SupportModel.Configure(model);
+        Support.SupportSettingsMappings.Configure(model);
         CustomerBillingModel.Configure(model);
         Crm.CrmMappings.Configure(model);
         Cms.CmsMappings.Configure(model);

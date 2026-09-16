@@ -61,7 +61,7 @@ See [the organisation file library](adr/0048-unified-organisation-files.md) for 
 Account delivery preferences include opt-in [web push notifications](web-push.md),
 with per-browser subscriptions and generic-by-default notification previews.
 
-The [customer support portal](support.md) adds requester tickets, a delegated agent queue, private staff notes and bounded attachments. Its ownership, workflow and storage decisions are in [ADR 0025](adr/0025-customer-support-portal.md).
+The [Support module](support.md) contains independently configured contact enquiries and requester tickets with bounded attachments, with a delegated agent queue, categories and private staff notes. Its ownership, workflow and storage decisions are in [ADR 0025](adr/0025-customer-support-portal.md).
 
 Audit events and the Audit History detail drawer follow [ADR 0024](adr/0024-audit-event-details.md). Services author stable actions and allowlisted field changes; the persistence interceptor captures historical names and execution context within the operation's transaction. Extend the privacy redaction path when adding personally identifying audit details.
 

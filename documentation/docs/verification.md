@@ -24,3 +24,9 @@ Export contracts using the API host's development-only `OpenApi:ExportPath` sett
 `OpenApi:DocumentName` defaults to `v1`; select a registered module document such as
 `vehicle-licensing` when regenerating that module's contracts. Use the owning client
 generators after exporting; never edit generated contracts by hand.
+
+Support feature changes use `SupportFeatureTests`. Set
+`TEMPLATEV4_SUPPORT_TEST_DATABASE` to an empty disposable PostgreSQL database to run
+the migration, concurrency, admission and retained-inbox test. It migrates from the
+previous schema and intentionally changes/removes test settings; never use a retained
+application database. The endpoint metadata test runs without PostgreSQL.

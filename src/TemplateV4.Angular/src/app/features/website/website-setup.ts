@@ -142,7 +142,6 @@ export class WebsiteSetupPage implements OnInit {
         await this.api.post<WebsiteSettings>('website', {
           version: this.settings()!.version,
           details: this.details(),
-          notificationEmail: '',
         }),
       );
       await this.router.navigateByUrl('/dashboard');

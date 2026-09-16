@@ -7,11 +7,12 @@ import { WorkspaceApi } from '../../../../core/workspace-api';
 import { I18n } from '../../../../core/i18n';
 import { Notifications } from '../../../notifications/notifications';
 import { SupportOptions, TicketDetail, UpdateTicket } from '../../../../api/models';
+import { TicketAttachments } from '../../attachments/ticket-attachments';
 import { ticketStates, ticketPriorities } from '../support';
 
 @Component({
   selector: 'app-support-detail',
-  imports: [HlmSelectImports, WorkspaceUi, HlmTextareaImports],
+  imports: [HlmSelectImports, WorkspaceUi, HlmTextareaImports, TicketAttachments],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="supportTicketDetails" description="supportDetailHelp"
       ><a hlmBtn variant="outline" routerLink="/support">{{ 'support' | t }}</a
@@ -253,39 +254,16 @@ import { ticketStates, ticketPriorities } from '../support';
                 </section>
               }
             }
-            <section hlmCard>
-              <div hlmCardHeader>
-                <h2 hlmCardTitle>{{ 'supportAttachments' | t }}</h2>
-                <p hlmCardDescription>{{ 'supportAttachmentHelp' | t }}</p>
-              </div>
-              <div hlmCardContent class="grid gap-4">
-                @for (a of detail.attachments; track a.id) {
-                  <button
-                    hlmBtn
-                    variant="outline"
-                    class="max-w-full"
-                    (click)="download(a.id, a.name)"
-                  >
-                    <span class="truncate">{{ a.name }}</span>
-                  </button>
-                } @empty {
-                  <p>{{ 'supportNoAttachments' | t }}</p>
-                }
-                @if (detail.ticket.status !== 'Closed' && detail.ticket.status !== 'Resolved') {
-                  <div hlmField>
-                    <label hlmFieldLabel for="attachment">{{ 'supportAttach' | t }}</label
-                    ><input
-                      hlmInput
-                      id="attachment"
-                      type="file"
-                      [disabled]="busy()"
-                      (change)="attach($event)"
-                    />
-                    <p hlmFieldDescription>{{ 'supportAttachmentsPublic' | t }}</p>
-                  </div>
-                }
-              </div>
-            </section>
+            <app-ticket-attachments
+              [ticketId]="id"
+              [version]="detail.ticket.version"
+              [attachments]="detail.attachments"
+              [canUpload]="detail.ticket.status !== 'Closed' && detail.ticket.status !== 'Resolved'"
+              [disabled]="busy()"
+              [beforeAttach]="confirmAttachment"
+              (busyChange)="busy.set($event)"
+              [reloadTicket]="reloadAttachments"
+            />
           </div>
         </div>
       }
@@ -300,6 +278,9 @@ export class SupportDetailPage {
   readonly data = new Resource<TicketDetail>();
   readonly options = new Resource<SupportOptions>();
   readonly busy = signal(false);
+  readonly reloadAttachments = () => this.load();
+  readonly confirmAttachment = async () =>
+    !this.triageChanged() || (await this.confirm.ask('unsavedTitle', 'unsavedHelp'));
   readonly states = ticketStates;
   readonly priorities = ticketPriorities;
   readonly ticketLabel = (value: string) => this.i18n.text('ticket.' + value);
@@ -424,44 +405,5 @@ export class SupportDetailPage {
       assigneeId: t.assigneeId,
       version: t.version,
     });
-  }
-  async attach(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (file.size === 0 || file.size > 5 * 1024 * 1024) {
-      this.toast.error({ title: this.i18n.text('supportFileSize') });
-      input.value = '';
-      return;
-    }
-    if (this.triageChanged() && !(await this.confirm.ask('unsavedTitle', 'unsavedHelp'))) {
-      input.value = '';
-      return;
-    }
-    try {
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
-      await this.mutate('support/attachments', {
-        id: this.id,
-        name: file.name,
-        content,
-        version: this.data.value()!.ticket.version,
-      });
-    } catch {
-      this.toast.error({ title: this.i18n.text('supportFileReadFailed') });
-    } finally {
-      input.value = '';
-    }
-  }
-  async download(id: string, name: string) {
-    try {
-      await this.api.download(`support/${this.id}/attachments/${id}`, name);
-    } catch {
-      /* Central error UI. */
-    }
   }
 }

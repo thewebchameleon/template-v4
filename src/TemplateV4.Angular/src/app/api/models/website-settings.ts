@@ -6,6 +6,5 @@ export interface WebsiteSettings {
   configured: boolean;
   details: BusinessDetails;
   enabled: boolean;
-  notificationEmail: string;
   version: string;
 }

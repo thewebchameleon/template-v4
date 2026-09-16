@@ -8,15 +8,6 @@ export const dictionary: Record<string, [string, string]> = {
   websiteSetup: ['Website setup', 'Webwerfopstelling'],
   contact: ['Contact enquiries', 'Kontaknavrae'],
   contactInbox: ['Contact enquiries', 'Kontaknavrae'],
-  contactModuleHelp: [
-    'Public contact form, enquiry inbox and email notifications.',
-    'Openbare kontakvorm, navraaginkassie en e-poskennisgewings.',
-  ],
-  contactModuleDisableHelp: [
-    'Hides the public form. Retained enquiries and queued notifications remain available.',
-    'Versteek die openbare vorm. Bestaande navrae en kennisgewings in die tou bly beskikbaar.',
-  ],
-  enableContactModule: ['Enable contact form', 'Aktiveer kontakvorm'],
   'permission.contact.manage': ['Manage website enquiries', 'Bestuur webwerfnavrae'],
   cms: ['Blog & news', 'Blog en nuus'],
   cmsModuleHelp: [
@@ -66,13 +57,13 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   'permissionGroup.support': ['Support', 'Ondersteuning'],
   supportModuleHelp: [
-    'Customer support portal and agent queue.',
-    'Klanteondersteuningsportaal en agentwaglys.',
+    'Contact enquiries, tickets, agent queue and ticket attachments.',
+    'Kontaknavrae, kaartjies, agentwaglys en kaartjie-aanhegsels.',
   ],
   enableSupportModule: ['Enable Support', 'Aktiveer Ondersteuning'],
   supportModuleDisableHelp: [
-    'Disabling Support blocks ticket access and retains existing data.',
-    'Deaktivering blokkeer kaartjietoegang en behou bestaande data.',
+    'Stops new enquiries and ticket access. Retained enquiries and accepted notifications remain available.',
+    'Stop nuwe navrae en kaartjietoegang. Bestaande navrae en aanvaarde kennisgewings bly beskikbaar.',
   ],
   supportSaved: ['Support changes saved.', 'Ondersteuningsveranderings gestoor.'],
   ...moduleDictionary,

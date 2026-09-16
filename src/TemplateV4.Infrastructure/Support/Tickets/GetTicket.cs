@@ -8,10 +8,10 @@ public sealed partial class SupportTicketStore
 {
     public async Task<Result<TicketDetail>> Get(GetTicket q, CancellationToken ct)
     {
-        if (!await Available(ct)) return Result<TicketDetail>.Fail("support.not_found", ErrorKind.NotFound);
+        if (!await tickets.Available(ct)) return Result<TicketDetail>.Fail("support.not_found", ErrorKind.NotFound);
         if (q.PageNumber is < 1 or > 10000) return Result<TicketDetail>.Fail("query.invalid", ErrorKind.Validation);
-        var agent = await Agent(ct); var visible = Visible(agent).AsNoTracking().Where(x => x.Id == q.Id);
-        var item = await Items(visible).SingleOrDefaultAsync(ct);
+        var agent = await tickets.Agent(ct); var visible = tickets.Visible(agent).AsNoTracking().Where(x => x.Id == q.Id);
+        var item = await tickets.Items(visible).SingleOrDefaultAsync(ct);
         if (item == null) return Result<TicketDetail>.Fail("support.not_found", ErrorKind.NotFound);
         var messages = db.Set<SupportMessageRow>().AsNoTracking().Where(x => x.TicketId == q.Id && (agent || !x.Internal));
         var count = await messages.CountAsync(ct);

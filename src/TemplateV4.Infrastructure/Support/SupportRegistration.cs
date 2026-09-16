@@ -9,7 +9,15 @@ public static partial class Registration
 {
     private static void AddSupport(IServiceCollection services)
     {
+        services.AddScoped<TemplateV4.Application.Contact.IContact, Contact.ContactStore>();
+        services.AddScoped<SupportTicketContext>();
         services.AddScoped<ISupportTickets, SupportTicketStore>();
+        services.AddScoped<ISupportCategories, SupportCategoriesStore>();
+        services.AddScoped<ISupportAttachments, SupportAttachmentsStore>();
+        services.AddScoped<ISupportModuleSettings, SupportModuleSettingsStore>();
+        services.AddScoped<TemplateV4.Application.Modules.ICapabilityRestrictions, SupportCapabilityRestrictions>();
+        services.AddScoped<IHandler<SaveSupportModuleSettings, SupportModuleSettings>, SaveSupportModuleSettingsHandler>();
+        services.AddSingleton<IValidator<SaveSupportModuleSettings>, SaveSupportModuleSettingsValidator>();
         services.AddScoped<IHandler<ListTickets, Page<TicketItem>>, ListTicketsHandler>();
         services.AddSingleton<IValidator<ListTickets>, ListTicketsValidator>();
         services.AddScoped<IHandler<GetTicket, TicketDetail>, GetTicketHandler>();

@@ -16,7 +16,7 @@ Public links permit anonymous metadata reading, folder browsing and individual d
 
 ## Quota and Trash
 
-The account-wide segmented bar groups current bytes into Images, Documents/PDFs, Spreadsheets, Presentations, Video, Audio, Archives and Other. Separate segments account for Trash and unfinished uploads. The legend reports bytes and counts. Remaining space is clamped to zero when a quota is reduced below usage. Shared content uses its owner's quota. Administrators configure the default quota, maximum upload file size and demo expiry under **Administration → File storage**. The default-quota slider starts at 50 MB, using 5 MB increments through 100 MB, 10 MB through 200 MB, 50 MB through 500 MB, 100 MB through 5,000 MB, 1,000 MB through 20,000 MB, then No limit. Slider labels switch from MB to decimal GB at 1,000 MB. The upload-size slider retains its 5–1,000 MB stepped range and defaults to 20 MB. It also applies to organisation files. Individual user overrides remain numeric from 0 through 100 GiB, where zero blocks storage; clearing an override restores inheritance from the default quota.
+The account-wide segmented bar groups current bytes into Images, Documents/PDFs, Spreadsheets, Presentations, Video, Audio, Archives and Other. Separate segments account for Trash and unfinished uploads. The legend reports bytes and counts. Remaining space is clamped to zero when a quota is reduced below usage. Shared content uses its owner's quota. Administrators configure the default quota and maximum upload file size under **Administration → File storage**. Demo expiry has a separate card and save action on the same page. The default-quota slider starts at 50 MB, using 5 MB increments through 100 MB, 10 MB through 200 MB, 50 MB through 500 MB, 100 MB through 5,000 MB, 1,000 MB through 20,000 MB, then No limit. Slider labels switch from MB to decimal GB at 1,000 MB. The upload-size slider retains its 5–1,000 MB stepped range and defaults to 20 MB. It also applies to organisation files. Individual user overrides remain numeric from 0 through 100 GiB, where zero blocks storage; clearing an override restores inheritance from the default quota.
 
 Reservations, current files and retained deleted content count exactly once. PostgreSQL owner locks serialize quota reservations, file movement, recursive deletion/restoration and purge work. Interrupted uploads remain reserved until cleanup reconciles them.
 
@@ -29,7 +29,6 @@ Folders can be deleted only after all live direct files and subfolders have been
 See [ADR 0029](adr/0029-my-files-library.md) for the architecture decision. Browser/E2E and accessibility checks require explicit permission under repository guidance.
 
 My Files submenu groups are always expanded; nested folders start expanded and may be collapsed. Folders with zero direct items are hidden outside the My Files group. Each group displays its unfiltered file count, excluding folders; each folder badge likewise counts only its direct files. Folder disclosure still reflects child files and subfolders, and leaf folders have no disclosure caret. Owners can right-click a live folder or press Shift+F10 to create a subfolder or delete an empty folder.
-
 
 ## File views and uploads
 

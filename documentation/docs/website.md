@@ -41,12 +41,13 @@ none. Confirmed 404s clear the affected cached article and return 404. Each proc
 caches at most 100 CMS responses; cache contents reset on restart and CMS disablement.
 Control-state failures produce a 503 rather than republishing an explicitly disabled site.
 
-Contact is separately controlled in **Administration → Modules** (`Modules:contact`
-for deployment settings). It is enabled in baseline and excluded by minimal. Delegate
-`contact.manage` to permit inbox access; Administrator receives it through Migrator
-permission synchronization. **Administration → Contact enquiries** lists, searches,
-sorts and pages enquiries and can mark them as read. With no notification recipient in
-the reduced website setup, the public contact form remains hidden.
+Contact enquiries belong to **Support**. Enable them and set their notification
+recipient under **Modules submenu → Support**. The public form requires an
+enabled/configured Website, active Support and the effective `support-enquiries`
+capability. Disabling submissions leaves the retained inbox and accepted notifications
+available. Delegate `contact.manage` for **Administration → Contact enquiries**;
+Administrator receives it through Migrator permission synchronization. See
+[Support features](support.md) for upgrade and configuration details.
 
 Website image uploads accept PNG/JPEG/WebP up to 1 MB, through the existing local/S3
 storage provider. My Files need not be enabled. Uploaded assets are public and retained.

@@ -1,10 +1,45 @@
-# Customer support portal
+# Support features
 
-Support is a customer portal at `/support` with a personal ticket list and a permission-controlled agent queue. It is enabled in the baseline deployment preset and disabled in minimal. Administrators can switch it under Administration → Modules. Disabling retains data, blocks every Support API, and hides/guards the portal. Account erasure and already accepted email delivery continue.
+Support contains independently configured **Contact enquiries** and **Tickets** (including attachments). Categories are a separate implementation slice that follows
+Tickets. Administrators manage the master module switch and feature toggles under
+**Administration → Modules**. Feature settings remain editable while the
+runtime module is off. Support is included in baseline and excluded by minimal.
+
+| Feature | Capability | When disabled |
+| --- | --- | --- |
+| Contact enquiries | `support-enquiries` | Public submissions stop; retained inbox and queued notifications continue |
+| Tickets | `support-tickets` | Ticket, category and attachment APIs stop; portal is hidden; data remains |
+
+Attachments are part of Tickets and have no separate switch. The Modules page owns activation and feature switches. The Support settings page in its submenu contains only the enquiry notification recipient. Category management remains in the ticket area.
+All new work requires Support activation. Account erasure and accepted email delivery
+continue independently of these switches. Permission and requester checks remain
+mandatory. See [ADR 0049](adr/0049-support-features.md).
+
+## Contact enquiries
+
+Set the **Enquiry notification recipient** under **Modules submenu → Support** and
+enable Contact enquiries on the Modules page. The public Website must also be configured and enabled. Without a
+recipient, the public form remains unavailable even if the preference is on. The
+recipient is never exposed through public website discovery.
+
+The retained inbox remains at **Administration → Contact enquiries**
+(`/administration/contact`) and is also linked from Support settings. Delegate
+`contact.manage` for inbox access. Existing permission values and notification links
+are unchanged. New email links use the deployment's `Web:PublicUrl`.
+
+Run DatabaseMigrator when upgrading. The forward `SupportFeatureSettings` migration
+preserves existing enquiries, copies the previous Contact runtime switch and website
+recipient into Support settings, and removes the old Contact module activation row.
+Tickets default to enabled, still subject to Support activation. The later forward
+`TicketAttachmentsFollowTickets` migration removes the separate attachment setting;
+existing attachments are untouched and follow Tickets.
+Remove `Modules:contact` and `ClientModules:contact` overrides from deployment
+configuration; select Support and configure its features instead. Update API, Worker
+and Migrator together. Existing migration history must not be regenerated.
 
 ## Getting started
 
-Run DatabaseMigrator before starting the updated API and Worker. The generated SupportPortal migration creates the `support` schema, a General category and an enabled runtime setting. The existing role seeder grants the new permissions to Administrator and revokes affected sessions so users sign in with current permissions. Deployment grants must include `support` for API and Worker runtime roles.
+Run DatabaseMigrator before starting the updated API and Worker. The original generated SupportPortal migration creates the `support` schema, a General category and an enabled runtime setting. The existing role seeder grants the new permissions to Administrator and revokes affected sessions so users sign in with current permissions. Deployment grants must include `support` for API and Worker runtime roles.
 
 Authenticated users can submit a subject, description and active category. They see only their own tickets, public replies and attachments. Agents have `support.agent`; `support.admin` includes agent access and category administration. Use User Management → Roles to create a support role and assign it to staff. General user-management or settings permissions do not grant ticket access. Agent permissions are read from current database memberships on each request.
 
@@ -34,4 +69,4 @@ Account export includes requester tickets, public conversation and attachment me
 
 Run `node tools/framework.mjs clients` after changing the support API contract.
 
-The portal uses owned Spartan controls and English/South African Afrikaans text. Most Support text is loaded with its route; global navigation/notification labels remain in the initial dictionary. The initial Angular error budget allows 1040 kB (10 kB more than the preceding shell) for the added navigation, route and shared styles; the 500 kB warning remains. Browser interaction and accessibility tests require explicit permission before execution.
+The portal uses owned Spartan controls and English/South African Afrikaans text. Most Support text is loaded with its route; global navigation/notification labels remain in the initial dictionary. Module settings translations load on the Modules route to preserve the existing initial bundle budget. Browser interaction and accessibility tests require explicit permission before execution.

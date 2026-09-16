@@ -184,6 +184,8 @@ import { getReleaseUpdates } from '../fn/framework/get-release-updates';
 import { GetReleaseUpdates$Params } from '../fn/framework/get-release-updates';
 import { getSecuritySettings } from '../fn/framework/get-security-settings';
 import { GetSecuritySettings$Params } from '../fn/framework/get-security-settings';
+import { getSupportModuleSettings } from '../fn/framework/get-support-module-settings';
+import { GetSupportModuleSettings$Params } from '../fn/framework/get-support-module-settings';
 import { getSupportOptions } from '../fn/framework/get-support-options';
 import { GetSupportOptions$Params } from '../fn/framework/get-support-options';
 import { getSupportTicket } from '../fn/framework/get-support-ticket';
@@ -366,6 +368,8 @@ import { savePlatformAppearance } from '../fn/framework/save-platform-appearance
 import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-appearance';
 import { saveSupportCategory } from '../fn/framework/save-support-category';
 import { SaveSupportCategory$Params } from '../fn/framework/save-support-category';
+import { saveSupportModuleSettings } from '../fn/framework/save-support-module-settings';
+import { SaveSupportModuleSettings$Params } from '../fn/framework/save-support-module-settings';
 import { saveWebPushPreferences } from '../fn/framework/save-web-push-preferences';
 import { SaveWebPushPreferences$Params } from '../fn/framework/save-web-push-preferences';
 import { saveWebsiteSettings } from '../fn/framework/save-website-settings';
@@ -390,6 +394,7 @@ import { storeCommercialPdf } from '../fn/framework/store-commercial-pdf';
 import { StoreCommercialPdf$Params } from '../fn/framework/store-commercial-pdf';
 import { submitContactEnquiry } from '../fn/framework/submit-contact-enquiry';
 import { SubmitContactEnquiry$Params } from '../fn/framework/submit-contact-enquiry';
+import { SupportModuleSettings } from '../models/support-module-settings';
 import { SupportOptions } from '../models/support-options';
 import { TicketDetail } from '../models/ticket-detail';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
@@ -2828,6 +2833,60 @@ export class FrameworkService extends BaseService {
     const resp = this.saveMyFilesModuleSettings$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<MyFilesModuleSettings>): MyFilesModuleSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `getSupportModuleSettings()` */
+  static readonly GetSupportModuleSettingsPath = '/api/v1/auth/administration/modules/support/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getSupportModuleSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportModuleSettings$Response(params?: GetSupportModuleSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<SupportModuleSettings>> {
+    const obs = getSupportModuleSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getSupportModuleSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportModuleSettings(params?: GetSupportModuleSettings$Params, context?: HttpContext): Observable<SupportModuleSettings> {
+    const resp = this.getSupportModuleSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<SupportModuleSettings>): SupportModuleSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `saveSupportModuleSettings()` */
+  static readonly SaveSupportModuleSettingsPath = '/api/v1/auth/administration/modules/support/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveSupportModuleSettings()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportModuleSettings$Response(params: SaveSupportModuleSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<SupportModuleSettings>> {
+    const obs = saveSupportModuleSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveSupportModuleSettings$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportModuleSettings(params: SaveSupportModuleSettings$Params, context?: HttpContext): Observable<SupportModuleSettings> {
+    const resp = this.saveSupportModuleSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<SupportModuleSettings>): SupportModuleSettings => r.body)
     );
   }
 

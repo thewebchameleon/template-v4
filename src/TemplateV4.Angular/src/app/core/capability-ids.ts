@@ -4,7 +4,6 @@ export type ModuleId =
   | 'audit-recording'
   | 'billing'
   | 'cms'
-  | 'contact'
   | 'crm'
   | 'delivery'
   | 'identity'
@@ -19,7 +18,6 @@ export type CapabilityId =
   | 'audit-recording'
   | 'billing'
   | 'cms'
-  | 'contact'
   | 'crm'
   | 'crm-files'
   | 'delivery'
@@ -31,4 +29,6 @@ export type CapabilityId =
   | 'operations'
   | 'organisation-files'
   | 'organisations'
-  | 'support';
+  | 'support'
+  | 'support-enquiries'
+  | 'support-tickets';

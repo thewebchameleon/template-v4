@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { destinationGuard, administrationDestinations } from '../../core/destinations';
+import { destinationGuard, administrationDestinations } from '../../../core/destinations';
 import { contactTranslations } from './contact-resolver';
 export const contactRoutes: Routes = [
   {
