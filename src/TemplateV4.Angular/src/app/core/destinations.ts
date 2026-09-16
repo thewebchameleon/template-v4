@@ -45,7 +45,7 @@ export const workspaceDestinations = {
   cms: {
     path: '/cms',
     label: 'cms',
-    icon: 'lucideFileSpreadsheet',
+    icon: 'lucidePaintbrush',
     capability: 'cms',
     permissions: ['cms.edit'],
     help: 'cmsModuleHelp',
@@ -92,14 +92,6 @@ export const administrationDestinations = {
     icon: 'lucideMail',
     section: 'modules',
     permissions: ['contact.manage'],
-  },
-  organisations: {
-    path: '/administration/organisation',
-    label: 'organisation',
-    icon: 'lucideUsersRound',
-    section: 'administration',
-    administratorOnly: true,
-    capability: 'organisations',
   },
   billing: {
     path: '/administration/billing',

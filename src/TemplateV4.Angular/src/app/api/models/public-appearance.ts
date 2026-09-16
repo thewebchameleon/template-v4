@@ -3,5 +3,7 @@
 
 export interface PublicAppearance {
   loginBackground?: string;
+  organisationLogoUrl: (string | null);
+  organisationName: string;
   primaryColor: string;
 }

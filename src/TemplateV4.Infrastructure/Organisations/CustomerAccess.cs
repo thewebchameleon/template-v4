@@ -7,6 +7,9 @@ namespace TemplateV4.Infrastructure.Customers;
 
 public sealed class CustomerAccess(FrameworkDb db) : ICustomerAccess
 {
+    private static readonly string[] TimeZones = TimeZoneInfo.GetSystemTimeZones()
+        .Select(x => x.HasIanaId ? x.Id : TimeZoneInfo.TryConvertWindowsIdToIanaId(x.Id, out var id) ? id : null)
+        .OfType<string>().Append("UTC").Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     public Task Lock(CancellationToken ct) => MutationLock(db, ct);
     public async Task<CustomerInfo?> Find(Guid actor, CancellationToken ct)
     {
@@ -16,7 +19,9 @@ public sealed class CustomerAccess(FrameworkDb db) : ICustomerAccess
                                    join role in db.Roles on assignment.RoleId equals role.Id
                                    where assignment.UserId == actor && role.Name == "Administrator"
                                    select assignment).AnyAsync(ct);
-        return new(row.Id, row.Name, administrator, await db.Profiles.CountAsync(x => !x.Disabled, ct), row.Version);
+        return new(row.Id, row.Name, row.WebsiteUrl, row.ContactEmail, row.TimeZone, row.Country,
+            row.LogoId is null ? null : $"/api/v1/auth/appearance/logos/{row.LogoId}",
+            administrator, await db.Profiles.CountAsync(x => !x.Disabled, ct), row.Version, TimeZones);
     }
     public static Task MutationLock(FrameworkDb db, CancellationToken ct) => db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
 }

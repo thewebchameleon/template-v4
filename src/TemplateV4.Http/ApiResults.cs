@@ -132,6 +132,7 @@ public static class ApiResults
             "profile.phone_invalid" => af ? "Gebruik 'n internasionale telefoonnommer, byvoorbeeld +27821234567." : "Use an international phone number, for example +27821234567.",
             "profile.time_zone_invalid" => af ? "Kies 'n ondersteunde tydsone." : "Choose a supported time zone.",
             "profile.avatar_invalid" => af ? "Kies 'n geldige profielfoto van hoogstens 256 by 256 pixels en 256 KiB." : "Choose a valid profile photo up to 256 by 256 pixels and 256 KiB.",
+            "organisation.logo_invalid" => af ? "Kies 'n geldige organisasielogo van hoogstens 512 by 512 pixels en 1 MiB." : "Choose a valid organisation logo up to 512 by 512 pixels and 1 MiB.",
             "culture.unsupported" => af ? "Kies 'n ondersteunde taal." : "Choose a supported language.",
             _ => af ? "Die versoek kon nie voltooi word nie." : "The request could not be completed."
 

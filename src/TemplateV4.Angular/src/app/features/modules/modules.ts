@@ -26,7 +26,6 @@ import { Notifications } from '../notifications/notifications';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../shared/workspace';
 import { SupportSettingsEditor } from '../support/configuration/support-settings-editor';
-import { MyFilesSettingsEditor } from '../my-files/configuration/my-files-settings-editor';
 
 @Component({
   selector: 'app-modules',
@@ -56,7 +55,7 @@ import { MyFilesSettingsEditor } from '../my-files/configuration/my-files-settin
           [collapsibleHeader]="false"
           [expanded]="enabled[module.id] !== false"
           class="mb-6"
-          [class.p-0]="!hasDetails(module)"
+          [class.p-0]="enabled[module.id] === false || !hasDetails(module)"
           [id]="'module-' + module.id"
         >
           <div hlmCardHeader>
@@ -172,9 +171,7 @@ export class ModulesPage implements OnInit {
   }
   editor(id: string) {
     if (id === 'support') return SupportSettingsEditor;
-    return id === 'my-files'
-      ? MyFilesSettingsEditor
-      : this.contributions.find((feature) => feature.id === id)?.moduleSettingsComponent;
+    return this.contributions.find((feature) => feature.id === id)?.moduleSettingsComponent;
   }
   settingsDestination(id: string) {
     const destinations: Record<string, { path: string; label: string }> = {

@@ -6,15 +6,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using MimeKit;
 using TemplateV4.Application;
+using TemplateV4.Application.Customers;
 
 namespace TemplateV4.Infrastructure;
 
-public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment environment, IDataProtectionProvider protection) : IEmailSender
+public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment environment, IDataProtectionProvider protection,
+    ICustomers organisations) : IEmailSender
 {
     private readonly IDataProtector _mfaCodeProtector = protection.CreateProtector("TemplateV4.email.mfa-code.v1");
 
     public async Task Send(string recipient, EmailRequest email, Guid messageId, CancellationToken ct)
     {
+        var brand = await organisations.Branding(ct);
         if (email.ProtectedRecipient is not null) recipient = protection.CreateProtector("TemplateV4.email.recipient.v1").Unprotect(email.ProtectedRecipient);
         var af = email.Culture == "af-ZA";
         var subject = email.Template switch
@@ -36,15 +39,19 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
             subject = section["subject"] ?? throw new InvalidOperationException("Email template or culture missing.");
             customBody = section["body"] ?? throw new InvalidOperationException("Email template body missing.");
         }
-        var message = new MimeMessage { Subject = subject, MessageId = $"{messageId:N}@templatev4" };
-        message.From.Add(MailboxAddress.Parse(config["Email:From"] ?? "no-reply@localhost")); message.To.Add(MailboxAddress.Parse(recipient));
+        var message = new MimeMessage { Subject = $"{brand.Name}: {subject}", MessageId = $"{messageId:N}@templatev4" };
+        var sender = MailboxAddress.Parse(config["Email:From"] ?? "no-reply@localhost");
+        message.From.Add(new MailboxAddress(brand.Name, sender.Address)); message.To.Add(MailboxAddress.Parse(recipient));
         var url = email.ActionUrl is null ? null : protection.CreateProtector("TemplateV4.email.action.v1").Unprotect(email.ActionUrl);
         var code = email.Template == EmailTemplate.MfaCode && email.ProtectedContent is not null ? _mfaCodeProtector.Unprotect(email.ProtectedContent) : null;
         if (email.Template == EmailTemplate.RegistrationApproved) { url = $"{config["Web:PublicUrl"]?.TrimEnd('/')}/login"; customBody = af ? "Jou registrasie is goedgekeur. Jy kan nou aanmeld." : "Your registration has been approved. You can now sign in."; }
         if (email.Template == EmailTemplate.RegistrationRejected) customBody = af ? "Jou registrasie is afgekeur. Kontak die administrateur vir hulp." : "Your registration has been rejected. Contact the administrator for assistance.";
         var introduction = customBody ?? (code is null ? subject : af ? "Gebruik hierdie kode om aan te meld. Dit verval oor 10 minute." : "Use this code to sign in. It expires in 10 minutes.");
-        var text = url is not null ? $"{introduction}: {url}" : code is not null ? $"{introduction}\n\n{code}" : introduction;
-        var html = $"<p>{WebUtility.HtmlEncode(introduction)}</p>" +
+        var textContent = url is not null ? $"{introduction}: {url}" : code is not null ? $"{introduction}\n\n{code}" : introduction;
+        var text = $"{brand.Name}\n\n{textContent}";
+        var publicUrl = config["Web:PublicUrl"]?.TrimEnd('/');
+        var logo = brand.LogoUrl is null || string.IsNullOrEmpty(publicUrl) ? "" : $"<img src=\"{WebUtility.HtmlEncode(publicUrl + brand.LogoUrl)}\" alt=\"\" style=\"max-height:48px;max-width:180px\">";
+        var html = $"<header>{logo}<strong>{WebUtility.HtmlEncode(brand.Name)}</strong></header><p>{WebUtility.HtmlEncode(introduction)}</p>" +
                    (url is not null ? $"<p><a href=\"{WebUtility.HtmlEncode(url)}\">{WebUtility.HtmlEncode(subject)}</a></p>" : "") +
                    (code is not null ? $"<p><strong>{WebUtility.HtmlEncode(code)}</strong></p>" : "");
         message.Body = new BodyBuilder { TextBody = text, HtmlBody = html }.ToMessageBody();

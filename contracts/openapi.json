@@ -2124,6 +2124,30 @@
         }
       }
     },
+    "/api/v1/auth/appearance/logos/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganisationLogo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/auth/updates": {
       "get": {
         "tags": [
@@ -6064,6 +6088,140 @@
         ]
       }
     },
+    "/api/v1/auth/organisation/settings": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UpdateOrganisation",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganisation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/organisation/logo": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "UploadOrganisationLogo",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RemoveOrganisationLogo",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/organisation/files": {
       "get": {
         "tags": [
@@ -8265,6 +8423,19 @@
               "null",
               "string"
             ]
+          },
+          "organisationLogoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "organisationName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -8984,9 +9155,15 @@
         "required": [
           "id",
           "name",
+          "websiteUrl",
+          "contactEmail",
+          "timeZone",
+          "country",
+          "logoUrl",
           "canManage",
           "users",
-          "version"
+          "version",
+          "timeZones"
         ],
         "type": "object",
         "properties": {
@@ -8996,6 +9173,33 @@
           },
           "name": {
             "type": "string"
+          },
+          "websiteUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contactEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "logoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "canManage": {
             "type": "boolean"
@@ -9007,6 +9211,12 @@
           "version": {
             "type": "string",
             "format": "uuid"
+          },
+          "timeZones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -11061,12 +11271,23 @@
       },
       "PublicAppearance": {
         "required": [
-          "primaryColor"
+          "primaryColor",
+          "organisationName",
+          "organisationLogoUrl"
         ],
         "type": "object",
         "properties": {
           "primaryColor": {
             "type": "string"
+          },
+          "organisationName": {
+            "type": "string"
+          },
+          "organisationLogoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "loginBackground": {
             "type": "string",
@@ -12090,6 +12311,47 @@
           "at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UpdateOrganisation": {
+        "required": [
+          "name",
+          "websiteUrl",
+          "contactEmail",
+          "timeZone",
+          "country",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contactEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },

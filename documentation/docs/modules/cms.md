@@ -11,7 +11,7 @@ The Migrator also synchronizes the built-in Administrator permission claims.
 Delegate `cms.edit` through the existing role management screen. This permission
 allows editors to manage and publish every article in the shared site-wide blog.
 No organisation membership is required. Administrators inherit this permission;
-other roles receive no automatic grant. Open **Blog & news** in the workspace.
+other roles receive no automatic grant. Open **CMS** in the workspace.
 
 Each article has a title (200 characters), unique lowercase URL slug (160), excerpt
 (500), public author name (120), and Markdown body (100,000). All are required.
@@ -42,7 +42,7 @@ transient CMS errors can use previously fetched published content. Confirmed 404
 remove stale content. See [ADR 0044](../adr/0044-public-angular-website.md), which
 supersedes ADR 0041's HTTP HTML delivery decision.
 
-**Blog & news → Landing page sections** edits hero, about, services, testimonials/
+**CMS → Landing page sections** edits hero, about, services, testimonials/
 commitment and contact sections. Text, image URLs and alternative text are stored
 in a draft snapshot and explicitly published. Empty sections use bundled copy.
 Images support HTTPS URLs and the website's public image upload facility; article

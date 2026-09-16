@@ -51,6 +51,7 @@ import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
 import { UnreadNotifications } from './features/notifications/unread-notifications';
 import { NotificationDrawer } from './features/notifications/notification-drawer';
+import { PlatformAppearanceTheme } from './core/platform-appearance';
 
 type RailLink = Destination & {
   destination: string;
@@ -123,11 +124,17 @@ type RailLink = Destination & {
                 variant="ghost"
                 size="icon"
                 [routerLink]="auth.landing()"
-                [attr.aria-label]="'appBrand' | t"
-                [hlmTooltip]="'appBrand' | t"
+                [attr.aria-label]="appearance.organisationName()"
+                [hlmTooltip]="appearance.organisationName()"
                 position="right"
               >
-                <span class="brand-mark"><ng-icon name="lucideCommand" size="1.5rem" /></span>
+                <span class="brand-mark">
+                  @if (appearance.organisationLogoUrl(); as logo) {
+                    <img [src]="logo" alt="" />
+                  } @else {
+                    <ng-icon name="lucideCommand" size="1.5rem" />
+                  }
+                </span>
               </a>
               <nav class="sidebar-rail-links" [attr.aria-label]="'destinationNavigation' | t">
                 <div class="sidebar-rail-items" [style.--rail-active-index]="activeRailIndex()">
@@ -204,9 +211,15 @@ type RailLink = Destination & {
                     [routerLink]="auth.landing()"
                     closeMobileSidebarOnClick
                   >
-                    <span class="brand-mark"><ng-icon name="lucideCommand" /></span>
+                    <span class="brand-mark">
+                      @if (appearance.organisationLogoUrl(); as logo) {
+                        <img [src]="logo" alt="" />
+                      } @else {
+                        <ng-icon name="lucideCommand" />
+                      }
+                    </span>
                     <span class="brand-copy"
-                      ><span>{{ 'appBrand' | t }}</span
+                      ><span>{{ appearance.organisationName() }}</span
                       ><small>{{ 'workspace' | t }}</small></span
                     >
                   </a>
@@ -517,6 +530,7 @@ export class App {
   readonly unread = inject(UnreadNotifications);
   readonly auth = inject(Auth);
   readonly theme = inject(Theme);
+  readonly appearance = inject(PlatformAppearanceTheme);
   readonly sidebar = inject(HlmSidebarService);
   private readonly router = inject(Router);
   private readonly navigationEnd = toSignal(
@@ -709,8 +723,8 @@ export class App {
     effect(() => {
       const current = this.breadcrumbs.items().at(-1);
       document.title = current
-        ? `${this.i18n.text(current.label)} | ${this.i18n.text('appBrand')}`
-        : this.i18n.text('appBrand');
+        ? `${this.i18n.text(current.label)} | ${this.appearance.organisationName()}`
+        : this.appearance.organisationName();
     });
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationEnd) {

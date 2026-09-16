@@ -178,6 +178,7 @@ export type { TicketAttachment } from './models/ticket-attachment';
 export type { TicketDetail } from './models/ticket-detail';
 export type { TicketItem } from './models/ticket-item';
 export type { TicketMessage } from './models/ticket-message';
+export type { UpdateOrganisation } from './models/update-organisation';
 export type { UpdateProfileRequest } from './models/update-profile-request';
 export type { UpdateSummary } from './models/update-summary';
 export type { UpdateTicket } from './models/update-ticket';

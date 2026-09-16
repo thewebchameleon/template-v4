@@ -305,6 +305,34 @@
     color: var(--primary-foreground);
     border-radius: var(--radius);
   }
+  .brand-mark img,
+  .auth-brand-mark img,
+  .brand-logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .brand-mark:has(img),
+  .auth-brand-mark:has(img) {
+    background: transparent;
+    color: inherit;
+  }
+  .brand-logo-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 8rem;
+    height: 8rem;
+    padding: calc(var(--spacing) * 3);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-semibold);
+  }
   .auth-brand-mark {
     width: var(--auth-brand-mark-size);
     height: var(--auth-brand-mark-size);

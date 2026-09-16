@@ -6,5 +6,16 @@ public sealed class CustomerRow
 {
     public Guid Id { get; set; } = Organisation.Id;
     public string Name { get; set; } = "Organisation";
+    public string? WebsiteUrl { get; set; }
+    public string? ContactEmail { get; set; }
+    public string TimeZone { get; set; } = "Africa/Johannesburg";
+    public string? Country { get; set; }
+    public Guid? LogoId { get; set; }
     public Guid Version { get; set; } = Guid.NewGuid();
+}
+
+public sealed class OrganisationLogoRow
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public byte[] Png { get; set; } = [];
 }

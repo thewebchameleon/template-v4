@@ -9,7 +9,7 @@ export const dictionary: Record<string, [string, string]> = {
   contact: ['Contact enquiries', 'Kontaknavrae'],
   contactInbox: ['Contact enquiries', 'Kontaknavrae'],
   'permission.contact.manage': ['Manage website enquiries', 'Bestuur webwerfnavrae'],
-  cms: ['Blog & news', 'Blog en nuus'],
+  cms: ['CMS', 'CMS'],
   cmsModuleHelp: [
     'Site-wide public blog with Markdown publishing.',
     'Webwerfwye openbare blog met Markdown-publikasie.',

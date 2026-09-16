@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, model, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, NgZone, computed, effect, inject, input, model, signal } from '@angular/core';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -10,7 +11,13 @@ import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBlend, lucidePalette } from '@ng-icons/lucide';
 import { I18n, Translate } from '../core/i18n';
-import { GRADIENT_TYPES, LOGIN_BACKGROUNDS, loginBackground } from '../core/login-backgrounds';
+import {
+  GRADIENT_TYPES,
+  LOGIN_BACKGROUNDS,
+  loginBackground,
+  recolorBackground,
+} from '../core/login-backgrounds';
+import { PlatformAppearanceTheme } from '../core/platform-appearance';
 import { LoginBackgroundArtwork } from './login-background';
 
 @Component({
@@ -58,6 +65,12 @@ import { LoginBackgroundArtwork } from './login-background';
       overflow: hidden;
       border: 2px solid var(--border);
       border-radius: var(--radius);
+    }
+    .thumbnail img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .preset input:checked + .thumbnail {
       border-color: var(--primary);
@@ -196,7 +209,7 @@ import { LoginBackgroundArtwork } from './login-background';
                   <fieldset hlmFieldSet [disabled]="disabled()" data-testid="gradient-types">
                     <legend hlmFieldLegend>{{ 'gradientType' | t }}</legend>
                     <div class="presets">
-                      @for (item of types; track item.id) {
+                      @for (item of types(); track item.id) {
                         <label class="preset">
                           <input
                             type="radio"
@@ -205,9 +218,15 @@ import { LoginBackgroundArtwork } from './login-background';
                             [checked]="type() === item.id"
                             (click)="selectType(item.id)"
                           />
-                          <span class="thumbnail" aria-hidden="true"
-                            ><app-login-background [value]="item.preview" [thumbnail]="true"
-                          /></span>
+                          <span
+                            class="thumbnail"
+                            aria-hidden="true"
+                            [style.background]="item.fallback"
+                          >
+                            @if (item.thumbnailUrl; as thumbnailUrl) {
+                              <img alt="" [src]="thumbnailUrl" />
+                            }
+                          </span>
                           <span class="name">{{ item.label | t }}</span>
                         </label>
                       }
@@ -272,6 +291,10 @@ import { LoginBackgroundArtwork } from './login-background';
 })
 export class LoginBackgroundPicker {
   private readonly i18n = inject(I18n);
+  private readonly appearance = inject(PlatformAppearanceTheme);
+  private readonly document = inject(DOCUMENT);
+  private readonly zone = inject(NgZone);
+  private readonly typeThumbnails = signal<Readonly<Record<string, string>>>({});
   readonly roleLabel = (value: unknown) =>
     this.i18n.text(value === 'member' ? 'previewMember' : 'previewAdministrator');
   readonly value = model<string>('blue-sky');
@@ -280,14 +303,84 @@ export class LoginBackgroundPicker {
   readonly presetState = signal<'open' | 'closed'>('closed');
   readonly selectedPreset = computed(() => loginBackground(this.value()));
   readonly selectedType = computed(() => GRADIENT_TYPES.find((type) => type.id === this.type())!);
-  readonly types = GRADIENT_TYPES.map((type) => ({
-    ...type,
-    preview: LOGIN_BACKGROUNDS.find((preset) => preset.type === type.id)!.id,
-  }));
+  readonly types = computed(() => {
+    const primaryColor = this.appearance.primaryColor();
+    const thumbnails = this.typeThumbnails();
+    return GRADIENT_TYPES.map((type) => {
+      const preview = LOGIN_BACKGROUNDS.find((preset) => preset.type === type.id)!;
+      const recolored = recolorBackground(preview, primaryColor);
+      return {
+        ...type,
+        preview: preview.id,
+        fallback: `linear-gradient(180deg, ${recolored.stops.join(', ')})`,
+        thumbnailUrl: thumbnails[type.id],
+      };
+    });
+  });
   readonly type = computed(() => loginBackground(this.value()).type);
   readonly presets = computed(() =>
     LOGIN_BACKGROUNDS.filter((preset) => preset.type === this.type()),
   );
+
+  constructor() {
+    effect((onCleanup) => {
+      const primaryColor = this.appearance.primaryColor();
+      const window = this.document.defaultView;
+      this.typeThumbnails.set({});
+      if (!window) return;
+
+      let cancelled = false;
+      let idleHandle: number | undefined;
+      let timeoutHandle: number | undefined;
+      const cancelScheduledWork = () => {
+        if (idleHandle !== undefined && window.cancelIdleCallback)
+          window.cancelIdleCallback(idleHandle);
+        if (timeoutHandle !== undefined) window.clearTimeout(timeoutHandle);
+      };
+      onCleanup(() => {
+        cancelled = true;
+        cancelScheduledWork();
+      });
+
+      this.zone.runOutsideAngular(() => {
+        void import('./gradient-renderer').then(({ GradientRenderer }) => {
+          if (cancelled) return;
+          let index = 0;
+          const renderNext = () => {
+            if (cancelled || index >= GRADIENT_TYPES.length) return;
+            const type = GRADIENT_TYPES[index++];
+            const preset = LOGIN_BACKGROUNDS.find((candidate) => candidate.type === type.id)!;
+            const canvas = this.document.createElement('canvas');
+            const renderer = new GradientRenderer(canvas);
+            try {
+              renderer.render(recolorBackground(preset, primaryColor), 20.75, 240, 150);
+              const thumbnailUrl = canvas.toDataURL('image/webp', 0.8);
+              this.typeThumbnails.update((thumbnails) => ({
+                ...thumbnails,
+                [type.id]: thumbnailUrl,
+              }));
+            } catch {
+              // The CSS fallback remains usable when canvas rendering is unavailable.
+            } finally {
+              renderer.destroy();
+              canvas.width = canvas.height = 0;
+            }
+            scheduleNext();
+          };
+          const scheduleNext = () => {
+            if (cancelled || index >= GRADIENT_TYPES.length) return;
+            if (window.requestIdleCallback) {
+              idleHandle = window.requestIdleCallback(renderNext, { timeout: 1000 });
+            } else {
+              timeoutHandle = window.setTimeout(renderNext, 0);
+            }
+          };
+          scheduleNext();
+        });
+      });
+    });
+  }
+
   selectType(value: unknown) {
     if (this.disabled()) return;
     this.typeState.set('closed');

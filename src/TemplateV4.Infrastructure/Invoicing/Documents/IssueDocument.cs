@@ -45,7 +45,10 @@ public sealed partial class InvoicingStore
             if (!customer.IsSuccess) return Result<CommercialDocument>.Fail("resource.not_found", ErrorKind.NotFound);
             if (issuer.VatRegistered && string.IsNullOrWhiteSpace(customer.Value!.Data.Address)) return Result<CommercialDocument>.Fail("invoicing.customer_address", ErrorKind.Validation);
             if (!issuer.VatRegistered && request.Lines.Any(x => x.TaxRate != 0)) return Result<CommercialDocument>.Fail("validation.failed", ErrorKind.Validation);
-            snapshot = new(issuer, customer.Value!.Data, totals, request.Reference);
+            var brand = await db.Set<TemplateV4.Infrastructure.Persistence.CustomerRow>().AsNoTracking()
+                .Where(x => x.Id == TemplateV4.Application.Customers.Organisation.Id)
+                .Select(x => new { x.Name, x.LogoId }).SingleAsync(ct);
+            snapshot = new(issuer, customer.Value!.Data, totals, request.Reference, brand.LogoId, brand.Name);
         }
         if (request.PreviousRevisionId is Guid previousId)
         {

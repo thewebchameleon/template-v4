@@ -19,6 +19,24 @@ public static class CustomerBillingEndpoints
         accounts.MapGet("/", async (ClaimsPrincipal u, ICustomers store, CancellationToken ct) => (await store.Home(Actor(u), ct)).ToHttp()).ContinuesWhenDisabled(ModuleIds.Organisations, "Read organisation settings and retained obligations").WithName("GetOrganisation").Produces<CustomerInfo>();
         organisationEntries.MapGet("/users", async (ClaimsPrincipal u, ICustomers store, CancellationToken ct, int pageNumber = 1, int pageSize = 10) => (await store.Users(Actor(u), pageNumber, pageSize, ct)).ToHttp()).WithName("GetOrganisationUsers").Produces<Page<OrganisationUser>>();
         organisationEntries.MapPost("/rename", async (ClaimsPrincipal u, RenameOrganisation r, ICustomers s, CancellationToken ct) => (await s.Rename(Actor(u), r, ct)).ToHttp()).RequireAuthorization(policy => policy.RequireRole("Administrator")).WithName("RenameOrganisation");
+        accounts.MapPost("/settings", async (ClaimsPrincipal u, UpdateOrganisation r, ICustomers s, CancellationToken ct) =>
+            (await s.Update(Actor(u), r, ct)).ToHttp()).RequireAuthorization(policy => policy.RequireRole("Administrator")).ContinuesWhenDisabled(ModuleIds.Organisations, "Maintain platform branding").WithName("UpdateOrganisation").Produces<CustomerInfo>();
+        accounts.MapPost("/logo", async (Guid version, ClaimsPrincipal u, HttpContext context, ICustomers s, CancellationToken ct) =>
+        {
+            if (context.Request.ContentLength is > 1048576) return Results.StatusCode(413);
+            using var content = new MemoryStream();
+            var buffer = new byte[81920];
+            while (true)
+            {
+                var read = await context.Request.Body.ReadAsync(buffer, ct);
+                if (read == 0) break;
+                if (content.Length + read > 1048576) return Results.StatusCode(413);
+                await content.WriteAsync(buffer.AsMemory(0, read), ct);
+            }
+            return (await s.UpdateLogo(Actor(u), version, content.ToArray(), ct)).ToHttp();
+        }).RequireAuthorization(policy => policy.RequireRole("Administrator")).ContinuesWhenDisabled(ModuleIds.Organisations, "Maintain platform branding").WithName("UploadOrganisationLogo").Produces<CustomerInfo>();
+        accounts.MapDelete("/logo", async (Guid version, ClaimsPrincipal u, ICustomers s, CancellationToken ct) =>
+            (await s.UpdateLogo(Actor(u), version, null, ct)).ToHttp()).RequireAuthorization(policy => policy.RequireRole("Administrator")).ContinuesWhenDisabled(ModuleIds.Organisations, "Maintain platform branding").WithName("RemoveOrganisationLogo").Produces<CustomerInfo>();
         // Existing customers can always inspect and cancel payment obligations when checkout is disabled.
         var billing = group.MapGroup("/billing").RequireAuthorization();
         var files = accounts.MapGroup("/files").OwnedByModule(ModuleIds.Organisations).RequireCapability(CapabilityIds.OrganisationFiles);

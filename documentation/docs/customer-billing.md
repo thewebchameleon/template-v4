@@ -1,8 +1,10 @@
 # Organisation and subscription
 
 Each deployment has one organisation and one shared subscription. Administrators
-manage its name under Administration → Organisation. Appearance, website details,
-issuer address and account-security settings retain their existing settings pages.
+manage its system-wide identity and general profile under Administration → Configuration.
+The organisation name and logo brand the application, authentication, email and newly
+issued commercial documents. Appearance, public website details, legal issuer address
+and account-security settings retain their existing settings pages.
 CRM, invoicing, shared files and billing open directly without selecting an account.
 See [ADR 0047](adr/0047-single-organisation.md).
 

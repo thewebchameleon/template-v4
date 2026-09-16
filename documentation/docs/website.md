@@ -28,7 +28,7 @@ backend still means the admin portal for existing account email links.
 
 ## CMS and contact modules
 
-Open **Blog & news → Landing page sections** to edit hero, about, services,
+Open **CMS → Landing page sections** to edit hero, about, services,
 testimonials/commitment and contact text and images. Save a draft, inspect its preview,
 then publish the saved sections. Empty sections use the bundled business copy.
 Article editing retains its existing save/preview/publish workflow. Blog URLs live on

@@ -9,6 +9,33 @@ export const customerDictionary: Record<string, [string, string]> = {
   ],
   organisationWorkspace: ['Organisation workspace', 'Organisasiewerkruimte'],
   organisationName: ['Organisation name', 'Organisasienaam'],
+  organisationConfigurationHelp: [
+    'Set the identity used across navigation, sign-in, email and generated documents.',
+    'Stel die identiteit wat in navigasie, aanmelding, e-pos en gegenereerde dokumente gebruik word.',
+  ],
+  organisationLogo: ['Organisation logo', 'Organisasielogo'],
+  organisationLogoHelp: [
+    'Choose a PNG, JPEG or WebP image. It will be resized and stored as a PNG up to 512 pixels.',
+    'Kies ’n PNG-, JPEG- of WebP-prent. Dit sal verklein en as ’n PNG van hoogstens 512 pixels gestoor word.',
+  ],
+  dropOrganisationLogoHere: ['Drop your logo here', 'Laat val jou logo hier'],
+  browseOrganisationLogoHelp: ['Or click to choose an image', "Of klik om 'n beeld te kies"],
+  organisationLogoUploading: ['Processing and uploading logo…', 'Logo word verwerk en opgelaai…'],
+  organisationLogoInvalid: [
+    'Choose a valid image no larger than 5 MiB.',
+    'Kies ’n geldige prent van hoogstens 5 MiB.',
+  ],
+  removeOrganisationLogo: ['Remove logo', 'Verwyder logo'],
+  organisationWebsite: ['Website', 'Webwerf'],
+  organisationWebsiteInvalid: [
+    'Enter a complete HTTP or HTTPS website address.',
+    'Voer ’n volledige HTTP- of HTTPS-webwerfadres in.',
+  ],
+  organisationContactEmail: ['Primary contact email', 'Primêre kontak-e-pos'],
+  organisationTimeZone: ['Default time zone', 'Verstektydsone'],
+  organisationCountry: ['Country or region', 'Land of streek'],
+  organisationSaved: ['Organisation saved.', 'Organisasie gestoor.'],
+  organisationLogoSaved: ['Organisation logo updated.', 'Organisasielogo bygewerk.'],
   customerSaved: ['Account changes saved.', 'Rekeningveranderings gestoor.'],
   billing: ['Billing & subscriptions', 'Fakturering en intekeninge'],
   billingHelp: [

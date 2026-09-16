@@ -32,4 +32,21 @@ public sealed class CommercialPdfTests
         var rest = CommercialRules.Credit(original, 0.05m, original.Total - 0.05m);
         Assert.Equal(original.Total, first.Total + rest.Total); Assert.Equal(original.Net, first.Net + rest.Net); Assert.Equal(original.Tax, first.Tax + rest.Tax);
     }
+
+    [Fact]
+    public void Organisation_logo_is_rendered_from_the_issued_brand_snapshot()
+    {
+        var totals = CommercialRules.Price([new("Service", ChargeCategory.ServiceFee, 1, 100, TaxTreatment.Exempt, 0)]);
+        var snapshot = new CommercialSnapshot(new(Guid.NewGuid(), "Issuer", "Address", "contact@example.test", "", false, null, "ORG"),
+            new(CrmRecordKind.Company, "Customer", "customer@example.test", null, null, null, [], null, [], [], null, null, null, null, null, null, DealOutcome.Open),
+            totals, null, Guid.NewGuid(), "Example Organisation");
+        var document = new CommercialDocument(Guid.NewGuid(), Guid.NewGuid(), "ORG-I-00000001", CommercialDocumentKind.Invoice,
+            Guid.NewGuid(), snapshot, DateTimeOffset.UtcNow, Guid.NewGuid(), null, null, null, null, false, null, null, 0, 0, 0, totals.Total);
+        var logo = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
+
+        var pdf = CommercialPdf.Render(new(document, [], []), logo);
+
+        Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
+        Assert.True(pdf.Length > 5000);
+    }
 }

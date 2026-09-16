@@ -132,6 +132,9 @@ export class MyFilesSettingsEditor implements OnDestroy {
   ngOnDestroy() {
     this.password = '';
   }
+  hasUnsavedChanges() {
+    return this.confirming() || !!this.password;
+  }
   async load() {
     const loaded = await this.data.load((signal) =>
       this.api.get<MyFilesModuleSettings>('administration/modules/my-files/settings', {}, signal),

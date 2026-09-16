@@ -9,8 +9,13 @@ File ownership and quota rules are superseded by [ADR 0048](0048-unified-organis
 ## Decision
 
 Every deployment has exactly one organisation, seeded by a forward migration and
-enforced by a PostgreSQL singleton constraint. Administrators edit its name; existing
-appearance, website, issuer and account-security settings retain their owners.
+enforced by a PostgreSQL singleton constraint. Administrators edit its name, logo,
+website, primary contact email, default time zone and country/region in Administration
+→ Configuration. The name and logo are the system-wide identity used by the application
+shell, authentication, email and newly issued commercial-document snapshots. Immutable
+logo rows remain available to render retained documents after the active logo changes.
+Existing appearance, public-website content, legal issuer and account-security settings
+retain their owners.
 Public registration, invitations, administrator-created users and optional approval
 remain configurable through the existing account-security workflow.
 

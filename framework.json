@@ -94,7 +94,7 @@
     "ui": "Spartan NG",
     "uiSounds": "Foley selected outcome cues; enabled by default with browser-local mute in the theme drawer",
     "access": "Identity roles with protected built-ins and delegated permissions",
-    "configuration": "Administrator-only platform settings; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding, all 30 FeralUI login background types and 298 color presets and accessible light/dark palettes",
+    "configuration": "Administrator-only platform settings; organisation-wide name, retained logo branding and general profile; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding, all 30 FeralUI login background types and 298 color presets and accessible light/dark palettes",
     "organisationFiles": "Files (my-files): one organisation library, folders, metadata, Important/Starred flags, scoped recent files, expiring public download links, Trash and shared storage quota",
     "support": "Support-owned contact enquiries, requester tickets with categories and attachments with independent versioned feature settings"
   },

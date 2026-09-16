@@ -111,6 +111,8 @@ export type { ReviewAccountDeletion$Params as ReviewAccountDeletion$Params } fro
 export { reviewAccountDeletion as reviewAccountDeletion } from './fn/framework/review-account-deletion';
 export type { GetPublicAppearance$Params as GetPublicAppearance$Params } from './fn/framework/get-public-appearance';
 export { getPublicAppearance as getPublicAppearance } from './fn/framework/get-public-appearance';
+export type { GetOrganisationLogo$Params as GetOrganisationLogo$Params } from './fn/framework/get-organisation-logo';
+export { getOrganisationLogo as getOrganisationLogo } from './fn/framework/get-organisation-logo';
 export type { GetReleaseUpdates$Params as GetReleaseUpdates$Params } from './fn/framework/get-release-updates';
 export { getReleaseUpdates as getReleaseUpdates } from './fn/framework/get-release-updates';
 export type { UploadWebsiteImage$Params as UploadWebsiteImage$Params } from './fn/framework/upload-website-image';
@@ -289,6 +291,12 @@ export type { RenameOrganisation$Params as RenameOrganisation$Params } from './f
 export { renameOrganisation as renameOrganisation } from './fn/framework/rename-organisation';
 export type { GetOrganisation$Params as GetOrganisation$Params } from './fn/framework/get-organisation';
 export { getOrganisation as getOrganisation } from './fn/framework/get-organisation';
+export type { UpdateOrganisation$Params as UpdateOrganisation$Params } from './fn/framework/update-organisation';
+export { updateOrganisation as updateOrganisation } from './fn/framework/update-organisation';
+export type { UploadOrganisationLogo$Params as UploadOrganisationLogo$Params } from './fn/framework/upload-organisation-logo';
+export { uploadOrganisationLogo as uploadOrganisationLogo } from './fn/framework/upload-organisation-logo';
+export type { RemoveOrganisationLogo$Params as RemoveOrganisationLogo$Params } from './fn/framework/remove-organisation-logo';
+export { removeOrganisationLogo as removeOrganisationLogo } from './fn/framework/remove-organisation-logo';
 export type { GetOrganisationFiles$Params as GetOrganisationFiles$Params } from './fn/framework/get-organisation-files';
 export { getOrganisationFiles as getOrganisationFiles } from './fn/framework/get-organisation-files';
 export type { UploadOrganisationFile$Params as UploadOrganisationFile$Params } from './fn/framework/upload-organisation-file';

@@ -21,9 +21,11 @@ public static class CommercialPdf
             using var buffer = new MemoryStream(); stream.CopyTo(buffer); return buffer.ToArray();
         }
     }
-    public static byte[] Render(CommercialDetail detail)
+    public static byte[] Render(CommercialDetail detail, byte[]? logoPng = null)
     {
         using var pdf = new PdfDocument(); var document = detail.Document; var snapshot = document.Snapshot;
+        using var logoStream = logoPng is null ? null : new MemoryStream(logoPng, writable: false);
+        using var logo = logoStream is null ? null : XImage.FromStream(logoStream);
         pdf.Info.Title = document.Number; pdf.Info.Author = snapshot.Issuer.Name;
         var regular = new XFont("Noto Sans", 9, XFontStyleEx.Regular);
         var bold = new XFont("Noto Sans", 10, XFontStyleEx.Bold);
@@ -45,7 +47,15 @@ public static class CommercialPdf
         void Page()
         {
             graphics?.Dispose(); var page = pdf.AddPage(); page.Size = PdfSharp.PageSize.A4; graphics = XGraphics.FromPdfPage(page);
-            graphics.DrawString(Type(), title, XBrushes.Black, 40, 55);
+            if (logo is not null)
+            {
+                var scale = Math.Min(64d / logo.PixelWidth, 48d / logo.PixelHeight);
+                graphics.DrawImage(logo, 40, 28, logo.PixelWidth * scale, logo.PixelHeight * scale);
+            }
+            var brandX = logo is null ? 40 : 120;
+            if (!string.IsNullOrWhiteSpace(snapshot.OrganisationName))
+                graphics.DrawString(snapshot.OrganisationName, bold, muted, brandX, 34);
+            graphics.DrawString(Type(), title, XBrushes.Black, brandX, 62);
             graphics.DrawString(document.Number, bold, muted, new XRect(280, 32, 275, 28), XStringFormats.CenterRight);
             graphics.DrawString(document.IssuedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("en-ZA")), regular, muted, new XRect(280, 60, 275, 15), XStringFormats.CenterRight);
             graphics.DrawLine(new XPen(XColor.FromArgb(205, 213, 224)), 40, 88, 555, 88); y = 112;

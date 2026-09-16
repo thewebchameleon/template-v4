@@ -156,6 +156,8 @@ import { getOrganisationAttachment } from '../fn/framework/get-organisation-atta
 import { GetOrganisationAttachment$Params } from '../fn/framework/get-organisation-attachment';
 import { getOrganisationFiles } from '../fn/framework/get-organisation-files';
 import { GetOrganisationFiles$Params } from '../fn/framework/get-organisation-files';
+import { getOrganisationLogo } from '../fn/framework/get-organisation-logo';
+import { GetOrganisationLogo$Params } from '../fn/framework/get-organisation-logo';
 import { getOrganisationUsers } from '../fn/framework/get-organisation-users';
 import { GetOrganisationUsers$Params } from '../fn/framework/get-organisation-users';
 import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
@@ -319,6 +321,8 @@ import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
 import { registerWebPush } from '../fn/framework/register-web-push';
 import { RegisterWebPush$Params } from '../fn/framework/register-web-push';
 import { RegistrationSettings } from '../models/registration-settings';
+import { removeOrganisationLogo } from '../fn/framework/remove-organisation-logo';
+import { RemoveOrganisationLogo$Params } from '../fn/framework/remove-organisation-logo';
 import { removePasskey } from '../fn/framework/remove-passkey';
 import { RemovePasskey$Params } from '../fn/framework/remove-passkey';
 import { renameMyFile } from '../fn/framework/rename-my-file';
@@ -401,6 +405,8 @@ import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
 import { updateMyFileMetadata } from '../fn/framework/update-my-file-metadata';
 import { UpdateMyFileMetadata$Params } from '../fn/framework/update-my-file-metadata';
+import { updateOrganisation } from '../fn/framework/update-organisation';
+import { UpdateOrganisation$Params } from '../fn/framework/update-organisation';
 import { updateProfile } from '../fn/framework/update-profile';
 import { UpdateProfile$Params } from '../fn/framework/update-profile';
 import { updateRole } from '../fn/framework/update-role';
@@ -416,6 +422,8 @@ import { uploadOrganisationAttachment } from '../fn/framework/upload-organisatio
 import { UploadOrganisationAttachment$Params } from '../fn/framework/upload-organisation-attachment';
 import { uploadOrganisationFile } from '../fn/framework/upload-organisation-file';
 import { UploadOrganisationFile$Params } from '../fn/framework/upload-organisation-file';
+import { uploadOrganisationLogo } from '../fn/framework/upload-organisation-logo';
+import { UploadOrganisationLogo$Params } from '../fn/framework/upload-organisation-logo';
 import { uploadWebsiteImage } from '../fn/framework/upload-website-image';
 import { UploadWebsiteImage$Params } from '../fn/framework/upload-website-image';
 import { UserAccessDetail } from '../models/user-access-detail';
@@ -1915,6 +1923,33 @@ export class FrameworkService extends BaseService {
     const resp = this.getPublicAppearance$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<PublicAppearance>): PublicAppearance => r.body)
+    );
+  }
+
+  /** Path part for operation `getOrganisationLogo()` */
+  static readonly GetOrganisationLogoPath = '/api/v1/auth/appearance/logos/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getOrganisationLogo()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationLogo$Response(params: GetOrganisationLogo$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = getOrganisationLogo(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getOrganisationLogo$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisationLogo(params: GetOrganisationLogo$Params, context?: HttpContext): Observable<void> {
+    const resp = this.getOrganisationLogo$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
@@ -4316,6 +4351,87 @@ export class FrameworkService extends BaseService {
    */
   getOrganisation(params?: GetOrganisation$Params, context?: HttpContext): Observable<CustomerInfo> {
     const resp = this.getOrganisation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
+    );
+  }
+
+  /** Path part for operation `updateOrganisation()` */
+  static readonly UpdateOrganisationPath = '/api/v1/auth/organisation/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `updateOrganisation()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateOrganisation$Response(params: UpdateOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
+    const obs = updateOrganisation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `updateOrganisation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateOrganisation(params: UpdateOrganisation$Params, context?: HttpContext): Observable<CustomerInfo> {
+    const resp = this.updateOrganisation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
+    );
+  }
+
+  /** Path part for operation `uploadOrganisationLogo()` */
+  static readonly UploadOrganisationLogoPath = '/api/v1/auth/organisation/logo';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `uploadOrganisationLogo()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  uploadOrganisationLogo$Response(params: UploadOrganisationLogo$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
+    const obs = uploadOrganisationLogo(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `uploadOrganisationLogo$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  uploadOrganisationLogo(params: UploadOrganisationLogo$Params, context?: HttpContext): Observable<CustomerInfo> {
+    const resp = this.uploadOrganisationLogo$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
+    );
+  }
+
+  /** Path part for operation `removeOrganisationLogo()` */
+  static readonly RemoveOrganisationLogoPath = '/api/v1/auth/organisation/logo';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `removeOrganisationLogo()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  removeOrganisationLogo$Response(params: RemoveOrganisationLogo$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
+    const obs = removeOrganisationLogo(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `removeOrganisationLogo$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  removeOrganisationLogo(params: RemoveOrganisationLogo$Params, context?: HttpContext): Observable<CustomerInfo> {
+    const resp = this.removeOrganisationLogo$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
     );

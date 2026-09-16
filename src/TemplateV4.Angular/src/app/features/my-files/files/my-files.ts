@@ -8,6 +8,8 @@ import {
   lucideChevronDown,
   lucideChevronsUpDown,
   lucideChevronUp,
+  lucideFolderPlus,
+  lucideSettings,
   lucideUserPlus,
 } from '@ng-icons/lucide';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
@@ -64,11 +66,18 @@ const parentEntryId = '__my-files-parent__';
       lucideChevronDown,
       lucideChevronsUpDown,
       lucideChevronUp,
+      lucideFolderPlus,
+      lucideSettings,
       lucideUserPlus,
     }),
   ],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="files" description="filesIntro">
+      @if (auth.has('settings.manage')) {
+        <a hlmBtn variant="outline" routerLink="/administration/storage">
+          <ng-icon name="lucideSettings" aria-hidden="true" />{{ 'settings' | t }}
+        </a>
+      }
       @if (data.value()?.folder; as folder) {
         <button hlmBtn variant="ghost" [disabled]="busy()" (click)="detail(folder, 'fileDetails')">
           {{ 'folderDetails' | t }}
@@ -78,7 +87,7 @@ const parentEntryId = '__my-files-parent__';
         <button hlmBtn [disabled]="busy()" (click)="showUpload()">
           <ng-icon name="lucideArrowUpFromLine" />{{ 'uploadFiles' | t }}</button
         ><button hlmBtn variant="outline" (click)="openCreateFolder()">
-          {{ 'createFolder' | t }}
+          <ng-icon name="lucideFolderPlus" aria-hidden="true" />{{ 'createFolder' | t }}
         </button>
       } @else if (canManage() && group === 'trash') {
         <button hlmBtn variant="destructive" [disabled]="busy()" (click)="emptyTrash()">

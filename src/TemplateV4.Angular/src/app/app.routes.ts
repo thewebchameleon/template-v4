@@ -326,14 +326,8 @@ export const routes: Routes = [
       },
       {
         path: 'organisation',
-        data: { breadcrumb: 'organisation' },
-        canActivate: [destinationGuard(administrationDestinations.organisations)],
-        canDeactivate: [unsavedGuard],
-        resolve: { customerTranslations },
-        loadComponent: () =>
-          import('./features/organisations/organisation-detail').then(
-            (m) => m.OrganisationDetailPage,
-          ),
+        redirectTo: 'configuration',
+        pathMatch: 'full',
       },
 
       { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
@@ -454,6 +448,7 @@ export const routes: Routes = [
       },
       {
         path: 'configuration',
+        resolve: { customerTranslations },
         data: { breadcrumb: 'configuration', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.configuration)],
         canDeactivate: [unsavedGuard],
@@ -462,6 +457,7 @@ export const routes: Routes = [
       },
       {
         path: 'storage',
+        resolve: { moduleSettingsTranslations },
         data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.storage)],
         canDeactivate: [unsavedGuard],

@@ -22,144 +22,154 @@ import { DEFAULT_PRIMARY_COLOR, validPrimaryColor } from '../../core/brand-palet
 import { PlatformAppearanceTheme } from '../../core/platform-appearance';
 import { LoginBackgroundPicker } from '../../shared/login-background-picker';
 import { DEFAULT_LOGIN_BACKGROUND, loginBackground } from '../../core/login-backgrounds';
+import { OrganisationSettingsEditor } from '../organisations/organisation-settings-editor';
 
 @Component({
   selector: 'app-configuration',
-  imports: [WorkspaceUi, HlmToggleGroupImports, CustomColorEditor, LoginBackgroundPicker],
+  imports: [
+    WorkspaceUi,
+    HlmToggleGroupImports,
+    CustomColorEditor,
+    LoginBackgroundPicker,
+    OrganisationSettingsEditor,
+  ],
   providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="configuration" description="configurationHelp" />
-    <app-page-state
-      [state]="data.state()"
-      [refreshing]="data.refreshing()"
-      [refreshError]="data.refreshError()"
-      (retry)="reload()"
-    >
-      <form (ngSubmit)="save()">
-        <section hlmCard>
-          <div hlmCardHeader>
-            <h2 hlmCardTitle>{{ 'platformAppearance' | t }}</h2>
-            <p hlmCardDescription>{{ 'platformAppearanceHelp' | t }}</p>
-          </div>
-          <div hlmCardContent class="grid gap-6">
-            <fieldset hlmFieldSet [disabled]="busy() || data.refreshing()">
-              <legend hlmFieldLegend>{{ 'primaryColor' | t }}</legend>
-              <hlm-toggle-group
-                type="single"
-                [value]="selectedId() ? '' : color().toUpperCase()"
-                [nullable]="false"
-                [disabled]="busy() || data.refreshing()"
-                (valueChange)="selectPreset($event)"
-                class="flex-wrap"
-                [spacing]="2"
-                [attr.aria-label]="'colorPresets' | t"
-              >
-                @for (preset of presets; track preset.color) {
-                  <button hlmToggleGroupItem type="button" [value]="preset.color">
-                    <span
-                      class="size-4 rounded-full border border-current"
-                      [style.background-color]="preset.color"
-                      aria-hidden="true"
-                    ></span>
-                    {{ preset.label | t }}
-                  </button>
-                }
-              </hlm-toggle-group>
-            </fieldset>
-            <section aria-labelledby="custom-colors-title" class="grid gap-3">
-              <h3 id="custom-colors-title" class="font-semibold">{{ 'customColors' | t }}</h3>
-              <p class="text-muted-foreground text-sm">{{ 'customColorsHelp' | t }}</p>
-              <div
-                class="flex flex-wrap items-center gap-3"
-                role="group"
-                [attr.aria-label]="'customColors' | t"
-              >
-                @for (item of customColors(); track item.id) {
-                  <div
-                    class="flex max-w-full flex-wrap items-center gap-2 rounded-md border border-border p-2"
-                  >
-                    <button
-                      hlmBtn
-                      type="button"
-                      [variant]="selectedId() === item.id ? 'default' : 'outline'"
-                      [disabled]="busy() || data.refreshing()"
-                      [attr.aria-pressed]="selectedId() === item.id"
-                      (click)="selectCustom(item)"
-                      [title]="item.name"
-                    >
+    <div class="workspace-stack">
+      <app-organisation-settings-editor />
+      <app-page-state
+        [state]="data.state()"
+        [refreshing]="data.refreshing()"
+        [refreshError]="data.refreshError()"
+        (retry)="reload()"
+      >
+        <form (ngSubmit)="save()">
+          <section hlmCard>
+            <div hlmCardHeader>
+              <h2 hlmCardTitle>{{ 'platformAppearance' | t }}</h2>
+              <p hlmCardDescription>{{ 'platformAppearanceHelp' | t }}</p>
+            </div>
+            <div hlmCardContent class="grid gap-6">
+              <fieldset hlmFieldSet [disabled]="busy() || data.refreshing()">
+                <legend hlmFieldLegend>{{ 'primaryColor' | t }}</legend>
+                <hlm-toggle-group
+                  type="single"
+                  [value]="selectedId() ? '' : color().toUpperCase()"
+                  [nullable]="false"
+                  [disabled]="busy() || data.refreshing()"
+                  (valueChange)="selectPreset($event)"
+                  class="flex-wrap"
+                  [spacing]="2"
+                  [attr.aria-label]="'colorPresets' | t"
+                >
+                  @for (preset of presets; track preset.color) {
+                    <button hlmToggleGroupItem type="button" [value]="preset.color">
                       <span
-                        class="size-4 shrink-0 rounded-full border border-current"
-                        [style.background-color]="item.color"
+                        class="size-4 rounded-full border border-current"
+                        [style.background-color]="preset.color"
                         aria-hidden="true"
                       ></span>
-                      <span class="max-w-40 truncate">{{ item.name }}</span>
+                      {{ preset.label | t }}
                     </button>
-                    <app-custom-color-editor
-                      [item]="item"
-                      [usedNames]="otherNames(item.id)"
-                      [disabled]="busy() || data.refreshing()"
-                      (changed)="upsertCustom($event, item.id)"
-                      (preview)="preview($event)"
-                    />
-                    <button
-                      hlmBtn
-                      variant="destructive"
-                      size="icon-sm"
-                      type="button"
-                      [disabled]="busy() || data.refreshing()"
-                      [attr.aria-label]="('removeCustomColor' | t) + ': ' + item.name"
-                      [title]="('removeCustomColor' | t) + ': ' + item.name"
-                      (click)="removeCustom(item.id)"
+                  }
+                </hlm-toggle-group>
+              </fieldset>
+              <section aria-labelledby="custom-colors-title" class="grid gap-3">
+                <h3 id="custom-colors-title" class="font-semibold">{{ 'customColors' | t }}</h3>
+                <p class="text-muted-foreground text-sm">{{ 'customColorsHelp' | t }}</p>
+                <div
+                  class="flex flex-wrap items-center gap-3"
+                  role="group"
+                  [attr.aria-label]="'customColors' | t"
+                >
+                  @for (item of customColors(); track item.id) {
+                    <div
+                      class="flex max-w-full flex-wrap items-center gap-2 rounded-md border border-border p-2"
                     >
-                      <ng-icon name="lucideTrash2" aria-hidden="true" />
-                    </button>
-                  </div>
+                      <button
+                        hlmBtn
+                        type="button"
+                        [variant]="selectedId() === item.id ? 'default' : 'outline'"
+                        [disabled]="busy() || data.refreshing()"
+                        [attr.aria-pressed]="selectedId() === item.id"
+                        (click)="selectCustom(item)"
+                        [title]="item.name"
+                      >
+                        <span
+                          class="size-4 shrink-0 rounded-full border border-current"
+                          [style.background-color]="item.color"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="max-w-40 truncate">{{ item.name }}</span>
+                      </button>
+                      <app-custom-color-editor
+                        [item]="item"
+                        [usedNames]="otherNames(item.id)"
+                        [disabled]="busy() || data.refreshing()"
+                        (changed)="upsertCustom($event, item.id)"
+                        (preview)="preview($event)"
+                      />
+                      <button
+                        hlmBtn
+                        variant="destructive"
+                        size="icon-sm"
+                        type="button"
+                        [disabled]="busy() || data.refreshing()"
+                        [attr.aria-label]="('removeCustomColor' | t) + ': ' + item.name"
+                        [title]="('removeCustomColor' | t) + ': ' + item.name"
+                        (click)="removeCustom(item.id)"
+                      >
+                        <ng-icon name="lucideTrash2" aria-hidden="true" />
+                      </button>
+                    </div>
+                  }
+                  <app-custom-color-editor
+                    #addColor
+                    [initialColor]="color()"
+                    [usedNames]="otherNames()"
+                    [disabled]="busy() || data.refreshing() || customColors().length >= 24"
+                    (changed)="upsertCustom($event)"
+                    (preview)="preview($event)"
+                  />
+                </div>
+                @if (!customColors().length) {
+                  <p class="text-muted-foreground text-sm">{{ 'noCustomColors' | t }}</p>
                 }
-                <app-custom-color-editor
-                  #addColor
-                  [initialColor]="color()"
-                  [usedNames]="otherNames()"
-                  [disabled]="busy() || data.refreshing() || customColors().length >= 24"
-                  (changed)="upsertCustom($event)"
-                  (preview)="preview($event)"
-                />
-              </div>
-              @if (!customColors().length) {
-                <p class="text-muted-foreground text-sm">{{ 'noCustomColors' | t }}</p>
-              }
-              <p role="status" aria-live="polite" class="text-sm">{{ removalNotice() | t }}</p>
-            </section>
-            <app-login-background-picker
-              [(value)]="background"
-              [disabled]="busy() || data.refreshing()"
-            />
-          </div>
-          <div hlmCardFooter class="flex-wrap gap-2">
-            <button
-              hlmBtn
-              type="submit"
-              [disabled]="busy() || data.refreshing() || !valid() || !hasUnsavedChanges()"
-            >
-              @if (busy()) {
-                <hlm-spinner />
-              }
-              {{ 'save' | t }}
-            </button>
-            @if (hasUnsavedChanges()) {
+                <p role="status" aria-live="polite" class="text-sm">{{ removalNotice() | t }}</p>
+              </section>
+              <app-login-background-picker
+                [(value)]="background"
+                [disabled]="busy() || data.refreshing()"
+              />
+            </div>
+            <div hlmCardFooter class="flex-wrap gap-2">
               <button
                 hlmBtn
-                variant="destructive"
-                type="button"
-                [disabled]="busy() || data.refreshing()"
-                (click)="reload()"
+                type="submit"
+                [disabled]="busy() || data.refreshing() || !valid() || !hasUnsavedChanges()"
               >
-                {{ 'undoChanges' | t }}
+                @if (busy()) {
+                  <hlm-spinner />
+                }
+                {{ 'save' | t }}
               </button>
-            }
-          </div>
-        </section>
-      </form>
-    </app-page-state>`,
+              @if (hasUnsavedChanges()) {
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  type="button"
+                  [disabled]="busy() || data.refreshing()"
+                  (click)="reload()"
+                >
+                  {{ 'undoChanges' | t }}
+                </button>
+              }
+            </div>
+          </section>
+        </form>
+      </app-page-state>
+    </div>`,
 })
 export class ConfigurationPage implements OnInit, OnDestroy {
   private readonly api = inject(WorkspaceApi);
@@ -170,6 +180,7 @@ export class ConfigurationPage implements OnInit, OnDestroy {
   private readonly addColor = viewChild<unknown, ElementRef<HTMLElement>>('addColor', {
     read: ElementRef,
   });
+  private readonly organisation = viewChild(OrganisationSettingsEditor);
   private savedColor: string | null = null;
   readonly data = new Resource<PlatformAppearance>();
   readonly busy = signal(false);
@@ -252,12 +263,13 @@ export class ConfigurationPage implements OnInit, OnDestroy {
   }
   hasUnsavedChanges() {
     return (
-      this.data.value() !== null &&
-      (this.color().toUpperCase() !== this.data.value()!.primaryColor.toUpperCase() ||
-        this.background() !== loginBackground(this.data.value()!.loginBackground).id ||
-        this.selectedId() !== (this.data.value()!.selectedCustomColorId ?? null) ||
-        JSON.stringify(this.customColors()) !==
-          JSON.stringify(this.data.value()!.customColors ?? []))
+      !!this.organisation()?.hasUnsavedChanges() ||
+      (this.data.value() !== null &&
+        (this.color().toUpperCase() !== this.data.value()!.primaryColor.toUpperCase() ||
+          this.background() !== loginBackground(this.data.value()!.loginBackground).id ||
+          this.selectedId() !== (this.data.value()!.selectedCustomColorId ?? null) ||
+          JSON.stringify(this.customColors()) !==
+            JSON.stringify(this.data.value()!.customColors ?? [])))
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {

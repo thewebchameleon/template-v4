@@ -5,20 +5,35 @@ import { WorkspaceApi } from '../../../core/workspace-api';
 import { FilePage } from '../../../api/models';
 import { FileQuotaEditor } from './file-quota-editor';
 import { DemoExpiryEditor } from './demo-expiry-editor';
+import { MyFilesSettingsEditor } from './my-files-settings-editor';
 
 @Component({
   selector: 'app-storage-settings',
-  imports: [WorkspaceUi, FileQuotaEditor, StorageUsageCard, DemoExpiryEditor],
+  imports: [
+    WorkspaceUi,
+    FileQuotaEditor,
+    StorageUsageCard,
+    DemoExpiryEditor,
+    MyFilesSettingsEditor,
+  ],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="storageSettings" description="storageSettingsHelp" />
     <div class="workspace-columns">
-      <section hlmCard class="min-w-0">
-        <div hlmCardHeader>
-          <h2 hlmCardTitle>{{ 'storageSettings' | t }}</h2>
-          <p hlmCardDescription>{{ 'myFilesStorageHelp' | t }}</p>
-        </div>
-        <div hlmCardContent><app-file-quota-editor (saved)="storageSaved()" /></div>
-      </section>
+      <div class="workspace-stack min-w-0">
+        <section hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>{{ 'storageSettings' | t }}</h2>
+            <p hlmCardDescription>{{ 'myFilesStorageHelp' | t }}</p>
+          </div>
+          <div hlmCardContent><app-file-quota-editor (saved)="storageSaved()" /></div>
+        </section>
+        <section hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>{{ 'moduleFeatures' | t }}</h2>
+          </div>
+          <div hlmCardContent><app-my-files-settings-editor /></div>
+        </section>
+      </div>
       <aside class="workspace-stack min-w-0">
         <app-page-state
           [state]="usage.state()"
@@ -42,6 +57,7 @@ export class StorageSettingsPage implements OnInit {
   readonly usage = new Resource<FilePage>();
   readonly editor = viewChild(FileQuotaEditor);
   readonly demoEditor = viewChild(DemoExpiryEditor);
+  readonly settingsEditor = viewChild(MyFilesSettingsEditor);
   ngOnInit() {
     void this.loadUsage();
   }
@@ -60,7 +76,8 @@ export class StorageSettingsPage implements OnInit {
   hasUnsavedChanges() {
     return (
       (this.editor()?.hasUnsavedChanges() ?? false) ||
-      (this.demoEditor()?.hasUnsavedChanges() ?? false)
+      (this.demoEditor()?.hasUnsavedChanges() ?? false) ||
+      (this.settingsEditor()?.hasUnsavedChanges() ?? false)
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {

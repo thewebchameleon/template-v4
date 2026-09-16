@@ -2,7 +2,8 @@ namespace TemplateV4.Application.Platform;
 
 public sealed record CustomBrandColor(Guid Id, string Name, string Color);
 public sealed record PlatformAppearance(string PrimaryColor, Guid Version, CustomBrandColor[] CustomColors, Guid? SelectedCustomColorId, string LoginBackground = LoginBackgrounds.Default);
-public sealed record PublicAppearance(string PrimaryColor, string LoginBackground = LoginBackgrounds.Default);
+public sealed record PublicAppearance(string PrimaryColor, string OrganisationName, string? OrganisationLogoUrl,
+    string LoginBackground = LoginBackgrounds.Default);
 public static class LoginBackgrounds
 {
     public const string Default = "blue-sky";

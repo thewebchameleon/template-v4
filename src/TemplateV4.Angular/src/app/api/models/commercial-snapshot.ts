@@ -7,6 +7,8 @@ import { IssuerSettings } from '../models/issuer-settings';
 export interface CommercialSnapshot {
   customer: CrmRecordInput;
   issuer: IssuerSettings;
+  organisationLogoId?: (string | null);
+  organisationName?: (string | null);
   reference: (string | null);
   totals: CommercialTotals;
 }
