@@ -77,6 +77,10 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'Aktiveer eers die vereiste modules:',
   ],
   modules: ['Modules', 'Modules'],
+  moduleSettings: ['Module settings', 'Module-instellings'],
+  expandModules: ['Expand module settings', 'Vou module-instellings oop'],
+  collapseModules: ['Collapse module settings', 'Vou module-instellings toe'],
+  settings: ['Settings', 'Instellings'],
   modulesHelp: [
     'Enable or disable modules for everyone in this application.',
     'Aktiveer of deaktiveer modules vir almal in hierdie toepassing.',

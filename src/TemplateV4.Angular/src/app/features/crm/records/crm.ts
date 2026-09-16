@@ -22,9 +22,7 @@ const column = createColumnHelper<DataTableFeatures, CrmRecord>();
   selector: 'app-crm',
   imports: [WorkspaceUi, DataTable, BusinessSelect],
   template: `<app-page-header title="crm" description="crmHelp">
-      <a hlmBtn variant="outline" [routerLink]="['/organisation', 'crm', 'configuration']">{{
-        'crmConfiguration' | t
-      }}</a>
+      <a hlmBtn variant="outline" routerLink="/administration/crm">{{ 'crmConfiguration' | t }}</a>
       @if (auth.has('crm.manage')) {
         <a
           hlmBtn

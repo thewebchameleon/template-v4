@@ -4,8 +4,8 @@ import { Destination } from './destinations';
 
 export interface FoundationFeature {
   id: string;
-  moduleIcon?: string;
   moduleSettingsComponent?: Type<unknown>;
+  moduleSettingsDestination?: Pick<Destination, 'path' | 'label'>;
   routes: Routes;
   destinations?: readonly Destination[];
   organisationDestinations?: readonly Destination[];

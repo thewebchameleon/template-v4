@@ -201,8 +201,25 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
                   <div>
                     <dt>{{ 'deploymentVersion' | t }}</dt>
 
-                    <dd class="break-all">{{ value.version }}</dd>
+                    <dd class="break-all">{{ deploymentVersion(value.version) }}</dd>
                   </div>
+
+                  @if (value.modules.length) {
+                    <div>
+                      <dt>{{ 'modules' | t }}</dt>
+
+                      <dd>
+                        <ul class="grid gap-1">
+                          @for (module of value.modules; track module.id) {
+                            <li class="flex flex-wrap justify-between gap-x-4">
+                              <span>{{ module.id | t }}</span>
+                              <span class="break-all">{{ module.version }}</span>
+                            </li>
+                          }
+                        </ul>
+                      </dd>
+                    </div>
+                  }
 
                   <div>
                     <dt>{{ 'lastMaintenance' | t }}</dt>
@@ -405,6 +422,10 @@ export class OperationsPage {
 
     if (this.auth.has('settings.manage'))
       void this.overview.load((signal) => this.api.get('operations/overview', {}, signal));
+  }
+
+  deploymentVersion(version: string) {
+    return version.split('+', 1)[0];
   }
 
   async refresh() {

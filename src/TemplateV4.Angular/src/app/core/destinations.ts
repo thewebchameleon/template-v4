@@ -80,7 +80,7 @@ export const workspaceDestinations = {
 export const administrationDestinations = {
   contact: {
     path: '/administration/contact',
-    label: 'contactInbox',
+    label: 'contact',
     icon: 'lucideMail',
     section: 'modules',
     permissions: ['contact.manage'],
@@ -95,7 +95,7 @@ export const administrationDestinations = {
   },
   billing: {
     path: '/administration/billing',
-    label: 'billingSettings',
+    label: 'billing',
     icon: 'lucideSettings',
     section: 'modules',
     permissions: ['settings.manage'],
@@ -133,11 +133,25 @@ export const administrationDestinations = {
   },
   storage: {
     path: '/administration/storage',
-    label: 'storageSettings',
+    label: 'files',
     icon: 'lucideFolderOpen',
     section: 'modules',
     permissions: ['settings.manage'],
     capability: 'my-files',
+  },
+  crmConfiguration: {
+    path: '/administration/crm',
+    label: 'crm',
+    icon: 'lucideContactRound',
+    section: 'modules',
+    capability: 'crm',
+  },
+  invoicingSettings: {
+    path: '/administration/invoicing',
+    label: 'invoicing',
+    icon: 'lucideFileSpreadsheet',
+    section: 'modules',
+    capability: 'invoicing',
   },
   auditHistory: {
     path: '/administration/audit-history',

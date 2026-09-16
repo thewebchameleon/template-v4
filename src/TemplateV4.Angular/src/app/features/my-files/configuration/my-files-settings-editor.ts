@@ -2,7 +2,6 @@ import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { MyFilesModuleSettings } from '../../../api/models';
-import { Features } from '../../../core/features';
 import { Notifications } from '../../notifications/notifications';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../../shared/workspace';
@@ -15,7 +14,6 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
       [refreshError]="data.refreshError()"
       (retry)="load()"
     >
-      <h3 hlmCardTitle class="mb-4">{{ 'moduleFeatures' | t }}</h3>
       @if (conflict()) {
         <div hlmAlert>
           <p hlmAlertDescription>{{ 'moduleConflict' | t }}</p>
@@ -70,11 +68,6 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
               </div>
             </div>
           </label>
-          @if (features.enabled('my-files')) {
-            <a hlmBtn variant="outline" routerLink="/administration/storage">{{
-              'storageSettings' | t
-            }}</a>
-          }
         </div>
       }
     </app-page-state>
@@ -124,7 +117,6 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
 })
 export class MyFilesSettingsEditor implements OnDestroy {
   readonly data = new Resource<MyFilesModuleSettings>();
-  readonly features = inject(Features);
   private readonly api = inject(WorkspaceApi);
   private readonly toast = inject(Notifications);
   readonly busy = signal(false);

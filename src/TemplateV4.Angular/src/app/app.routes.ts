@@ -66,14 +66,11 @@ export const routes: Routes = [
   },
   {
     path: 'organisation/invoicing/settings',
-    canDeactivate: [unsavedGuard],
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'issuerSettings' },
-    canActivate: [authGuard, capabilityGuard('invoicing')],
-    loadComponent: () =>
-      import('./features/invoicing/configuration/issuer-settings').then(
-        (m) => m.IssuerSettingsPage,
-      ),
+    redirectTo: ({ queryParams, fragment }) =>
+      inject(Router).createUrlTree(['/administration/invoicing'], {
+        queryParams,
+        fragment: fragment ?? undefined,
+      }),
   },
   {
     path: 'organisation/invoicing/:documentId',
@@ -94,12 +91,11 @@ export const routes: Routes = [
   },
   {
     path: 'organisation/crm/configuration',
-    canDeactivate: [unsavedGuard],
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'crmConfiguration' },
-    canActivate: [authGuard, capabilityGuard('crm')],
-    loadComponent: () =>
-      import('./features/crm/configuration/crm-configuration').then((m) => m.CrmConfigurationPage),
+    redirectTo: ({ queryParams, fragment }) =>
+      inject(Router).createUrlTree(['/administration/crm'], {
+        queryParams,
+        fragment: fragment ?? undefined,
+      }),
   },
   {
     path: 'organisation/crm/:recordId',
@@ -459,6 +455,28 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/my-files/configuration/storage-settings').then(
             (m) => m.StorageSettingsPage,
+          ),
+      },
+      {
+        path: 'crm',
+        canDeactivate: [unsavedGuard],
+        resolve: { businessTranslations },
+        data: { breadcrumb: 'crmConfiguration' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.crmConfiguration)],
+        loadComponent: () =>
+          import('./features/crm/configuration/crm-configuration').then(
+            (m) => m.CrmConfigurationPage,
+          ),
+      },
+      {
+        path: 'invoicing',
+        canDeactivate: [unsavedGuard],
+        resolve: { businessTranslations },
+        data: { breadcrumb: 'issuerSettings' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.invoicingSettings)],
+        loadComponent: () =>
+          import('./features/invoicing/configuration/issuer-settings').then(
+            (m) => m.IssuerSettingsPage,
           ),
       },
       {

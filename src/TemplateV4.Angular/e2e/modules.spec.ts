@@ -87,16 +87,16 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await page.goto('/administration/modules');
   const control = myFilesModuleControl(page);
   const features = page.getByRole('heading', { name: 'Features', exact: true });
-  const storageSettings = page
+  const settingsButton = page
     .locator('#module-my-files')
-    .getByRole('link', { name: 'File storage', exact: true });
+    .getByRole('link', { name: 'Settings', exact: true });
   await expect(control).toBeChecked();
   await expect(features).toBeVisible();
-  await expect(storageSettings).toHaveAttribute('href', '/administration/storage');
+  await expect(settingsButton).toHaveAttribute('href', '/administration/storage');
   await control.click();
   await expect(control).not.toBeChecked();
   await expect(features).toBeVisible();
-  await expect(storageSettings).toBeHidden();
+  await expect(settingsButton).toBeHidden();
   await expect.poll(app.enabled).toBe(false);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Reload saved settings' })).toHaveCount(0);
@@ -104,7 +104,7 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await expect(
     page
       .getByRole('navigation', { name: 'Administration', exact: true })
-      .getByRole('link', { name: 'File storage', exact: true }),
+      .getByRole('link', { name: 'Files', exact: true }),
   ).toHaveCount(0);
   await page.reload();
   await expect(control).not.toBeChecked();
@@ -120,11 +120,11 @@ test('modules save application-wide Files state, refresh navigation and guard di
   await control.click();
   await expect.poll(app.enabled).toBe(true);
   await expect(features).toBeVisible();
-  await expect(storageSettings).toBeVisible();
+  await expect(settingsButton).toBeVisible();
   const modulesNavigation = page
     .getByRole('navigation', { name: 'Administration', exact: true })
-    .getByRole('group', { name: 'Modules', exact: true });
-  await expect(modulesNavigation.getByRole('link', { name: 'File storage' })).toBeVisible();
+    .getByRole('group', { name: 'Module settings', exact: true });
+  await expect(modulesNavigation.getByRole('link', { name: 'Files', exact: true })).toBeVisible();
   await page
     .getByRole('navigation', { name: 'Destinations' })
     .getByRole('link', { name: 'Files', exact: true })

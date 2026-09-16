@@ -15,6 +15,12 @@ import { HlmTooltip } from '@spartan-ng/helm/tooltip';
 import { ModuleActivation } from '../../api/models';
 import { Features } from '../../core/features';
 import { FOUNDATION_FEATURES } from '../../core/feature-extensions';
+import {
+  administrationDestinations,
+  Destination,
+  organisationDestinations,
+  workspaceDestinations,
+} from '../../core/destinations';
 import { I18n } from '../../core/i18n';
 import { Notifications } from '../notifications/notifications';
 import { WorkspaceApi } from '../../core/workspace-api';
@@ -112,6 +118,18 @@ import { MyFilesSettingsEditor } from '../my-files/configuration/my-files-settin
                   <p hlmAlertDescription>{{ 'moduleMissingState' | t }}</p>
                 </div>
               }
+              @if (editor(module.id) || settingsDestination(module.id)) {
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  @if (editor(module.id)) {
+                    <h3 hlmCardTitle>{{ 'moduleFeatures' | t }}</h3>
+                  }
+                  @if (settingsDestination(module.id); as destination) {
+                    <a hlmBtn variant="outline" class="ml-auto" [routerLink]="destination.path">{{
+                      'settings' | t
+                    }}</a>
+                  }
+                </div>
+              }
               @if (editor(module.id); as component) {
                 <ng-container *ngComponentOutlet="component" />
               }
@@ -134,16 +152,20 @@ export class ModulesPage implements OnInit {
   private readonly toast = inject(Notifications);
   enabled: Record<string, boolean> = {};
   moduleIcon(id: string) {
-    const icons: Record<string, string> = {
-      'my-files': 'lucideFolderOpen',
-      support: 'lucideLifeBuoy',
-      crm: 'lucideContactRound',
-      invoicing: 'lucideFileSpreadsheet',
-    };
+    const foundationDestinations: readonly Destination[] = [
+      ...Object.values(workspaceDestinations),
+      ...organisationDestinations,
+      ...Object.values(administrationDestinations),
+    ];
+    const contribution = this.contributions.find((feature) => feature.id === id);
+    const contributedDestinations = [
+      ...(contribution?.destinations ?? []),
+      ...(contribution?.organisationDestinations ?? []),
+    ];
     return (
-      icons[id] ??
-      this.contributions.find((feature) => feature.id === id)?.moduleIcon ??
-      'lucideBoxes'
+      [...foundationDestinations, ...contributedDestinations].find(
+        (destination) => destination.capability === id,
+      )?.icon ?? 'lucideBoxes'
     );
   }
   editor(id: string) {
@@ -151,8 +173,23 @@ export class ModulesPage implements OnInit {
       ? MyFilesSettingsEditor
       : this.contributions.find((feature) => feature.id === id)?.moduleSettingsComponent;
   }
+  settingsDestination(id: string) {
+    const destinations: Record<string, { path: string; label: string }> = {
+      'my-files': { path: '/administration/storage', label: 'storageSettings' },
+      crm: { path: '/administration/crm', label: 'crmConfiguration' },
+      invoicing: { path: '/administration/invoicing', label: 'issuerSettings' },
+    };
+    return (
+      destinations[id] ??
+      this.contributions.find((feature) => feature.id === id)?.moduleSettingsDestination
+    );
+  }
   hasDetails(module: ModuleActivation) {
-    return module.initialized === false || !!this.editor(module.id);
+    return (
+      module.initialized === false ||
+      !!this.editor(module.id) ||
+      !!this.settingsDestination(module.id)
+    );
   }
   blockers(module: ModuleActivation) {
     return module.enabled ? module.disableBlockers : module.enableBlockers;

@@ -2,13 +2,15 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using TemplateV4.Infrastructure.Persistence;
+using TemplateV4.Infrastructure.Updates;
 namespace TemplateV4.Infrastructure;
 
 public sealed record DeliverySummary(Guid Id, string Type, string State, int Attempts, DateTimeOffset AvailableAt, string? ErrorCode);
 public sealed record DeliveryPage(IReadOnlyList<DeliverySummary> Items, int Total, int PageNumber, int PageSize, string Kind);
 public sealed record ReplayRequest(Guid Id, string Kind);
-public sealed record OperationsOverview(int PendingMessages, int FailedMessages, int ActiveJobs, int FailedJobs, double OldestMessageSeconds, DateTimeOffset? LastMaintenanceAt, string Version, DateTimeOffset CheckedAt, int BacklogWarningSeconds);
-public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfiguration config)
+public sealed record InstalledModule(string Id, string Version);
+public sealed record OperationsOverview(int PendingMessages, int FailedMessages, int ActiveJobs, int FailedJobs, double OldestMessageSeconds, DateTimeOffset? LastMaintenanceAt, string Version, IReadOnlyList<InstalledModule> Modules, DateTimeOffset CheckedAt, int BacklogWarningSeconds);
+public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfiguration config, UpdateConfiguration updates)
 {
     public async Task<OperationsOverview> Overview(CancellationToken ct)
     {
@@ -23,8 +25,10 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
         var pending = messages?.Pending ?? 0; var failed = messages?.Failed ?? 0; var oldest = messages?.Oldest;
         var jobs = jobCounts?.Active ?? 0; var failedJobs = jobCounts?.Failed ?? 0;
         var maintenance = await db.Audit.Where(x => x.Action == "job.maintenance.completed").MaxAsync(x => (DateTimeOffset?)x.At, ct);
+        var modules = updates.Installed.Components.Where(x => x.Id != "foundation")
+            .OrderBy(x => x.Id, StringComparer.Ordinal).Select(x => new InstalledModule(x.Id, x.Version)).ToArray();
         return new(pending, failed, jobs, failedJobs, oldest is null ? 0 : Math.Max(0, (time.GetUtcNow() - oldest.Value).TotalSeconds), maintenance,
-            typeof(OperationsService).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown", time.GetUtcNow(), Math.Clamp(config.GetValue("Operations:BacklogWarningSeconds", 300), 60, 86400));
+            typeof(OperationsService).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown", modules, time.GetUtcNow(), Math.Clamp(config.GetValue("Operations:BacklogWarningSeconds", 300), 60, 86400));
     }
     public async Task<Result<DeliveryPage>> List(string kind, int pageNumber, int pageSize, bool failedOnly, string sort, string direction, CancellationToken ct)
     {

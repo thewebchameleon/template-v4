@@ -23,7 +23,7 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
   imports: [WorkspaceUi, DataTable],
   template: ` <app-page-header title="invoicing" description="invoicingHelp">
       @if (features.enabled('invoicing')) {
-        <a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing', 'settings']">{{
+        <a hlmBtn variant="outline" routerLink="/administration/invoicing">{{
           'issuerSettings' | t
         }}</a>
         @if (auth.has('invoicing.issue')) {

@@ -81,6 +81,7 @@ export type { FileStorageSettings } from './models/file-storage-settings';
 export type { FileUsageSegment } from './models/file-usage-segment';
 export type { FinancialEntry } from './models/financial-entry';
 export type { ForgotPasswordRequest } from './models/forgot-password-request';
+export type { InstalledModule } from './models/installed-module';
 export type { InvitationItem } from './models/invitation-item';
 export type { InvitationPage } from './models/invitation-page';
 export type { InvitationRequest } from './models/invitation-request';

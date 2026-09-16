@@ -9513,6 +9513,21 @@
           }
         }
       },
+      "InstalledModule": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
       "InvitationItem": {
         "required": [
           "id",
@@ -10016,6 +10031,7 @@
           "oldestMessageSeconds",
           "lastMaintenanceAt",
           "version",
+          "modules",
           "checkedAt",
           "backlogWarningSeconds"
         ],
@@ -10050,6 +10066,12 @@
           },
           "version": {
             "type": "string"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstalledModule"
+            }
           },
           "checkedAt": {
             "type": "string",
