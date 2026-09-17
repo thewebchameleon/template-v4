@@ -10,7 +10,7 @@ HTTP resolves one capability snapshot on the request's first availability check 
 
 Generic administration derives supported switches from the catalog and reports missing database rows as incomplete setup. It never silently seeds activation state. Block both known invalid enable and disable transitions in the UI, retain server validation, and reload authoritative versions after conflicts.
 
-Typed settings use independent Angular editor components. `FoundationFeature.moduleSettingsComponent` is the private extension point; foundation editors are registered explicitly. Each editor owns loading and error recovery. Keep destructive settings visible when the runtime module is off, rather than collapsing them with activation.
+Typed settings use independent Angular editor components on each module's dedicated settings page. `FoundationFeature.moduleSettingsDestination` is the private extension point for linking that page from activation management. Each editor owns loading and error recovery. Keep destructive settings accessible when the runtime module is off rather than placing them inside activation management.
 
 Demo expiry is allowed in production only after a warning confirmation and fresh administrator password verification. Verify off-to-on transitions in the store, using the configured Identity password hasher. Five attempts per actor per fixed 15-minute window are recorded on an independent PostgreSQL connection so command rollback cannot reset the limit. Passwords are never audited, logged or persisted. Turning demo mode off requires no proof. Its warning describes permanent expiry of existing personal data and continued cleanup after module disablement; previously claimed purges cannot be undone.
 

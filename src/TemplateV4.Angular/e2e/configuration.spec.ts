@@ -286,7 +286,7 @@ test('custom palette supports picker, preview, rename, conflict, removal and sav
 }) => {
   const app = await configurationApp(page);
   await page.goto('/administration/configuration');
-  await expect(page.getByRole('heading', { name: 'Configuration', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Branding', exact: true })).toBeVisible();
   const initial = await primary(page);
   await page.getByRole('button', { name: 'Add custom color', exact: true }).click();
   const picker = page.getByRole('dialog', { name: 'Add custom color', exact: true });

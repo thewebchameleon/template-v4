@@ -3,7 +3,6 @@
     "cms": false,
     "file-storage": false,
     "maintenance": false,
-    "operations": false,
     "audit-history": false,
     "support": false,
     "organisations": false,

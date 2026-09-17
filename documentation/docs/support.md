@@ -1,31 +1,40 @@
 # Support features
 
-Support contains independently configured **Contact enquiries** and **Tickets** (including attachments). Categories are a separate implementation slice that follows
-Tickets. Administrators manage the master module switch and feature toggles under
-**Administration → Modules**. Feature settings remain editable while the
+Support contains independently configured **Contact Form** and **Tickets** (including attachments). Categories are a separate implementation slice that follows
+Tickets. Administrators manage the master module switch under **Administration → Modules**
+and feature toggles under **Administration → Support**. Feature settings remain editable while the
 runtime module is off. Support is included in baseline and excluded by minimal.
 
 | Feature | Capability | When disabled |
 | --- | --- | --- |
-| Contact enquiries | `support-enquiries` | Public submissions stop; retained inbox and queued notifications continue |
+| Contact Form | `support-enquiries` | Public submissions and inbox access stop; retained data and queued notifications remain |
 | Tickets | `support-tickets` | Ticket, category and attachment APIs stop; portal is hidden; data remains |
 
-Attachments are part of Tickets and have no separate switch. The Modules page owns activation and feature switches. The Support settings page in its submenu contains only the enquiry notification recipient. Category management remains in the ticket area.
+Attachments are part of Tickets and have no separate switch. The Modules page owns activation. The Support settings page owns the feature switches and enquiry notification recipient. Category management remains in the ticket area.
 All new work requires Support activation. Account erasure and accepted email delivery
 continue independently of these switches. Permission and requester checks remain
 mandatory. See [ADR 0049](adr/0049-support-features.md).
 
-## Contact enquiries
+## Contact Form
 
-Set the **Enquiry notification recipient** under **Modules submenu → Support** and
-enable Contact enquiries on the Modules page. The public Website must also be configured and enabled. Without a
+Set the **Enquiry notification recipient** and enable **Contact Form** under
+**Modules submenu → Support**. The public Website must also be configured and enabled. Without a
 recipient, the public form remains unavailable even if the preference is on. The
 recipient is never exposed through public website discovery.
 
-The retained inbox remains at **Administration → Contact enquiries**
-(`/administration/contact`) and is also linked from Support settings. Delegate
+The inbox is available while the Contact Form capability is enabled under
+**Support → Contact Form** (`/support/contact`) and is also linked from Support settings. Support tickets are available
+under **Support → Support tickets** (`/support/tickets`). Delegate
 `contact.manage` for inbox access. Existing permission values and notification links
 are unchanged. New email links use the deployment's `Web:PublicUrl`.
+
+The Support rail icon follows the base `support` capability. The Contact Form destination remains
+visible while Support is active for users with `contact.manage`, including when new enquiries
+cannot yet be accepted. Its inbox shows a setup alert and retains access to existing enquiries until
+the feature is enabled and a notification recipient is configured. Other submenu destinations
+continue to require their feature capability and permission checks, and selecting the rail icon
+navigates to the first available destination. When no Support destination is available, the icon
+remains visible without opening a submenu.
 
 Run DatabaseMigrator when upgrading. The forward `SupportFeatureSettings` migration
 preserves existing enquiries, copies the previous Contact runtime switch and website

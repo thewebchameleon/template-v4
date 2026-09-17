@@ -9,7 +9,9 @@ import { SupportOptions, SupportCategory } from '../../../api/models';
   imports: [WorkspaceUi],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="supportCategories" description="supportCategoriesHelp"
-      ><a hlmBtn variant="outline" routerLink="/support">{{ 'support' | t }}</a></app-page-header
+      ><a hlmBtn variant="outline" routerLink="/support/tickets">{{
+        'supportTickets' | t
+      }}</a></app-page-header
     >
     <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
       ><div class="grid gap-6 lg:grid-cols-2">

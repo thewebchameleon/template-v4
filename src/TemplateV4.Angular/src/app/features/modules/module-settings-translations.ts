@@ -6,8 +6,8 @@ export const moduleSettingsDictionary: Record<string, [string, string]> = {
 
   supportSettings: ['Support settings', 'Ondersteuningsinstellings'],
   supportSettingsHelp: [
-    'Choose where new enquiry notifications are delivered.',
-    'Kies waarheen nuwe navraagkennisgewings gestuur word.',
+    'Configure Support features and choose where new enquiry notifications are delivered.',
+    'Stel Ondersteuningskenmerke op en kies waarheen nuwe navraagkennisgewings gestuur word.',
   ],
   moduleConflict: [
     'Another administrator changed these settings. Review the latest values before trying again.',
@@ -44,7 +44,7 @@ export const moduleSettingsDictionary: Record<string, [string, string]> = {
     'Aktiveer of deaktiveer modules vir almal in hierdie toepassing.',
   ],
 
-  supportEnquiriesFeature: ['Contact enquiries', 'Kontaknavrae'],
+  supportEnquiriesFeature: ['Contact Form', 'Kontakvorm'],
   supportEnquiriesFeatureHelp: [
     'Accept public website enquiries. Existing enquiries and queued notifications remain available when disabled.',
     'Aanvaar openbare webwerfnavrae. Bestaande navrae en kennisgewings in die tou bly beskikbaar wanneer dit gedeaktiveer is.',

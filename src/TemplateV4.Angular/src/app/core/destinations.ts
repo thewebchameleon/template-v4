@@ -18,7 +18,6 @@ export interface Destination {
 
 // Paths are relative to the organisation workspace.
 export const organisationDestinations: readonly Destination[] = [
-  { path: 'billing', label: 'billing', icon: 'lucideSettings', administratorOnly: true },
   { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
   {
     path: 'invoicing',
@@ -68,8 +67,8 @@ export const workspaceDestinations = {
     hasPanel: true,
   },
   support: {
-    path: '/support',
-    label: 'support',
+    path: '/support/tickets',
+    label: 'supportTickets',
     icon: 'lucideLifeBuoy',
     capability: 'support-tickets',
     help: 'dashboardSupportHelp',
@@ -86,32 +85,10 @@ export const administrationDestinations = {
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
-  contact: {
-    path: '/administration/contact',
-    label: 'contact',
-    icon: 'lucideMail',
-    section: 'modules',
-    permissions: ['contact.manage'],
-  },
-  billing: {
-    path: '/administration/billing',
-    label: 'billing',
-    icon: 'lucideSettings',
-    section: 'modules',
-    permissions: ['settings.manage'],
-    administratorOnly: true,
-  },
-  users: {
-    path: '/administration/users',
-    label: 'userManagement',
-    icon: 'lucideUsersRound',
-    section: 'administration',
-    permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
-  },
   configuration: {
     path: '/administration/configuration',
     label: 'configuration',
-    icon: 'lucideSettings',
+    icon: 'lucidePalette',
     section: 'administration',
     permissions: ['settings.manage'],
     administratorOnly: true,
@@ -124,20 +101,13 @@ export const administrationDestinations = {
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
-  updates: {
-    path: '/administration/updates',
-    label: 'releaseUpdates',
-    icon: 'lucideHistory',
-    section: 'administration',
-    administratorOnly: true,
-  },
   storage: {
     path: '/administration/file-storage',
     label: 'files',
     icon: 'lucideFolderOpen',
     section: 'modules',
     permissions: ['settings.manage'],
-    capability: 'file-storage',
+    administratorOnly: true,
   },
   crmConfiguration: {
     path: '/administration/crm',
@@ -167,7 +137,66 @@ export const administrationDestinations = {
     icon: 'lucideActivity',
     section: 'administration',
     permissions: ['settings.manage', 'jobs.trigger'],
-    capability: 'operations',
+  },
+  license: {
+    path: '/administration/license',
+    label: 'license',
+    icon: 'lucideSettings',
+    section: 'administration',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
+} as const satisfies Record<string, Destination>;
+
+export const supportDestinations = {
+  contact: {
+    path: '/support/contact',
+    label: 'contact',
+    icon: 'lucideMail',
+    permissions: ['contact.manage'],
+    capability: 'support',
+  },
+  tickets: workspaceDestinations.support,
+} as const satisfies Record<string, Destination>;
+
+export const userManagementDestinations = {
+  users: {
+    path: '/user-management/users',
+    label: 'users',
+    icon: 'lucideUsersRound',
+    permissions: ['users.read'],
+  },
+  invitations: {
+    path: '/user-management/invitations',
+    label: 'invitations',
+    icon: 'lucideMail',
+    permissions: ['users.manage'],
+  },
+  roles: {
+    path: '/user-management/roles',
+    label: 'roles',
+    icon: 'lucideShieldCheck',
+    permissions: ['roles.manage'],
+  },
+  accountSecurity: {
+    path: '/user-management/account-security',
+    label: 'security',
+    icon: 'lucideShieldCheck',
+    permissions: ['settings.manage'],
+  },
+  registrationRequests: {
+    path: '/user-management/registration-requests',
+    label: 'registrationRequests',
+    icon: 'lucideUsersRound',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
+  privacyRequests: {
+    path: '/user-management/privacy-requests',
+    label: 'privacyRequests',
+    icon: 'lucideShieldCheck',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
   },
 } as const satisfies Record<string, Destination>;
 

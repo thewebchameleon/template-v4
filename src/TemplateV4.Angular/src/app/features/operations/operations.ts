@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 
@@ -31,6 +31,8 @@ import { I18n } from '../../core/i18n';
 
 import { Notifications } from '../notifications/notifications';
 
+import { DeploymentHealth } from './deployment-health';
+
 import { DeliveryPage, DeliverySummary, OperationsOverview } from '../../api/models';
 
 const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
@@ -38,7 +40,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
 @Component({
   selector: 'app-operations',
 
-  imports: [WorkspaceUi, DataTable],
+  imports: [WorkspaceUi, DataTable, DeploymentHealth],
 
   providers: [workspaceIcons],
 
@@ -55,9 +57,7 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
       ><button
         hlmBtn
         variant="outline"
-        [disabled]="
-          !auth.has('settings.manage') || overview.state() === 'loading' || overview.refreshing()
-        "
+        [disabled]="!canRefresh() || refreshing()"
         (click)="refresh()"
       >
         <ng-icon name="lucideRefreshCw" />{{ 'refresh' | t }}
@@ -134,6 +134,10 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
           }
         }
       </app-page-state>
+
+      @if (auth.access()?.isAdministrator) {
+        <app-deployment-health />
+      }
 
       <div class="workspace-columns">
         <section hlmCard class="min-w-0">
@@ -298,6 +302,19 @@ export class OperationsPage {
 
   readonly busy = signal(false);
 
+  readonly deploymentHealth = viewChild(DeploymentHealth);
+
+  readonly canRefresh = computed(
+    () => this.auth.has('settings.manage') || this.auth.access()?.isAdministrator === true,
+  );
+
+  readonly refreshing = computed(
+    () =>
+      this.overview.state() === 'loading' ||
+      this.overview.refreshing() ||
+      this.deploymentHealth()?.data.refreshing() === true,
+  );
+
   readonly stats = computed(() => {
     const v = this.overview.value();
 
@@ -429,11 +446,18 @@ export class OperationsPage {
   }
 
   async refresh() {
-    if (!this.auth.has('settings.manage')) return;
-    await Promise.all([
-      this.overview.load((signal) => this.api.get('operations/overview', {}, signal)),
-      this.load(),
-    ]);
+    const requests: Promise<unknown>[] = [];
+    if (this.auth.has('settings.manage')) {
+      requests.push(
+        this.overview.load((signal) => this.api.get('operations/overview', {}, signal)),
+        this.load(),
+      );
+    }
+    if (this.auth.access()?.isAdministrator) {
+      const deploymentHealth = this.deploymentHealth();
+      if (deploymentHealth) requests.push(deploymentHealth.reload());
+    }
+    await Promise.all(requests);
   }
 
   async load() {

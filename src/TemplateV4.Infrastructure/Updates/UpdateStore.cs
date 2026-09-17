@@ -49,7 +49,7 @@ public sealed class UpdateStore(FrameworkDb db, UpdateConfiguration configuratio
             {
                 if (admins.Length == 0 || await db.Set<UpdateAnnouncement>().AnyAsync(x => x.Component == update.Id && x.Version == update.AvailableVersion, ct)) continue;
                 db.Add(new UpdateAnnouncement { Component = update.Id, Version = update.AvailableVersion! });
-                foreach (var admin in admins) db.Notifications.Add(new() { UserId = admin, Kind = "notificationReleaseAvailable", Link = "/administration/updates", CreatedAt = time.GetUtcNow() });
+                foreach (var admin in admins) db.Notifications.Add(new() { UserId = admin, Kind = "notificationReleaseAvailable", Link = "/administration/system-health", CreatedAt = time.GetUtcNow() });
             }
         }
         await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);

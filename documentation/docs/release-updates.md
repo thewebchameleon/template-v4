@@ -176,7 +176,7 @@ Set `UPDATES_ENABLED=true` in the deployment environment. The API and Worker app
 contain placeholder feed URL and token values; replace both before enabling updates.
 Deployments without a feed leave updates disabled.
 
-Administrators see **Administration → Updates**. The Worker checks at startup and
+Administrators see **Deployment health** under **Administration → System Health**. The Worker checks at startup and
 every six hours, notifying current Administrators once per newly detected component
 release. Disabled compiled modules are still checked. A module absent from the build
 does not appear or produce a notice. Failures retain prior results and show an

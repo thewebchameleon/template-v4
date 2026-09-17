@@ -36,11 +36,13 @@ PostgreSQL persists check status and a component/version announcement receipt. A
 transaction-scoped advisory lock serializes receipt creation and notification inserts
 across workers. Existing Administrators receive one notification per newly detected
 release; receipts survive notification retention. No receipt is created while there
-are no administrators. New administrators can always consult the Updates page, but
+are no administrators. New administrators can always consult Deployment health under
+System Health, but
 are not sent historical announcements. No customer payloads or credentials are logged.
 
-The administrator-only Updates endpoint and page show deployed versions, latest
-published versions, compatibility, breaking-change notices and migration guidance.
+The administrator-only Updates endpoint and the Deployment health section under System
+Health show deployed versions, latest published versions, compatibility, breaking-change
+notices and migration guidance.
 Compatibility is checked across the complete proposed combination, including reverse
 dependencies. The initial conservative resolver does not search all historical version
 combinations: an incompatible newest combination requires operator review.

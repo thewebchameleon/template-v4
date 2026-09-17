@@ -2,7 +2,6 @@
   "Modules": {
     "file-storage": true,
     "maintenance": true,
-    "operations": true,
     "audit-history": true,
     "support": true,
     "organisations": true,

@@ -28,7 +28,7 @@ See [the file-library merge](adr/0048-unified-organisation-files.md).
 
 ## Plans and settings
 
-Administration → Billing settings configures providers, checkout default, trial
+Administration → License configures providers, checkout default, trial
 days and grace days. There is no personal/organisation ownership setting. Defaults
 remain Stripe and PayFast enabled, PayFast preferred, a 14-day trial and seven-day
 grace period. Credentials are required before a provider is ready at checkout.

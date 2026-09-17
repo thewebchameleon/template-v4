@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
@@ -17,7 +17,6 @@ import {
 import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
 import { RecordStatus, RecordUserIdentity } from '../../shared/workspace-cells';
 import { UserDetailPage } from './user-detail';
-import { PeopleNav } from '../../shared/people-nav';
 import { InvitationDrawer } from './invite-user';
 import { InvitationsPanel } from '../invitations/invitations';
 import { RolesPanel } from '../access/roles';
@@ -34,7 +33,6 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
   imports: [
     WorkspaceUi,
     DataTable,
-    PeopleNav,
     HlmDrawerImports,
     HlmSelectImports,
     InvitationDrawer,
@@ -50,9 +48,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
   template: ` <app-page-header
       title="userManagement"
       [description]="section() === 'privacy' ? 'privacyRequestsIntro' : 'peopleIntro'"
-      eyebrow="administration"
     />
-    <app-people-nav [section]="section()" (sectionChange)="setSection($event)" />
     @if (section() === 'users') {
       <section hlmCard class="workspace-directory-panel">
         <div
@@ -262,7 +258,6 @@ export class UsersPage {
   readonly detailsBusy = computed(() => this.detailEditor()?.busy() ?? false);
   private readonly confirm = inject(Confirmations);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   readonly detailsLabel = (user: UserDto) =>
     `${this.i18n.text('personDetails')}: ${user.username || user.displayName}`;
   readonly roleLabel = (role: string) => (role === 'all' ? this.i18n.text('allRoles') : role);
@@ -309,22 +304,6 @@ export class UsersPage {
   }
   section() {
     return this.route.snapshot.data['section'] as string;
-  }
-  async setSection(section: string) {
-    const paths: Record<string, string> = {
-      users: '/administration/users',
-      invitations: '/administration/users/invitations',
-      roles: '/administration/users/roles',
-      security: '/administration/users/account-security',
-      privacy: '/administration/users/privacy-requests',
-      registrations: '/administration/users/registration-requests',
-    };
-    const path = paths[section];
-    if (!path || section === this.section()) return;
-    await this.router.navigate([path], {
-      queryParams: { section: null },
-      queryParamsHandling: 'merge',
-    });
   }
   async load() {
     const params: Record<string, string | number> = {

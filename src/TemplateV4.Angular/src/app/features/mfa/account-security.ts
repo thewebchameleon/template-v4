@@ -83,46 +83,50 @@ import { Notifications } from '../notifications/notifications';
             </div>
           </div>
         </label>
-        <label
-          hlmFieldLabel
-          for="registration-enabled"
-          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-        >
-          <div hlmField orientation="horizontal">
-            <hlm-switch
-              inputId="registration-enabled"
-              name="registrationEnabled"
-              [(ngModel)]="registrationEnabled"
-              aria-describedby="registration-help"
-              [disabled]="busy() || !settings()"
-              class="self-center"
-            />
-            <div hlmFieldContent>
-              <span hlmFieldTitle>{{ 'registrationEnabled' | t }}</span>
-              <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
+        <fieldset hlmFieldSet>
+          <legend hlmFieldLegend>{{ 'registrationPolicy' | t }}</legend>
+          <label
+            hlmFieldLabel
+            for="registration-enabled"
+            class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+          >
+            <div hlmField orientation="horizontal">
+              <hlm-switch
+                inputId="registration-enabled"
+                name="registrationEnabled"
+                [(ngModel)]="registrationEnabled"
+                aria-describedby="registration-help"
+                [disabled]="busy() || !settings()"
+                class="self-center"
+              />
+              <div hlmFieldContent>
+                <span hlmFieldTitle>{{ 'registrationEnabled' | t }}</span>
+                <p hlmFieldDescription id="registration-help">{{ 'registrationHelp' | t }}</p>
+              </div>
             </div>
-          </div>
-        </label>
-        <label
-          hlmFieldLabel
-          for="registration-approval"
-          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-          ><div hlmField orientation="horizontal">
-            <hlm-switch
-              inputId="registration-approval"
-              name="registrationApproval"
-              [(ngModel)]="registrationApprovalRequired"
-              [disabled]="busy() || settingsState() !== 'ready' || !registrationEnabled"
-              aria-describedby="registration-approval-help"
-            />
-            <div hlmFieldContent>
-              <span hlmFieldTitle>{{ 'registrationApprovalRequired' | t }}</span>
-              <p hlmFieldDescription id="registration-approval-help">
-                {{ 'registrationApprovalHelp' | t }}
-              </p>
+          </label>
+          <label
+            hlmFieldLabel
+            for="registration-approval"
+            class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+          >
+            <div hlmField orientation="horizontal">
+              <hlm-switch
+                inputId="registration-approval"
+                name="registrationApproval"
+                [(ngModel)]="registrationApprovalRequired"
+                [disabled]="busy() || settingsState() !== 'ready' || !registrationEnabled"
+                aria-describedby="registration-approval-help"
+              />
+              <div hlmFieldContent>
+                <span hlmFieldTitle>{{ 'registrationApprovalRequired' | t }}</span>
+                <p hlmFieldDescription id="registration-approval-help">
+                  {{ 'registrationApprovalHelp' | t }}
+                </p>
+              </div>
             </div>
-          </div></label
-        >
+          </label>
+        </fieldset>
         <button hlmBtn [disabled]="busy() || form.invalid || !settings() || !hasUnsavedChanges()">
           @if (busy()) {
             <hlm-spinner />

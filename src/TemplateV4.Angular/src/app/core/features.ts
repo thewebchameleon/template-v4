@@ -37,6 +37,11 @@ export class Features {
     this.capabilities.set({});
     this.state.set('loading');
   }
+  refresh(): Promise<void> {
+    this.generation++;
+    this.pending = undefined;
+    return this.load();
+  }
   private async fetch(generation: number) {
     const capabilities = await firstValueFrom(
       this.http.get<Partial<Record<string, boolean>>>(`${this.runtime.apiUrl}/api/v1/capabilities`),

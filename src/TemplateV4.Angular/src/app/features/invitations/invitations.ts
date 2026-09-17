@@ -161,7 +161,7 @@ export class InvitationsPanel {
 
               description: row.original.email,
 
-              link: '/administration/users/' + row.original.id,
+              link: '/user-management/users/' + row.original.id,
             },
           }),
       }),

@@ -23,11 +23,8 @@ import { AccessCatalog, UserAccessDetail } from '../../api/models';
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` @if (!embedded()) {
-      <app-page-header
-        title="personDetails"
-        description="personDetailsHelp"
-        eyebrow="administration"
-        ><a hlmBtn variant="outline" routerLink="/administration/users"
+      <app-page-header title="personDetails" description="personDetailsHelp"
+        ><a hlmBtn variant="outline" routerLink="/user-management/users"
           ><ng-icon name="lucideArrowLeft" />{{ 'users' | t }}</a
         ></app-page-header
       >
@@ -176,8 +173,7 @@ export class UserDetailPage implements OnInit {
       this.conflict.set(false);
       if (!this.embedded())
         this.breadcrumbs.set([
-          { label: 'administration', link: '/administration' },
-          { label: 'userManagement', link: '/administration/users' },
+          { label: 'userManagement', link: '/user-management/users' },
           { label: value.user.displayName },
         ]);
     }

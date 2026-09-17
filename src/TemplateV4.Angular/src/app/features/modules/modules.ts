@@ -1,4 +1,3 @@
-import { NgComponentOutlet } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideIcons } from '@ng-icons/core';
@@ -25,11 +24,10 @@ import { I18n } from '../../core/i18n';
 import { Notifications } from '../notifications/notifications';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Resource, WorkspaceUi } from '../../shared/workspace';
-import { SupportSettingsEditor } from '../support/configuration/support-settings-editor';
 
 @Component({
   selector: 'app-modules',
-  imports: [WorkspaceUi, NgComponentOutlet, HlmTooltip],
+  imports: [WorkspaceUi, HlmTooltip],
   providers: [
     provideIcons({
       lucideBoxes,
@@ -49,23 +47,15 @@ import { SupportSettingsEditor } from '../support/configuration/support-settings
     }
     <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="reload()">
       @for (module of data.value(); track module.id) {
-        <section
-          hlmCard
-          collapsible
-          [collapsibleHeader]="false"
-          [expanded]="enabled[module.id] !== false"
-          class="mb-6"
-          [class.p-0]="enabled[module.id] === false || !hasDetails(module)"
-          [id]="'module-' + module.id"
-        >
+        <section hlmCard class="mb-6 p-0" [id]="'module-' + module.id">
           <div hlmCardHeader>
-            <label
-              hlmFieldLabel
-              [for]="module.id + '-enabled'"
-              [attr.aria-label]="module.id | t"
-              class="cursor-pointer bg-transparent has-[>[data-slot=field]]:border-0 has-data-checked:border-transparent has-data-checked:bg-transparent has-[[data-disabled=true]]:cursor-not-allowed dark:has-data-checked:border-transparent dark:has-data-checked:bg-transparent *:data-[slot=field]:p-0"
-            >
-              <div hlmField orientation="horizontal">
+            <div hlmField orientation="horizontal">
+              <label
+                hlmFieldLabel
+                [for]="module.id + '-enabled'"
+                [attr.aria-label]="module.id | t"
+                class="min-w-0 flex-1 cursor-pointer bg-transparent has-data-checked:border-transparent has-data-checked:bg-transparent has-[[data-disabled=true]]:cursor-not-allowed dark:has-data-checked:border-transparent dark:has-data-checked:bg-transparent"
+              >
                 <ng-icon
                   [name]="moduleIcon(module.id)"
                   size="3rem"
@@ -80,61 +70,38 @@ import { SupportSettingsEditor } from '../support/configuration/support-settings
                     {{ module.id + 'ModuleHelp' | t }}
                   </p>
                 </div>
-                @if (blockers(module).length) {
-                  <span
-                    role="img"
-                    tabindex="0"
-                    [hlmTooltip]="dependencyTooltip(module)"
-                    [attr.aria-label]="dependencyTooltip(module)"
-                    class="inline-flex shrink-0 self-center text-[var(--warning)] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                  >
-                    <ng-icon name="lucideTriangleAlert" size="2.5rem" aria-hidden="true" />
-                  </span>
-                }
-                <hlm-switch
-                  [inputId]="module.id + '-enabled'"
-                  [ngModel]="enabled[module.id]"
-                  (ngModelChange)="save(module, $event)"
-                  [disabled]="
-                    busy() ||
-                    data.refreshing() ||
-                    data.refreshError() ||
-                    !module.available ||
-                    blockers(module).length > 0
-                  "
-                  [aria-labelledby]="module.id + '-label'"
-                  [aria-describedby]="module.id + '-help'"
-                  [attr.aria-controls]="hasDetails(module) ? module.id + '-content' : null"
-                  [attr.aria-expanded]="hasDetails(module) ? enabled[module.id] !== false : null"
-                  class="self-center"
-                />
-              </div>
-            </label>
-          </div>
-          @if (hasDetails(module)) {
-            <div hlmCardContent [id]="module.id + '-content'" class="grid gap-4">
-              @if (module.initialized === false) {
-                <div hlmAlert>
-                  <p hlmAlertDescription>{{ 'moduleMissingState' | t }}</p>
-                </div>
+              </label>
+              @if (blockers(module).length) {
+                <span
+                  role="img"
+                  tabindex="0"
+                  [hlmTooltip]="dependencyTooltip(module)"
+                  [attr.aria-label]="dependencyTooltip(module)"
+                  class="inline-flex shrink-0 self-center text-[var(--warning)] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  <ng-icon name="lucideTriangleAlert" size="2.5rem" aria-hidden="true" />
+                </span>
               }
-              @if (editor(module.id) || settingsDestination(module.id)) {
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  @if (editor(module.id)) {
-                    <h3 hlmCardTitle>{{ 'moduleFeatures' | t }}</h3>
-                  }
-                  @if (settingsDestination(module.id); as destination) {
-                    <a hlmBtn variant="outline" class="ml-auto" [routerLink]="destination.path">{{
-                      'settings' | t
-                    }}</a>
-                  }
-                </div>
+              @if (enabled[module.id] !== false && settingsDestination(module.id); as destination) {
+                <a hlmBtn variant="outline" [routerLink]="destination.path">{{ 'settings' | t }}</a>
               }
-              @if (editor(module.id); as component) {
-                <ng-container *ngComponentOutlet="component" />
-              }
+              <hlm-switch
+                [inputId]="module.id + '-enabled'"
+                [ngModel]="enabled[module.id]"
+                (ngModelChange)="save(module, $event)"
+                [disabled]="
+                  busy() ||
+                  data.refreshing() ||
+                  data.refreshError() ||
+                  !module.available ||
+                  blockers(module).length > 0
+                "
+                [aria-labelledby]="module.id + '-label'"
+                [aria-describedby]="module.id + '-help'"
+                class="self-center"
+              />
             </div>
-          }
+          </div>
         </section>
       } @empty {
         <p>{{ 'moduleNoSwitches' | t }}</p>
@@ -169,10 +136,6 @@ export class ModulesPage implements OnInit {
       )?.icon ?? 'lucideBoxes'
     );
   }
-  editor(id: string) {
-    if (id === 'support') return SupportSettingsEditor;
-    return this.contributions.find((feature) => feature.id === id)?.moduleSettingsComponent;
-  }
   settingsDestination(id: string) {
     const destinations: Record<string, { path: string; label: string }> = {
       'file-storage': { path: '/administration/file-storage', label: 'storageSettings' },
@@ -183,13 +146,6 @@ export class ModulesPage implements OnInit {
     return (
       destinations[id] ??
       this.contributions.find((feature) => feature.id === id)?.moduleSettingsDestination
-    );
-  }
-  hasDetails(module: ModuleActivation) {
-    return (
-      module.initialized === false ||
-      !!this.editor(module.id) ||
-      !!this.settingsDestination(module.id)
     );
   }
   blockers(module: ModuleActivation) {
@@ -241,8 +197,7 @@ export class ModulesPage implements OnInit {
       );
       this.sync();
       await this.reload();
-      this.features.reset();
-      await this.features.load();
+      await this.features.refresh();
       this.toast.success('moduleActivationSaved');
     } catch (error) {
       this.sync();

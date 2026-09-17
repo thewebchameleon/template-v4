@@ -37,15 +37,15 @@ export const administrationLandingGuard: CanActivateFn = async (route, state) =>
 export const peopleLandingGuard: CanActivateFn = (route) => {
   const auth = inject(Auth);
   const router = inject(Router);
-  if (auth.has('users.read')) return true;
-
-  const path = auth.has('users.manage')
-    ? '/administration/users/invitations'
-    : auth.has('roles.manage')
-      ? '/administration/users/roles'
-      : auth.has('settings.manage')
-        ? '/administration/users/account-security'
-        : '/forbidden';
+  const path = auth.has('users.read')
+    ? '/user-management/users'
+    : auth.has('users.manage')
+      ? '/user-management/invitations'
+      : auth.has('roles.manage')
+        ? '/user-management/roles'
+        : auth.has('settings.manage')
+          ? '/user-management/account-security'
+          : '/forbidden';
 
   return router.createUrlTree([path], {
     queryParams: route.queryParams,

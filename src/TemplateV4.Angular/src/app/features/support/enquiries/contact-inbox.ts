@@ -12,6 +12,8 @@ import {
 import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { I18n } from '../../../core/i18n';
+import { Auth } from '../../../core/auth';
+import { Features } from '../../../core/features';
 import { ContactEnquiry, PageOfContactEnquiry } from '../../../api/models';
 
 @Component({
@@ -41,6 +43,19 @@ const column = createColumnHelper<DataTableFeatures, ContactEnquiry>();
   imports: [WorkspaceUi, DataTable],
   providers: [workspaceIcons],
   template: `<app-page-header title="contactInbox" description="contactInboxHelp" />
+    @if (!acceptingEnquiries()) {
+      <div hlmAlert class="mb-6" role="status">
+        <h2 hlmAlertTitle>{{ 'contactRecipientRequiredTitle' | t }}</h2>
+        <div hlmAlertDescription class="grid gap-3">
+          <p>{{ 'contactRecipientRequiredHelp' | t }}</p>
+          @if (auth.access()?.isAdministrator) {
+            <a hlmBtn variant="outline" class="w-fit" routerLink="/administration/support">{{
+              'contactConfigureRecipient' | t
+            }}</a>
+          }
+        </div>
+      </div>
+    }
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'contactInbox' | t }}</h2>
@@ -79,6 +94,9 @@ const column = createColumnHelper<DataTableFeatures, ContactEnquiry>();
 export class ContactInboxPage {
   private readonly api = inject(WorkspaceApi);
   private readonly i18n = inject(I18n);
+  readonly auth = inject(Auth);
+  private readonly features = inject(Features);
+  readonly acceptingEnquiries = computed(() => this.features.enabled('support-enquiries'));
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly data = new Resource<PageOfContactEnquiry>();

@@ -130,7 +130,7 @@ export class SupportNewPage {
       this.description = '';
       this.category = '';
       this.toast.success('supportCreated');
-      await this.router.navigate(['/support', id]);
+      await this.router.navigate(['/support/tickets', id]);
     } catch {
       /* Central error UI retains the draft. */
     } finally {

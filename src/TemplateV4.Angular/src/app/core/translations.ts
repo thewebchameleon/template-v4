@@ -6,8 +6,8 @@ import { configurationDictionary } from '../features/configuration/configuration
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
   websiteSetup: ['Website setup', 'Webwerfopstelling'],
-  contact: ['Contact enquiries', 'Kontaknavrae'],
-  contactInbox: ['Contact enquiries', 'Kontaknavrae'],
+  contact: ['Contact Form', 'Kontakvorm'],
+  contactInbox: ['Contact Form', 'Kontakvorm'],
   'permission.contact.manage': ['Manage website enquiries', 'Bestuur webwerfnavrae'],
   cms: ['CMS', 'CMS'],
   cmsModuleHelp: [
@@ -21,14 +21,13 @@ export const dictionary: Record<string, [string, string]> = {
   enableCmsModule: ['Enable CMS', 'Aktiveer CMS'],
   'permission.cms.edit': ['Edit and publish blog articles', 'Redigeer en publiseer blogartikels'],
   'permissionGroup.cms': ['CMS', 'CMS'],
-  releaseUpdates: ['Updates', 'Opdaterings'],
   notificationReleaseAvailable: [
     'A foundation or business-module update is available',
     '’n Fondasie- of besigheidsmoduleopdatering is beskikbaar',
   ],
   notificationReleaseAvailableHelp: [
-    'Review available versions and compatibility under Updates.',
-    'Hersien beskikbare weergawes en versoenbaarheid onder Opdaterings.',
+    'Review available versions and compatibility in Deployment health under System Health.',
+    'Hersien beskikbare weergawes en versoenbaarheid in Ontplooiingsgesondheid onder Stelselgesondheid.',
   ],
   ...businessDictionary,
   actionItems: ['Action items', 'Aksie-items'],
@@ -40,12 +39,13 @@ export const dictionary: Record<string, [string, string]> = {
   organisationFiles: ['Shared organisation files', 'Gedeelde organisasielêers'],
   billing: ['Subscription', 'Intekening'],
   organisation: ['Organisation', 'Organisasie'],
-  billingSettings: ['Billing settings', 'Faktureringinstellings'],
+  license: ['License', 'Lisensie'],
   notificationOrganisation: [
     'You have an organisation invitation.',
     'Jy het ’n organisasie-uitnodiging.',
   ],
   support: ['Support', 'Ondersteuning'],
+  supportTickets: ['Support tickets', 'Ondersteuningskaartjies'],
   notificationSupport: [
     'A support ticket has been updated.',
     '�n Ondersteuningskaartjie is opgedateer.',
@@ -57,8 +57,8 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   'permissionGroup.support': ['Support', 'Ondersteuning'],
   supportModuleHelp: [
-    'Contact enquiries, tickets, agent queue and ticket attachments.',
-    'Kontaknavrae, kaartjies, agentwaglys en kaartjie-aanhegsels.',
+    'Contact form, tickets, agent queue and ticket attachments.',
+    'Kontakvorm, kaartjies, agentwaglys en kaartjie-aanhegsels.',
   ],
   enableSupportModule: ['Enable Support', 'Aktiveer Ondersteuning'],
   supportModuleDisableHelp: [
@@ -151,6 +151,7 @@ export const dictionary: Record<string, [string, string]> = {
     'Sleep of gebruik pyltjiesleutels om navigasiegrootte te verander. Dubbelklik om terug te stel.',
   ],
   breadcrumb: ['Breadcrumb', 'Broodkrummelnavigasie'],
+  home: ['Home', 'Tuis'],
   moreBreadcrumbs: ['More breadcrumb levels', 'Meer broodkrummelvlakke'],
   back: ['Back', 'Terug'],
   backTo: ['Back to', 'Terug na'],
@@ -381,6 +382,7 @@ export const dictionary: Record<string, [string, string]> = {
     'Beleidsveranderings geld onmiddellik. Gebruikers moet ’n faktor opstel voordat hulle beskermde bladsye kan gebruik.',
   ],
   mfaPolicy: ['MFA policy', 'MFA-beleid'],
+  registrationPolicy: ['Registration policy', 'Registrasiebeleid'],
   policyOptional: ['Optional for everyone', 'Opsioneel vir almal'],
   policyAdministrators: ['Required for administrators', 'Vereis vir administrateurs'],
   policyAdministratorsHelp: [

@@ -15,7 +15,7 @@ import { ticketStates, ticketPriorities } from '../support';
   imports: [HlmSelectImports, WorkspaceUi, HlmTextareaImports, TicketAttachments],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="supportTicketDetails" description="supportDetailHelp"
-      ><a hlmBtn variant="outline" routerLink="/support">{{ 'support' | t }}</a
+      ><a hlmBtn variant="outline" routerLink="/support/tickets">{{ 'supportTickets' | t }}</a
       ><button hlmBtn variant="outline" [disabled]="busy()" (click)="reload()">
         {{ 'refresh' | t }}
       </button></app-page-header

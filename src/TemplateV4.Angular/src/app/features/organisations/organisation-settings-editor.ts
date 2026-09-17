@@ -1,5 +1,13 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { firstValueFrom } from 'rxjs';
 import { CustomerInfo } from '../../api/models';
@@ -15,9 +23,40 @@ type OrganisationDraft = Pick<
   'name' | 'websiteUrl' | 'contactEmail' | 'timeZone' | 'country' | 'version' | 'logoUrl'
 >;
 
+interface TimeZoneOption {
+  id: string;
+  label: string;
+}
+
+interface TimeZoneGroup {
+  offset: string;
+  offsetMinutes: number;
+  zones: TimeZoneOption[];
+}
+
 @Component({
   selector: 'app-organisation-settings-editor',
   imports: [WorkspaceUi, HlmSelectImports],
+  styles: `
+    .organisation-logo-dropzone {
+      min-block-size: 16rem;
+      block-size: 100%;
+    }
+
+    .organisation-logo-dropzone img {
+      inline-size: 100%;
+      min-block-size: 0;
+      flex: 1;
+      object-fit: contain;
+    }
+
+    @media (min-width: 64rem) {
+      .organisation-logo-dropzone {
+        min-block-size: 12rem;
+        block-size: 12rem;
+      }
+    }
+  `,
   template: `<app-page-state
     [state]="state.state()"
     [refreshing]="state.refreshing()"
@@ -31,23 +70,29 @@ type OrganisationDraft = Pick<
             <h2 hlmCardTitle>{{ 'organisation' | t }}</h2>
             <p hlmCardDescription>{{ 'organisationConfigurationHelp' | t }}</p>
           </div>
-          <div hlmCardContent class="grid gap-6">
+          <div hlmCardContent>
             <fieldset
               hlmFieldSet
               [disabled]="busy() || state.refreshing() || !state.value()?.canManage"
-              class="grid gap-6"
+              class="grid gap-6 lg:grid-cols-3 lg:items-start"
             >
               <legend hlmFieldLegend class="sr-only">{{ 'organisation' | t }}</legend>
-              <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <span class="brand-logo-preview">
-                  @if (draft.logoUrl) {
-                    <img [src]="logoSource(draft.logoUrl)" [alt]="draft.name" />
-                  } @else {
-                    <span aria-hidden="true">{{ initials() }}</span>
-                  }
-                </span>
-                <div hlmField class="min-w-0 flex-1">
-                  <label hlmFieldLabel for="organisation-logo">{{ 'organisationLogo' | t }}</label>
+              <section
+                aria-labelledby="organisation-logo-title"
+                class="grid gap-4 lg:col-start-3 lg:row-start-1 lg:border-s lg:ps-6"
+              >
+                <div class="grid gap-1">
+                  <h3 id="organisation-logo-title" class="font-semibold">
+                    {{ 'organisationLogo' | t }}
+                  </h3>
+                  <p id="organisation-logo-help" class="text-muted-foreground text-sm">
+                    {{ 'organisationLogoHelp' | t }}
+                  </p>
+                </div>
+                <div hlmField class="min-h-0">
+                  <label hlmFieldLabel for="organisation-logo" class="sr-only">{{
+                    'organisationLogo' | t
+                  }}</label>
                   <input
                     #logoInput
                     id="organisation-logo"
@@ -59,14 +104,18 @@ type OrganisationDraft = Pick<
                     aria-describedby="organisation-logo-help"
                   />
                   @if (busyLogo()) {
-                    <div class="file-storage-dropzone" role="status" aria-live="polite">
+                    <div
+                      class="file-storage-dropzone organisation-logo-dropzone"
+                      role="status"
+                      aria-live="polite"
+                    >
                       <hlm-spinner />
                       <span class="font-medium">{{ 'organisationLogoUploading' | t }}</span>
                     </div>
                   } @else {
                     <button
                       type="button"
-                      class="file-storage-dropzone"
+                      class="file-storage-dropzone organisation-logo-dropzone"
                       [class.file-storage-drop-target]="logoDragOver()"
                       [disabled]="busy() || !state.value()?.canManage"
                       (click)="showLogoPicker()"
@@ -74,123 +123,138 @@ type OrganisationDraft = Pick<
                       (dragleave)="logoDragOver.set(false)"
                       (drop)="dropLogo($event)"
                     >
+                      @if (draft.logoUrl) {
+                        <img [src]="logoSource(draft.logoUrl)" [alt]="draft.name" />
+                      }
                       <span class="font-medium">{{ 'dropOrganisationLogoHere' | t }}</span>
                       <span class="workspace-meta">{{ 'browseOrganisationLogoHelp' | t }}</span>
                     </button>
                   }
-                  <p hlmFieldDescription id="organisation-logo-help">
-                    {{ 'organisationLogoHelp' | t }}
-                  </p>
                   @if (logoError()) {
                     <hlm-field-error forceShow>{{ 'organisationLogoInvalid' | t }}</hlm-field-error>
                   }
-                  @if (draft.logoUrl) {
-                    <button
-                      hlmBtn
-                      type="button"
-                      variant="outline"
-                      [disabled]="busy() || !state.value()?.canManage"
-                      (click)="removeLogo()"
-                    >
-                      {{ 'removeOrganisationLogo' | t }}
-                    </button>
-                  }
                 </div>
-              </div>
-              <div class="grid gap-5 sm:grid-cols-2">
-                <div hlmField>
-                  <label hlmFieldLabel for="organisation-name">{{ 'organisationName' | t }}</label>
-                  <input
-                    hlmInput
-                    id="organisation-name"
-                    name="name"
-                    [(ngModel)]="draft.name"
-                    required
-                    pattern=".*\\S.*"
-                    maxlength="120"
-                    #organisationName="ngModel"
-                  />
-                  @if (organisationName.invalid && (organisationName.touched || form.submitted)) {
-                    <hlm-field-error forceShow>{{ 'nameRequired' | t }}</hlm-field-error>
-                  }
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="organisation-website">{{
-                    'organisationWebsite' | t
-                  }}</label>
-                  <input
-                    hlmInput
-                    id="organisation-website"
-                    name="websiteUrl"
-                    [(ngModel)]="draft.websiteUrl"
-                    type="url"
-                    maxlength="2048"
-                    pattern="https?://.+"
-                    placeholder="https://example.com"
-                    #organisationWebsite="ngModel"
-                  />
-                  @if (
-                    organisationWebsite.invalid && (organisationWebsite.touched || form.submitted)
-                  ) {
-                    <hlm-field-error forceShow>{{
-                      'organisationWebsiteInvalid' | t
-                    }}</hlm-field-error>
-                  }
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="organisation-contact">{{
-                    'organisationContactEmail' | t
-                  }}</label>
-                  <input
-                    hlmInput
-                    id="organisation-contact"
-                    name="contactEmail"
-                    [(ngModel)]="draft.contactEmail"
-                    type="email"
-                    maxlength="254"
-                    autocomplete="email"
-                    #organisationContact="ngModel"
-                  />
-                  @if (
-                    organisationContact.invalid && (organisationContact.touched || form.submitted)
-                  ) {
-                    <hlm-field-error forceShow>{{ 'emailInvalid' | t }}</hlm-field-error>
-                  }
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="organisation-country">{{
-                    'organisationCountry' | t
-                  }}</label>
-                  <input
-                    hlmInput
-                    id="organisation-country"
-                    name="country"
-                    [(ngModel)]="draft.country"
-                    maxlength="100"
-                    autocomplete="country-name"
-                  />
-                </div>
-              </div>
-              <div hlmField>
-                <label hlmFieldLabel for="organisation-time-zone">{{
-                  'organisationTimeZone' | t
-                }}</label>
-                <hlm-select
-                  name="timeZone"
-                  required
-                  [(ngModel)]="draft.timeZone"
-                  [disabled]="busy()"
-                >
-                  <hlm-select-trigger buttonId="organisation-time-zone" class="w-full"
-                    ><hlm-select-value
-                  /></hlm-select-trigger>
-                  <hlm-select-content *hlmSelectPortal [ariaLabel]="'organisationTimeZone' | t">
-                    @for (zone of state.value()?.timeZones ?? []; track zone) {
-                      <hlm-select-item [value]="zone">{{ zone }}</hlm-select-item>
+                @if (draft.logoUrl) {
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    [disabled]="busy() || !state.value()?.canManage"
+                    (click)="removeLogo()"
+                  >
+                    {{ 'removeOrganisationLogo' | t }}
+                  </button>
+                }
+              </section>
+              <section
+                aria-labelledby="organisation-details-title"
+                class="grid content-start gap-4 lg:col-span-2 lg:col-start-1 lg:row-start-1"
+              >
+                <h3 id="organisation-details-title" class="font-semibold">
+                  {{ 'organisationDetails' | t }}
+                </h3>
+                <div class="grid content-start gap-5 sm:grid-cols-2">
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-name">{{
+                      'organisationName' | t
+                    }}</label>
+                    <input
+                      hlmInput
+                      id="organisation-name"
+                      name="name"
+                      [(ngModel)]="draft.name"
+                      required
+                      pattern=".*\\S.*"
+                      maxlength="120"
+                      #organisationName="ngModel"
+                    />
+                    @if (organisationName.invalid && (organisationName.touched || form.submitted)) {
+                      <hlm-field-error forceShow>{{ 'nameRequired' | t }}</hlm-field-error>
                     }
-                  </hlm-select-content>
-                </hlm-select>
-              </div>
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-website">{{
+                      'organisationWebsite' | t
+                    }}</label>
+                    <input
+                      hlmInput
+                      id="organisation-website"
+                      name="websiteUrl"
+                      [(ngModel)]="draft.websiteUrl"
+                      type="url"
+                      maxlength="2048"
+                      pattern="https?://.+"
+                      placeholder="https://example.com"
+                      #organisationWebsite="ngModel"
+                    />
+                    @if (
+                      organisationWebsite.invalid && (organisationWebsite.touched || form.submitted)
+                    ) {
+                      <hlm-field-error forceShow>{{
+                        'organisationWebsiteInvalid' | t
+                      }}</hlm-field-error>
+                    }
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-contact">{{
+                      'organisationContactEmail' | t
+                    }}</label>
+                    <input
+                      hlmInput
+                      id="organisation-contact"
+                      name="contactEmail"
+                      [(ngModel)]="draft.contactEmail"
+                      type="email"
+                      maxlength="254"
+                      autocomplete="email"
+                      #organisationContact="ngModel"
+                    />
+                    @if (
+                      organisationContact.invalid && (organisationContact.touched || form.submitted)
+                    ) {
+                      <hlm-field-error forceShow>{{ 'emailInvalid' | t }}</hlm-field-error>
+                    }
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-country">{{
+                      'organisationCountry' | t
+                    }}</label>
+                    <input
+                      hlmInput
+                      id="organisation-country"
+                      name="country"
+                      [(ngModel)]="draft.country"
+                      maxlength="100"
+                      autocomplete="country-name"
+                    />
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-time-zone">{{
+                      'organisationTimeZone' | t
+                    }}</label>
+                    <hlm-select
+                      name="timeZone"
+                      required
+                      [(ngModel)]="draft.timeZone"
+                      [disabled]="busy()"
+                    >
+                      <hlm-select-trigger buttonId="organisation-time-zone" class="w-full"
+                        ><hlm-select-value
+                      /></hlm-select-trigger>
+                      <hlm-select-content *hlmSelectPortal [ariaLabel]="'organisationTimeZone' | t">
+                        @for (group of timeZoneGroups(); track group.offset) {
+                          <hlm-select-group>
+                            <hlm-select-label>{{ group.offset }}</hlm-select-label>
+                            @for (zone of group.zones; track zone.id) {
+                              <hlm-select-item [value]="zone.id">{{ zone.label }}</hlm-select-item>
+                            }
+                          </hlm-select-group>
+                        }
+                      </hlm-select-content>
+                    </hlm-select>
+                  </div>
+                </div>
+              </section>
             </fieldset>
           </div>
           @if (state.value()?.canManage) {
@@ -228,6 +292,9 @@ export class OrganisationSettingsEditor {
   readonly busyLogo = signal(false);
   readonly logoDragOver = signal(false);
   readonly logoError = signal(false);
+  readonly timeZoneGroups = computed(() =>
+    this.groupTimeZones(this.state.value()?.timeZones ?? []),
+  );
   draft: OrganisationDraft | null = null;
   private baseline = '';
   private readonly api = inject(WorkspaceApi);
@@ -249,17 +316,6 @@ export class OrganisationSettingsEditor {
 
   hasUnsavedChanges() {
     return this.busy() || (!!this.draft && this.textValue(this.draft) !== this.baseline);
-  }
-  initials() {
-    return (
-      this.draft?.name
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0] ?? '')
-        .join('')
-        .toUpperCase() || 'O'
-    );
   }
   logoSource(url: string) {
     return new URL(url, this.runtime.apiUrl || location.origin).toString();
@@ -409,6 +465,40 @@ export class OrganisationSettingsEditor {
     }
     this.appearance.brand(value.name, value.logoUrl);
     this.toast.success('organisationLogoSaved');
+  }
+  private groupTimeZones(zones: string[]): TimeZoneGroup[] {
+    const now = new Date();
+    const grouped = new Map<number, TimeZoneGroup>();
+    for (const id of zones) {
+      const { label: offset, minutes: offsetMinutes } = this.currentTimeZoneOffset(id, now);
+      const group = grouped.get(offsetMinutes) ?? { offset, offsetMinutes, zones: [] };
+      group.zones.push({ id, label: `(${offset}) ${id}` });
+      grouped.set(offsetMinutes, group);
+    }
+    return [...grouped.values()]
+      .sort((a, b) => a.offsetMinutes - b.offsetMinutes)
+      .map((group) => ({
+        ...group,
+        zones: group.zones.sort((a, b) => a.id.localeCompare(b.id)),
+      }));
+  }
+  private currentTimeZoneOffset(zone: string, date: Date) {
+    const value =
+      new Intl.DateTimeFormat('en', {
+        timeZone: zone,
+        timeZoneName: 'longOffset',
+      })
+        .formatToParts(date)
+        .find((part) => part.type === 'timeZoneName')?.value ?? 'GMT';
+    const match = /^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/.exec(value);
+    if (!match?.[1]) return { label: 'GMT+00:00', minutes: 0 };
+    const direction = match[1] === '-' ? -1 : 1;
+    const hours = Number(match[2]);
+    const minutes = Number(match[3] ?? 0);
+    return {
+      label: `GMT${match[1]}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+      minutes: direction * (hours * 60 + minutes),
+    };
   }
   private textValue(value: OrganisationDraft) {
     return JSON.stringify([

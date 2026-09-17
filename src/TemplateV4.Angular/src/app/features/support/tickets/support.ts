@@ -45,7 +45,9 @@ const column = createColumnHelper<DataTableFeatures, TicketItem>();
         </hlm-drawer-content>
       </hlm-drawer>
       @if (options.value()?.administrator) {
-        <a hlmBtn variant="outline" routerLink="/support/categories">{{ 'supportCategories' | t }}</a>
+        <a hlmBtn variant="outline" routerLink="/support/tickets/categories">{{
+          'supportCategories' | t
+        }}</a>
       }
     </app-page-header>
     <app-page-state [state]="options.state()" (retry)="loadOptions()">
@@ -239,7 +241,7 @@ export class SupportPage {
         header: this.i18n.text('supportSubject'),
         cell: ({ row }) =>
           flexRenderComponent(RecordIdentity, {
-            inputs: { label: row.original.subject, link: '/support/' + row.original.id },
+            inputs: { label: row.original.subject, link: '/support/tickets/' + row.original.id },
           }),
       }),
       column.accessor('requester', { header: this.i18n.text('supportRequester') }),

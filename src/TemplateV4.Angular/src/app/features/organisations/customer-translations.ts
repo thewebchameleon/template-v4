@@ -8,6 +8,7 @@ export const customerDictionary: Record<string, [string, string]> = {
     'Bestuur die organisasie wat alle gebruikers deel.',
   ],
   organisationWorkspace: ['Organisation workspace', 'Organisasiewerkruimte'],
+  organisationDetails: ['Organisation details', 'Organisasiebesonderhede'],
   organisationName: ['Organisation name', 'Organisasienaam'],
   organisationConfigurationHelp: [
     'Set the identity used across navigation, sign-in, email and generated documents.',
@@ -42,8 +43,7 @@ export const customerDictionary: Record<string, [string, string]> = {
     'Manage your plan, payment provider and storage allowance.',
     'Bestuur jou plan, betalingsverskaffer en bergingstoelaag.',
   ],
-  billingSettings: ['Billing settings', 'Faktureringinstellings'],
-  billingSettingsHelp: [
+  licenseHelp: [
     'Configure payment providers and trial policy for the organisation.',
     'Stel betalingsverskaffers en proefbeleid vir die organisasie op.',
   ],

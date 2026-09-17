@@ -16,7 +16,7 @@ an independent version. Administrator-only reads/writes live at
 `/api/v1/auth/administration/modules/support/settings`. Writes use the dispatcher
 transaction, lock runtime rows before the Support settings row, reject stale versions
 and commit audit with the settings. The dedicated Support settings page in the Modules submenu stays accessible with runtime Support
-disabled. It contains only the enquiry notification recipient. Activation and feature switches remain on the Modules page; category management remains in the ticket area.
+disabled. It contains the feature switches and enquiry notification recipient. Activation remains on the Modules page; category management remains in the ticket area.
 Delegated category administrators retain category access; module settings remain Administrator-only.
 
 Module-owned `ICapabilityRestrictions` providers supply persisted restrictions.
@@ -39,8 +39,8 @@ remain intact; feature disabling never removes service registrations or mappings
 
 ## Disablement and migration
 
-Disabling Enquiries or Support stops submissions; retained inbox reads and marking
-read continue under `contact.manage`. Accepted notifications continue draining.
+Disabling Enquiries or Support stops submissions and makes the inbox page unavailable.
+Retained enquiry data remains, and accepted notifications continue draining.
 Disabling Tickets stops ticket, category and attachment work. Existing data remains;
 account erasure and accepted delivery continue.
 

@@ -67,3 +67,21 @@ test('a previous actor response cannot restore stale capabilities or finish the 
   assert.equal(features.enabled('support'), true);
   assert.equal(requests.length, 2);
 });
+
+test('refresh preserves current capabilities until the replacement response arrives', async () => {
+  const { features, requests } = harness();
+  const initial = features.load();
+  requests[0].response.next({ 'audit-history': true, support: true });
+  await initial;
+
+  const refresh = features.refresh();
+  assert.equal(features.state(), 'loading');
+  assert.equal(features.enabled('audit-history'), true);
+  assert.equal(features.enabled('support'), true);
+
+  requests[1].response.next({ 'audit-history': true, support: false });
+  await refresh;
+  assert.equal(features.state(), 'ready');
+  assert.equal(features.enabled('audit-history'), true);
+  assert.equal(features.enabled('support'), false);
+});

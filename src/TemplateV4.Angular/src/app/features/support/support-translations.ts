@@ -99,8 +99,8 @@ export const supportDictionary: Record<string, [string, string]> = {
     'Onaktiewe kategorieë bly op bestaande kaartjies. Hou minstens een aktiewe kategorie.',
   ],
   supportModuleHelp: [
-    'Contact enquiries, tickets, agent queue and ticket attachments.',
-    'Kontaknavrae, kaartjies, agentwaglys en kaartjie-aanhegsels.',
+    'Contact form, tickets, agent queue and ticket attachments.',
+    'Kontakvorm, kaartjies, agentwaglys en kaartjie-aanhegsels.',
   ],
   enableSupportModule: ['Enable Support', 'Aktiveer Ondersteuning'],
   supportModuleDisableHelp: [

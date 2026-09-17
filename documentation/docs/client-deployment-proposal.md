@@ -39,7 +39,7 @@ which distinguishes available functionality from remaining rollout and commercia
 | Versions | Immutable component metadata, digests, compatibility ranges, `client-template.json` | Redeployment plans tied to exact artifacts and deployed state |
 | Distribution | Private GitHub Packages source bundles and coordinated image builds | Organization eligibility, scoped artifact delivery and deployment receipts |
 | Release feed | Separate Node service with mounted credential/module allowlists | Durable client, licensing and deployment records in a central service |
-| Client updates | Worker notifications, Updates page, draft upgrade PRs, manual release build | License-aware notifications and client-triggered redeployment |
+| Client updates | Worker notifications, Deployment health, draft upgrade PRs, manual release build | License-aware notifications and client-triggered redeployment |
 | Runtime access | Catalog, runtime activation, feature flags and independent authorization | License use gate, dependency propagation and retained-operation classification |
 | VPS deployment | Digest-pinned Compose releases and migration-before-start upgrade helper | Deployment locking, backup verification, health reporting and recovery state |
 | Billing | In-application subscriptions for accounts/storage | Separate commercial module entitlements for purchasing organizations |
@@ -144,7 +144,7 @@ Client representatives can see only their own organization's authorized informat
 Provider-wide operational visibility does not grant access to client business records.
 Do not transmit customer payloads, secrets, authorization headers or unrestricted logs.
 
-Clients receive update notices in their own application's Updates page and existing
+Clients receive update notices in their own application's Deployment health section and existing
 administrator notification channel. Show installed/latest versions, release notes,
 compatibility, license eligibility and the requirement to redeploy. Include installed
 runtime-disabled modules; never reveal modules restricted to another client. Renewing

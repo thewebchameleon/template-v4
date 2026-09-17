@@ -10,7 +10,6 @@ export type ModuleId =
   | 'identity'
   | 'invoicing'
   | 'maintenance'
-  | 'operations'
   | 'organisations'
   | 'support';
 export type CapabilityId =
@@ -26,9 +25,15 @@ export type CapabilityId =
   | 'invoicing'
   | 'invoicing-files'
   | 'maintenance'
-  | 'operations'
   | 'organisation-files'
   | 'organisations'
   | 'support'
   | 'support-enquiries'
   | 'support-tickets';
+export const runtimeConfigurableModuleIds = [
+  'cms',
+  'crm',
+  'file-storage',
+  'invoicing',
+  'support',
+] as const satisfies readonly ModuleId[];

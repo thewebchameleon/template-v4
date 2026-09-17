@@ -30,7 +30,7 @@ public sealed class ModuleTests
         var modules = ModuleConfiguration.Load(configuration);
         Assert.True(modules.Enabled("identity"));
         Assert.True(modules.Enabled("file-storage"));
-        Assert.False(modules.Enabled("operations"));
+        Assert.False(modules.Enabled("audit-history"));
         Assert.False(modules.Enabled("billing"));
         configuration["Modules:file-storage"] = "false";
         Assert.True(modules.Enabled("file-storage")); // Activation is a startup snapshot.

@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { Component, computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideHouse } from '@ng-icons/lucide';
 import {
   ActivatedRouteSnapshot,
   NavigationEnd,
@@ -152,11 +152,22 @@ export class Breadcrumbs {
 @Component({
   selector: 'app-breadcrumbs',
   imports: [HlmBreadcrumbImports, HlmButtonImports, NgIcon, Translate],
-  providers: [provideIcons({ lucideArrowLeft })],
+  providers: [provideIcons({ lucideArrowLeft, lucideHouse })],
   template: `
     <div class="flex min-w-0 items-center justify-start gap-4">
       <nav hlmBreadcrumb [attr.aria-label]="'breadcrumb' | t" class="min-w-0">
         <ol hlmBreadcrumbList class="hidden sm:flex">
+          <li hlmBreadcrumbItem>
+            <a
+              hlmBreadcrumbLink
+              link="/"
+              class="inline-flex items-center"
+              [attr.aria-label]="'home' | t"
+            >
+              <ng-icon name="lucideHouse" size="1rem" />
+            </a>
+          </li>
+          <li hlmBreadcrumbSeparator></li>
           @for (item of breadcrumbs.items(); track $index; let last = $last) {
             @if (!$first) {
               <li hlmBreadcrumbSeparator></li>
@@ -172,6 +183,17 @@ export class Breadcrumbs {
         </ol>
 
         <ol hlmBreadcrumbList class="flex sm:hidden">
+          <li hlmBreadcrumbItem>
+            <a
+              hlmBreadcrumbLink
+              link="/"
+              class="inline-flex items-center"
+              [attr.aria-label]="'home' | t"
+            >
+              <ng-icon name="lucideHouse" size="1rem" />
+            </a>
+          </li>
+          <li hlmBreadcrumbSeparator></li>
           @if (breadcrumbs.items().length > 1) {
             <li hlmBreadcrumbItem>
               <a hlmBreadcrumbLink [link]="breadcrumbs.items()[0].link">
@@ -223,6 +245,6 @@ export class AppBreadcrumbs {
   });
 
   constructor() {
-    classes(() => 'min-w-0 flex-1');
+    classes(() => 'min-w-0 flex-1 ps-4');
   }
 }

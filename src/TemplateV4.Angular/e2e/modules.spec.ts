@@ -86,16 +86,13 @@ test('modules save application-wide Files state, refresh navigation and guard di
   const app = await modulesApp(page);
   await page.goto('/administration/modules');
   const control = fileStorageModuleControl(page);
-  const features = page.getByRole('heading', { name: 'Features', exact: true });
   const settingsButton = page
     .locator('#module-file-storage')
     .getByRole('link', { name: 'Settings', exact: true });
   await expect(control).toBeChecked();
-  await expect(features).toBeVisible();
   await expect(settingsButton).toHaveAttribute('href', '/administration/file-storage');
   await control.click();
   await expect(control).not.toBeChecked();
-  await expect(features).toBeVisible();
   await expect(settingsButton).toBeHidden();
   await expect.poll(app.enabled).toBe(false);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
@@ -105,21 +102,18 @@ test('modules save application-wide Files state, refresh navigation and guard di
     page
       .getByRole('navigation', { name: 'Administration', exact: true })
       .getByRole('link', { name: 'File Storage', exact: true }),
-  ).toHaveCount(0);
+  ).toBeVisible();
   await page.reload();
   await expect(control).not.toBeChecked();
-  for (const path of [
-    '/file-storage',
-    '/administration/file-storage',
-    '/administration/users/owner/files',
-  ]) {
+  for (const path of ['/file-storage', '/user-management/users/owner/files']) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/module-unavailable\?/);
   }
+  await page.goto('/administration/file-storage');
+  await expect(page).toHaveURL(/\/administration\/file-storage$/);
   await page.goto('/administration/modules');
   await control.click();
   await expect.poll(app.enabled).toBe(true);
-  await expect(features).toBeVisible();
   await expect(settingsButton).toBeVisible();
   const modulesNavigation = page
     .getByRole('navigation', { name: 'Administration', exact: true })
@@ -200,7 +194,7 @@ test('demo enabling requires warning confirmation and password; cancellation is 
   page,
 }) => {
   const app = await modulesApp(page);
-  await page.goto('/administration/modules');
+  await page.goto('/administration/file-storage');
   const demo = page.getByRole('switch', { name: 'Demo mode', exact: true });
   await demo.click();
   const dialog = page.getByRole('dialog', { name: 'Enable demo mode' });
@@ -222,7 +216,9 @@ test('demo enabling requires warning confirmation and password; cancellation is 
   await dialog.getByRole('button', { name: 'Enable demo mode', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(demo).toBeChecked();
+  await page.goto('/administration/modules');
   await fileStorageModuleControl(page).click();
+  await page.goto('/administration/file-storage');
   await expect(
     page.getByText('Demo expiry is active for everyone', { exact: false }),
   ).toBeVisible();

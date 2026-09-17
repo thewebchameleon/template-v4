@@ -15,6 +15,7 @@ async function platform(page: Page, failFiles = false) {
         culture: 'en-ZA',
         permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
         setupRequired: false,
+        isAdministrator: true,
       },
       '/api/v1/auth/notifications': { page: empty, unread: 0, optionalEmailEnabled: false },
       '/api/v1/auth/audit': empty,
@@ -30,6 +31,25 @@ async function platform(page: Page, failFiles = false) {
         version: 'test-release',
         checkedAt: '2026-09-06T10:00:00Z',
         backlogWarningSeconds: 300,
+        modules: [],
+      },
+      '/api/v1/auth/updates': {
+        enabled: true,
+        checkedAt: '2026-09-06T10:00:00Z',
+        succeededAt: '2026-09-06T10:00:00Z',
+        status: 'ok',
+        components: [
+          {
+            id: 'foundation',
+            installedVersion: '0.1.0',
+            availableVersion: null,
+            status: 'current',
+            breaking: false,
+            requirements: [],
+            migrationNotes: null,
+            notesUrl: null,
+          },
+        ],
       },
       '/api/v1/auth/file-storage': {
         page: empty,
@@ -62,12 +82,12 @@ for (const width of [390, 1440]) {
     await platform(page);
     for (const [path, title] of [
       ['administration/audit-history', 'Audit History'],
-      ['invitations', 'Invitations'],
+      ['user-management/invitations', 'User Management'],
       ['administration/system-health', 'System Health'],
       ['notifications', 'Notifications'],
       ['file-storage', 'Files'],
       ['privacy', 'Privacy & data'],
-      ['administration/users/privacy-requests', 'User Management'],
+      ['user-management/privacy-requests', 'User Management'],
     ]) {
       await page.goto('/' + path);
       await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();

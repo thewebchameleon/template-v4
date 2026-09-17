@@ -13,10 +13,11 @@ public sealed class RegistrationReviewService(FrameworkDb db, SecurityService se
     public async Task<Result<Page<RegistrationReviewItem>>> List(int pageNumber, int pageSize, string sort, string direction, CancellationToken ct)
     {
         if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || sort is not ("displayName" or "email") || direction is not ("asc" or "desc")) return Result<Page<RegistrationReviewItem>>.Fail("validation.failed", ErrorKind.Validation);
-        var source = from user in db.Users.AsNoTracking() join profile in db.Profiles.AsNoTracking() on user.Id equals profile.Id where user.RegistrationState == "Pending" && user.EmailConfirmed && !profile.Disabled select new RegistrationReviewItem(user.Id, profile.DisplayName, user.Email!);
+        var source = from user in db.Users.AsNoTracking() join profile in db.Profiles.AsNoTracking() on user.Id equals profile.Id where user.RegistrationState == "Pending" && user.EmailConfirmed && !profile.Disabled select new { user.Id, profile.DisplayName, Email = user.Email! };
         var total = await source.CountAsync(ct);
         var ordered = sort == "email" ? direction == "desc" ? source.OrderByDescending(x => x.Email) : source.OrderBy(x => x.Email) : direction == "desc" ? source.OrderByDescending(x => x.DisplayName) : source.OrderBy(x => x.DisplayName);
-        return Result<Page<RegistrationReviewItem>>.Success(new(await ordered.ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(ct), total, pageNumber, pageSize));
+        var rows = await ordered.ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(x => new RegistrationReviewItem(x.Id, x.DisplayName, x.Email)).ToArrayAsync(ct);
+        return Result<Page<RegistrationReviewItem>>.Success(new(rows, total, pageNumber, pageSize));
     }
 
     public async Task<Result<Unit>> Review(Guid actor, ReviewRegistration request, CancellationToken ct)

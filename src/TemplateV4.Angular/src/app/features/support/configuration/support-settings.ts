@@ -9,9 +9,9 @@ import { SupportSettingsEditor } from './support-settings-editor';
   template: `<app-page-header title="supportSettings" description="supportSettingsHelp" />
     <section hlmCard>
       <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'supportNotificationEmail' | t }}</h2>
+        <h2 hlmCardTitle>{{ 'moduleFeatures' | t }}</h2>
       </div>
-      <div hlmCardContent><app-support-settings-editor [recipientOnly]="true" /></div>
+      <div hlmCardContent><app-support-settings-editor /></div>
     </section>`,
 })
 export class SupportSettingsPage {

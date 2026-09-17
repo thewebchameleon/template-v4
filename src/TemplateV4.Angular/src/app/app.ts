@@ -1,10 +1,13 @@
 import { FOUNDATION_FEATURES } from './core/feature-extensions';
+import { runtimeConfigurableModuleIds } from './core/capability-ids';
 import {
   workspaceDestinations,
   organisationDestinations,
   activeDestinationIndex,
   destinationAvailable,
   Destination,
+  supportDestinations,
+  userManagementDestinations,
 } from './core/destinations';
 import { FileStorageTree } from './features/file-storage/files/file-storage-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
@@ -24,12 +27,14 @@ import {
   lucideSettings,
   lucideSettings2,
   lucidePaintbrush,
+  lucidePalette,
   lucideMonitor,
   lucideLogOut,
   lucideBell,
   lucideFolderOpen,
   lucideHistory,
   lucideLifeBuoy,
+  lucideMail,
   lucideActivity,
   lucideShieldCheck,
   lucideMoveHorizontal,
@@ -54,9 +59,11 @@ import { NotificationDrawer } from './features/notifications/notification-drawer
 import { PlatformAppearanceTheme } from './core/platform-appearance';
 
 type RailLink = Destination & {
-  destination: string;
+  destination: string | null;
   destinationQueryParams: Record<string, string> | null;
+  runtimeConfigurable?: boolean;
 };
+const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds);
 @Component({
   selector: 'app-root',
   imports: [
@@ -91,12 +98,14 @@ type RailLink = Destination & {
       lucideSettings,
       lucideSettings2,
       lucidePaintbrush,
+      lucidePalette,
       lucideMonitor,
       lucideLogOut,
       lucideBell,
       lucideFolderOpen,
       lucideHistory,
       lucideLifeBuoy,
+      lucideMail,
       lucideActivity,
       lucideShieldCheck,
       lucideMoveHorizontal,
@@ -137,11 +146,22 @@ type RailLink = Destination & {
                 </span>
               </a>
               <nav class="sidebar-rail-links" [attr.aria-label]="'destinationNavigation' | t">
-                <div class="sidebar-rail-items" [style.--rail-active-index]="activeRailIndex()">
+                <div
+                  class="sidebar-rail-items"
+                  [style.--rail-active-index]="activeRailIndex()"
+                  [style.--rail-active-separator-offset]="
+                    activeRailUsesModuleSeparator()
+                      ? 'calc(var(--sidebar-rail-separator-height) + var(--app-sidebar-rail-gap))'
+                      : '0px'
+                  "
+                >
                   @if (activeRailIndex() >= 0) {
                     <span class="sidebar-rail-indicator" aria-hidden="true"></span>
                   }
                   @for (item of railLinks(); track item.path; let index = $index) {
+                    @if (index === railModuleStartIndex()) {
+                      <hlm-separator class="sidebar-rail-module-separator" decorative="true" />
+                    }
                     @if (item.hasPanel) {
                       <a
                         hlmBtn
@@ -298,24 +318,12 @@ type RailLink = Destination & {
                   </ul>
                 </nav>
               }
-              @if (
-                availableAdminLinks().length && (sidebar.isMobile() || administrationPanelActive())
-              ) {
-                <nav
-                  hlmSidebarGroup
-                  class="sidebar-submenu gap-4"
-                  [attr.aria-label]="'administration' | t"
-                >
-                  <div role="group" aria-labelledby="admin-section-administration">
-                    <div hlmSidebarGroupLabel id="admin-section-administration">
-                      {{ 'administration' | t }}
-                    </div>
+              @for (panel of navigationPanels(); track panel.label) {
+                @if (panel.links.length && (sidebar.isMobile() || panel.active)) {
+                  <nav hlmSidebarGroup class="sidebar-submenu" [attr.aria-label]="panel.label | t">
+                    <div hlmSidebarGroupLabel>{{ panel.label | t }}</div>
                     <ul hlmSidebarMenu>
-                      @for (
-                        item of administrationLinks();
-                        track item.path;
-                        let itemIndex = $index
-                      ) {
+                      @for (item of panel.links; track item.path; let itemIndex = $index) {
                         <li
                           hlmSidebarMenuItem
                           animate.enter="sidebar-item-enter"
@@ -326,59 +334,52 @@ type RailLink = Destination & {
                             [routerLink]="item.path"
                             routerLinkActive
                             #active="routerLinkActive"
-                            [isActive]="
-                              active.isActive ||
-                              (item.path === '/administration/modules' && moduleNavigationActive())
-                            "
+                            [isActive]="active.isActive"
                             ariaCurrentWhenActive="page"
                             closeMobileSidebarOnClick
                             ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
                           >
-                          @if (
-                            item.path === '/administration/modules' && moduleSettingsLinks().length
-                          ) {
-                            <button
-                              hlmSidebarMenuAction
-                              type="button"
-                              [attr.aria-label]="
-                                (modulesExpanded() ? 'collapseModules' : 'expandModules') | t
-                              "
-                              [attr.aria-expanded]="modulesExpanded()"
-                              aria-controls="administration-module-settings"
-                              (click)="modulesExpanded.set(!modulesExpanded())"
-                            >
-                              <span
-                                aria-hidden="true"
-                                class="text-base leading-none transition-transform"
-                                [class.rotate-90]="modulesExpanded()"
-                                >›</span
-                              >
-                            </button>
-                            @if (modulesExpanded()) {
-                              <ul hlmSidebarMenuSub id="administration-module-settings">
-                                @for (moduleItem of moduleSettingsLinks(); track moduleItem.path) {
-                                  <li hlmSidebarMenuSubItem>
-                                    <a
-                                      hlmSidebarMenuSubButton
-                                      [routerLink]="moduleItem.path"
-                                      routerLinkActive
-                                      #moduleActive="routerLinkActive"
-                                      [isActive]="moduleActive.isActive"
-                                      ariaCurrentWhenActive="page"
-                                      closeMobileSidebarOnClick
-                                      ><ng-icon [name]="moduleItem.icon" /><span>{{
-                                        moduleItem.label | t
-                                      }}</span></a
-                                    >
-                                  </li>
-                                }
-                              </ul>
-                            }
-                          }
                         </li>
                       }
                     </ul>
-                  </div>
+                  </nav>
+                }
+              }
+              @if (
+                availableAdminLinks().length && (sidebar.isMobile() || administrationPanelActive())
+              ) {
+                <nav
+                  hlmSidebarGroup
+                  class="sidebar-submenu gap-4"
+                  [attr.aria-label]="'administration' | t"
+                >
+                  @for (section of administrationSections(); track section.label) {
+                    <div role="group" [attr.aria-labelledby]="'admin-section-' + section.label">
+                      <div hlmSidebarGroupLabel [id]="'admin-section-' + section.label">
+                        {{ section.label | t }}
+                      </div>
+                      <ul hlmSidebarMenu>
+                        @for (item of section.links; track item.path; let itemIndex = $index) {
+                          <li
+                            hlmSidebarMenuItem
+                            animate.enter="sidebar-item-enter"
+                            [style.--sidebar-item-index]="itemIndex"
+                          >
+                            <a
+                              hlmSidebarMenuButton
+                              [routerLink]="item.path"
+                              routerLinkActive
+                              #active="routerLinkActive"
+                              [isActive]="active.isActive"
+                              ariaCurrentWhenActive="page"
+                              closeMobileSidebarOnClick
+                              ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
+                            >
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
                 </nav>
               }
             </div>
@@ -570,21 +571,29 @@ export class App {
   }
   private readonly administration = inject(AdministrationNavigation);
   readonly availableAdminLinks = this.administration.links;
-  readonly administrationLinks = computed(() =>
-    this.availableAdminLinks().filter((item) => item.section === 'administration'),
+  readonly supportLinks = computed(() =>
+    Object.values(supportDestinations).filter((item) =>
+      destinationAvailable(item, this.auth, this.features),
+    ),
   );
-  readonly moduleSettingsLinks = computed(() =>
-    this.availableAdminLinks().filter((item) => item.section === 'modules'),
+  readonly supportModuleEnabled = computed(() => this.features.enabled('support'));
+  readonly userManagementLinks = computed(() =>
+    Object.values(userManagementDestinations).filter((item) =>
+      destinationAvailable(item, this.auth, this.features),
+    ),
   );
-  readonly modulesExpanded = signal(false);
-  readonly moduleNavigationActive = computed(() => {
-    this.navigationEnd();
-    const path = this.router.url.split(/[?#]/)[0];
-    return (
-      path === '/administration/modules' ||
-      this.moduleSettingsLinks().some((item) => path.startsWith(item.path))
-    );
-  });
+  readonly administrationSections = computed(() =>
+    [
+      {
+        label: 'administration',
+        links: this.availableAdminLinks().filter((item) => item.section === 'administration'),
+      },
+      {
+        label: 'modules',
+        links: this.availableAdminLinks().filter((item) => item.section === 'modules'),
+      },
+    ].filter((section) => section.links.length),
+  );
   private previousPath = '';
   readonly alternatePageEntrance = signal(false);
   readonly administrationActive = computed(() => {
@@ -599,14 +608,40 @@ export class App {
   readonly administrationPanelActive = computed(() => {
     const selectedPanel = this.selectedPanel();
     return (
-      selectedPanel === '/administration' || (selectedPanel === null && this.administrationActive())
+      selectedPanel === '/administration' ||
+      (selectedPanel === null && this.administrationActive() && !this.supportRouteActive())
     );
   });
+  readonly supportRouteActive = computed(() => {
+    this.navigationEnd();
+    const path = this.router.url.split(/[?#]/)[0];
+    return this.supportLinks().some(
+      (item) => path === item.path || path.startsWith(`${item.path}/`),
+    );
+  });
+  readonly supportPanelActive = computed(() => {
+    const selectedPanel = this.selectedPanel();
+    return selectedPanel === '/support' || (selectedPanel === null && this.supportRouteActive());
+  });
+  readonly userManagementPanelActive = computed(() => this.railPanelActive('/user-management'));
+  readonly navigationPanels = computed(() => [
+    { label: 'support', links: this.supportLinks(), active: this.supportPanelActive() },
+    {
+      label: 'userManagement',
+      links: this.userManagementLinks(),
+      active: this.userManagementPanelActive(),
+    },
+  ]);
   readonly organisationRailLinks = computed<RailLink[]>(() => {
     this.navigationEnd();
     return [
       ...organisationDestinations,
-      ...this.extensions.flatMap((feature) => feature.organisationDestinations ?? []),
+      ...this.extensions.flatMap((feature) =>
+        (feature.organisationDestinations ?? []).map((item) => ({
+          ...item,
+          runtimeConfigurable: true,
+        })),
+      ),
     ].map((item) => ({
       ...item,
       path: `/organisation/${item.path}`,
@@ -616,23 +651,19 @@ export class App {
       hasPanel: false,
     }));
   });
-  readonly railLinks = computed<RailLink[]>(() => [
-    ...(!this.auth.access()?.setupRequired
-      ? [
-          {
-            ...this.dashboardLink,
-            hasPanel: false,
-            destination: this.dashboardLink.path,
-            destinationQueryParams: null,
-          },
-        ]
-      : []),
-    ...[
+  readonly destinationRailLinks = computed<RailLink[]>(() =>
+    [
       ...Object.values(workspaceDestinations).filter(
-        (item) => item.path !== workspaceDestinations.organisations.path,
+        (item) =>
+          item.path !== workspaceDestinations.organisations.path &&
+          item.path !== workspaceDestinations.support.path,
       ),
       ...this.organisationRailLinks(),
-      ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => !x.section),
+      ...this.extensions.flatMap((feature) =>
+        (feature.destinations ?? [])
+          .filter((item) => !item.section)
+          .map((item) => ({ ...item, runtimeConfigurable: true })),
+      ),
     ]
       .filter((item) => destinationAvailable(item, this.auth, this.features))
       .map((item) => {
@@ -645,6 +676,59 @@ export class App {
             (item.capability === 'file-storage' ? { group: 'file-storage' } : null),
         };
       }),
+  );
+  readonly moduleRailLinks = computed(() => [
+    ...this.destinationRailLinks().filter(
+      (item) =>
+        item.runtimeConfigurable ||
+        (!!item.capability && runtimeConfigurableModules.has(item.capability)),
+    ),
+    ...(this.supportModuleEnabled()
+      ? [
+          {
+            path: '/support',
+            label: 'support',
+            icon: 'lucideLifeBuoy',
+            capability: 'support',
+            hasPanel: this.supportLinks().length > 0,
+            destination: this.supportLinks()[0]?.path ?? null,
+            destinationQueryParams: null,
+            runtimeConfigurable: true,
+          },
+        ]
+      : []),
+  ]);
+  readonly primaryDestinationRailLinks = computed(() =>
+    this.destinationRailLinks().filter(
+      (item) =>
+        !item.runtimeConfigurable &&
+        (!item.capability || !runtimeConfigurableModules.has(item.capability)),
+    ),
+  );
+  readonly railLinks = computed<RailLink[]>(() => [
+    ...(!this.auth.access()?.setupRequired
+      ? [
+          {
+            ...this.dashboardLink,
+            hasPanel: false,
+            destination: this.dashboardLink.path,
+            destinationQueryParams: null,
+          },
+        ]
+      : []),
+    ...this.primaryDestinationRailLinks(),
+    ...(this.userManagementLinks().length
+      ? [
+          {
+            path: '/user-management',
+            label: 'userManagement',
+            icon: 'lucideUserRound',
+            hasPanel: true,
+            destination: this.userManagementLinks()[0]?.path ?? '/user-management',
+            destinationQueryParams: null,
+          },
+        ]
+      : []),
     ...(this.availableAdminLinks().length
       ? [
           {
@@ -652,24 +736,36 @@ export class App {
             label: 'administration',
             icon: 'lucideSettings',
             hasPanel: true,
-            destination: this.administrationLinks()[0]?.path ?? '/administration',
+            destination: this.administrationSections()[0]?.links[0]?.path ?? '/administration',
             destinationQueryParams: null,
           },
         ]
       : []),
+    ...this.moduleRailLinks(),
   ]);
+  readonly railModuleStartIndex = computed(() => {
+    if (!this.availableAdminLinks().length || !this.moduleRailLinks().length) return -1;
+    return this.railLinks().length - this.moduleRailLinks().length;
+  });
   readonly activeRailIndex = computed(() => {
     this.navigationEnd();
     if (this.accountPanelActive()) return -1;
     const selectedPanel = this.selectedPanel();
     if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
+    if (this.supportRouteActive())
+      return this.railLinks().findIndex((item) => item.path === '/support');
     return activeDestinationIndex(this.railLinks(), this.router.url.split(/[?#]/)[0]);
   });
+  readonly activeRailUsesModuleSeparator = computed(
+    () => this.railModuleStartIndex() >= 0 && this.activeRailIndex() >= this.railModuleStartIndex(),
+  );
 
   readonly fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'));
   readonly hasSecondaryNavigation = computed(
     () =>
       this.accountPanelActive() ||
+      this.supportPanelActive() ||
+      this.userManagementPanelActive() ||
       this.administrationPanelActive() ||
       this.fileStoragePanelActive(),
   );
@@ -690,6 +786,8 @@ export class App {
   }
 
   private routeDestination(path: string): string {
+    if (this.supportLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`)))
+      return '/support';
     const railDestination = this.railLinks()[activeDestinationIndex(this.railLinks(), path)];
     if (railDestination) return railDestination.path;
     if (
@@ -714,9 +812,6 @@ export class App {
   }
   constructor() {
     effect(() => this.sidebar.setPanelAvailable(this.hasSecondaryNavigation()));
-    effect(() => {
-      if (this.moduleNavigationActive()) this.modulesExpanded.set(true);
-    });
     const actor = computed(() =>
       this.auth.access()?.setupRequired ? null : this.auth.access()?.userId,
     );

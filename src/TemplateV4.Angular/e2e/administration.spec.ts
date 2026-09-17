@@ -85,31 +85,30 @@ async function administration(
   });
 }
 
-test('security tab changes preserve cancelled drafts and navigate after discard', async ({
-  page,
-}) => {
+test('security changes preserve cancelled drafts and navigate after discard', async ({ page }) => {
   await administration(page);
-  await page.goto('/administration/users/account-security');
+  await page.goto('/user-management/account-security');
   const registration = page.getByRole('switch', { name: 'Allow public registration' });
   await expect(registration).toBeEnabled();
   await registration.click();
-  const roles = page.getByRole('tab', { name: 'Roles', exact: true });
-  const security = page.getByRole('tab', { name: 'Security', exact: true });
+  const menu = page.getByRole('navigation', { name: 'User Management', exact: true });
+  const roles = menu.getByRole('link', { name: 'Roles', exact: true });
+  const security = menu.getByRole('link', { name: 'Account security', exact: true });
   await roles.click();
   const dialog = page.getByRole('alertdialog');
   await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(page).toHaveURL(/\/administration\/users\/account-security$/);
-  await expect(security).toHaveAttribute('aria-selected', 'true');
-  await expect(roles).toHaveAttribute('aria-selected', 'false');
+  await expect(page).toHaveURL(/\/user-management\/account-security$/);
+  await expect(security).toHaveAttribute('aria-current', 'page');
+  await expect(roles).not.toHaveAttribute('aria-current', 'page');
   await expect(registration).toBeChecked();
 
   await roles.click();
   await dialog.getByRole('button', { name: 'Discard changes', exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(page).toHaveURL(/\/administration\/users\/roles$/);
+  await expect(page).toHaveURL(/\/user-management\/roles$/);
   await expect(page.getByRole('columnheader', { name: 'Role name', exact: true })).toBeVisible();
-  await expect(roles).toHaveAttribute('aria-selected', 'true');
+  await expect(roles).toHaveAttribute('aria-current', 'page');
   await expect(registration).toHaveCount(0);
 
   await security.click();
@@ -118,39 +117,34 @@ test('security tab changes preserve cancelled drafts and navigate after discard'
   await expect(dialog).toBeHidden();
 });
 
-test('people tabs use child routes and update breadcrumbs', async ({ page }) => {
+test('user management submenu uses dedicated routes and updates breadcrumbs', async ({ page }) => {
   await administration(page);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumb.getByText('User Management', { exact: true })).toBeVisible();
+  const menu = page.getByRole('navigation', { name: 'User Management', exact: true });
 
-  await page.getByRole('tab', { name: 'Invitations', exact: true }).click();
-  await expect(page).toHaveURL(/\/administration\/users\/invitations$/);
+  await menu.getByRole('link', { name: 'Invitations', exact: true }).click();
+  await expect(page).toHaveURL(/\/user-management\/invitations$/);
   await expect(breadcrumb.getByText('Invitations', { exact: true })).toBeVisible();
 
-  await page.getByRole('tab', { name: 'Roles', exact: true }).click();
-  await expect(page).toHaveURL(/\/administration\/users\/roles$/);
+  await menu.getByRole('link', { name: 'Roles', exact: true }).click();
+  await expect(page).toHaveURL(/\/user-management\/roles$/);
   await expect(breadcrumb.getByText('Roles', { exact: true })).toBeVisible();
 
-  await page.getByRole('tab', { name: 'Account security', exact: true }).click();
-  await expect(page).toHaveURL(/\/administration\/users\/account-security$/);
+  await menu.getByRole('link', { name: 'Account security', exact: true }).click();
+  await expect(page).toHaveURL(/\/user-management\/account-security$/);
   await expect(breadcrumb.getByText('Account security', { exact: true })).toBeVisible();
 
-  await page.getByRole('tab', { name: 'Privacy Requests', exact: true }).click();
-  await expect(page).toHaveURL(/\/administration\/users\/privacy-requests$/);
+  await menu.getByRole('link', { name: 'Privacy Requests', exact: true }).click();
+  await expect(page).toHaveURL(/\/user-management\/privacy-requests$/);
   await expect(breadcrumb.getByText('Privacy Requests', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Awaiting review', exact: true })).toBeVisible();
-
-  await page.goto('/administration/users?section=security');
-  await expect(page.getByRole('tab', { name: 'Users', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
 });
 
 test('role catalog is accessible and built-in grants cannot be edited', async ({ page }) => {
   await administration(page);
-  await page.goto('/roles');
+  await page.goto('/user-management/roles');
   await expect(page.getByRole('columnheader', { name: 'Role name', exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Members', exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Type', exact: true })).toBeVisible();
@@ -188,7 +182,7 @@ test('person access conflicts preserve the draft and effective grants remain exp
   page,
 }) => {
   await administration(page);
-  await page.goto('/administration/users/person');
+  await page.goto('/user-management/users/person');
   await expect(page.getByRole('heading', { name: 'Effective permissions' })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Administrator', exact: true }).check();
   await page.getByRole('button', { name: 'Save access', exact: true }).click();
@@ -200,27 +194,28 @@ test('person access conflicts preserve the draft and effective grants remain exp
   await expect(page.getByRole('button', { name: 'Save access', exact: true })).toBeDisabled();
 });
 
-test('settings-only operators can reach the account security tab without directory access', async ({
+test('settings-only operators can reach account security without directory access', async ({
   page,
 }) => {
   await administration(page, ['settings.manage']);
-  await page.goto('/administration/users/account-security');
+  await page.goto('/user-management/account-security');
   await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Account security', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
+  const menu = page.getByRole('navigation', { name: 'User Management', exact: true });
+  await expect(menu.getByRole('link', { name: 'Account security', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
   );
   const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumb.getByText('User Management', { exact: true })).toBeVisible();
   await expect(breadcrumb.getByText('Account security', { exact: true })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Privacy Requests', exact: true })).toBeVisible();
+  await expect(menu.getByRole('link', { name: 'Privacy Requests', exact: true })).toBeVisible();
   for (const name of ['Users', 'Invitations', 'Roles']) {
-    await expect(page.getByRole('tab', { name, exact: true })).toHaveCount(0);
+    await expect(menu.getByRole('link', { name, exact: true })).toHaveCount(0);
   }
-  await expect(page.locator('a[href="/administration/users"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/user-management/account-security"]').first()).toBeVisible();
   await expect(page.locator('a[href="/settings"]')).toHaveCount(0);
-  await page.goto('/administration/users');
-  await expect(page).toHaveURL(/\/administration\/users\/account-security$/);
+  await page.goto('/user-management');
+  await expect(page).toHaveURL(/\/user-management\/account-security$/);
   await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
 });
 
@@ -228,7 +223,7 @@ test('user rows open details without changing directory query state and restore 
   page,
 }) => {
   await administration(page);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   const search = page.getByLabel('Search', { exact: true });
   await search.fill('Example');
   await expect(page).toHaveURL(/search=Example/);
@@ -275,7 +270,7 @@ test('user rows open details without changing directory query state and restore 
 
 test('user drawer preserves conflicted drafts and confirms discard', async ({ page }) => {
   await administration(page);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
   const admin = drawer.getByRole('checkbox', { name: 'Administrator', exact: true });
@@ -301,7 +296,7 @@ test('user drawer preserves conflicted drafts and confirms discard', async ({ pa
 
 test('saving user drawer access refreshes the directory without navigation', async ({ page }) => {
   await administration(page, undefined, true);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
   await drawer.getByRole('checkbox', { name: 'Administrator', exact: true }).check();
@@ -321,7 +316,7 @@ test('saving user drawer access refreshes the directory without navigation', asy
 
 test('read-only directory operators can inspect the complete user drawer', async ({ page }) => {
   await administration(page, ['users.read']);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   await page.getByRole('button', { name: 'User details: example.person', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: 'User details', exact: true });
   await expect(drawer.getByRole('heading', { name: 'Effective permissions' })).toBeVisible();
@@ -331,7 +326,7 @@ test('read-only directory operators can inspect the complete user drawer', async
 
 test('inviting a user from the directory opens a right-side drawer', async ({ page }) => {
   await administration(page);
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   await page.getByRole('button', { name: 'Invite', exact: true }).click();
 
   const drawer = page.getByRole('dialog', { name: 'Invite' });
@@ -341,24 +336,22 @@ test('inviting a user from the directory opens a right-side drawer', async ({ pa
   await expect(drawer.getByLabel('Email', { exact: true })).toBeVisible();
 });
 
-test('account security tab preserves drafts when leaving is cancelled', async ({ page }) => {
+test('account security preserves drafts when leaving is cancelled', async ({ page }) => {
   await administration(page);
-  await page.goto('/administration/users');
-  await page.getByRole('tab', { name: 'Account security', exact: true }).click();
-  await expect(page).toHaveURL(/\/administration\/users\/account-security$/);
+  await page.goto('/user-management/account-security');
+  const menu = page.getByRole('navigation', { name: 'User Management', exact: true });
   await page.getByRole('switch').click();
-  await page.getByRole('tab', { name: 'Users', exact: true }).click();
+  await menu.getByRole('link', { name: 'Users', exact: true }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('switch')).toBeChecked();
-  await expect(page).toHaveURL(/\/administration\/users\/account-security$/);
+  await expect(page).toHaveURL(/\/user-management\/account-security$/);
 });
 
 test('account security is hidden without settings permission and the settings route is removed', async ({
   page,
 }) => {
   await administration(page, ['users.read']);
-  await page.goto('/administration/users/account-security');
-  await expect(page.getByRole('tab', { name: 'Account security', exact: true })).toHaveCount(0);
+  await page.goto('/user-management/account-security');
   await expect(page.getByRole('heading', { name: 'Access restricted', exact: true })).toBeVisible();
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
@@ -369,8 +362,10 @@ test('privacy requests is settings-protected and the standalone routes are remov
   page,
 }) => {
   await administration(page, ['users.read']);
-  await page.goto('/administration/users/privacy-requests');
+  await page.goto('/user-management/privacy-requests');
   await expect(page.getByRole('heading', { name: 'Access restricted', exact: true })).toBeVisible();
+  await page.goto('/administration/users/privacy-requests');
+  await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
   await page.goto('/administration/privacy-requests');
   await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
   await page.goto('/privacy-requests');

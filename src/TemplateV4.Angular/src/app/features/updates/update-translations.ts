@@ -7,10 +7,10 @@ export const updateDictionary: Record<string, [string, string]> = {
     'Installed version retained; renew update rights for newer versions.',
     'Geïnstalleerde weergawe behou; hernu opdateringsregte vir nuwer weergawes.',
   ],
-  releaseUpdates: ['Updates', 'Opdaterings'],
-  releaseUpdatesHelp: [
-    'Installed foundation and business-module releases.',
-    'Geïnstalleerde fondasie- en besigheidsmoduleweergawes.',
+  deploymentHealth: ['Deployment health', 'Ontplooiingsgesondheid'],
+  deploymentHealthHelp: [
+    'Installed components, release availability and upgrade guidance.',
+    'Geïnstalleerde komponente, weergawebeskikbaarheid en opgraderingsriglyne.',
   ],
   releaseCheckStatus: ['Release checks', 'Weergawekontroles'],
   releaseManualDeployment: [
@@ -65,7 +65,7 @@ export const updateDictionary: Record<string, [string, string]> = {
     '’n Fondasie- of besigheidsmoduleopdatering is beskikbaar',
   ],
   notificationReleaseAvailableHelp: [
-    'Review available versions and compatibility under Updates.',
-    'Hersien beskikbare weergawes en versoenbaarheid onder Opdaterings.',
+    'Review available versions and compatibility in Deployment health under System Health.',
+    'Hersien beskikbare weergawes en versoenbaarheid in Ontplooiingsgesondheid onder Stelselgesondheid.',
   ],
 };

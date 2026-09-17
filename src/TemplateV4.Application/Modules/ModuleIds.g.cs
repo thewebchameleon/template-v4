@@ -13,7 +13,6 @@ public static class ModuleIds
     public const string Identity = "identity";
     public const string Invoicing = "invoicing";
     public const string Maintenance = "maintenance";
-    public const string Operations = "operations";
     public const string Organisations = "organisations";
     public const string Support = "support";
 }
@@ -32,7 +31,6 @@ public static class CapabilityIds
     public const string Invoicing = "invoicing";
     public const string InvoicingFiles = "invoicing-files";
     public const string Maintenance = "maintenance";
-    public const string Operations = "operations";
     public const string OrganisationFiles = "organisation-files";
     public const string Organisations = "organisations";
     public const string Support = "support";

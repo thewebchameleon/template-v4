@@ -3,7 +3,12 @@ import AxeBuilder from '@axe-core/playwright';
 
 const id = '8920291f-a231-4124-9998-757b765cc915';
 const category = '9a0e9b19-33fb-49e0-8bd0-77eb7eca5c20';
-async function supportApp(page: Page, agent = false, enabled = true) {
+async function supportApp(
+  page: Page,
+  agent = false,
+  enabled = true,
+  contact: 'none' | 'unconfigured' | 'configured' = 'none',
+) {
   let failReply = false;
   let ticket = {
     id,
@@ -69,15 +74,23 @@ async function supportApp(page: Page, agent = false, enabled = true) {
         accessToken: 'test-access',
         userId: 'requester',
         culture: 'en-ZA',
-        permissions: agent ? ['support.agent'] : [],
-        isAdministrator: false,
+        permissions: [
+          ...(agent ? ['support.agent'] : []),
+          ...(contact === 'none' ? [] : ['contact.manage']),
+        ],
+        isAdministrator: contact !== 'none',
         mfaConfigured: true,
         setupRequired: false,
       },
       '/api/v1/auth/csrf': { token: 'test-csrf' },
       '/api/v1/auth/notifications/summary': { unread: 0 },
       '/api/v1/bootstrap/status': { available: false },
-      '/api/v1/capabilities': { support: enabled },
+      '/api/v1/capabilities': {
+        support: enabled,
+        'support-tickets': enabled,
+        'support-enquiries': contact === 'configured',
+      },
+      '/api/v1/auth/contact': { items: [], total: 0, pageNumber: 1, pageSize: 10 },
       '/api/v1/auth/support/options': {
         categories: [{ id: category, name: 'General', active: true, version: 'category' }],
         agents: [],
@@ -97,13 +110,13 @@ async function supportApp(page: Page, agent = false, enabled = true) {
 
 test('requester creates a ticket and retains a reply after a conflict', async ({ page }) => {
   const app = await supportApp(page);
-  await page.goto('/support/new');
+  await page.goto('/support/tickets/new');
   await page.getByLabel('Subject', { exact: true }).fill('Account help');
   await page.getByLabel('Category', { exact: true }).click();
   await page.getByRole('option', { name: 'General', exact: true }).click();
   await page.getByLabel('Description', { exact: true }).fill('Please help me access my account.');
   await page.getByRole('button', { name: 'Submit ticket', exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`/support/${id}$`));
+  await expect(page).toHaveURL(new RegExp(`/support/tickets/${id}$`));
   await expect(page.getByRole('heading', { name: 'Account help', exact: true })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Internal note', exact: false })).toHaveCount(0);
   await page.getByLabel('Message', { exact: true }).fill('Additional information');
@@ -121,16 +134,31 @@ test('requester creates a ticket and retains a reply after a conflict', async ({
 
 test('support is guarded when disabled', async ({ page }) => {
   await supportApp(page, false, false);
-  await page.goto('/support');
+  await page.goto('/support/tickets');
   await expect(page).toHaveURL(/\/me$/);
-  await expect(page.locator('a[href="/support"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/support/tickets"]')).toHaveCount(0);
+});
+
+test('contact inbox stays discoverable while its notification recipient is missing', async ({
+  page,
+}) => {
+  await supportApp(page, false, true, 'unconfigured');
+  await page.goto('/support/contact');
+  await expect(page.getByRole('link', { name: 'Contact Form', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Contact form setup is incomplete', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Configure notification recipient', exact: true }),
+  ).toHaveAttribute('href', '/administration/support');
+  await expect(page.getByText('No enquiries found.', { exact: true })).toBeVisible();
 });
 
 test('agent internal note controls work by keyboard and pages have no serious accessibility violations', async ({
   page,
 }) => {
   await supportApp(page, true);
-  await page.goto(`/support/${id}`);
+  await page.goto(`/support/tickets/${id}`);
   const internal = page.getByRole('checkbox', { name: 'Internal note', exact: false });
   await internal.focus();
   await page.keyboard.press('Space');

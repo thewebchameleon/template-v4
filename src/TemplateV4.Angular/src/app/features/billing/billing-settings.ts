@@ -9,12 +9,12 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
 @Component({
   selector: 'app-billing-settings',
   imports: [HlmSelectImports, WorkspaceUi],
-  template: `<app-page-header title="billingSettings" description="billingSettingsHelp" />
+  template: `<app-page-header title="license" description="licenseHelp" />
     <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
       @if (settings; as s) {
         <section hlmCard>
           <div hlmCardHeader>
-            <h2 hlmCardTitle>{{ 'billingSettings' | t }}</h2>
+            <h2 hlmCardTitle>{{ 'license' | t }}</h2>
           </div>
           <form hlmCardContent class="grid gap-4" (ngSubmit)="save()" #form="ngForm">
             <div hlmField>

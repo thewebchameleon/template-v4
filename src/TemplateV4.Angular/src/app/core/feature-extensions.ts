@@ -1,10 +1,9 @@
-import { InjectionToken, Type } from '@angular/core';
+import { InjectionToken } from '@angular/core';
 import { Routes } from '@angular/router';
 import { Destination } from './destinations';
 
 export interface FoundationFeature {
   id: string;
-  moduleSettingsComponent?: Type<unknown>;
   moduleSettingsDestination?: Pick<Destination, 'path' | 'label'>;
   routes: Routes;
   destinations?: readonly Destination[];

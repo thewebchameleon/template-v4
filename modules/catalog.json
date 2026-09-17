@@ -50,14 +50,6 @@
     "category": "core"
   },
   {
-    "id": "operations",
-    "required": false,
-    "enabledByDefault": true,
-    "dependencies": ["delivery", "audit-recording"],
-    "runtimeConfigurable": false,
-    "category": "core"
-  },
-  {
     "id": "audit-history",
     "required": false,
     "enabledByDefault": true,

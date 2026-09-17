@@ -405,7 +405,7 @@ test('reader sidebar hides administration and mobile navigation closes after sel
 
 test('disabled modules hide destinations and reject direct navigation', async ({ page }) => {
   await mockApp(page, undefined, true, { 'audit-history': false, operations: false });
-  await page.goto('/administration/users');
+  await page.goto('/user-management/users');
   await expect(page.locator('main h1')).toBeVisible();
   await expect(page.locator('a[href="/administration/audit-history"]')).toHaveCount(0);
   await expect(page.locator('a[href="/administration/system-health"]')).toHaveCount(0);
@@ -527,36 +527,49 @@ test('rail submenu icons navigate to their first item and retain active state on
   await mockApp(page);
   await page.goto('/dashboard');
   const rail = page.locator('[data-slot="sidebar-destination-rail"]');
+  const userManagement = rail.getByRole('link', { name: 'User Management', exact: true });
   const administration = rail.getByRole('link', { name: 'Administration', exact: true });
   const account = rail.getByRole('link', { name: 'Account', exact: true });
   const panel = page.locator('#sidebar-label-panel');
+  await userManagement.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/user-management\/users$/);
+  await expect(userManagement).toHaveAttribute('aria-expanded', 'true');
+  const userManagementMenu = panel.getByRole('navigation', {
+    name: 'User Management',
+    exact: true,
+  });
+  await expect(userManagementMenu.getByRole('link')).toHaveText([
+    'Users',
+    'Invitations',
+    'Roles',
+    'Account security',
+    'Registration requests',
+    'Privacy Requests',
+  ]);
   await administration.focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(page).toHaveURL(/\/administration\/audit-history$/);
   await expect(administration).toHaveAttribute('aria-expanded', 'true');
   const menu = panel.getByRole('navigation', { name: 'Administration', exact: true });
-  await expect(menu.getByRole('link')).toHaveText([
-    'User Management',
-    'Audit History',
-    'System Health',
-  ]);
+  await expect(menu.getByRole('link')).toHaveText(['Audit History', 'System Health']);
   await administration.click();
   await expect(panel).not.toHaveAttribute('inert');
   await account.click();
   await expect(page).toHaveURL(/\/me$/);
   await expect(panel.getByRole('navigation', { name: 'Account', exact: true })).toBeVisible();
   await administration.click();
-  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(page).toHaveURL(/\/administration\/audit-history$/);
   await expect(menu).toBeVisible();
   await expect(panel).not.toHaveAttribute('inert');
-  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(page).toHaveURL(/\/administration\/audit-history$/);
   await expect(rail.getByRole('link', { name: 'System Health', exact: true })).toHaveCount(0);
   await menu.getByRole('link', { name: 'System Health', exact: true }).click();
   await expect(page).toHaveURL(/\/administration\/system-health$/);
   await expect(administration).toHaveAttribute('data-active', 'true');
   await page.goBack();
-  await expect(page).toHaveURL(/\/administration\/users$/);
+  await expect(page).toHaveURL(/\/administration\/audit-history$/);
   await expect(administration).toHaveAttribute('data-active', 'true');
   await page.goto('/users?search=person');
-  await expect(page).toHaveURL(/\/administration\/users\?search=person$/);
+  await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
 });
