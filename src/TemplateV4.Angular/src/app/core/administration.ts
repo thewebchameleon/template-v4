@@ -1,5 +1,5 @@
 import { FOUNDATION_FEATURES } from './feature-extensions';
-import { administrationDestinations, destinationAvailable } from './destinations';
+import { administrationDestinations, destinationVisibleInNavigation } from './destinations';
 import { Injectable, computed, inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
@@ -14,7 +14,7 @@ export class AdministrationNavigation {
     [
       ...Object.values(administrationDestinations),
       ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => x.section),
-    ].filter((item) => destinationAvailable(item, this.auth, this.features)),
+    ].filter((item) => destinationVisibleInNavigation(item, this.auth, this.features)),
   );
 }
 

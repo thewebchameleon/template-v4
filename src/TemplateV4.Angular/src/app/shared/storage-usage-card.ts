@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { FilePage } from '../api/models';
 import { I18n } from '../core/i18n';
 import { WorkspaceUi } from './workspace';
@@ -70,14 +70,27 @@ import { WorkspaceUi } from './workspace';
         }
       }
       <p class="workspace-meta mt-4">{{ 'fileStorageRetentionHelp' | t }}</p>
-      <a routerLink="/privacy" class="workspace-link text-sm mt-3 inline-block">{{
-        'privacyAndData' | t
-      }}</a>
+      <div class="mt-3 flex items-center justify-between gap-4">
+        <a routerLink="/privacy" class="workspace-link text-sm">{{ 'privacyAndData' | t }}</a>
+        @if (allowPurge()) {
+          <button
+            hlmBtn
+            type="button"
+            variant="link"
+            class="h-auto p-0 text-sm text-destructive"
+            (click)="purge.emit()"
+          >
+            {{ 'purgeAllData' | t }}
+          </button>
+        }
+      </div>
     </div>
   </section>`,
 })
 export class StorageUsageCard {
   readonly usage = input<Pick<FilePage, 'usedBytes' | 'quotaBytes' | 'usage'> | null>(null);
+  readonly allowPurge = input(false);
+  readonly purge = output<void>();
   readonly i18n = inject(I18n);
   readonly Math = Math;
 

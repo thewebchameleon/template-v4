@@ -18,14 +18,14 @@ public sealed partial class SecurityService(FrameworkDb db, UserManager<AppUser>
         return policy == "Everyone" || (policy == "Administrators" &&
             (await users.IsInRoleAsync(user, "Administrator") || await (from m in db.UserRoles
                                                                         join c in db.RoleClaims on m.RoleId equals c.RoleId
-                                                                        where m.UserId == user.Id && c.ClaimType == "permission" && (c.ClaimValue == Permissions.Manage || c.ClaimValue == Permissions.Roles || c.ClaimValue == Permissions.Settings || c.ClaimValue == Permissions.Jobs)
+                                                                        where m.UserId == user.Id && c.ClaimType == "permission" && (c.ClaimValue == Permissions.Manage || c.ClaimValue == Permissions.Roles || c.ClaimValue == Permissions.Settings || c.ClaimValue == Permissions.Jobs || c.ClaimValue == Permissions.FileStoragePurge)
                                                                         select c.Id).AnyAsync(ct)));
     }
     public async Task<bool> PasskeyRequired(AppUser user, CancellationToken ct) =>
         config.GetValue("Security:RequireAdministratorPasskey", true) &&
         (await users.IsInRoleAsync(user, "Administrator") || await (from m in db.UserRoles
                                                                     join c in db.RoleClaims on m.RoleId equals c.RoleId
-                                                                    where m.UserId == user.Id && c.ClaimType == "permission" && (c.ClaimValue == Permissions.Manage || c.ClaimValue == Permissions.Roles || c.ClaimValue == Permissions.Settings || c.ClaimValue == Permissions.Jobs)
+                                                                    where m.UserId == user.Id && c.ClaimType == "permission" && (c.ClaimValue == Permissions.Manage || c.ClaimValue == Permissions.Roles || c.ClaimValue == Permissions.Settings || c.ClaimValue == Permissions.Jobs || c.ClaimValue == Permissions.FileStoragePurge)
                                                                     select c.Id).AnyAsync(ct));
     public async Task<bool> RecentlyVerified(Guid actor, CancellationToken ct)
     {

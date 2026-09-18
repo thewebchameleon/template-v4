@@ -39,7 +39,7 @@ public sealed class LocalTransport(FrameworkDb db, UserManager<AppUser> users, A
             case "maintenance.requested.v1":
                 var job = JsonSerializer.Deserialize<JobRequested>(message.Payload)!;
                 if (!await db.JobRuns.AnyAsync(x => x.Id == job.RequestId, ct))
-                    db.JobRuns.Add(new() { Id = job.RequestId, Culture = job.Culture, ActorId = message.ActorId, TraceParent = message.TraceParent, AvailableAt = time.GetUtcNow() });
+                    db.JobRuns.Add(new() { Id = job.RequestId, DefinitionId = "maintenance", Culture = job.Culture, ActorId = message.ActorId, TraceParent = message.TraceParent, AvailableAt = time.GetUtcNow() });
                 break;
             default:
                 var consumer = consumers.SingleOrDefault(x => x.Contract == message.Type) ?? throw new InvalidOperationException("Unknown integration contract.");

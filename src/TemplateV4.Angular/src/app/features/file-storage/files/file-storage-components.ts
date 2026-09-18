@@ -339,13 +339,9 @@ export class FileStorageNavigation {
         <button hlmBtn variant="ghost" (click)="load()">{{ 'retry' | t }}</button>
       }
       <ul hlmSidebarMenu>
-        @for (group of visibleGroups(); track group.id; let groupIndex = $index) {
+        @for (group of visibleGroups(); track group.id) {
           <li hlmSidebarMenuItem>
-            <div
-              class="flex items-center min-w-0"
-              animate.enter="sidebar-item-enter"
-              [style.--sidebar-item-index]="groupIndex"
-            >
+            <div class="flex items-center min-w-0">
               <a
                 hlmSidebarMenuButton
                 [hlmContextMenuTrigger]="group.id === 'file-storage' ? fileStorageGroupMenu : null"
@@ -385,15 +381,9 @@ export class FileStorageNavigation {
                 class="file-storage-tree"
                 [attr.aria-label]="(group.label | t) + ': ' + ('folderNavigation' | t)"
               >
-                @for (
-                  node of visibleFolders(group.id);
-                  track node.file.id;
-                  let folderIndex = $index
-                ) {
+                @for (node of visibleFolders(group.id); track node.file.id) {
                   <li
                     class="flex items-center min-w-0"
-                    animate.enter="sidebar-item-enter"
-                    [style.--sidebar-item-index]="folderIndex"
                     [style.padding-inline-start.rem]="node.depth * 1.25"
                     [hlmContextMenuTrigger]="folderMenu"
                     [disabled]="busy() || node.file.permission !== 'owner' || group.id === 'trash'"

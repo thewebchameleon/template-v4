@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Modules;
 using TemplateV4.Infrastructure.Storage;
 
@@ -15,5 +16,7 @@ public static partial class Registration
         services.AddScoped<IFileStorageModuleSettings, FileStorageModuleSettingsStore>();
         services.AddScoped<IHandler<SaveFileStorageModuleSettings, FileStorageModuleSettings>, SaveFileStorageModuleSettingsHandler>();
         services.AddSingleton<IValidator<SaveFileStorageModuleSettings>, SaveFileStorageModuleSettingsValidator>();
+        services.AddScoped<IHandler<PurgeAllFileStorageData, Unit>, PurgeAllFileStorageDataHandler>();
+        services.AddSingleton<IValidator<PurgeAllFileStorageData>, PurgeAllFileStorageDataValidator>();
     }
 }

@@ -2255,6 +2255,255 @@
         ]
       }
     },
+    "/api/v1/auth/administration/background-jobs": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListBackgroundJobs",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "id"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJobPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/background-jobs/{id}": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetBackgroundJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJobDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/background-jobs/{id}/trigger": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "TriggerBackgroundJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/background-jobs/{id}/schedule": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SetBackgroundJobSchedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackgroundJobPauseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJobSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/background-jobs/{id}/runs/{runId}/retry": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RetryBackgroundJobRun",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/file-storage": {
       "get": {
         "tags": [
@@ -3096,6 +3345,45 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/StorageSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/file-storage/admin/purge": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "PurgeAllFileStorageData",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurgeAllFileStorageData"
               }
             }
           },
@@ -4886,6 +5174,116 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/api-keys": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "ListApiKeys",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyItem"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CreateApiKey",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKey"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyCreated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/administration/api-keys/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RevokeApiKey",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         },
         "security": [
@@ -6793,6 +7191,114 @@
         }
       }
     },
+    "/api/external/cms/articles": {
+      "get": {
+        "tags": [
+          "External CMS"
+        ],
+        "operationId": "ListExternalCmsArticles",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOfBlogSummary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": [ ]
+          }
+        ]
+      }
+    },
+    "/api/external/cms/articles/{slug}": {
+      "get": {
+        "tags": [
+          "External CMS"
+        ],
+        "operationId": "GetExternalCmsArticle",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogArticle"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": [ ]
+          }
+        ]
+      }
+    },
+    "/api/external/cms/sections": {
+      "get": {
+        "tags": [
+          "External CMS"
+        ],
+        "operationId": "GetExternalCmsSections",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LandingSection"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/bootstrap/status": {
       "get": {
         "tags": [
@@ -7497,6 +8003,82 @@
           }
         }
       },
+      "ApiKeyCreated": {
+        "required": [
+          "key",
+          "secret"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/ApiKeyItem"
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiKeyItem": {
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "scopes",
+          "createdAt",
+          "expiresAt",
+          "revokedAt",
+          "lastUsedAt",
+          "requestCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "requestCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "ArchiveCrmRecord": {
         "required": [
           "version",
@@ -7751,6 +8333,175 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "BackgroundJobDetail": {
+        "required": [
+          "job",
+          "history",
+          "retentionDays",
+          "hasPayload"
+        ],
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/BackgroundJobSummary"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackgroundJobRun"
+            }
+          },
+          "retentionDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasPayload": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BackgroundJobPage": {
+        "required": [
+          "items",
+          "total",
+          "pageNumber",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackgroundJobSummary"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "BackgroundJobPauseRequest": {
+        "required": [
+          "paused",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "paused": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "BackgroundJobRun": {
+        "required": [
+          "id",
+          "state",
+          "culture",
+          "attempts",
+          "availableAt",
+          "completedAt",
+          "errorCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string"
+          },
+          "culture": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "BackgroundJobSummary": {
+        "required": [
+          "id",
+          "status",
+          "schedule",
+          "nextRunAt",
+          "lastRunAt",
+          "lastRunState",
+          "failedRuns",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "nextRunAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastRunAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastRunState": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "failedRuns": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -8692,6 +9443,32 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "CreateApiKey": {
+        "required": [
+          "name",
+          "scopes",
+          "expiresInDays"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expiresInDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -11418,6 +12195,27 @@
           }
         }
       },
+      "PurgeAllFileStorageData": {
+        "required": [
+          "confirmation",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmation": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "permission": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RecordAttachment": {
         "required": [
           "fileId",
@@ -12807,12 +13605,20 @@
         "description": "Use a five-minute access token returned by login. Browser cookie endpoints also require CSRF protection.",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      },
+      "ApiKey": {
+        "type": "http",
+        "description": "Use the one-time credential from Administration > API Keys: Authorization: ApiKey tv4_<id>.<secret>.",
+        "scheme": "ApiKey"
       }
     }
   },
   "tags": [
     {
       "name": "Framework"
+    },
+    {
+      "name": "External CMS"
     }
   ]
 }

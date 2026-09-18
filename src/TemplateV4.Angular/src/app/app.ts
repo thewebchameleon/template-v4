@@ -26,13 +26,14 @@ import {
   lucideUsersRound,
   lucideSettings,
   lucideSettings2,
-  lucidePaintbrush,
+  lucideNewspaper,
   lucidePalette,
   lucideMonitor,
   lucideLogOut,
   lucideBell,
   lucideFolderOpen,
   lucideHistory,
+  lucideClock3,
   lucideLifeBuoy,
   lucideMail,
   lucideActivity,
@@ -96,13 +97,14 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
       lucideUsersRound,
       lucideSettings,
       lucideSettings2,
-      lucidePaintbrush,
+      lucideNewspaper,
       lucidePalette,
       lucideMonitor,
       lucideLogOut,
       lucideBell,
       lucideFolderOpen,
       lucideHistory,
+      lucideClock3,
       lucideLifeBuoy,
       lucideMail,
       lucideActivity,
@@ -132,6 +134,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 hlmBtn
                 variant="ghost"
                 size="icon"
+                class="sidebar-rail-brand"
                 [routerLink]="auth.landing()"
                 [attr.aria-label]="appearance.organisationName()"
                 [hlmTooltip]="appearance.organisationName()"
@@ -309,12 +312,8 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                       {{ 'accountNavigation' | t }}
                     </div>
                     <ul hlmSidebarMenu>
-                      @for (item of accountMenuLinks(); track item.path; let itemIndex = $index) {
-                        <li
-                          hlmSidebarMenuItem
-                          animate.enter="sidebar-item-enter"
-                          [style.--sidebar-item-index]="itemIndex"
-                        >
+                      @for (item of accountMenuLinks(); track item.path) {
+                        <li hlmSidebarMenuItem>
                           <a
                             hlmSidebarMenuButton
                             [routerLink]="item.path"
@@ -334,11 +333,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                           </a>
                         </li>
                       }
-                      <li
-                        hlmSidebarMenuItem
-                        animate.enter="sidebar-item-enter"
-                        [style.--sidebar-item-index]="accountMenuLinks().length"
-                      >
+                      <li hlmSidebarMenuItem>
                         <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
                           <ng-icon
                             name="lucideAccessibility"
@@ -355,12 +350,8 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                         {{ section.label | t }}
                       </div>
                       <ul hlmSidebarMenu>
-                        @for (item of section.links; track item.path; let itemIndex = $index) {
-                          <li
-                            hlmSidebarMenuItem
-                            animate.enter="sidebar-item-enter"
-                            [style.--sidebar-item-index]="itemIndex"
-                          >
+                        @for (item of section.links; track item.path) {
+                          <li hlmSidebarMenuItem>
                             <a
                               hlmSidebarMenuButton
                               [routerLink]="item.path"

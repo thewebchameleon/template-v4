@@ -30,3 +30,8 @@ Support feature changes use `SupportFeatureTests`. Set
 the migration, concurrency, admission and retained-inbox test. It migrates from the
 previous schema and intentionally changes/removes test settings; never use a retained
 application database. The endpoint metadata test runs without PostgreSQL.
+
+API-key endpoint, credential-format and scope tests run without infrastructure.
+Set `TEMPLATEV4_API_KEYS_TEST_DATABASE` to an empty disposable PostgreSQL database
+to additionally verify the forward migration, one-time hashed secret, usage metering,
+transactional lifecycle audit and revocation. Never point it at a retained database.

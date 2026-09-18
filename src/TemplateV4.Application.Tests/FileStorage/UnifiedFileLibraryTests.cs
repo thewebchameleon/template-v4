@@ -5,10 +5,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using TemplateV4.Application.Billing;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure.Persistence;
+using TemplateV4.Infrastructure.Security;
 using TemplateV4.Infrastructure.Storage;
+using TemplateV4.SharedKernel;
 using Xunit;
 
 namespace TemplateV4.Application.Tests.FileStorage;
@@ -27,20 +30,25 @@ public sealed class UnifiedFileLibraryTests
     [FileDatabaseFact]
     public async Task Merge_preserves_objects_and_folders_and_enforces_shared_access_and_quota()
     {
+        var connectionString = Environment.GetEnvironmentVariable("TEMPLATEV4_FILES_TEST_DATABASE")!;
         var options = new DbContextOptionsBuilder<FrameworkDb>().UseNpgsql(
-            Environment.GetEnvironmentVariable("TEMPLATEV4_FILES_TEST_DATABASE"),
+            connectionString,
             x => x.MigrationsHistoryTable("migrations", "app")).Options;
         await using var db = new FrameworkDb(options);
         await db.GetService<IMigrator>().MigrateAsync("20260916091753_SharedOrganisationFiles");
         var writer = Guid.NewGuid(); var reader = Guid.NewGuid(); var role = Guid.NewGuid();
+        var hasher = new PasswordHasher<AppUser>();
         foreach (var actor in new[] { writer, reader })
         {
-            db.Users.Add(new AppUser { Id = actor, UserName = actor.ToString(), EmailConfirmed = true });
+            var user = new AppUser { Id = actor, UserName = actor.ToString(), EmailConfirmed = true };
+            if (actor == writer) user.PasswordHash = hasher.HashPassword(user, "Correct horse battery staple 7!");
+            db.Users.Add(user);
             db.Profiles.Add(UserProfile.Create(actor, "Files test", "en-ZA"));
         }
         db.Roles.Add(new IdentityRole<Guid> { Id = role, Name = "Files writer", NormalizedName = "FILES WRITER" });
         db.UserRoles.Add(new IdentityUserRole<Guid> { RoleId = role, UserId = writer });
         db.RoleClaims.Add(new IdentityRoleClaim<Guid> { RoleId = role, ClaimType = "permission", ClaimValue = Permissions.SharedFilesManage });
+        db.RoleClaims.Add(new IdentityRoleClaim<Guid> { RoleId = role, ClaimType = "permission", ClaimValue = Permissions.FileStoragePurge });
         // Seed the old schema directly: its stored-file shape predates StorageKey.
         await db.SaveChangesAsync();
         var oldFolder = Guid.NewGuid(); var personal = Guid.NewGuid(); var shared = Guid.NewGuid();
@@ -122,12 +130,49 @@ public sealed class UnifiedFileLibraryTests
         Assert.Contains(personal.ToString("N"), storage.Objects.Keys);
         await db.RoleClaims.ExecuteDeleteAsync();
         Assert.False((await service.Metadata(writer, personal, new("Denied", "", "", false, false), default)).IsSuccess);
+        db.RoleClaims.Add(new IdentityRoleClaim<Guid> { RoleId = role, ClaimType = "permission", ClaimValue = Permissions.FileStoragePurge });
+        await db.SaveChangesAsync();
+        var passwordVerifier = new FreshPasswordVerifier(db,
+            new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:app"] = connectionString }).Build(),
+            TimeProvider.System, hasher);
+        var purgeHandler = new PurgeAllFileStorageDataHandler(db, new TestExecutionContext(writer), passwordVerifier, TimeProvider.System);
+        await using (var purgeTransaction = await db.Database.BeginTransactionAsync())
+        {
+            var purge = await purgeHandler.Handle(new(PurgeAllFileStorageData.RequiredConfirmation, "Correct horse battery staple 7!"), default);
+            Assert.True(purge.IsSuccess);
+            await db.SaveChangesAsync();
+            await purgeTransaction.CommitAsync();
+        }
+        Assert.Empty(await db.Set<FileStorageShare>().ToArrayAsync());
+        Assert.All(await db.Files.Where(x => x.PurgedAt == null).ToArrayAsync(), file => Assert.True(file.PurgeRequested));
+        await new FileRetention(db, storage, new ConfigurationBuilder().Build(), TimeProvider.System,
+            NullLogger<FileRetention>.Instance).Run(default);
+        Assert.Empty(storage.Objects);
+    }
+
+    [Fact]
+    public void Purge_confirmation_requires_the_exact_phrase_and_never_formats_the_password()
+    {
+        var validator = new PurgeAllFileStorageDataValidator();
+        Assert.NotEmpty(validator.Validate(new("purge all data", "secret")));
+        Assert.NotEmpty(validator.Validate(new(PurgeAllFileStorageData.RequiredConfirmation, "")));
+        var request = new PurgeAllFileStorageData(PurgeAllFileStorageData.RequiredConfirmation, "top-secret");
+        Assert.Empty(validator.Validate(request));
+        Assert.DoesNotContain("top-secret", request.ToString(), StringComparison.Ordinal);
     }
 
     private sealed class NoSubscription : IStorageEntitlements
     {
         public Task<long?> Quota(CancellationToken ct) => Task.FromResult<long?>(null);
         public Task<bool> CanStore(long bytes, CancellationToken ct) => Task.FromResult(true);
+    }
+
+    private sealed class TestExecutionContext(Guid actor) : IExecutionContext
+    {
+        public Guid? ActorId => actor;
+        public IReadOnlySet<string> Permissions { get; } = new HashSet<string> { TemplateV4.Application.Users.Permissions.FileStoragePurge };
+        public string Culture => "en-ZA";
+        public string? TraceParent => null;
     }
 
     private sealed class MemoryStorage : IFileStorage

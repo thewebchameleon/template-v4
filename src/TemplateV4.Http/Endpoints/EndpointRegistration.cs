@@ -19,6 +19,7 @@ public static class EndpointRegistration
             .MapSupportEndpoints()
             .MapCrmEndpoints()
             .MapCmsEndpoints()
+            .MapApiKeyEndpoints()
             .MapWebsiteAdministration()
             .MapContactAdministration()
             .MapInvoicingEndpoints()
@@ -27,6 +28,7 @@ public static class EndpointRegistration
 
         app.MapPaymentCallbacks();
         app.MapPublicWebsite();
+        app.MapExternalCmsEndpoints();
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")

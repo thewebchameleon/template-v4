@@ -73,6 +73,9 @@ public static class ApiResults
 
             "audit.not_found" => af ? "Hierdie ouditinskrywing is nie beskikbaar nie." : "This audit entry is no longer available.",
 
+            "background_job.not_found" => af ? "Hierdie agtergrondtaak is nie beskikbaar nie." : "This background job is not available.",
+            "background_job.conflict" => af ? "Die agtergrondtaakskedule het verander. Herlaai en probeer weer." : "The background job schedule changed. Refresh and try again.",
+
             "files.invalid_move" => af ? "Kies ’n vouer buite hierdie vouer se inhoud." : "Choose a destination outside this folder and its contents.",
             "files.recipient_invalid" => af ? "Kies ’n ander aktiewe gebruiker se e-posadres." : "Enter another active user’s email address.",
             "files.current_version" => af ? "Die huidige weergawe kan nie uitgevee word nie." : "The current version cannot be deleted.",
@@ -123,6 +126,10 @@ public static class ApiResults
             "role.delegation_denied" => af ? "Jy kan slegs toegang bestuur wat binne jou eie toestemmings val." : "You can manage only access within your own permissions.",
 
             "role.self_edit" => af ? "Ã¢â‚¬â„¢n Ander administrateur moet Ã¢â‚¬â„¢n rol wat aan jou toegeken is, wysig." : "Another administrator must edit a role assigned to you.",
+
+            "api_key.invalid" => af ? "Gee 'n geldige toepassingnaam, omvang en vervaltyd." : "Provide a valid application name, scopes and expiry.",
+
+            "api_key.not_found" => af ? "Die API-sleutel bestaan nie meer nie." : "This API key no longer exists.",
 
             "cms.slug_locked" => af ? "Die URL-naam is vas ná eerste publikasie." : "The URL slug is fixed after first publication.",
             "cms.slug_taken" => af ? "Hierdie URL-naam word reeds gebruik. Kies 'n ander naam." : "This URL slug is already in use. Choose another.",

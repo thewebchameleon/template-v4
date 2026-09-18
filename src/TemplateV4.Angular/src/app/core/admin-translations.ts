@@ -257,5 +257,8 @@ export const adminDictionary: Record<string, [string, string]> = {
   'audit.role.created': ['Role created', 'Rol geskep'],
   'audit.role.permissions_changed': ['Role permissions changed', 'Roltoestemmings verander'],
   'audit.user.access_changed': ['User access changed', 'Gebruikerstoegang verander'],
+  'audit.api_key.created': ['API key created', 'API-sleutel geskep'],
+  'audit.api_key.revoked': ['API key revoked', 'API-sleutel herroep'],
   'audit.personFilter': ['Person', 'Persoon'],
+  backgroundJobs: ['Background Jobs', 'Agtergrondtake'],
 };

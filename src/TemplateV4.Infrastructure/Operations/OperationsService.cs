@@ -10,6 +10,11 @@ public sealed record DeliveryPage(IReadOnlyList<DeliverySummary> Items, int Tota
 public sealed record ReplayRequest(Guid Id, string Kind);
 public sealed record InstalledModule(string Id, string Version);
 public sealed record OperationsOverview(int PendingMessages, int FailedMessages, int ActiveJobs, int FailedJobs, double OldestMessageSeconds, DateTimeOffset? LastMaintenanceAt, string Version, IReadOnlyList<InstalledModule> Modules, DateTimeOffset CheckedAt, int BacklogWarningSeconds);
+public sealed record BackgroundJobSummary(string Id, string Status, string Schedule, DateTimeOffset? NextRunAt, DateTimeOffset? LastRunAt, string? LastRunState, int FailedRuns, Guid Version);
+public sealed record BackgroundJobPage(IReadOnlyList<BackgroundJobSummary> Items, int Total, int PageNumber, int PageSize);
+public sealed record BackgroundJobRun(Guid Id, string State, string Culture, int Attempts, DateTimeOffset AvailableAt, DateTimeOffset? CompletedAt, string? ErrorCode);
+public sealed record BackgroundJobDetail(BackgroundJobSummary Job, IReadOnlyList<BackgroundJobRun> History, int RetentionDays, bool HasPayload);
+public sealed record BackgroundJobPauseRequest(bool Paused, Guid Version);
 public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfiguration config, UpdateConfiguration updates)
 {
     public async Task<OperationsOverview> Overview(CancellationToken ct)
@@ -98,5 +103,91 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
         else return Result.Fail("validation.failed", ErrorKind.Validation);
         db.Audit.Add(new() { ActorId = actor, SubjectId = request.Id, Action = "operations.replayed", SubjectType = "operation", MetadataJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string> { ["kind"] = request.Kind }), At = time.GetUtcNow() });
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
+    }
+
+    public async Task<Result<BackgroundJobPage>> ListBackgroundJobs(string search, string status, int pageNumber, int pageSize, string sort, string direction, CancellationToken ct)
+    {
+        if (pageNumber < 1 || pageSize is < 1 or > 100 || pageNumber > int.MaxValue / pageSize || status is not ("all" or "active" or "paused" or "failed") ||
+            sort is not ("id" or "status" or "nextRunAt" or "lastRunAt" or "failedRuns") || direction is not ("asc" or "desc"))
+            return Result<BackgroundJobPage>.Fail("validation.failed", ErrorKind.Validation);
+
+        var item = await BackgroundJob("maintenance", ct);
+        var matchesSearch = string.IsNullOrWhiteSpace(search) || "maintenance".Contains(search.Trim(), StringComparison.OrdinalIgnoreCase);
+        var matchesStatus = status switch
+        {
+            "active" => item?.Status == "Active",
+            "paused" => item?.Status == "Paused",
+            "failed" => item?.FailedRuns > 0,
+            _ => true
+        };
+        var items = item is not null && matchesSearch && matchesStatus ? new[] { item } : [];
+        var descending = direction == "desc";
+        var ordered = sort switch
+        {
+            "status" when descending => items.OrderByDescending(x => x.Status).ThenByDescending(x => x.Id),
+            "status" => items.OrderBy(x => x.Status).ThenBy(x => x.Id),
+            "nextRunAt" when descending => items.OrderByDescending(x => x.NextRunAt).ThenByDescending(x => x.Id),
+            "nextRunAt" => items.OrderBy(x => x.NextRunAt).ThenBy(x => x.Id),
+            "lastRunAt" when descending => items.OrderByDescending(x => x.LastRunAt).ThenByDescending(x => x.Id),
+            "lastRunAt" => items.OrderBy(x => x.LastRunAt).ThenBy(x => x.Id),
+            "failedRuns" when descending => items.OrderByDescending(x => x.FailedRuns).ThenByDescending(x => x.Id),
+            "failedRuns" => items.OrderBy(x => x.FailedRuns).ThenBy(x => x.Id),
+            _ when descending => items.OrderByDescending(x => x.Id),
+            _ => items.OrderBy(x => x.Id)
+        };
+        return Result<BackgroundJobPage>.Success(new(ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArray(), items.Length, pageNumber, pageSize));
+    }
+
+    public async Task<Result<BackgroundJobDetail>> GetBackgroundJob(string id, CancellationToken ct)
+    {
+        var job = await BackgroundJob(id, ct);
+        if (job is null) return Result<BackgroundJobDetail>.Fail("background_job.not_found", ErrorKind.NotFound);
+        var history = await db.JobRuns.AsNoTracking().Where(x => x.DefinitionId == id)
+            .OrderByDescending(x => x.AvailableAt).ThenByDescending(x => x.Id).Take(50)
+            .Select(x => new BackgroundJobRun(x.Id, x.State, x.Culture, x.Attempts, x.AvailableAt, x.CompletedAt, x.ErrorCode)).ToArrayAsync(ct);
+        return Result<BackgroundJobDetail>.Success(new(
+            job,
+            history,
+            Math.Clamp(config.GetValue("Maintenance:RetentionDays", 7), 1, 90),
+            false));
+    }
+
+    public async Task<Result<BackgroundJobSummary>> SetBackgroundJobPaused(Guid actor, string id, BackgroundJobPauseRequest request, CancellationToken ct)
+    {
+        var schedule = await db.BackgroundJobSchedules.SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (schedule is null) return Result<BackgroundJobSummary>.Fail("background_job.not_found", ErrorKind.NotFound);
+        if (schedule.Version != request.Version) return Result<BackgroundJobSummary>.Fail("background_job.conflict", ErrorKind.Conflict);
+        schedule.Paused = request.Paused;
+        schedule.NextRunAt = request.Paused ? null : schedule.NextRunAt;
+        schedule.UpdatedAt = time.GetUtcNow();
+        schedule.UpdatedBy = actor;
+        schedule.Version = Guid.NewGuid();
+        db.Audit.Add(new() { ActorId = actor, SubjectType = "background-job", SubjectId = null, Action = request.Paused ? "job.schedule.paused" : "job.schedule.resumed", MetadataJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string> { ["id"] = id }), At = time.GetUtcNow() });
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateConcurrencyException) { return Result<BackgroundJobSummary>.Fail("background_job.conflict", ErrorKind.Conflict); }
+        return Result<BackgroundJobSummary>.Success((await BackgroundJob(id, ct))!);
+    }
+
+    public async Task<Result<Unit>> RetryBackgroundJob(Guid actor, string id, Guid runId, CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var run = await db.JobRuns.FromSqlInterpolated($"SELECT * FROM messaging.job_runs WHERE \"Id\" = {runId} FOR UPDATE").SingleOrDefaultAsync(ct);
+        if (run is null || run.DefinitionId != id) return Result.Fail("background_job.not_found", ErrorKind.NotFound);
+        if (run.State != "Failed") return Result.Fail("operations.not_replayable", ErrorKind.Conflict);
+        run.State = "Retry"; run.Attempts = 0; run.AvailableAt = time.GetUtcNow(); run.LeaseUntil = null; run.CompletedAt = null; run.ErrorCode = null;
+        db.Audit.Add(new() { ActorId = actor, SubjectId = runId, SubjectType = "background-job-run", Action = "job.run.retried", MetadataJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string> { ["id"] = id }), At = time.GetUtcNow() });
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
+    }
+
+    private async Task<BackgroundJobSummary?> BackgroundJob(string id, CancellationToken ct)
+    {
+        if (id != "maintenance") return null;
+        var schedule = await db.BackgroundJobSchedules.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+        if (schedule is null) return null;
+        var last = await db.JobRuns.AsNoTracking().Where(x => x.DefinitionId == id)
+            .OrderByDescending(x => x.AvailableAt).ThenByDescending(x => x.Id)
+            .Select(x => new { x.AvailableAt, x.State }).FirstOrDefaultAsync(ct);
+        var failed = await db.JobRuns.AsNoTracking().CountAsync(x => x.DefinitionId == id && x.State == "Failed", ct);
+        return new(id, schedule.Paused ? "Paused" : "Active", config["Maintenance:Cron"] ?? "0 0 2 * * ?", schedule.NextRunAt, last == null ? null : last.AvailableAt, last?.State, failed, schedule.Version);
     }
 }

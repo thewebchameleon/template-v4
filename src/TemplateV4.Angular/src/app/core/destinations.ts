@@ -9,6 +9,7 @@ export interface Destination {
   label: string;
   icon: string;
   capability?: string;
+  navigationCapability?: string;
   permissions?: readonly string[];
   administratorOnly?: boolean;
   section?: string;
@@ -44,7 +45,7 @@ export const workspaceDestinations = {
   cms: {
     path: '/cms',
     label: 'cms',
-    icon: 'lucidePaintbrush',
+    icon: 'lucideNewspaper',
     capability: 'cms',
     permissions: ['cms.edit'],
     help: 'cmsModuleHelp',
@@ -82,6 +83,7 @@ export const administrationDestinations = {
     label: 'support',
     icon: 'lucideLifeBuoy',
     section: 'modules',
+    navigationCapability: 'support',
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
@@ -131,12 +133,27 @@ export const administrationDestinations = {
     permissions: ['settings.manage'],
     capability: 'audit-history',
   },
+  backgroundJobs: {
+    path: '/administration/background-jobs',
+    label: 'backgroundJobs',
+    icon: 'lucideClock3',
+    section: 'administration',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
   operations: {
     path: '/administration/system-health',
     label: 'systemHealth',
     icon: 'lucideActivity',
     section: 'administration',
     permissions: ['settings.manage', 'jobs.trigger'],
+  },
+  apiKeys: {
+    path: '/administration/api-keys',
+    label: 'apiKeys',
+    icon: 'lucideSettings',
+    section: 'administration',
+    permissions: ['api-keys.manage'],
   },
   license: {
     path: '/administration/license',
@@ -219,6 +236,17 @@ export function destinationAvailable(
     (!destination.permissions ||
       destination.permissions.some((permission) => auth.has(permission))) &&
     (!destination.capability || features.enabled(destination.capability))
+  );
+}
+
+export function destinationVisibleInNavigation(
+  destination: Destination,
+  auth: Auth,
+  features: Features,
+): boolean {
+  return (
+    destinationAvailable(destination, auth, features) &&
+    (!destination.navigationCapability || features.enabled(destination.navigationCapability))
   );
 }
 

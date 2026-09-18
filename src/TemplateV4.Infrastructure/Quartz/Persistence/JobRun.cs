@@ -3,6 +3,7 @@ namespace TemplateV4.Infrastructure.Persistence;
 public sealed class JobRun
 {
     public Guid Id { get; set; }
+    public string DefinitionId { get; set; } = "maintenance";
     public string State { get; set; } = "Pending";
     public string Culture { get; set; } = "en-ZA";
     public Guid? ActorId { get; set; }

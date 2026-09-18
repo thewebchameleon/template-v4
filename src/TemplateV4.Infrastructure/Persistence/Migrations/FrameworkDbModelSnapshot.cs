@@ -215,6 +215,55 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("users", "app");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.ApiKeys.ApiKeyRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("RequestCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<string[]>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<byte[]>("SecretHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("api_keys", "app");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ArticleRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1011,6 +1060,42 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("auth_challenges", "identity");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.BackgroundJobSchedule", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("NextRunAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Paused")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("background_job_schedules", "messaging");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "maintenance",
+                            Paused = false,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 9, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Version = new Guid("b82be80f-7d60-4ae7-bf4e-52351b480702")
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.BillingSettingsRow", b =>
                 {
                     b.Property<int>("Id")
@@ -1313,6 +1398,13 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DefinitionId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasDefaultValue("maintenance");
+
                     b.Property<string>("ErrorCode")
                         .HasColumnType("text");
 
@@ -1327,6 +1419,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DefinitionId", "AvailableAt");
 
                     b.HasIndex("State", "AvailableAt");
 
@@ -2344,6 +2438,15 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithOne()
                         .HasForeignKey("TemplateV4.Domain.Users.UserProfile", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.ApiKeys.ApiKeyRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

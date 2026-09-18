@@ -13,7 +13,6 @@ builder.AddServiceDefaults();
 var modules = TemplateV4.Host.BusinessModules.Descriptors;
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, modules);
 TemplateV4.Host.BusinessModules.Configure(builder);
-var maintenanceEnabled = ModuleConfiguration.Load(builder.Configuration, modules).Enabled(ModuleIds.Maintenance) && builder.Configuration.GetValue("Maintenance:Enabled", true);
 builder.Services.AddScoped<BackgroundExecutionContext>();
 builder.Services.AddScoped<IExecutionContext>(provider => provider.GetRequiredService<BackgroundExecutionContext>());
 builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();
@@ -46,14 +45,9 @@ builder.Services.AddQuartz(options =>
         store.UseClustering();
     });
     options.AddJob<CronDispatchJob>(job => job.WithIdentity("maintenance").StoreDurably().RequestRecovery());
-    if (maintenanceEnabled)
-        options.AddTrigger(trigger => trigger.WithIdentity("maintenance-daily").ForJob("maintenance")
-            .WithCronSchedule(builder.Configuration["Maintenance:Cron"] ?? "0 0 2 * * ?", cron => cron.WithMisfireInstruction(CronTriggerMisfireInstruction.DoNothing)));
 });
 builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 builder.Services.AddHealthChecks().AddCheck<WorkerReadiness>("worker", tags: ["ready"]);
 builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(45));
 var app = builder.Build();
-if (!maintenanceEnabled)
-    await (await app.Services.GetRequiredService<ISchedulerFactory>().GetScheduler()).UnscheduleJob(new TriggerKey("maintenance-daily"));
 app.MapDefaultEndpoints(); app.Run();

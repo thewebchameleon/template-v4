@@ -1,12 +1,39 @@
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using TemplateV4.ApiService.Endpoints;
+using TemplateV4.Infrastructure;
 using Xunit;
 
 namespace TemplateV4.Application.Tests;
 
 public sealed class FoundationTests
 {
+    [Fact]
+    public void Background_job_administration_requires_settings_and_administrator_role()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddScoped<OperationsService>();
+        builder.Services.AddScoped<Dispatcher<TriggerMaintenance, Guid>>();
+        var app = builder.Build();
+        app.MapGroup("/api/v1/auth").MapOperationsEndpoints();
+        var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>().Where(endpoint => endpoint.RoutePattern.RawText?.Contains("/administration/background-jobs", StringComparison.Ordinal) == true).ToArray();
+        Assert.Equal(5, endpoints.Length);
+        Assert.All(endpoints, endpoint =>
+        {
+            var authorization = endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>();
+            Assert.Contains(authorization, data => data.Policy == Permissions.Settings);
+            Assert.Contains(endpoint.Metadata.GetOrderedMetadata<AuthorizationPolicy>()
+                .SelectMany(policy => policy.Requirements).OfType<RolesAuthorizationRequirement>(),
+                requirement => requirement.AllowedRoles.Contains("Administrator", StringComparer.Ordinal));
+        });
+    }
     [Fact]
     public void First_scheduled_job_accepts_absent_optional_metadata()
     {

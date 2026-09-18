@@ -1,6 +1,7 @@
 import { cmsTranslations } from './features/cms/cms-resolver';
 import { actionItemTranslations } from './features/action-items/action-item-resolver';
 import { updateTranslations } from './features/updates/update-resolver';
+import { backgroundJobTranslations } from './features/operations/background-job-resolver';
 import { customerTranslations } from './features/organisations/customer-resolver';
 import { businessTranslations } from './core/business-translations';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
@@ -12,6 +13,7 @@ import {
   userManagementDestinations,
 } from './core/destinations';
 import { moduleSettingsTranslations } from './features/modules/module-settings-resolver';
+import { apiKeyTranslations } from './features/api-keys/api-key-resolver';
 import { supportTranslations } from './features/support/support-resolver';
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
@@ -418,6 +420,13 @@ export const routes: Routes = [
 
       { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
       {
+        path: 'api-keys',
+        resolve: { apiKeyTranslations },
+        data: { breadcrumb: 'apiKeys', permission: 'api-keys.manage' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.apiKeys)],
+        loadComponent: () => import('./features/api-keys/api-keys').then((m) => m.ApiKeysPage),
+      },
+      {
         path: 'support',
         data: { breadcrumb: 'support' },
         resolve: { supportTranslations, moduleSettingsTranslations },
@@ -491,6 +500,14 @@ export const routes: Routes = [
         data: { breadcrumb: 'auditHistory', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.auditHistory)],
         loadComponent: () => import('./features/audit-history/audit').then((m) => m.AuditPage),
+      },
+      {
+        path: 'background-jobs',
+        resolve: { backgroundJobTranslations },
+        data: { breadcrumb: 'backgroundJobs', permission: 'settings.manage' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.backgroundJobs)],
+        loadComponent: () =>
+          import('./features/operations/background-jobs').then((m) => m.BackgroundJobsPage),
       },
       {
         path: 'system-health',

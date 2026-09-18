@@ -18,12 +18,14 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
     public DbSet<AuthChallenge> AuthChallenges => Set<AuthChallenge>();
     public DbSet<RateBucket> RateBuckets => Set<RateBucket>();
     public DbSet<JobRun> JobRuns => Set<JobRun>();
+    public DbSet<BackgroundJobSchedule> BackgroundJobSchedules => Set<BackgroundJobSchedule>();
     public DbSet<UserNotification> Notifications => Set<UserNotification>();
     public DbSet<StoredFile> Files => Set<StoredFile>();
     public DbSet<FileStorageSettings> FileStorageSettings => Set<FileStorageSettings>();
     public DbSet<DeletionRequest> DeletionRequests => Set<DeletionRequest>();
     public DbSet<PlatformAppearanceSettings> PlatformAppearanceSettings => Set<PlatformAppearanceSettings>();
     public DbSet<RuntimeModuleSettings> RuntimeModules => Set<RuntimeModuleSettings>();
+    public DbSet<TemplateV4.Infrastructure.ApiKeys.ApiKeyRow> ApiKeys => Set<TemplateV4.Infrastructure.ApiKeys.ApiKeyRow>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -60,7 +62,26 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         model.Entity<SecuritySettings>(entity => { entity.ToTable("security_settings", "identity"); entity.Property(x => x.Version).IsConcurrencyToken(); });
         model.Entity<AuthChallenge>(entity => { entity.ToTable("auth_challenges", "identity"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasMaxLength(64); entity.HasIndex(x => x.ExpiresAt); });
         model.Entity<RateBucket>(entity => { entity.ToTable("rate_buckets", "identity"); entity.HasKey(x => x.Id); entity.HasIndex(x => x.ExpiresAt); });
-        model.Entity<JobRun>(entity => { entity.ToTable("job_runs", "messaging"); entity.Property(x => x.Attempts).IsConcurrencyToken(); entity.HasIndex(x => new { x.State, x.AvailableAt }); });
+        model.Entity<JobRun>(entity =>
+        {
+            entity.ToTable("job_runs", "messaging");
+            entity.Property(x => x.DefinitionId).HasMaxLength(100).HasDefaultValue("maintenance");
+            entity.Property(x => x.Attempts).IsConcurrencyToken();
+            entity.HasIndex(x => new { x.State, x.AvailableAt });
+            entity.HasIndex(x => new { x.DefinitionId, x.AvailableAt });
+        });
+        model.Entity<BackgroundJobSchedule>(entity =>
+        {
+            entity.ToTable("background_job_schedules", "messaging");
+            entity.Property(x => x.Id).HasMaxLength(100);
+            entity.Property(x => x.Version).IsConcurrencyToken();
+            entity.HasData(new BackgroundJobSchedule
+            {
+                Id = "maintenance",
+                UpdatedAt = new DateTimeOffset(2026, 9, 18, 0, 0, 0, TimeSpan.Zero),
+                Version = new Guid("b82be80f-7d60-4ae7-bf4e-52351b480702")
+            });
+        });
         model.Entity<UserProfile>(entity =>
         {
             entity.ToTable("users", "app"); entity.HasKey(x => x.Id);
@@ -202,6 +223,16 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.HasData(new RuntimeModuleSettings { Id = "crm", Enabled = true, Version = new Guid("34c03708-6e53-4c4b-8bfa-d79ed6744c9c") });
             entity.HasData(new RuntimeModuleSettings { Id = "invoicing", Enabled = true, Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383") });
             entity.HasData(new RuntimeModuleSettings { Id = "file-storage", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
+        });
+        model.Entity<TemplateV4.Infrastructure.ApiKeys.ApiKeyRow>(entity =>
+        {
+            entity.ToTable("api_keys", "app");
+            entity.Property(x => x.Name).HasMaxLength(100);
+            entity.Property(x => x.SecretHash).HasMaxLength(32);
+            entity.Property(x => x.Scopes).HasColumnType("text[]");
+            entity.HasIndex(x => x.CreatedAt);
+            entity.HasIndex(x => x.ExpiresAt);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.Restrict);
         });
         SupportModel.Configure(model);
         Support.SupportSettingsMappings.Configure(model);

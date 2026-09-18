@@ -6,6 +6,8 @@ Administrators can open **Administration → Modules** to enable or disable File
 
 Only the built-in Administrator role can manage modules; delegated settings operators cannot. Concurrent saves preserve the first committed change and ask the other administrator to reload. The setting cannot override a deployment-disabled module or restrictive file feature flags. Run DatabaseMigrator on upgrade. See [ADR 0023](adr/0023-runtime-module-administration.md) for extension guidance.
 
+The File Storage settings page exposes **Purge all data** only to operators with `file-storage.purge`. The action requires the exact `PURGE ALL DATA` phrase and the operator's current password. It immediately revokes every file share and irreversibly queues all active, trashed and unfinished File Storage records for provider cleanup; physical object deletion may continue in the background and is audited.
+
 ## Configuration
 
 **Configuration** appears after User Management for Administrators. Its **Appearance** section controls the primary color for every user, including sign-in pages. Choose from nine presets: blue, violet, magenta, red, orange, emerald, cyan, lime and yellow, or add a named color in the separate **Custom colors** row. The Spartan picker opens in a right-side drawer and offers a drag area, keyboard-accessible sliders and precise hex entry. Color name, picker, each slider and hex entry are separated into clear parameter groups; each slider keeps its label and current value directly above the track. Selecting or editing a color applies its generated palette across the current page as a draft. Each custom color has an icon-only edit action and a destructive icon-only remove action; removal requires confirmation. Removing the selected custom color selects default blue. Custom colors are shared by all administrators; **Use color** updates the draft, and **Save** publishes the palette and selected color together without reloading the page. The preview cards explicitly render light and dark surfaces with their corresponding accessible generated shades, regardless of the current application theme. A successful save confirms the active palette immediately. The destructive **Undo changes** action appears only while the draft differs from the saved configuration; it discards that draft and restores the saved settings. Other open pages receive saved changes on their next refresh.
@@ -35,6 +37,7 @@ The baseline permission catalog is:
 | `roles.manage`    | Custom role definitions and permission assignments           |
 | `settings.manage` | Security policy, audit, delivery recovery and privacy review |
 | `jobs.trigger`    | Request feature-enabled maintenance                          |
+| `file-storage.purge` | Permanently purge all File Storage data                    |
 
 Adding granular operator/reviewer permissions is an extension: change the catalog, endpoint and handler policies, UI navigation and descriptions together. The current catalog intentionally preserves the existing `settings.manage` grouping.
 
@@ -45,6 +48,8 @@ See [Action items](action-items.md) for named work queues, dashboard oversight a
 ## Account and System Health
 
 **Account** (`/me`) contains identity and email change. **Security** contains authentication methods, recovery codes and the sessions shortcut. Proof fields appear for the chosen action. Copy recovery codes and acknowledge saving them before leaving. **Privacy** retains data export, retention and deletion requests.
+
+**Background Jobs** (`/administration/background-jobs`) is restricted to the built-in Administrator role. It lists registered job definitions with search, status filtering, sorting and pagination. Selecting a job opens a right-side drawer with its schedule, next and last run, recent durable execution history and safe controls to trigger, pause or resume the schedule, and retry failed executions. Pausing stops new scheduled admissions; already accepted runs continue through the durable worker lifecycle.
 
 **System Health** owns delivery recovery and maintenance. Its queue remains accessible independently of overview loading. Use the queue filters and recovery guidance before retrying a named delivery. **Audit history** supports activity/date filters and named actor/subject filters, preserving context when following related records.
 

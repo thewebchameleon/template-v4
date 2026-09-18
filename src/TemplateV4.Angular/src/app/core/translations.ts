@@ -20,6 +20,13 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   enableCmsModule: ['Enable CMS', 'Aktiveer CMS'],
   'permission.cms.edit': ['Edit and publish blog articles', 'Redigeer en publiseer blogartikels'],
+  'permission.api-keys.manage': ['Manage API keys', 'Bestuur API-sleutels'],
+  'permissionHelp.api-keys.manage': [
+    'Create and revoke credentials for external applications.',
+    'Skep en herroep aanmeldbewyse vir eksterne toepassings.',
+  ],
+  'permissionGroup.api-keys': ['API keys', 'API-sleutels'],
+  apiKeys: ['API Keys', 'API-sleutels'],
   'permissionGroup.cms': ['CMS', 'CMS'],
   notificationReleaseAvailable: [
     'A foundation or business-module update is available',

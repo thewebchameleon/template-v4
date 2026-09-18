@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using TemplateV4.ApiService;
 using TemplateV4.ApiService.Endpoints;
 using TemplateV4.Application;
 using TemplateV4.Application.Users;
+using TemplateV4.Application.ApiKeys;
 using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Security;
@@ -57,7 +59,9 @@ public static class FoundationHost
         });
         var origins = builder.Configuration.GetSection("Web:AllowedOrigins").Get<string[]>() ?? [];
         builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.WithOrigins(origins).WithMethods("GET", "POST", "PUT", "DELETE").WithHeaders("Content-Type", "Authorization", "X-CSRF-TOKEN", "Idempotency-Key").AllowCredentials()));
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer()
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthentication.Scheme, _ => { });
         builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<SigningKeys>((options, keys) =>
         {
             options.MapInboundClaims = false;
@@ -93,6 +97,10 @@ public static class FoundationHost
         builder.Services.AddAuthorization(options =>
         {
             foreach (var permission in Permissions.All) options.AddPolicy(permission, policy => policy.RequireClaim("permission", permission));
+            foreach (var scope in ApiScopes.All) options.AddPolicy(scope, policy => policy
+                .AddAuthenticationSchemes(ApiKeyAuthentication.Scheme)
+                .RequireAuthenticatedUser()
+                .RequireClaim("scope", scope));
         });
         builder.Services.AddRateLimiter(options =>
         {

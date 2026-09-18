@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using TemplateV4.Application.ApiKeys;
 
 namespace TemplateV4.ApiService;
 
@@ -17,6 +18,12 @@ public sealed class JwtOpenApi : IOpenApiDocumentTransformer
             BearerFormat = "JWT",
             Description = "Use a five-minute access token returned by login. Browser cookie endpoints also require CSRF protection."
         };
+        document.Components.SecuritySchemes["ApiKey"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "ApiKey",
+            Description = "Use the one-time credential from Administration > API Keys: Authorization: ApiKey tv4_<id>.<secret>."
+        };
         return Task.CompletedTask;
     }
 }
@@ -26,10 +33,12 @@ public sealed class JwtOperationOpenApi : IOpenApiOperationTransformer
     public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
         var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-        if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+        var authorization = metadata.OfType<IAuthorizeData>().ToArray();
+        if (authorization.Length > 0 && !metadata.OfType<IAllowAnonymous>().Any())
             operation.Security = [new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
+                [new OpenApiSecuritySchemeReference(authorization.Any(x => ApiScopes.All.Contains(x.Policy, StringComparer.Ordinal) ||
+                    (x.AuthenticationSchemes ?? "").Split(',').Contains(ApiKeyAuthentication.Scheme)) ? "ApiKey" : "Bearer", context.Document)] = []
             }];
 
         var path = (context.Description.RelativePath ?? "").TrimEnd('/');

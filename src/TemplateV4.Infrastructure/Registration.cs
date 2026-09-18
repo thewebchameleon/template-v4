@@ -40,7 +40,8 @@ public static partial class Registration
         AddModules(services);
         AddConfiguration(services);
         AddUsers(services);
-        services.AddScoped<DemoPasswordVerifier>();
+        AddApiKeys(services);
+        services.AddScoped<FreshPasswordVerifier>();
         services.AddSingleton(ModuleConfiguration.Load(config, modules));
         services.AddHttpContextAccessor();
         var cultures = new CultureCatalog(config["Localisation:DefaultCulture"] ?? "en-ZA", (config.GetSection("Localisation:SupportedCultures").Get<string[]>() ?? ["en-ZA", "af-ZA"]).ToHashSet());

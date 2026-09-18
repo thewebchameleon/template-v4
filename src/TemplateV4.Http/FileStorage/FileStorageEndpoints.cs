@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
@@ -45,11 +46,13 @@ public static class FileStorageEndpoints
         files.MapGet("/public/{id:guid}", async (Guid id, HttpContext context, FileStorageService service, [FromHeader(Name = "X-File-Share")] string? shareToken, CancellationToken ct) => (await service.PublicItem(id, ShareToken(context, shareToken), ct)).ToHttp()).AllowAnonymous().WithName("GetPublicFileStorageFile").Produces<FileItem>();
         files.MapGet("/public/{id:guid}/download", async (Guid id, HttpContext context, FileStorageService service, [FromHeader(Name = "X-File-Share")] string? shareToken, CancellationToken ct) => DownloadResult(await service.PublicDownload(id, ShareToken(context, shareToken), ct))).AllowAnonymous().WithName("DownloadPublicFileStorageFile").Produces(200, contentType: "application/octet-stream");
         files.MapGet("/public/{id:guid}/children", async (Guid id, HttpContext context, FileStorageService service, [FromHeader(Name = "X-File-Share")] string? shareToken, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string? search = null, string sort = "name", string direction = "asc") => (await service.List(Guid.Empty, pageNumber, pageSize, search, sort, direction, ct, id, "file-storage", ShareToken(context, shareToken))).ToHttp()).AllowAnonymous().WithName("ListPublicFileStorage").Produces<FilePage>();
-        var admin = files.MapGroup("/admin").RequireAuthorization(Permissions.Settings);
+        var admin = files.MapGroup("/admin");
         admin.MapGet("/settings", async (FileStorageService service, CancellationToken ct) => Results.Ok(await service.Settings(ct)))
-            .WithName("GetFileStorageStorageSettings").Produces<FileStorageSettings>();
+            .RequireAuthorization(Permissions.Settings).WithName("GetFileStorageStorageSettings").Produces<FileStorageSettings>();
         admin.MapPost("/settings", async (StorageSettingsRequest request, ClaimsPrincipal principal, FileStorageService service, CancellationToken ct) => (await service.SaveSettings(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
-            .WithName("SaveFileStorageStorageSettings");
+            .RequireAuthorization(Permissions.Settings).WithName("SaveFileStorageStorageSettings");
+        admin.MapPost("/purge", async (PurgeAllFileStorageData request, Dispatcher<PurgeAllFileStorageData, Unit> dispatcher, CancellationToken ct) =>
+            (await dispatcher.Send(request, ct)).ToHttp()).RequireAuthorization(Permissions.FileStoragePurge).WithName("PurgeAllFileStorageData");
         return group;
     }
     private static string ShareToken(HttpContext context, string? shareToken)

@@ -1,0 +1,61 @@
+export const apiKeyDictionary: Record<string, [string, string]> = {
+  apiKeysIntro: [
+    'Create scoped credentials for trusted external applications and review their usage.',
+    'Skep beperkte aanmeldbewyse vir vertroude eksterne toepassings en hersien hul gebruik.',
+  ],
+  applications: ['Applications', 'Toepassings'],
+  apiKeyListHelp: [
+    'Secrets are never stored and cannot be shown again after creation.',
+    'Geheime word nooit gestoor nie en kan nie weer na skepping gewys word nie.',
+  ],
+  apiKeysEmpty: ['No API keys have been created.', 'Geen API-sleutels is geskep nie.'],
+  createApiKey: ['Create API key', 'Skep API-sleutel'],
+  createApiKeyHelp: [
+    'Use a separate key for each external application and grant only the scopes it needs.',
+    'Gebruik ’n aparte sleutel vir elke eksterne toepassing en gee slegs die nodige omvang.',
+  ],
+  applicationName: ['Application name', 'Toepassingnaam'],
+  applicationNamePlaceholder: ['Reporting website', 'Verslagdoeningswebwerf'],
+  applicationNameHelp: [
+    'A recognizable name for the system using this key.',
+    '’n Herkenbare naam vir die stelsel wat hierdie sleutel gebruik.',
+  ],
+  apiKeyScopes: ['Scopes', 'Omvang'],
+  apiKeyScopesHelp: [
+    'Scopes limit which external API operations the application may call.',
+    'Omvang beperk watter eksterne API-bewerkings die toepassing mag gebruik.',
+  ],
+  'apiScope.cms.articles.read': ['Read published CMS articles', 'Lees gepubliseerde CMS-artikels'],
+  'apiScope.cms.sections.read': ['Read published CMS sections', 'Lees gepubliseerde CMS-afdelings'],
+  'apiScopeHelp.cms.articles.read': [
+    'List and retrieve published blog articles.',
+    'Lys en haal gepubliseerde blogartikels op.',
+  ],
+  'apiScopeHelp.cms.sections.read': [
+    'Retrieve published landing-page sections.',
+    'Haal gepubliseerde bestemmingsblad-afdelings op.',
+  ],
+  'apiExpiry.30': ['30 days', '30 dae'],
+  'apiExpiry.90': ['90 days', '90 dae'],
+  'apiExpiry.365': ['1 year', '1 jaar'],
+  'apiExpiry.never': ['Never', 'Nooit'],
+  apiKeyCreated: ['API key created', 'API-sleutel geskep'],
+  apiKeyCreatedHelp: [
+    'Copy this key now. For security, it will not be displayed again.',
+    'Kopieer hierdie sleutel nou. Vir sekuriteit sal dit nie weer vertoon word nie.',
+  ],
+  copyApiKey: ['Copy API key', 'Kopieer API-sleutel'],
+  revokeApiKey: ['Revoke API key', 'Herroep API-sleutel'],
+  revokeApiKeyHelp: [
+    'This application will immediately lose access. This cannot be undone.',
+    'Hierdie toepassing sal onmiddellik toegang verloor. Dit kan nie ongedaan gemaak word nie.',
+  ],
+  apiKeyRevoked: ['API key revoked', 'API-sleutel herroep'],
+  lastUsed: ['Last used', 'Laas gebruik'],
+  requests: ['Requests', 'Versoeke'],
+  expires: ['Expires', 'Verval'],
+  never: ['Never', 'Nooit'],
+  expired: ['Expired', 'Verval'],
+  revoked: ['Revoked', 'Herroep'],
+  copied: ['Copied', 'Gekopieer'],
+};

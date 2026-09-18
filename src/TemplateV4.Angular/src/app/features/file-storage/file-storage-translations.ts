@@ -1,4 +1,30 @@
 export const fileStorageDictionary: Record<string, [string, string]> = {
+  'permission.file-storage.purge': ['Purge all file data', 'Wis alle lêerdata uit'],
+  'permissionHelp.file-storage.purge': [
+    'Permanently delete every file in File Storage after password confirmation.',
+    'Vee elke lêer in Lêerberging permanent uit ná wagwoordbevestiging.',
+  ],
+  'permissionGroup.file-storage': ['File Storage', 'Lêerberging'],
+  purgeAllData: ['Purge all data', 'Wis alle data uit'],
+  purgeAllDataTitle: ['Purge all File Storage data?', 'Wis alle Lêerberging-data uit?'],
+  purgeAllDataWarning: [
+    'This permanently deletes every active, trashed, and unfinished file for the organisation and revokes all file shares. It cannot be undone. Storage cleanup may continue in the background.',
+    'Dit vee elke aktiewe, weggegooide en onvoltooide lêer vir die organisasie permanent uit en herroep alle lêerdelings. Dit kan nie ongedaan gemaak word nie. Bergingsopruiming kan in die agtergrond voortgaan.',
+  ],
+  purgeConfirmationLabel: ['Confirmation phrase', 'Bevestigingsfrase'],
+  purgeConfirmationHelp: ['Type this phrase exactly:', 'Tik hierdie frase presies:'],
+  purgeAllDataFailed: [
+    'The purge could not be requested. Check your password and try again.',
+    'Die uitwissing kon nie versoek word nie. Gaan jou wagwoord na en probeer weer.',
+  ],
+  purgeAllDataRequested: [
+    'All File Storage data is being permanently deleted.',
+    'Alle Lêerberging-data word permanent uitgevee.',
+  ],
+  'audit.file-storage.purge_all_requested': [
+    'All File Storage data purge requested',
+    'Uitwissing van alle Lêerberging-data versoek',
+  ],
   moduleFeatures: ['Features', 'Kenmerke'],
   fileStorageSettingsHelp: [
     'Configure default storage allowances and maximum upload size.',

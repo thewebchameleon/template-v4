@@ -68,6 +68,14 @@ public bylines are managed explicitly through article edits and republishing.
 Deferred: media library, tags/categories, comments, scheduling, approval workflows,
 revision browsing, per-article language variants and organisation-specific blogs.
 
+## External API
+
+Named external applications can read published articles and landing sections with
+scoped API keys. Drafts, previews and publishing are never exposed to API keys. The
+unversioned routes, credential format and rotation guidance are documented in the
+[external API guide](../external-api.md). CMS deployment and runtime capability gates
+remain authoritative for these routes.
+
 ## Validation
 
 `CmsMarkdownTests` covers supported formatting and active-content filtering. Extend

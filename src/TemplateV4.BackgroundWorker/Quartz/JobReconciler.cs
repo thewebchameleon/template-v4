@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
+using TemplateV4.Application.Modules;
+using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.BackgroundWorker;
 
-public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory schedulers, ILogger<JobReconciler> logger) : BackgroundService
+public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory schedulers, IConfiguration configuration, ModuleCatalog modules, ILogger<JobReconciler> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
@@ -20,6 +22,7 @@ public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory
         await using var scope = scopes.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
         var now = scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow();
         var scheduler = await schedulers.GetScheduler(ct);
+        await ReconcileMaintenanceSchedule(db, scheduler, ct);
         var runs = await db.JobRuns.AsNoTracking().Where(x => (x.State == "Pending" || x.State == "Retry" || x.State == "Running" && x.LeaseUntil < now) && x.AvailableAt <= now).OrderBy(x => x.AvailableAt).Take(100).ToArrayAsync(ct);
         foreach (var run in runs)
         {
@@ -37,5 +40,37 @@ public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory
         var retired = await db.JobRuns.Where(x => x.CompletedAt < now.AddDays(-7)).OrderBy(x => x.CompletedAt).Take(100).ToArrayAsync(ct);
         foreach (var run in retired) { await scheduler.DeleteJob(new JobKey(run.Id.ToString("N"), "requests"), ct); db.JobRuns.Remove(run); }
         await db.SaveChangesAsync(ct);
+    }
+
+    private async Task ReconcileMaintenanceSchedule(FrameworkDb db, IScheduler scheduler, CancellationToken ct)
+    {
+        var schedule = await db.BackgroundJobSchedules.AsNoTracking().SingleOrDefaultAsync(x => x.Id == "maintenance", ct);
+        if (schedule is null) return;
+
+        var triggerKey = new TriggerKey("maintenance-daily");
+        var enabled = modules.Enabled(ModuleIds.Maintenance) && configuration.GetValue("Maintenance:Enabled", true) && !schedule.Paused;
+        DateTimeOffset? nextRun = null;
+        if (!enabled)
+        {
+            if (await scheduler.Exists(triggerKey, ct)) await scheduler.UnscheduleJob(triggerKey, ct);
+        }
+        else
+        {
+            var expression = configuration["Maintenance:Cron"] ?? "0 0 2 * * ?";
+            var current = await scheduler.GetTrigger(triggerKey, ct) as ICronTrigger;
+            if (current?.CronExpressionString != expression)
+            {
+                var trigger = TriggerBuilder.Create().WithIdentity(triggerKey).ForJob("maintenance")
+                    .WithCronSchedule(expression, cron => cron.WithMisfireInstruction(CronTriggerMisfireInstruction.DoNothing)).Build();
+                if (current is null) await scheduler.ScheduleJob(trigger, new ScheduleJobOptions(), ct);
+                else await scheduler.RescheduleJob(triggerKey, trigger, ct);
+                current = await scheduler.GetTrigger(triggerKey, ct) as ICronTrigger;
+            }
+            nextRun = current?.NextFireTimeUtc;
+        }
+
+        if (schedule.NextRunAt != nextRun)
+            await db.BackgroundJobSchedules.Where(x => x.Id == schedule.Id)
+                .ExecuteUpdateAsync(updates => updates.SetProperty(x => x.NextRunAt, nextRun), ct);
     }
 }

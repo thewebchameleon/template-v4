@@ -119,6 +119,16 @@ export type { GetReleaseUpdates$Params as GetReleaseUpdates$Params } from './fn/
 export { getReleaseUpdates as getReleaseUpdates } from './fn/framework/get-release-updates';
 export type { UploadWebsiteImage$Params as UploadWebsiteImage$Params } from './fn/framework/upload-website-image';
 export { uploadWebsiteImage as uploadWebsiteImage } from './fn/framework/upload-website-image';
+export type { ListBackgroundJobs$Params as ListBackgroundJobs$Params } from './fn/framework/list-background-jobs';
+export { listBackgroundJobs as listBackgroundJobs } from './fn/framework/list-background-jobs';
+export type { GetBackgroundJob$Params as GetBackgroundJob$Params } from './fn/framework/get-background-job';
+export { getBackgroundJob as getBackgroundJob } from './fn/framework/get-background-job';
+export type { TriggerBackgroundJob$Params as TriggerBackgroundJob$Params } from './fn/framework/trigger-background-job';
+export { triggerBackgroundJob as triggerBackgroundJob } from './fn/framework/trigger-background-job';
+export type { SetBackgroundJobSchedule$Params as SetBackgroundJobSchedule$Params } from './fn/framework/set-background-job-schedule';
+export { setBackgroundJobSchedule as setBackgroundJobSchedule } from './fn/framework/set-background-job-schedule';
+export type { RetryBackgroundJobRun$Params as RetryBackgroundJobRun$Params } from './fn/framework/retry-background-job-run';
+export { retryBackgroundJobRun as retryBackgroundJobRun } from './fn/framework/retry-background-job-run';
 export type { ListFileStorage$Params as ListFileStorage$Params } from './fn/framework/list-file-storage';
 export { listFileStorage as listFileStorage } from './fn/framework/list-file-storage';
 export type { UploadFileStorageFile$Params as UploadFileStorageFile$Params } from './fn/framework/upload-file-storage-file';
@@ -157,6 +167,8 @@ export type { GetFileStorageStorageSettings$Params as GetFileStorageStorageSetti
 export { getFileStorageStorageSettings as getFileStorageStorageSettings } from './fn/framework/get-file-storage-storage-settings';
 export type { SaveFileStorageStorageSettings$Params as SaveFileStorageStorageSettings$Params } from './fn/framework/save-file-storage-storage-settings';
 export { saveFileStorageStorageSettings as saveFileStorageStorageSettings } from './fn/framework/save-file-storage-storage-settings';
+export type { PurgeAllFileStorageData$Params as PurgeAllFileStorageData$Params } from './fn/framework/purge-all-file-storage-data';
+export { purgeAllFileStorageData as purgeAllFileStorageData } from './fn/framework/purge-all-file-storage-data';
 export type { ListActionItems$Params as ListActionItems$Params } from './fn/framework/list-action-items';
 export { listActionItems as listActionItems } from './fn/framework/list-action-items';
 export type { CreateActionItem$Params as CreateActionItem$Params } from './fn/framework/create-action-item';
@@ -237,6 +249,12 @@ export type { SaveCmsSections$Params as SaveCmsSections$Params } from './fn/fram
 export { saveCmsSections as saveCmsSections } from './fn/framework/save-cms-sections';
 export type { PublishCmsSections$Params as PublishCmsSections$Params } from './fn/framework/publish-cms-sections';
 export { publishCmsSections as publishCmsSections } from './fn/framework/publish-cms-sections';
+export type { ListApiKeys$Params as ListApiKeys$Params } from './fn/framework/list-api-keys';
+export { listApiKeys as listApiKeys } from './fn/framework/list-api-keys';
+export type { CreateApiKey$Params as CreateApiKey$Params } from './fn/framework/create-api-key';
+export { createApiKey as createApiKey } from './fn/framework/create-api-key';
+export type { RevokeApiKey$Params as RevokeApiKey$Params } from './fn/framework/revoke-api-key';
+export { revokeApiKey as revokeApiKey } from './fn/framework/revoke-api-key';
 export type { GetWebsiteSettings$Params as GetWebsiteSettings$Params } from './fn/framework/get-website-settings';
 export { getWebsiteSettings as getWebsiteSettings } from './fn/framework/get-website-settings';
 export type { SaveWebsiteSettings$Params as SaveWebsiteSettings$Params } from './fn/framework/save-website-settings';
@@ -353,3 +371,9 @@ export type { GetCapabilities$Params as GetCapabilities$Params } from './fn/fram
 export { getCapabilities as getCapabilities } from './fn/framework/get-capabilities';
 export type { TriggerMaintenance$Params as TriggerMaintenance$Params } from './fn/framework/trigger-maintenance';
 export { triggerMaintenance as triggerMaintenance } from './fn/framework/trigger-maintenance';
+export type { ListExternalCmsArticles$Params as ListExternalCmsArticles$Params } from './fn/external-cms/list-external-cms-articles';
+export { listExternalCmsArticles as listExternalCmsArticles } from './fn/external-cms/list-external-cms-articles';
+export type { GetExternalCmsArticle$Params as GetExternalCmsArticle$Params } from './fn/external-cms/get-external-cms-article';
+export { getExternalCmsArticle as getExternalCmsArticle } from './fn/external-cms/get-external-cms-article';
+export type { GetExternalCmsSections$Params as GetExternalCmsSections$Params } from './fn/external-cms/get-external-cms-sections';
+export { getExternalCmsSections as getExternalCmsSections } from './fn/external-cms/get-external-cms-sections';

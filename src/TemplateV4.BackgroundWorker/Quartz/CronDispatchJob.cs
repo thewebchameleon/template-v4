@@ -11,8 +11,9 @@ public sealed class CronDispatchJob(FrameworkDb db, TimeProvider time, ModuleCat
     public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
     {
         if (!modules.Enabled(ModuleIds.Maintenance)) return;
+        if (await db.BackgroundJobSchedules.AsNoTracking().AnyAsync(x => x.Id == "maintenance" && x.Paused, cancellationToken)) return;
         var id = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes($"maintenance:{context.ScheduledFireTimeUtc:O}"))[..16]);
         var now = time.GetUtcNow();
-        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO messaging.job_runs (\"Id\", \"State\", \"Culture\", \"Attempts\", \"AvailableAt\") VALUES ({id}, 'Pending', 'en-ZA', 0, {now}) ON CONFLICT (\"Id\") DO NOTHING", cancellationToken);
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO messaging.job_runs (\"Id\", \"DefinitionId\", \"State\", \"Culture\", \"Attempts\", \"AvailableAt\") VALUES ({id}, 'maintenance', 'Pending', 'en-ZA', 0, {now}) ON CONFLICT (\"Id\") DO NOTHING", cancellationToken);
     }
 }

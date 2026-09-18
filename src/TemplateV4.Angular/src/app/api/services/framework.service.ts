@@ -19,11 +19,16 @@ import { ActionQueue } from '../models/action-queue';
 import { addCrmNote } from '../fn/framework/add-crm-note';
 import { AddCrmNote$Params } from '../fn/framework/add-crm-note';
 import { AdminBootstrapStatus } from '../models/admin-bootstrap-status';
+import { ApiKeyCreated } from '../models/api-key-created';
+import { ApiKeyItem } from '../models/api-key-item';
 import { archiveCrmRecord } from '../fn/framework/archive-crm-record';
 import { ArchiveCrmRecord$Params } from '../fn/framework/archive-crm-record';
 import { attachSupportTicket } from '../fn/framework/attach-support-ticket';
 import { AttachSupportTicket$Params } from '../fn/framework/attach-support-ticket';
 import { AuditDetail } from '../models/audit-detail';
+import { BackgroundJobDetail } from '../models/background-job-detail';
+import { BackgroundJobPage } from '../models/background-job-page';
+import { BackgroundJobSummary } from '../models/background-job-summary';
 import { beginMfaEnrollment } from '../fn/framework/begin-mfa-enrollment';
 import { BeginMfaEnrollment$Params } from '../fn/framework/begin-mfa-enrollment';
 import { BillingSettings } from '../models/billing-settings';
@@ -61,6 +66,8 @@ import { confirmMfaEnrollment } from '../fn/framework/confirm-mfa-enrollment';
 import { ConfirmMfaEnrollment$Params } from '../fn/framework/confirm-mfa-enrollment';
 import { createActionItem } from '../fn/framework/create-action-item';
 import { CreateActionItem$Params } from '../fn/framework/create-action-item';
+import { createApiKey } from '../fn/framework/create-api-key';
+import { CreateApiKey$Params } from '../fn/framework/create-api-key';
 import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-administrator';
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
 import { createFileStorageFolder } from '../fn/framework/create-file-storage-folder';
@@ -121,6 +128,8 @@ import { getAdminBootstrapStatus } from '../fn/framework/get-admin-bootstrap-sta
 import { GetAdminBootstrapStatus$Params } from '../fn/framework/get-admin-bootstrap-status';
 import { getAuditDetail } from '../fn/framework/get-audit-detail';
 import { GetAuditDetail$Params } from '../fn/framework/get-audit-detail';
+import { getBackgroundJob } from '../fn/framework/get-background-job';
+import { GetBackgroundJob$Params } from '../fn/framework/get-background-job';
 import { getBillingSettings } from '../fn/framework/get-billing-settings';
 import { GetBillingSettings$Params } from '../fn/framework/get-billing-settings';
 import { getCapabilities } from '../fn/framework/get-capabilities';
@@ -212,8 +221,12 @@ import { IssuerSettings } from '../models/issuer-settings';
 import { LandingSection } from '../models/landing-section';
 import { listActionItems } from '../fn/framework/list-action-items';
 import { ListActionItems$Params } from '../fn/framework/list-action-items';
+import { listApiKeys } from '../fn/framework/list-api-keys';
+import { ListApiKeys$Params } from '../fn/framework/list-api-keys';
 import { listAuditHistory } from '../fn/framework/list-audit-history';
 import { ListAuditHistory$Params } from '../fn/framework/list-audit-history';
+import { listBackgroundJobs } from '../fn/framework/list-background-jobs';
+import { ListBackgroundJobs$Params } from '../fn/framework/list-background-jobs';
 import { listCmsArticles } from '../fn/framework/list-cms-articles';
 import { ListCmsArticles$Params } from '../fn/framework/list-cms-articles';
 import { listCommercialDocuments } from '../fn/framework/list-commercial-documents';
@@ -303,6 +316,8 @@ import { publishCmsArticle } from '../fn/framework/publish-cms-article';
 import { PublishCmsArticle$Params } from '../fn/framework/publish-cms-article';
 import { publishCmsSections } from '../fn/framework/publish-cms-sections';
 import { PublishCmsSections$Params } from '../fn/framework/publish-cms-sections';
+import { purgeAllFileStorageData } from '../fn/framework/purge-all-file-storage-data';
+import { PurgeAllFileStorageData$Params } from '../fn/framework/purge-all-file-storage-data';
 import { purgeFileStorageFile } from '../fn/framework/purge-file-storage-file';
 import { PurgeFileStorageFile$Params } from '../fn/framework/purge-file-storage-file';
 import { readNotifications } from '../fn/framework/read-notifications';
@@ -343,10 +358,14 @@ import { resetPassword } from '../fn/framework/reset-password';
 import { ResetPassword$Params } from '../fn/framework/reset-password';
 import { restoreFileStorageFile } from '../fn/framework/restore-file-storage-file';
 import { RestoreFileStorageFile$Params } from '../fn/framework/restore-file-storage-file';
+import { retryBackgroundJobRun } from '../fn/framework/retry-background-job-run';
+import { RetryBackgroundJobRun$Params } from '../fn/framework/retry-background-job-run';
 import { reviewAccountDeletion } from '../fn/framework/review-account-deletion';
 import { ReviewAccountDeletion$Params } from '../fn/framework/review-account-deletion';
 import { reviewRegistration } from '../fn/framework/review-registration';
 import { ReviewRegistration$Params } from '../fn/framework/review-registration';
+import { revokeApiKey } from '../fn/framework/revoke-api-key';
+import { RevokeApiKey$Params } from '../fn/framework/revoke-api-key';
 import { revokeFileStorageShare } from '../fn/framework/revoke-file-storage-share';
 import { RevokeFileStorageShare$Params } from '../fn/framework/revoke-file-storage-share';
 import { revokeSession } from '../fn/framework/revoke-session';
@@ -384,6 +403,8 @@ import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
 import { SessionDto } from '../models/session-dto';
+import { setBackgroundJobSchedule } from '../fn/framework/set-background-job-schedule';
+import { SetBackgroundJobSchedule$Params } from '../fn/framework/set-background-job-schedule';
 import { setCulture } from '../fn/framework/set-culture';
 import { SetCulture$Params } from '../fn/framework/set-culture';
 import { setMfaPreference } from '../fn/framework/set-mfa-preference';
@@ -403,6 +424,8 @@ import { SubmitContactEnquiry$Params } from '../fn/framework/submit-contact-enqu
 import { SupportModuleSettings } from '../models/support-module-settings';
 import { SupportOptions } from '../models/support-options';
 import { TicketDetail } from '../models/ticket-detail';
+import { triggerBackgroundJob } from '../fn/framework/trigger-background-job';
+import { TriggerBackgroundJob$Params } from '../fn/framework/trigger-background-job';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
 import { TriggerMaintenance$Params } from '../fn/framework/trigger-maintenance';
 import { updateFileStorageFileMetadata } from '../fn/framework/update-file-storage-file-metadata';
@@ -2036,6 +2059,141 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `listBackgroundJobs()` */
+  static readonly ListBackgroundJobsPath = '/api/v1/auth/administration/background-jobs';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listBackgroundJobs()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listBackgroundJobs$Response(params?: ListBackgroundJobs$Params, context?: HttpContext): Observable<StrictHttpResponse<BackgroundJobPage>> {
+    const obs = listBackgroundJobs(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listBackgroundJobs$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listBackgroundJobs(params?: ListBackgroundJobs$Params, context?: HttpContext): Observable<BackgroundJobPage> {
+    const resp = this.listBackgroundJobs$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<BackgroundJobPage>): BackgroundJobPage => r.body)
+    );
+  }
+
+  /** Path part for operation `getBackgroundJob()` */
+  static readonly GetBackgroundJobPath = '/api/v1/auth/administration/background-jobs/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getBackgroundJob()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getBackgroundJob$Response(params: GetBackgroundJob$Params, context?: HttpContext): Observable<StrictHttpResponse<BackgroundJobDetail>> {
+    const obs = getBackgroundJob(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getBackgroundJob$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getBackgroundJob(params: GetBackgroundJob$Params, context?: HttpContext): Observable<BackgroundJobDetail> {
+    const resp = this.getBackgroundJob$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<BackgroundJobDetail>): BackgroundJobDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `triggerBackgroundJob()` */
+  static readonly TriggerBackgroundJobPath = '/api/v1/auth/administration/background-jobs/{id}/trigger';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `triggerBackgroundJob()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  triggerBackgroundJob$Response(params: TriggerBackgroundJob$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = triggerBackgroundJob(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `triggerBackgroundJob$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  triggerBackgroundJob(params: TriggerBackgroundJob$Params, context?: HttpContext): Observable<void> {
+    const resp = this.triggerBackgroundJob$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `setBackgroundJobSchedule()` */
+  static readonly SetBackgroundJobSchedulePath = '/api/v1/auth/administration/background-jobs/{id}/schedule';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `setBackgroundJobSchedule()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setBackgroundJobSchedule$Response(params: SetBackgroundJobSchedule$Params, context?: HttpContext): Observable<StrictHttpResponse<BackgroundJobSummary>> {
+    const obs = setBackgroundJobSchedule(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `setBackgroundJobSchedule$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setBackgroundJobSchedule(params: SetBackgroundJobSchedule$Params, context?: HttpContext): Observable<BackgroundJobSummary> {
+    const resp = this.setBackgroundJobSchedule$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<BackgroundJobSummary>): BackgroundJobSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `retryBackgroundJobRun()` */
+  static readonly RetryBackgroundJobRunPath = '/api/v1/auth/administration/background-jobs/{id}/runs/{runId}/retry';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `retryBackgroundJobRun()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  retryBackgroundJobRun$Response(params: RetryBackgroundJobRun$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = retryBackgroundJobRun(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `retryBackgroundJobRun$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  retryBackgroundJobRun(params: RetryBackgroundJobRun$Params, context?: HttpContext): Observable<void> {
+    const resp = this.retryBackgroundJobRun$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
   /** Path part for operation `listFileStorage()` */
   static readonly ListFileStoragePath = '/api/v1/auth/file-storage';
 
@@ -2544,6 +2702,33 @@ export class FrameworkService extends BaseService {
    */
   saveFileStorageStorageSettings(params: SaveFileStorageStorageSettings$Params, context?: HttpContext): Observable<void> {
     const resp = this.saveFileStorageStorageSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `purgeAllFileStorageData()` */
+  static readonly PurgeAllFileStorageDataPath = '/api/v1/auth/file-storage/admin/purge';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `purgeAllFileStorageData()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  purgeAllFileStorageData$Response(params: PurgeAllFileStorageData$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = purgeAllFileStorageData(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `purgeAllFileStorageData$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  purgeAllFileStorageData(params: PurgeAllFileStorageData$Params, context?: HttpContext): Observable<void> {
+    const resp = this.purgeAllFileStorageData$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -3626,6 +3811,87 @@ export class FrameworkService extends BaseService {
     const resp = this.publishCmsSections$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
+    );
+  }
+
+  /** Path part for operation `listApiKeys()` */
+  static readonly ListApiKeysPath = '/api/v1/auth/administration/api-keys';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listApiKeys()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listApiKeys$Response(params?: ListApiKeys$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ApiKeyItem>>> {
+    const obs = listApiKeys(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listApiKeys$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listApiKeys(params?: ListApiKeys$Params, context?: HttpContext): Observable<Array<ApiKeyItem>> {
+    const resp = this.listApiKeys$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<ApiKeyItem>>): Array<ApiKeyItem> => r.body)
+    );
+  }
+
+  /** Path part for operation `createApiKey()` */
+  static readonly CreateApiKeyPath = '/api/v1/auth/administration/api-keys';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createApiKey()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createApiKey$Response(params: CreateApiKey$Params, context?: HttpContext): Observable<StrictHttpResponse<ApiKeyCreated>> {
+    const obs = createApiKey(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createApiKey$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createApiKey(params: CreateApiKey$Params, context?: HttpContext): Observable<ApiKeyCreated> {
+    const resp = this.createApiKey$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ApiKeyCreated>): ApiKeyCreated => r.body)
+    );
+  }
+
+  /** Path part for operation `revokeApiKey()` */
+  static readonly RevokeApiKeyPath = '/api/v1/auth/administration/api-keys/{id}/revoke';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `revokeApiKey()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  revokeApiKey$Response(params: RevokeApiKey$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = revokeApiKey(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `revokeApiKey$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  revokeApiKey(params: RevokeApiKey$Params, context?: HttpContext): Observable<void> {
+    const resp = this.revokeApiKey$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
