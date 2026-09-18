@@ -35,6 +35,8 @@ import { changeCrmAttachment } from '../fn/framework/change-crm-attachment';
 import { ChangeCrmAttachment$Params } from '../fn/framework/change-crm-attachment';
 import { changeInvoicingAttachment } from '../fn/framework/change-invoicing-attachment';
 import { ChangeInvoicingAttachment$Params } from '../fn/framework/change-invoicing-attachment';
+import { changeUsername } from '../fn/framework/change-username';
+import { ChangeUsername$Params } from '../fn/framework/change-username';
 import { CheckoutResponse } from '../models/checkout-response';
 import { CmsArticle } from '../models/cms-article';
 import { CmsSections } from '../models/cms-sections';
@@ -924,6 +926,33 @@ export class FrameworkService extends BaseService {
     const resp = this.getProfileOptions$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<ProfileOptions>): ProfileOptions => r.body)
+    );
+  }
+
+  /** Path part for operation `changeUsername()` */
+  static readonly ChangeUsernamePath = '/api/v1/auth/profile/username';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `changeUsername()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeUsername$Response(params: ChangeUsername$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+    const obs = changeUsername(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `changeUsername$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  changeUsername(params: ChangeUsername$Params, context?: HttpContext): Observable<string> {
+    const resp = this.changeUsername$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<string>): string => r.body)
     );
   }
 

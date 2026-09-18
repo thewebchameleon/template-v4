@@ -129,6 +129,9 @@ public static class ApiResults
             "concurrency.conflict" => af ? "Die rekord het verander. Herlaai dit." : "The record changed. Reload it.",
 
             "profile.name_invalid" => af ? "Voer 'n vertoonnaam van hoogstens 120 karakters en name van hoogstens 100 karakters in." : "Enter a display name up to 120 characters and names up to 100 characters.",
+            "profile.username_invalid" => af ? "Gebruik 3–64 letters, syfers, punte, koppeltekens of onderstrepe." : "Use 3–64 letters, numbers, periods, hyphens or underscores.",
+            "profile.same_username" => af ? "Kies ’n ander gebruikersnaam." : "Choose a different username.",
+            "profile.username_unavailable" => af ? "Hierdie gebruikersnaam is nie beskikbaar nie." : "This username is not available.",
             "profile.phone_invalid" => af ? "Gebruik 'n internasionale telefoonnommer, byvoorbeeld +27821234567." : "Use an international phone number, for example +27821234567.",
             "profile.time_zone_invalid" => af ? "Kies 'n ondersteunde tydsone." : "Choose a supported time zone.",
             "profile.avatar_invalid" => af ? "Kies 'n geldige profielfoto van hoogstens 256 by 256 pixels en 256 KiB." : "Choose a valid profile photo up to 256 by 256 pixels and 256 KiB.",

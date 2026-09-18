@@ -149,9 +149,9 @@ export const dictionary = {
     backTo: ['Back to', 'Terug na'],
     dismissError: ['Dismiss error', 'Maak fout toe'],
     theme: ['Appearance', 'Voorkoms'],
-    themeAccessibility: ['Theme & Accessibility', 'Tema en toeganklikheid'],
-    themeDrawer: ['Theme & Accessibility Settings', 'Tema- en toeganklikheidsinstellings'],
-    openThemeDrawer: ['Open theme', 'Maak tema oop'],
+    themeAccessibility: ['Accessibility', 'Toeganklikheid'],
+    themeDrawer: ['Accessibility Settings', 'Toeganklikheidsinstellings'],
+    openThemeDrawer: ['Open accessibility settings', 'Maak toeganklikheidsinstellings oop'],
     themeDrawerDescription: [
         'Personalise how the application looks and feels on this device.',
         'Verpersoonlik hoe die toepassing op hierdie toestel lyk en voel.',

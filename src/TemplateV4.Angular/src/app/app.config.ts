@@ -17,6 +17,7 @@ import { FOUNDATION_FEATURES, FoundationFeature } from './core/feature-extension
 import { authGuard } from './core/auth';
 import { capabilityGuard } from './core/features';
 import { dictionary } from './core/translations';
+import { provideSpartanHlm } from '@spartan-ng/helm/utils';
 export function foundationConfig(features: readonly FoundationFeature[] = []): ApplicationConfig {
   if (new Set(features.map((feature) => feature.id)).size !== features.length)
     throw new Error('Duplicate feature contribution.');
@@ -25,6 +26,7 @@ export function foundationConfig(features: readonly FoundationFeature[] = []): A
     providers: [
       { provide: FOUNDATION_FEATURES, useValue: features },
       provideBrowserGlobalErrorListeners(),
+      provideSpartanHlm(),
       provideRouter([
         ...features.flatMap((feature) =>
           feature.routes.map((route) => ({

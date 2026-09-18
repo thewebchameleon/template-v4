@@ -2,7 +2,7 @@
 
 The Angular app uses [Foley](https://usefoley.dev/) for selected feedback: successful actions, displayed errors, and increases in unread notifications after the first successful summary. Sounds are enabled by default, using the built-in `soft` theme at volume `0.35`. Existing notifications on sign-in, unchanged counts, navigation, typing and ordinary clicks are silent.
 
-**Mute interface sounds** lives in **Theme & Accessibility Settings**. It is browser-local, synchronizes across tabs, and resets to enabled through **Reset all settings**. It is independent of motion preferences. Sound supplements visible feedback and never replaces accessible labels or status announcements.
+**Mute interface sounds** lives in **Accessibility Settings**. It is browser-local, synchronizes across tabs, and resets to enabled through **Reset all settings**. It is independent of motion preferences. Sound supplements visible feedback and never replaces accessible labels or status announcements.
 
 ## Adding feedback to a feature
 

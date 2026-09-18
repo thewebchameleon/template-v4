@@ -21,5 +21,6 @@ export interface ProfileResponse {
   recoveryCodes: number;
   roles: Array<string>;
   timeZone: string;
+  username: string;
   version: string;
 }

@@ -109,7 +109,7 @@ test('account submenu opens settings with the keyboard and keeps sign out in the
     'Sessions',
     'Notifications',
     'Privacy & data',
-    'Theme & Accessibility',
+    'Accessibility',
   ]);
   for (const [label, path] of [
     ['Profile', '/me'],
@@ -126,11 +126,11 @@ test('account submenu opens settings with the keyboard and keeps sign out in the
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('menu')).toHaveCount(0);
   await accessible(page);
-  await menu.getByRole('button', { name: 'Theme & Accessibility', exact: true }).focus();
+  await menu.getByRole('button', { name: 'Accessibility', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(menu).toBeVisible();
   const drawer = page.getByRole('dialog', {
-    name: 'Theme & Accessibility Settings',
+    name: 'Accessibility Settings',
     exact: true,
   });
   await expect(drawer).toBeVisible();
@@ -300,8 +300,8 @@ test('settings reset restores every display preference and the sidebar default',
 
   const rail = page.getByRole('separator', { name: 'Resize navigation' });
   await rail.press('End');
-  await page.getByRole('button', { name: 'Open theme' }).click();
-  const drawer = page.getByRole('dialog', { name: 'Theme & Accessibility Settings' });
+  await page.getByRole('button', { name: 'Open accessibility settings' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Accessibility Settings' });
   await drawer.getByRole('button', { name: 'Dark', exact: true }).click();
   await drawer.getByRole('combobox', { name: 'Language', exact: true }).click();
   await page.getByRole('option', { name: 'Afrikaans', exact: true }).click();

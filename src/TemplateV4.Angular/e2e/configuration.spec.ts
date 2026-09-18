@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import type { CustomerInfo } from '../src/app/api/models/customer-info';
 import type { PlatformAppearance } from '../src/app/api/models/platform-appearance';
 import { GRADIENT_CATALOG } from '../src/app/core/gradient-catalog';
 
@@ -12,7 +13,21 @@ async function configurationApp(page: Page, administrator = true) {
     loginBackground: 'blue-sky',
   };
   let saves = 0;
+  let organisationLogoSaves = 0;
   let conflict = false;
+  let organisation: CustomerInfo = {
+    canManage: true,
+    contactEmail: 'admin@example.com',
+    country: 'ZA',
+    id: '00000000-0000-0000-0000-000000000001',
+    logoUrl: null,
+    name: 'Example organisation',
+    timeZone: 'Africa/Johannesburg',
+    timeZones: ['Africa/Johannesburg'],
+    users: 1,
+    version: 'organisation-initial',
+    websiteUrl: 'https://example.com',
+  };
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/v1/auth/configuration/appearance') {
@@ -32,6 +47,25 @@ async function configurationApp(page: Page, administrator = true) {
         saved = { ...route.request().postDataJSON(), version: `saved-${saves}` };
       }
       return route.fulfill({ json: saved });
+    }
+    if (path === '/api/v1/auth/organisation') return route.fulfill({ json: organisation });
+    if (path === '/api/v1/auth/organisation/settings') {
+      organisation = {
+        ...organisation,
+        ...route.request().postDataJSON(),
+        version: 'organisation-details-saved',
+      };
+      return route.fulfill({ json: organisation });
+    }
+    if (path === '/api/v1/auth/organisation/logo') {
+      organisationLogoSaves++;
+      organisation = {
+        ...organisation,
+        logoUrl:
+          route.request().method() === 'DELETE' ? null : '/api/v1/auth/appearance/logos/test-logo',
+        version: `organisation-logo-saved-${organisationLogoSaves}`,
+      };
+      return route.fulfill({ json: organisation });
     }
     const responses: Record<string, unknown> = {
       '/api/v1/auth/appearance': {
@@ -56,6 +90,7 @@ async function configurationApp(page: Page, administrator = true) {
   });
   return {
     saves: () => saves,
+    organisationLogoSaves: () => organisationLogoSaves,
     saved: () => saved,
     conflictNext: () => {
       conflict = true;
@@ -67,6 +102,29 @@ const primary = (page: Page) =>
   page
     .locator('html')
     .evaluate((root) => getComputedStyle(root).getPropertyValue('--brand-primary-600'));
+
+test('organisation logo remains a draft until save changes is clicked', async ({ page }) => {
+  const app = await configurationApp(page);
+  await page.goto('/administration/configuration');
+  const editor = page.locator('app-organisation-settings-editor');
+  await editor.locator('input[type="file"]').setInputFiles({
+    name: 'logo.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  });
+
+  const save = editor.getByRole('button', { name: 'Save changes', exact: true });
+  await expect(save).toBeEnabled();
+  await expect(editor.locator('img[src^="blob:"]')).toBeVisible();
+  expect(app.organisationLogoSaves()).toBe(0);
+
+  await save.click();
+  await expect.poll(app.organisationLogoSaves).toBe(1);
+  await expect(save).toBeDisabled();
+});
 
 test('all builder types expose their presets and render their own effects', async ({ page }) => {
   test.setTimeout(300000);

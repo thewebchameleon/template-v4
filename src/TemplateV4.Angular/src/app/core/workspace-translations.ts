@@ -411,8 +411,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   sendVerification: ['Send verification', 'Stuur bevestiging'],
   emailChangeSent: ['Check your new email address', 'Gaan jou nuwe e-posadres na'],
   emailChangeSentHelp: [
-    'Follow the verification link within two hours. You will then sign in again with your new address.',
-    'Volg die bevestigingskakel binne twee uur. Meld daarna met jou nuwe adres aan.',
+    'Follow the verification link within two hours. You will then sign in again with your username.',
+    'Volg die bevestigingskakel binne twee uur. Meld daarna weer met jou gebruikersnaam aan.',
   ],
   exportData: ['Export your data', 'Voer jou data uit'],
   exportDataHelp: [
@@ -509,8 +509,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   discardChanges: ['Discard changes', 'Gooi veranderinge weg'],
   emailInvalid: ['Enter a valid email address.', 'Voer ’n geldige e-posadres in.'],
   emailChanged: [
-    'Your email address has been updated. Sign in with your new address.',
-    'Jou e-posadres is opgedateer. Meld met jou nuwe adres aan.',
+    'Your email address has been updated. Sign in again with your username.',
+    'Jou e-posadres is opgedateer. Meld weer met jou gebruikersnaam aan.',
   ],
   'audit.user.created': ['User invited', 'Gebruiker uitgenooi'],
   'audit.user.invitation_queued': [
@@ -544,4 +544,5 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   'audit.privacy.deletion_declined': ['Deletion request declined', 'Verwyderingsversoek afgekeur'],
   'audit.account.email_change_requested': ['Email change requested', 'E-posverandering aangevra'],
   'audit.account.email_changed': ['Email address changed', 'E-posadres verander'],
+  'audit.account.username_changed': ['Username changed', 'Gebruikersnaam verander'],
 };

@@ -1,14 +1,13 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import {
   Component,
   ElementRef,
   HostListener,
-  computed,
+  OnDestroy,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
-import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { firstValueFrom } from 'rxjs';
 import { CustomerInfo } from '../../api/models';
 import { Auth } from '../../core/auth';
@@ -17,26 +16,16 @@ import { Runtime } from '../../core/runtime';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Resource, WorkspaceUi, protectUnload } from '../../shared/workspace';
 import { Notifications } from '../notifications/notifications';
+import { TimeZoneSelect } from '../../shared/time-zone-select';
 
 type OrganisationDraft = Pick<
   CustomerInfo,
   'name' | 'websiteUrl' | 'contactEmail' | 'timeZone' | 'country' | 'version' | 'logoUrl'
 >;
 
-interface TimeZoneOption {
-  id: string;
-  label: string;
-}
-
-interface TimeZoneGroup {
-  offset: string;
-  offsetMinutes: number;
-  zones: TimeZoneOption[];
-}
-
 @Component({
   selector: 'app-organisation-settings-editor',
-  imports: [WorkspaceUi, HlmSelectImports],
+  imports: [WorkspaceUi, TimeZoneSelect],
   styles: `
     .organisation-logo-dropzone {
       min-block-size: 16rem;
@@ -123,8 +112,8 @@ interface TimeZoneGroup {
                       (dragleave)="logoDragOver.set(false)"
                       (drop)="dropLogo($event)"
                     >
-                      @if (draft.logoUrl) {
-                        <img [src]="logoSource(draft.logoUrl)" [alt]="draft.name" />
+                      @if (currentLogoUrl(); as logoUrl) {
+                        <img [src]="logoSource(logoUrl)" [alt]="draft.name" />
                       }
                       <span class="font-medium">{{ 'dropOrganisationLogoHere' | t }}</span>
                       <span class="workspace-meta">{{ 'browseOrganisationLogoHelp' | t }}</span>
@@ -134,7 +123,7 @@ interface TimeZoneGroup {
                     <hlm-field-error forceShow>{{ 'organisationLogoInvalid' | t }}</hlm-field-error>
                   }
                 </div>
-                @if (draft.logoUrl) {
+                @if (currentLogoUrl()) {
                   <button
                     hlmBtn
                     type="button"
@@ -232,26 +221,15 @@ interface TimeZoneGroup {
                     <label hlmFieldLabel for="organisation-time-zone">{{
                       'organisationTimeZone' | t
                     }}</label>
-                    <hlm-select
+                    <app-time-zone-select
                       name="timeZone"
                       required
                       [(ngModel)]="draft.timeZone"
                       [disabled]="busy()"
-                    >
-                      <hlm-select-trigger buttonId="organisation-time-zone" class="w-full"
-                        ><hlm-select-value
-                      /></hlm-select-trigger>
-                      <hlm-select-content *hlmSelectPortal [ariaLabel]="'organisationTimeZone' | t">
-                        @for (group of timeZoneGroups(); track group.offset) {
-                          <hlm-select-group>
-                            <hlm-select-label>{{ group.offset }}</hlm-select-label>
-                            @for (zone of group.zones; track zone.id) {
-                              <hlm-select-item [value]="zone.id">{{ zone.label }}</hlm-select-item>
-                            }
-                          </hlm-select-group>
-                        }
-                      </hlm-select-content>
-                    </hlm-select>
+                      [timeZones]="state.value()?.timeZones ?? []"
+                      buttonId="organisation-time-zone"
+                      [ariaLabel]="'organisationTimeZone' | t"
+                    />
                   </div>
                 </div>
               </section>
@@ -286,15 +264,12 @@ interface TimeZoneGroup {
     }
   </app-page-state>`,
 })
-export class OrganisationSettingsEditor {
+export class OrganisationSettingsEditor implements OnDestroy {
   readonly state = new Resource<CustomerInfo>();
   readonly busy = signal(false);
   readonly busyLogo = signal(false);
   readonly logoDragOver = signal(false);
   readonly logoError = signal(false);
-  readonly timeZoneGroups = computed(() =>
-    this.groupTimeZones(this.state.value()?.timeZones ?? []),
-  );
   draft: OrganisationDraft | null = null;
   private baseline = '';
   private readonly api = inject(WorkspaceApi);
@@ -304,9 +279,15 @@ export class OrganisationSettingsEditor {
   private readonly appearance = inject(PlatformAppearanceTheme);
   private readonly toast = inject(Notifications);
   private readonly logoInput = viewChild<ElementRef<HTMLInputElement>>('logoInput');
+  private pendingLogo: Blob | null | undefined;
+  private pendingLogoUrl: string | null = null;
 
   constructor() {
     void this.load();
+  }
+
+  ngOnDestroy() {
+    this.revokePendingLogoUrl();
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -315,7 +296,14 @@ export class OrganisationSettingsEditor {
   }
 
   hasUnsavedChanges() {
-    return this.busy() || (!!this.draft && this.textValue(this.draft) !== this.baseline);
+    return (
+      this.busy() ||
+      this.pendingLogo !== undefined ||
+      (!!this.draft && this.textValue(this.draft) !== this.baseline)
+    );
+  }
+  currentLogoUrl() {
+    return this.pendingLogo === undefined ? this.draft?.logoUrl : this.pendingLogoUrl;
   }
   logoSource(url: string) {
     return new URL(url, this.runtime.apiUrl || location.origin).toString();
@@ -333,17 +321,24 @@ export class OrganisationSettingsEditor {
       return;
     this.busy.set(true);
     try {
-      const saved = await this.api.post<CustomerInfo>('organisation/settings', {
-        name: this.draft.name,
-        websiteUrl: this.draft.websiteUrl || null,
-        contactEmail: this.draft.contactEmail || null,
-        timeZone: this.draft.timeZone,
-        country: this.draft.country || null,
-        version: this.draft.version,
-      });
-      this.state.value.set(saved);
+      let saved = this.state.value()!;
+      if (this.textValue(this.draft) !== this.baseline) {
+        saved = await this.api.post<CustomerInfo>('organisation/settings', {
+          name: this.draft.name,
+          websiteUrl: this.draft.websiteUrl || null,
+          contactEmail: this.draft.contactEmail || null,
+          timeZone: this.draft.timeZone,
+          country: this.draft.country || null,
+          version: this.draft.version,
+        });
+        this.acceptSavedDetails(saved);
+      }
+      if (this.pendingLogo !== undefined)
+        saved = await this.persistLogo(saved.version, this.pendingLogo);
       this.accept(saved);
       this.toast.success('organisationSaved');
+    } catch {
+      /* Central errors retain any unpersisted draft values for a retry. */
     } finally {
       this.busy.set(false);
     }
@@ -353,7 +348,7 @@ export class OrganisationSettingsEditor {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (file) await this.uploadLogo(file);
+    if (file) await this.stageLogo(file);
   }
 
   showLogoPicker() {
@@ -371,10 +366,10 @@ export class OrganisationSettingsEditor {
     event.preventDefault();
     this.logoDragOver.set(false);
     const file = event.dataTransfer?.files[0];
-    if (file) void this.uploadLogo(file);
+    if (file) void this.stageLogo(file);
   }
 
-  private async uploadLogo(file: File) {
+  private async stageLogo(file: File) {
     if (this.busy() || !this.draft || !this.state.value()?.canManage) return;
     this.logoError.set(false);
     this.busy.set(true);
@@ -396,20 +391,9 @@ export class OrganisationSettingsEditor {
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob || blob.size > 1048576) throw new Error();
-      const saved = await firstValueFrom(
-        this.http.post<CustomerInfo>(
-          `${this.runtime.apiUrl}/api/v1/auth/organisation/logo?version=${this.draft.version}`,
-          blob,
-          {
-            withCredentials: true,
-            headers: { ...(await this.auth.browserHeaders()), 'Content-Type': 'image/png' },
-          },
-        ),
-      );
-      this.logoSaved(saved);
-    } catch (error) {
-      if (!(error instanceof HttpErrorResponse) || [400, 413].includes(error.status))
-        this.logoError.set(true);
+      this.setPendingLogo(blob);
+    } catch {
+      this.logoError.set(true);
     } finally {
       bitmap?.close();
       this.busyLogo.set(false);
@@ -417,23 +401,11 @@ export class OrganisationSettingsEditor {
     }
   }
 
-  async removeLogo() {
+  removeLogo() {
     if (this.busy() || !this.draft || !this.state.value()?.canManage) return;
-    this.busy.set(true);
     this.logoError.set(false);
-    try {
-      const saved = await firstValueFrom(
-        this.http.delete<CustomerInfo>(
-          `${this.runtime.apiUrl}/api/v1/auth/organisation/logo?version=${this.draft.version}`,
-          { withCredentials: true, headers: await this.auth.browserHeaders() },
-        ),
-      );
-      this.logoSaved(saved);
-    } catch {
-      /* Central errors retain the current brand and draft. */
-    } finally {
-      this.busy.set(false);
-    }
+    this.revokePendingLogoUrl();
+    this.pendingLogo = this.state.value()?.logoUrl ? null : undefined;
   }
 
   private async load() {
@@ -444,6 +416,7 @@ export class OrganisationSettingsEditor {
     return loaded;
   }
   private accept(value: CustomerInfo) {
+    this.clearPendingLogo();
     this.draft = {
       name: value.name,
       websiteUrl: value.websiteUrl,
@@ -457,48 +430,48 @@ export class OrganisationSettingsEditor {
     this.logoError.set(false);
     this.appearance.brand(value.name, value.logoUrl);
   }
-  private logoSaved(value: CustomerInfo) {
+  private acceptSavedDetails(value: CustomerInfo) {
     this.state.value.set(value);
     if (this.draft) {
+      this.draft.name = value.name;
+      this.draft.websiteUrl = value.websiteUrl;
+      this.draft.contactEmail = value.contactEmail;
+      this.draft.timeZone = value.timeZone;
+      this.draft.country = value.country;
       this.draft.version = value.version;
       this.draft.logoUrl = value.logoUrl;
+      this.baseline = this.textValue(this.draft);
     }
     this.appearance.brand(value.name, value.logoUrl);
-    this.toast.success('organisationLogoSaved');
   }
-  private groupTimeZones(zones: string[]): TimeZoneGroup[] {
-    const now = new Date();
-    const grouped = new Map<number, TimeZoneGroup>();
-    for (const id of zones) {
-      const { label: offset, minutes: offsetMinutes } = this.currentTimeZoneOffset(id, now);
-      const group = grouped.get(offsetMinutes) ?? { offset, offsetMinutes, zones: [] };
-      group.zones.push({ id, label: `(${offset}) ${id}` });
-      grouped.set(offsetMinutes, group);
-    }
-    return [...grouped.values()]
-      .sort((a, b) => a.offsetMinutes - b.offsetMinutes)
-      .map((group) => ({
-        ...group,
-        zones: group.zones.sort((a, b) => a.id.localeCompare(b.id)),
-      }));
+  private async persistLogo(version: string, logo: Blob | null) {
+    const url = `${this.runtime.apiUrl}/api/v1/auth/organisation/logo?version=${version}`;
+    if (logo === null)
+      return firstValueFrom(
+        this.http.delete<CustomerInfo>(url, {
+          withCredentials: true,
+          headers: await this.auth.browserHeaders(),
+        }),
+      );
+    return firstValueFrom(
+      this.http.post<CustomerInfo>(url, logo, {
+        withCredentials: true,
+        headers: { ...(await this.auth.browserHeaders()), 'Content-Type': 'image/png' },
+      }),
+    );
   }
-  private currentTimeZoneOffset(zone: string, date: Date) {
-    const value =
-      new Intl.DateTimeFormat('en', {
-        timeZone: zone,
-        timeZoneName: 'longOffset',
-      })
-        .formatToParts(date)
-        .find((part) => part.type === 'timeZoneName')?.value ?? 'GMT';
-    const match = /^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/.exec(value);
-    if (!match?.[1]) return { label: 'GMT+00:00', minutes: 0 };
-    const direction = match[1] === '-' ? -1 : 1;
-    const hours = Number(match[2]);
-    const minutes = Number(match[3] ?? 0);
-    return {
-      label: `GMT${match[1]}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
-      minutes: direction * (hours * 60 + minutes),
-    };
+  private setPendingLogo(logo: Blob) {
+    this.revokePendingLogoUrl();
+    this.pendingLogo = logo;
+    this.pendingLogoUrl = URL.createObjectURL(logo);
+  }
+  private clearPendingLogo() {
+    this.revokePendingLogoUrl();
+    this.pendingLogo = undefined;
+  }
+  private revokePendingLogoUrl() {
+    if (this.pendingLogoUrl) URL.revokeObjectURL(this.pendingLogoUrl);
+    this.pendingLogoUrl = null;
   }
   private textValue(value: OrganisationDraft) {
     return JSON.stringify([

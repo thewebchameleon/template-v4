@@ -21,7 +21,7 @@ export const customerDictionary: Record<string, [string, string]> = {
   ],
   dropOrganisationLogoHere: ['Drop your logo here', 'Laat val jou logo hier'],
   browseOrganisationLogoHelp: ['Or click to choose an image', "Of klik om 'n beeld te kies"],
-  organisationLogoUploading: ['Processing and uploading logo…', 'Logo word verwerk en opgelaai…'],
+  organisationLogoUploading: ['Processing logo…', 'Logo word verwerk…'],
   organisationLogoInvalid: [
     'Choose a valid image no larger than 5 MiB.',
     'Kies ’n geldige prent van hoogstens 5 MiB.',

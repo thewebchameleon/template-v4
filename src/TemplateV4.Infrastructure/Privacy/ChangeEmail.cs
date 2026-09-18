@@ -43,7 +43,7 @@ public sealed partial class PrivacyService
         var user = await users.FindByIdAsync(id.ToString());
         if (user is null || user.SecurityStamp != challenge.Row.SecurityStamp || !await db.Profiles.AnyAsync(x => x.Id == id && !x.Disabled, ct)) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         var state = JsonSerializer.Deserialize<EmailChangeState>(challenge.State)!;
-        if (!(await users.ChangeEmailAsync(user, state.Email, state.Token)).Succeeded || !(await users.SetUserNameAsync(user, state.Email)).Succeeded)
+        if (!(await users.ChangeEmailAsync(user, state.Email, state.Token)).Succeeded)
             return Result.Fail("privacy.email_unavailable", ErrorKind.Conflict);
         await users.UpdateSecurityStampAsync(user);
         db.AuthChallenges.Remove(challenge.Row);

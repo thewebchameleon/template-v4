@@ -25,6 +25,7 @@ export type { BlogSummary } from './models/blog-summary';
 export type { BusinessDetails } from './models/business-details';
 export type { ChangeEmailRequest } from './models/change-email-request';
 export type { ChangeRecordAttachment } from './models/change-record-attachment';
+export type { ChangeUsernameRequest } from './models/change-username-request';
 export type { ChargeCategory } from './models/charge-category';
 export type { CheckoutRequest } from './models/checkout-request';
 export type { CheckoutResponse } from './models/checkout-response';

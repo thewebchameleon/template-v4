@@ -135,7 +135,7 @@ public sealed record MfaPreferenceRequest(string Method);
 
 public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool RegistrationEnabled = false, bool RegistrationApprovalRequired = false);
 
-public sealed record ProfileResponse(Guid Id, string Email, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys, bool EmailMfaEnabled, string[] MfaMethods, string PreferredMfaMethod,
+public sealed record ProfileResponse(Guid Id, string Email, string Username, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys, bool EmailMfaEnabled, string[] MfaMethods, string PreferredMfaMethod,
     string? FirstName, string? LastName, string? PhoneNumber, string TimeZone, string? AvatarDataUrl, Guid Version, bool PasskeyRequired);
 
 public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt);

@@ -38,11 +38,11 @@ import {
   lucideActivity,
   lucideShieldCheck,
   lucideMoveHorizontal,
+  lucideAccessibility,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
-import { AccountAvatar } from './shared/account-avatar';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmTooltip } from '@spartan-ng/helm/tooltip';
@@ -75,7 +75,6 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     HlmButtonImports,
     HlmToasterImports,
     HlmSidebarImports,
-    AccountAvatar,
     HlmSeparatorImports,
     AppBreadcrumbs,
     HlmDrawerImports,
@@ -109,6 +108,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
       lucideActivity,
       lucideShieldCheck,
       lucideMoveHorizontal,
+      lucideAccessibility,
     }),
   ],
   template: `
@@ -203,16 +203,16 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 hlmBtn
                 variant="ghost"
                 size="icon"
-                [routerLink]="accountMenuLinks()[0].path"
-                [attr.aria-label]="'accountSettings' | t"
-                [hlmTooltip]="'accountSettings' | t"
+                [routerLink]="administrationDestination()"
+                [attr.aria-label]="'administration' | t"
+                [hlmTooltip]="'administration' | t"
                 position="right"
-                [attr.aria-expanded]="accountPanelActive() && sidebar.open()"
+                [attr.aria-expanded]="administrationPanelActive() && sidebar.open()"
                 aria-controls="sidebar-label-panel"
-                [attr.data-active]="accountPanelActive()"
-                (click)="selectAccountPanel($event)"
+                [attr.data-active]="administrationPanelActive()"
+                (click)="selectRailPanel($event, '/administration')"
               >
-                <app-account-avatar />
+                <ng-icon name="lucideSettings" size="1.5rem" />
               </a>
             </div>
           }
@@ -250,7 +250,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
               @if (sidebar.isMobile()) {
                 <nav hlmSidebarGroup [attr.aria-label]="'destinationNavigation' | t">
                   <ul hlmSidebarMenu>
-                    @for (item of railLinks(); track item.path) {
+                    @for (item of mobileRailLinks(); track item.path) {
                       <li hlmSidebarMenuItem>
                         <a
                           hlmSidebarMenuButton
@@ -270,53 +270,6 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 @defer (on immediate) {
                   <app-file-storage-tree />
                 }
-              }
-              @if (sidebar.isMobile() || accountPanelActive()) {
-                <nav
-                  hlmSidebarGroup
-                  class="sidebar-submenu"
-                  [attr.aria-label]="'accountNavigation' | t"
-                >
-                  <div hlmSidebarGroupLabel>{{ 'accountNavigation' | t }}</div>
-                  <ul hlmSidebarMenu>
-                    @for (item of accountMenuLinks(); track item.path; let itemIndex = $index) {
-                      <li
-                        hlmSidebarMenuItem
-                        animate.enter="sidebar-item-enter"
-                        [style.--sidebar-item-index]="itemIndex"
-                      >
-                        <a
-                          hlmSidebarMenuButton
-                          [routerLink]="item.path"
-                          routerLinkActive
-                          [routerLinkActiveOptions]="{
-                            paths: item.path === '/security' ? 'exact' : 'subset',
-                            queryParams: 'ignored',
-                            matrixParams: 'ignored',
-                            fragment: 'ignored',
-                          }"
-                          #active="routerLinkActive"
-                          [isActive]="active.isActive"
-                          ariaCurrentWhenActive="page"
-                          closeMobileSidebarOnClick
-                        >
-                          <ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span>
-                        </a>
-                      </li>
-                    }
-                    <li
-                      hlmSidebarMenuItem
-                      animate.enter="sidebar-item-enter"
-                      [style.--sidebar-item-index]="accountMenuLinks().length"
-                    >
-                      <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
-                        <ng-icon name="lucideSettings2" aria-hidden="true" /><span>{{
-                          'themeAccessibility' | t
-                        }}</span>
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
               }
               @for (panel of navigationPanels(); track panel.label) {
                 @if (panel.links.length && (sidebar.isMobile() || panel.active)) {
@@ -345,14 +298,57 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                   </nav>
                 }
               }
-              @if (
-                availableAdminLinks().length && (sidebar.isMobile() || administrationPanelActive())
-              ) {
+              @if (sidebar.isMobile() || administrationPanelActive()) {
                 <nav
                   hlmSidebarGroup
                   class="sidebar-submenu gap-4"
                   [attr.aria-label]="'administration' | t"
                 >
+                  <div role="group" aria-labelledby="admin-section-account">
+                    <div hlmSidebarGroupLabel id="admin-section-account">
+                      {{ 'accountNavigation' | t }}
+                    </div>
+                    <ul hlmSidebarMenu>
+                      @for (item of accountMenuLinks(); track item.path; let itemIndex = $index) {
+                        <li
+                          hlmSidebarMenuItem
+                          animate.enter="sidebar-item-enter"
+                          [style.--sidebar-item-index]="itemIndex"
+                        >
+                          <a
+                            hlmSidebarMenuButton
+                            [routerLink]="item.path"
+                            routerLinkActive
+                            [routerLinkActiveOptions]="{
+                              paths: item.path === '/security' ? 'exact' : 'subset',
+                              queryParams: 'ignored',
+                              matrixParams: 'ignored',
+                              fragment: 'ignored',
+                            }"
+                            #active="routerLinkActive"
+                            [isActive]="active.isActive"
+                            ariaCurrentWhenActive="page"
+                            closeMobileSidebarOnClick
+                          >
+                            <ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span>
+                          </a>
+                        </li>
+                      }
+                      <li
+                        hlmSidebarMenuItem
+                        animate.enter="sidebar-item-enter"
+                        [style.--sidebar-item-index]="accountMenuLinks().length"
+                      >
+                        <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
+                          <ng-icon
+                            name="lucideAccessibility"
+                            size="1.25rem"
+                            aria-hidden="true"
+                          /><span>{{ 'themeAccessibility' | t }}</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                   @for (section of administrationSections(); track section.label) {
                     <div role="group" [attr.aria-labelledby]="'admin-section-' + section.label">
                       <div hlmSidebarGroupLabel [id]="'admin-section-' + section.label">
@@ -437,7 +433,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 [hlmTooltip]="'themeDrawer' | t"
                 position="bottom"
               >
-                <ng-icon name="lucidePaintbrush" />
+                <ng-icon name="lucideAccessibility" size="1.25rem" />
               </button>
               <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
                 <hlm-drawer-header>
@@ -497,9 +493,6 @@ export class App {
   readonly accountMenuLinks = computed(() =>
     [
       { path: '/me', label: 'accountMenuProfile', icon: 'lucideUserRound', requiresMfa: true },
-      ...(destinationAvailable(workspaceDestinations.organisations, this.auth, this.features)
-        ? [{ ...workspaceDestinations.organisations, requiresMfa: true }]
-        : []),
       { path: '/security', label: 'security', icon: 'lucideShieldCheck' },
       {
         path: '/security/sessions',
@@ -552,23 +545,13 @@ export class App {
     requiresMfa: true,
   };
   readonly selectedPanel = signal<string | null>(null);
-  readonly accountPanelActive = computed(() => {
+  readonly accountRouteActive = computed(() => {
     this.navigationEnd();
-    const selectedPanel = this.selectedPanel();
-    return (
-      selectedPanel === 'account' ||
-      (selectedPanel === null &&
-        this.routeDestination(this.router.url.split(/[?#]/)[0]) === 'account')
+    const path = this.router.url.split(/[?#]/)[0];
+    return this.accountMenuLinks().some(
+      (item) => path === item.path || path.startsWith(`${item.path}/`),
     );
   });
-
-  selectAccountPanel(event: MouseEvent): void {
-    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
-      return;
-    this.selectedPanel.set('account');
-    this.sidebar.setPanelAvailable(true);
-    this.sidebar.openPanel();
-  }
   private readonly administration = inject(AdministrationNavigation);
   readonly availableAdminLinks = this.administration.links;
   readonly supportLinks = computed(() =>
@@ -594,16 +577,20 @@ export class App {
       },
     ].filter((section) => section.links.length),
   );
+  readonly administrationDestination = computed(() => this.accountMenuLinks()[0].path);
   private previousPath = '';
   readonly alternatePageEntrance = signal(false);
   readonly administrationActive = computed(() => {
     this.navigationEnd();
-    return this.router.isActive('/administration', {
-      paths: 'subset',
-      queryParams: 'ignored',
-      matrixParams: 'ignored',
-      fragment: 'ignored',
-    });
+    return (
+      this.accountRouteActive() ||
+      this.router.isActive('/administration', {
+        paths: 'subset',
+        queryParams: 'ignored',
+        matrixParams: 'ignored',
+        fragment: 'ignored',
+      })
+    );
   });
   readonly administrationPanelActive = computed(() => {
     const selectedPanel = this.selectedPanel();
@@ -729,27 +716,26 @@ export class App {
           },
         ]
       : []),
-    ...(this.availableAdminLinks().length
-      ? [
-          {
-            path: '/administration',
-            label: 'administration',
-            icon: 'lucideSettings',
-            hasPanel: true,
-            destination: this.administrationSections()[0]?.links[0]?.path ?? '/administration',
-            destinationQueryParams: null,
-          },
-        ]
-      : []),
     ...this.moduleRailLinks(),
   ]);
+  readonly mobileRailLinks = computed<RailLink[]>(() => [
+    ...this.railLinks(),
+    {
+      path: '/administration',
+      label: 'administration',
+      icon: 'lucideSettings',
+      hasPanel: true,
+      destination: this.administrationDestination(),
+      destinationQueryParams: null,
+    },
+  ]);
   readonly railModuleStartIndex = computed(() => {
-    if (!this.availableAdminLinks().length || !this.moduleRailLinks().length) return -1;
+    if (!this.moduleRailLinks().length || this.railLinks().length === this.moduleRailLinks().length)
+      return -1;
     return this.railLinks().length - this.moduleRailLinks().length;
   });
   readonly activeRailIndex = computed(() => {
     this.navigationEnd();
-    if (this.accountPanelActive()) return -1;
     const selectedPanel = this.selectedPanel();
     if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
     if (this.supportRouteActive())
@@ -763,7 +749,6 @@ export class App {
   readonly fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'));
   readonly hasSecondaryNavigation = computed(
     () =>
-      this.accountPanelActive() ||
       this.supportPanelActive() ||
       this.userManagementPanelActive() ||
       this.administrationPanelActive() ||
@@ -786,14 +771,14 @@ export class App {
   }
 
   private routeDestination(path: string): string {
+    if (
+      this.accountMenuLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`))
+    )
+      return '/administration';
     if (this.supportLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`)))
       return '/support';
     const railDestination = this.railLinks()[activeDestinationIndex(this.railLinks(), path)];
     if (railDestination) return railDestination.path;
-    if (
-      this.accountMenuLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`))
-    )
-      return 'account';
     return path;
   }
 

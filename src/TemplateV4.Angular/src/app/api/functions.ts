@@ -37,6 +37,8 @@ export type { UpdateProfile$Params as UpdateProfile$Params } from './fn/framewor
 export { updateProfile as updateProfile } from './fn/framework/update-profile';
 export type { GetProfileOptions$Params as GetProfileOptions$Params } from './fn/framework/get-profile-options';
 export { getProfileOptions as getProfileOptions } from './fn/framework/get-profile-options';
+export type { ChangeUsername$Params as ChangeUsername$Params } from './fn/framework/change-username';
+export { changeUsername as changeUsername } from './fn/framework/change-username';
 export type { SetMfaPreference$Params as SetMfaPreference$Params } from './fn/framework/set-mfa-preference';
 export { setMfaPreference as setMfaPreference } from './fn/framework/set-mfa-preference';
 export type { BeginMfaEnrollment$Params as BeginMfaEnrollment$Params } from './fn/framework/begin-mfa-enrollment';

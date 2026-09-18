@@ -7,7 +7,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
 
-public sealed partial class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access, TemplateV4.Application.Platform.IActionItems actionItems)
+public sealed partial class AccountService(FrameworkDb db, UserManager<AppUser> users, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, SharedRateLimiter limiter, CultureCatalog cultures, AccessManagementService access, TemplateV4.Application.Platform.IActionItems actionItems, SecurityService security)
 {
     private readonly IDataProtector _protector = protection.CreateProtector("TemplateV4.email.action.v1");
     public async Task QueueAction(AppUser user, EmailTemplate template, string culture, CancellationToken ct)
