@@ -127,7 +127,7 @@ jobs:
           npm run build --prefix src/TemplateV4.Angular
           dotnet test src/TemplateV4.Application.Tests -c Release --no-restore
           node tools/test-business-modules.mjs -c Release -p:RestoreLockedMode=true
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
         if: ${{ !inputs.validate_only }}
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
         if: ${{ !inputs.validate_only }}
