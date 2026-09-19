@@ -1,10 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Domain.Customers;
 using TemplateV4.Infrastructure.Images;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Customers;
+
+public sealed class OrganisationLogoStorageUsage(FrameworkDb db) : IStorageUsageSource
+{
+    public Task<long> Read(CancellationToken ct) => db.Set<OrganisationLogoRow>().SumAsync(x => (long)x.Png.Length, ct);
+}
 
 public sealed partial class CustomerStore
 {
@@ -22,7 +28,7 @@ public sealed partial class CustomerStore
     {
         if (!CustomerRules.ValidName(request.Name) || !CustomerRules.ValidWebsite(request.WebsiteUrl) ||
             !CustomerRules.ValidEmail(request.ContactEmail) || !CustomerRules.ValidTimeZone(request.TimeZone) ||
-            !CustomerRules.ValidOptionalText(request.Country, 100))
+            !CustomerRules.ValidCountry(request.Country) || !CustomerRules.ValidPhone(request.PrimaryContactNumber))
             return Result<CustomerInfo>.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(ct);
         var info = await Managed(actor, ct);
@@ -36,6 +42,7 @@ public sealed partial class CustomerStore
                 .SetProperty(x => x.ContactEmail, Clean(request.ContactEmail))
                 .SetProperty(x => x.TimeZone, request.TimeZone)
                 .SetProperty(x => x.Country, Clean(request.Country))
+                .SetProperty(x => x.PrimaryContactNumber, Clean(request.PrimaryContactNumber))
                 .SetProperty(x => x.Version, version), ct);
         if (changed == 0) return Result<CustomerInfo>.Fail("concurrency.conflict", ErrorKind.Conflict);
         Audit(actor, "customer.updated"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
@@ -51,6 +58,8 @@ public sealed partial class CustomerStore
         var info = await Managed(actor, ct);
         if (info is null) return Result<CustomerInfo>.Fail("authorization.denied", ErrorKind.Forbidden);
         if (info.Version != version) return Result<CustomerInfo>.Fail("concurrency.conflict", ErrorKind.Conflict);
+        if (png is not null && !await storageQuota.Fits(0, png.LongLength, ct))
+            return Result<CustomerInfo>.Fail("files.quota", ErrorKind.Conflict);
         OrganisationLogoRow? logo = null;
         if (png is not null) { logo = new() { Png = png }; db.Add(logo); await db.SaveChangesAsync(ct); }
         var next = Guid.NewGuid();

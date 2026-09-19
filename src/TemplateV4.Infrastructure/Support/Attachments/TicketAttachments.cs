@@ -1,10 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Support;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Support;
 
-public sealed class SupportAttachmentsStore(FrameworkDb db, SupportTicketContext tickets, IExecutionContext context, TimeProvider time) : ISupportAttachments
+public sealed class SupportAttachmentStorageUsage(FrameworkDb db) : IStorageUsageSource
+{
+    public Task<long> Read(CancellationToken ct) => db.Set<SupportAttachmentRow>().SumAsync(x => (long)x.Content.Length, ct);
+}
+
+public sealed class SupportAttachmentsStore(FrameworkDb db, SupportTicketContext tickets, IExecutionContext context, TimeProvider time,
+    TemplateV4.Application.FileStorage.IStorageQuota storageQuota) : ISupportAttachments
 {
     public async Task<Result<Unit>> Attach(AttachTicket q, CancellationToken ct)
     {
@@ -16,6 +23,7 @@ public sealed class SupportAttachmentsStore(FrameworkDb db, SupportTicketContext
         var files = db.Set<SupportAttachmentRow>().Where(x => x.TicketId == q.Id);
         if (await files.CountAsync(ct) >= 10 || await files.SumAsync(x => (long)x.Content.Length, ct) + q.Content.Length > 20 * 1024 * 1024)
             return Result.Fail("support.attachment_limit", ErrorKind.Conflict);
+        if (!await storageQuota.Fits(0, q.Content.LongLength, ct)) return Result.Fail("files.quota", ErrorKind.Conflict);
         db.Add(new SupportAttachmentRow { TicketId = q.Id, OwnerId = context.ActorId!.Value, Name = q.Name.Trim(), Content = q.Content, At = time.GetUtcNow() });
         tickets.Touch(ticket); tickets.History(ticket, "attachment"); tickets.Audit(ticket, "attachment_added");
         await tickets.Notify(ticket.RequesterId == context.ActorId ? ticket.AssigneeId : ticket.RequesterId, ticket.Id, ct);

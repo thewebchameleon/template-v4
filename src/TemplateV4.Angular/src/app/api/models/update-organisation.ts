@@ -5,6 +5,7 @@ export interface UpdateOrganisation {
   contactEmail: (string | null);
   country: (string | null);
   name: string;
+  primaryContactNumber: (string | null);
   timeZone: string;
   version: string;
   websiteUrl: (string | null);

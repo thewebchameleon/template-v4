@@ -302,6 +302,40 @@
   background: var(--card);
   color: var(--card-foreground);
 }
+.file-storage-grid-card.file-storage-selected {
+  border-color: var(--primary);
+  background: color-mix(in oklch, var(--primary), var(--card) 94%);
+}
+.file-storage-card-selection {
+  display: flex;
+  align-self: flex-start;
+  padding-block-start: 0.125rem;
+}
+.file-storage-selection-checkbox {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border-radius: calc(var(--radius) * 0.75);
+}
+.file-storage-selection-checkbox ng-icon {
+  font-size: 1.125rem;
+}
+.file-storage-selection-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline: calc(-1 * var(--card-spacing));
+  padding: 0.5rem var(--card-spacing);
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+.file-storage-selection-actions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
 .file-storage-grid-card:focus-within {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -333,6 +367,9 @@
 .file-storage-quota > span {
   display: block;
   background: var(--file-color);
+}
+.file-storage-quota-danger > span {
+  background: var(--destructive);
 }
 .file-storage-quota-legend {
   display: grid;

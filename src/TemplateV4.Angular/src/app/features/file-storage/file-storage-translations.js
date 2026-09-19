@@ -77,6 +77,8 @@ export const fileStorageDictionary = {
     fileOwner: ['Owner', 'Eienaar'],
     fileDetails: ['File details', 'Lêerbesonderhede'],
     folderDetails: ['Folder details', 'Vouerbesonderhede'],
+    manageFileDetails: ['Manage this file', 'Bestuur hierdie lêer'],
+    manageFolderDetails: ['Manage this folder', 'Bestuur hierdie vouer'],
     parentFolder: ['Parent folder', 'Boonste vouer'],
     fileKind: ['Type', 'Tipe'],
     fileContentType: ['Content type', 'Inhoudtipe'],

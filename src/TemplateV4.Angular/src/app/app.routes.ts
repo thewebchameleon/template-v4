@@ -133,17 +133,6 @@ export const routes: Routes = [
       import('./features/organisations/organisation-detail').then((m) => m.OrganisationDetailPage),
   },
   {
-    path: 'commercial-billing',
-    canDeactivate: [unsavedGuard],
-    resolve: { customerTranslations, businessTranslations },
-    data: { breadcrumb: 'commercialBilling' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.commercialBilling)],
-    loadComponent: () =>
-      import('./features/commercial-billing/commercial-billing').then(
-        (m) => m.CommercialBillingPage,
-      ),
-  },
-  {
     path: 'organisation/files',
     pathMatch: 'full',
     redirectTo: ({ queryParams }) =>
@@ -411,17 +400,23 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {
-        path: 'website',
-        loadChildren: () =>
-          import('./features/website/website-routes').then((m) => m.websiteRoutes),
-      },
-      {
         path: 'organisation',
-        redirectTo: 'configuration',
+        redirectTo: 'branding',
         pathMatch: 'full',
       },
 
       { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
+      {
+        path: 'license',
+        canDeactivate: [unsavedGuard],
+        resolve: { customerTranslations, businessTranslations },
+        data: { breadcrumb: 'commercialBilling' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.license)],
+        loadComponent: () =>
+          import('./features/commercial-billing/commercial-billing').then(
+            (m) => m.CommercialBillingPage,
+          ),
+      },
       {
         path: 'api-keys',
         resolve: { apiKeyTranslations },
@@ -470,7 +465,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'configuration',
+        path: 'branding',
         resolve: { customerTranslations },
         data: { breadcrumb: 'configuration', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.configuration)],

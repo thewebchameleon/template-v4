@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Support;
@@ -14,6 +15,7 @@ public static partial class Registration
         services.AddScoped<ISupportTickets, SupportTicketStore>();
         services.AddScoped<ISupportCategories, SupportCategoriesStore>();
         services.AddScoped<ISupportAttachments, SupportAttachmentsStore>();
+        services.AddScoped<IStorageUsageSource, SupportAttachmentStorageUsage>();
         services.AddScoped<ISupportModuleSettings, SupportModuleSettingsStore>();
         services.AddScoped<TemplateV4.Application.Modules.ICapabilityRestrictions, SupportCapabilityRestrictions>();
         services.AddScoped<IHandler<SaveSupportModuleSettings, SupportModuleSettings>, SaveSupportModuleSettingsHandler>();

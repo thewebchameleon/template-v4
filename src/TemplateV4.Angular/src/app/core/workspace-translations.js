@@ -287,7 +287,7 @@ export const workspaceDictionary = {
     finishingUpload: ['Finishing your upload…', 'Voltooi jou oplaai…'],
     uploading: ['Uploading', 'Besig om op te laai'],
     storageUsage: ['Storage usage', 'Berginggebruik'],
-    storageUsageHelp: ['Your personal storage allowance.', 'Jou persoonlike bergingtoelaag.'],
+    storageUsageHelp: ['Your organisation’s shared allowance for all uploaded content.', 'Jou organisasie se gedeelde toelaag vir alle opgelaaide inhoud.'],
     fileRetentionHelp: [
         'Deleted files lose access immediately and count toward your quota until retention cleanup completes.',
         'Verwyderde lêers verloor onmiddellik toegang en tel by jou kwota totdat opruiming voltooi is.',
@@ -333,8 +333,8 @@ export const workspaceDictionary = {
         'Laat leeg om die verstek te gebruik. Nul blokkeer berging. Maksimum 102 400 MB.',
     ],
     defaultQuotaHelp: [
-        'Applies to every user without an individual override.',
-        'Geld vir elke gebruiker sonder ’n individuele kwota.',
+        'Shared by all uploads, including attachments, avatars and retained logos. The subscription allowance takes precedence.',
+        'Word deur alle oplaaie gedeel, insluitend aanhegsels, avatars en behoue logo’s. Die intekeningstoelaag geniet voorkeur.',
     ],
     quotaValidation: [
         'Enter a number from 0 to 102,400 MB.',
@@ -348,8 +348,8 @@ export const workspaceDictionary = {
     quotaSaved: ['Storage quota saved', 'Bergingkwota gestoor'],
     quotaReached: ['Storage allowance reached', 'Bergingtoelaag bereik'],
     quotaReachedHelp: [
-        'Existing files remain available. Ask an administrator for more storage or delete files and wait for retention cleanup.',
-        'Bestaande lêers bly beskikbaar. Vra ’n administrateur vir meer berging of verwyder lêers en wag vir opruiming.',
+        'Existing content remains available. Ask an administrator for more storage or remove uploaded content; trashed library files release space after retention cleanup.',
+        'Bestaande inhoud bly beskikbaar. Vra ’n administrateur vir meer berging of verwyder opgelaaide inhoud; lêers in die asblik stel ruimte ná die bewaringopruiming vry.',
     ],
     fileUploaded: ['File uploaded', 'Lêer opgelaai'],
     fileDeleted: ['File deleted', 'Lêer verwyder'],

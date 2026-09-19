@@ -40,6 +40,9 @@ import {
   lucideShieldCheck,
   lucideMoveHorizontal,
   lucideAccessibility,
+  lucideDollarSign,
+  lucideKeyRound,
+  lucideCreditCard,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
@@ -115,6 +118,9 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
       lucideShieldCheck,
       lucideMoveHorizontal,
       lucideAccessibility,
+      lucideDollarSign,
+      lucideKeyRound,
+      lucideCreditCard,
     }),
   ],
   template: `
@@ -430,6 +436,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
               <hlm-drawer
                 direction="right"
                 [state]="themeDrawerOpen() ? 'open' : 'closed'"
+                [closeLabel]="'close' | t"
                 (stateChanged)="themeDrawerOpen.set($event === 'open')"
               >
                 <button
@@ -541,7 +548,7 @@ export class App {
   );
   readonly fullPageSetup = computed(() => {
     this.navigationEnd();
-    return ['/administration/website', '/login/setup'].includes(this.router.url.split(/[?#]/)[0]);
+    return this.router.url.split(/[?#]/)[0] === '/login/setup';
   });
   private readonly breadcrumbs = inject(Breadcrumbs);
   private readonly i18n = inject(I18n);

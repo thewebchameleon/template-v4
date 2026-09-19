@@ -23,7 +23,6 @@ export function renderRelease(
     "utf8",
   );
   const workloads = ["api", "worker", "migrator", "web"];
-  if (/^  website:/m.test(compose)) workloads.push("website");
   for (const service of workloads) {
     const metadata = JSON.parse(
       fs.readFileSync(path.join(output, `${service}.metadata.json`), "utf8"),

@@ -62,7 +62,7 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
     }
   `,
   template: `
-    <hlm-drawer #drawer="hlmDrawer" direction="right">
+    <hlm-drawer #drawer="hlmDrawer" direction="right" [closeLabel]="'close' | t">
       <button
         hlmBtn
         hlmDrawerTrigger

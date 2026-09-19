@@ -2,11 +2,13 @@
 
 File Storage is the selectable shared organisation library at `/file-storage`, with an expandable folder submenu and the shared server-paginated datatable. The module identifier and feature flag are `file-storage`; they control the library navigation and authenticated library pages only. Core storage APIs, administration, attachments, valid public links, quotas and retention remain available when the library is disabled. The stable `organisation-files` capability is core and does not depend on the library switch. See [the upgrade instructions](upgrades.md#file-storage-upgrade) before updating an existing deployment.
 
+The organisation quota covers every persisted upload, including library and business-record files, Support ticket attachments, profile avatars and retained organisation logos. Existing rows in those stores contribute immediately; upload admission is serialized across modules. File Storage Trash and unfinished reservations continue to count until cleanup purges them. Sharing a file does not duplicate its usage.
+
 ## Navigation and metadata
 
 The submenu contains File Storage, Important, Shared with me, Recent, Starred and Trash. File Storage home lists root entries and shows the six most recently created or updated files and folders across the library in a wrapping grid. Other group homes show matching entries across folders. Search, sorting and pagination live in the URL. File icons and quota categories use filename extensions; unknown formats receive the neutral fallback. Bytes remain arbitrary downloads served as attachments with `application/octet-stream` and `nosniff`.
 
-Owners create folders and move files/folders within their library. Cyclic and cross-owner moves are rejected. Name, description (4,000 characters) and comma-separated tags (1,000 characters) are editable. Important and Starred are independent entry flags. They apply to files and folders and can both be enabled. Uploads, metadata edits, moves and restores update the recent ordering; downloads do not.
+Owners create folders, rename folders through the dedicated action, and move files/folders within their library. Live sibling folders must have unique names, compared case-insensitively; the same name may be reused in a different parent folder. Cyclic and cross-owner moves are rejected. Important and Starred are independent entry flags. They apply to files and folders, can both be enabled, and persist immediately when toggled. Legacy description and tag values are ignored. Flag updates, moves and restores update the recent ordering; downloads do not.
 
 ## Sharing
 
@@ -20,7 +22,7 @@ The account-wide segmented bar groups current bytes into Images, Documents/PDFs,
 
 Reservations, current files and retained deleted content count exactly once. PostgreSQL owner locks serialize quota reservations, file movement, recursive deletion/restoration and purge work. Interrupted uploads remain reserved until cleanup reconciles them.
 
-Folders can be deleted only after all live direct files and subfolders have been deleted, including unfinished uploads. Trashed contents do not block deleting the empty folder. Deletion revokes shares and records a deletion batch. Restore restores that batch while preserving entries trashed earlier; if the original parent is unavailable, the restored root moves to the library root. Trash defaults to a 30-day retention period. Delete permanently and Empty Trash make entries unavailable for restoration immediately and request Worker cleanup. Storage is released only after object deletion succeeds. File metadata is also covered by retention and privacy erasure; cleanup continues when the library is disabled.
+Deleting a folder moves the folder and all of its live descendants to Trash, including unfinished uploads. Deletion revokes descendant shares and records one deletion batch. Restore restores that batch while preserving descendants trashed earlier; if the original parent is unavailable, the restored root moves to the library root. Trash defaults to a 30-day retention period. Delete permanently and Empty Trash make entries unavailable for restoration immediately and request Worker cleanup. Storage is released only after object deletion succeeds. File metadata is also covered by retention and privacy erasure; cleanup continues when the library is disabled.
 
 ## Extension and validation
 
@@ -28,13 +30,13 @@ Folders can be deleted only after all live direct files and subfolders have been
 
 See [ADR 0029](adr/0029-file-storage-library.md) for the architecture decision. Browser/E2E and accessibility checks require explicit permission under repository guidance.
 
-File Storage submenu groups are always expanded; nested folders start expanded and may be collapsed. Folders with zero direct items are hidden outside the File Storage group. Each group displays its unfiltered file count, excluding folders; each folder badge likewise counts only its direct files. Folder disclosure still reflects child files and subfolders, and leaf folders have no disclosure caret. Owners can right-click a live folder or press Shift+F10 to create a subfolder or delete an empty folder.
+File Storage submenu groups are always expanded; nested folders start expanded and may be collapsed. Folders with zero direct items are hidden outside the File Storage group. Each group displays its unfiltered file count, excluding folders; each folder badge likewise counts only its direct files. Folder disclosure still reflects child files and subfolders, and leaf folders have no disclosure caret. Owners can right-click a live folder or press Shift+F10 to create a subfolder or delete a folder and its contents.
 
 ## File views and uploads
 
 List is the default view; the browser remembers the List/Grid choice. Grid uses compact cards with the same server search, sorting and pagination. Phosphor duotone icons from `@ng-icons/phosphor-icons` map known extensions to specific icons, then recognized categories to type icons, with the same-set generic file icon for unknown formats. These icons are shared by the library, recent files, submenu and public file lists.
 
-Opening a file shows a right drawer with its name, type, size, content type, location, created/updated dates, description, tags, flags and effective permission. Download, metadata editing, move, share and deletion respect existing permissions. Rows and cards expose only Download and Delete where permitted; Restore and Delete permanently are in the details drawer. Folders still navigate; the current folder's details button opens its drawer.
+Opening a file shows a right drawer with its name, type, size, content type, location, created/updated dates, immediately persisted Important and Starred flags, and effective permission. Download, flag updates, move, share and deletion respect existing permissions. Rows and cards expose only Download and Delete where permitted; Restore and Delete permanently are in the details drawer. Folders still navigate; the current folder's details button opens its drawer, where Download creates a recursive archive named `<folder-name>.zip` with the folder as the archive's top-level directory.
 
 Both the header and upload card open a multiple-file picker and upload immediately after selection. Dropping multiple files also starts a sequential batch. Progress fills the inner card behind the opaque dropzone with animated diagonal stripes; reduced-motion preferences disable animation.
 

@@ -14,7 +14,7 @@
 - **System Health** shows pending/failed counts, oldest backlog age, active jobs, last maintenance and deployment version. Failed deliveries are replayed through the existing audited, CSRF-protected endpoint after explicit in-app confirmation. The view is a timestamped snapshot; Refresh reloads it.
 - **Privacy requests** lets an administrator approve anonymisation or decline a pending request. The approval dialog describes the irreversible result. Users cannot process their own request; the last active administrator is protected. Withdrawal/review is serialized by an account advisory lock.
 
-**File Storage** at `/administration/file-storage` sets the database-backed default allowance (initially 100 MiB per user). User details → Files and storage quota opens that user’s folders and a quota override; leave the override blank to follow the current default. Both administration workflows require `settings.manage`. Existing files remain available after a reduction; new uploads must fit the new quota.
+**File Storage** at `/administration/file-storage` sets the database-backed organisation allowance (initially 100 MiB). It is shared by every persisted upload, including library and business-record files, Support attachments, profile avatars and retained organisation logos. Existing content remains available after a reduction; new or enlarged uploads must fit the effective quota.
 
 ## Retention defaults
 

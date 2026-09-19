@@ -8,6 +8,7 @@ export interface CustomerInfo {
   id: string;
   logoUrl: (string | null);
   name: string;
+  primaryContactNumber: (string | null);
   timeZone: string;
   timeZones: Array<string>;
   users: number;

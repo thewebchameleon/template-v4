@@ -4,7 +4,14 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
-import { WorkspaceUi, Resource, ListQuery, DebouncedSearch } from '../../../shared/workspace';
+import {
+  WorkspaceUi,
+  Resource,
+  ListQuery,
+  DebouncedSearch,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+} from '../../../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
 import { FileItem, FilePage } from '../../../api/models';
 import { FileStorageFileName } from '../files/file-storage-components';
@@ -23,7 +30,6 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ item.value()?.name || ('sharedFiles' | t) }}</h2>
-        <p hlmCardDescription>{{ item.value()?.description }}</p>
       </div>
       <div hlmCardContent>
         <app-page-state
@@ -60,8 +66,10 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
                 (sortChange)="sort($event)" /><app-list-pager
                 [total]="data.value()?.page?.total ?? 0"
                 [page]="query.page"
-                [size]="10"
+                [size]="pageSize()"
+                [showSizePicker]="true"
                 (pageChange)="query.set({ page: $event })"
+                (sizeChange)="query.set({ size: $event, page: 1 })"
             /></app-page-state>
           } @else if (item.value(); as file) {
             <button hlmBtn (click)="download(file)">{{ 'download' | t }} · {{ file.name }}</button>
@@ -151,7 +159,7 @@ export class PublicFileStoragePage {
                 headers: this.headers,
                 params: {
                   pageNumber: this.query.page,
-                  pageSize: 10,
+                  pageSize: this.pageSize(),
                   sort: this.query.text('sort', 'name'),
                   direction: this.query.direction('asc'),
                   search: this.query.text('search'),
@@ -161,6 +169,10 @@ export class PublicFileStoragePage {
           ),
         );
     }
+  }
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
   sort(value: ServerSort) {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });

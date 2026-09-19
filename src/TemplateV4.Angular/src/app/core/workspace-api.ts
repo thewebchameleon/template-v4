@@ -59,4 +59,20 @@ export class WorkspaceApi {
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  async downloadPost(path: string, body: unknown, name: string) {
+    const headers = await this.auth.browserHeaders();
+    const blob = await firstValueFrom(
+      this.http.post(`${this.runtime.apiUrl}/api/v1/auth/${path}`, body, {
+        headers,
+        withCredentials: true,
+        responseType: 'blob',
+      }),
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 }

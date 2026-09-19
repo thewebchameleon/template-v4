@@ -25,9 +25,7 @@ public sealed partial class FileStorageService
             await Lock(actor, ct);
             if (!await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
             if (!await FolderExists(actor, parentId, ct)) return Result<FileItem>.Fail("files.not_found", ErrorKind.NotFound);
-            var used = await Used(actor, ct);
-            var quota = await Quota(actor, ct);
-            if (quota == 0 || quota > 0 && used + file.Size > quota) return Result<FileItem>.Fail("files.quota", ErrorKind.Conflict);
+            if (!await storageQuota.Fits(0, file.Size, ct)) return Result<FileItem>.Fail("files.quota", ErrorKind.Conflict);
             db.Files.Add(file); await db.SaveChangesAsync(ct); await reserve.CommitAsync(ct);
         }
         // Durable reservations allow maintenance to reconcile uploads interrupted between storage and DB.

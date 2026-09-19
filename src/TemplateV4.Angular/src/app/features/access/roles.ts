@@ -104,7 +104,9 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
     <hlm-drawer
       direction="right"
       [state]="editorOpen() ? 'open' : 'closed'"
-      [disableClose]="hasUnsavedChanges()"
+      [disableClose]="busy() || hasUnsavedChanges()"
+      [closeGuard]="confirmClose"
+      [closeLabel]="'close' | t"
       (stateChanged)="drawerStateChanged($event)"
     >
       <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-xl">
@@ -222,6 +224,10 @@ export class RolesPanel {
   private readonly runtime = inject(Runtime);
   private readonly toast = inject(Notifications);
   private readonly confirm = inject(Confirmations);
+  readonly confirmClose = () =>
+    !this.busy() &&
+    (!this.hasUnsavedChanges() ||
+      this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'));
   name = '';
   description = '';
   permissionSearch = '';
@@ -348,7 +354,7 @@ export class RolesPanel {
     this.editorOpen.set(false);
   }
   drawerStateChanged(state: 'open' | 'closed') {
-    if (state === 'closed' && !this.hasUnsavedChanges()) this.editorOpen.set(false);
+    if (state === 'closed') this.editorOpen.set(false);
   }
   async discard() {
     if (!(await this.confirm.ask('unsavedTitle', 'unsavedHelp'))) return;

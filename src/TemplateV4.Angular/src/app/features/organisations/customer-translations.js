@@ -39,18 +39,15 @@ export const customerDictionary = {
     organisationLogoSaved: ['Organisation logo updated.', 'Organisasielogo bygewerk.'],
     customerSaved: ['Account changes saved.', 'Rekeningveranderings gestoor.'],
     billing: ['Billing & subscriptions', 'Fakturering en intekeninge'],
-    commercialBilling: ['Commercial billing', 'Kommersiële fakturering'],
     commercialBillingHelp: [
         'Manage the organisation subscription, entitlements, usage and payment history.',
         'Bestuur die organisasie se intekening, aansprake, gebruik en betalingsgeskiedenis.',
     ],
-    commercialBillingSettings: ['Commercial billing settings', 'Kommersiële faktureringinstellings'],
     commercialBillingSettingsHelp: [
-        'Configure trial and payment-grace policy for commercial subscriptions.',
-        'Stel proef- en betalingsgrasiebeleid vir kommersiële intekeninge op.',
+        'Configure trial and payment-grace policy for licenses.',
+        'Stel proef- en betalingsgrasiebeleid vir lisensies op.',
     ],
     commercialBillingPolicy: ['Subscription policy', 'Intekeningbeleid'],
-    paymentMethods: ['Payment methods', 'Betaalmetodes'],
     paymentMethodsHelp: [
         'Enable configured payment providers and choose the default checkout provider.',
         'Aktiveer opgestelde betalingsverskaffers en kies die verstekverskaffer vir betaling.',

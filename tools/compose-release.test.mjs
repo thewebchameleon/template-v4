@@ -115,7 +115,7 @@ test("release rendering requires every image digest and retains one release's me
     path.join(root, "deploy/compose-platforms/demo/client-modules.json"),
     path.join(foundation, "client-modules.json"),
   );
-  for (const service of ["api", "worker", "migrator", "website"])
+  for (const service of ["api", "worker", "migrator"])
     fs.writeFileSync(
       path.join(output, `${service}.metadata.json`),
       JSON.stringify({ "containerimage.digest": `sha256:${"a".repeat(64)}` }),
@@ -140,8 +140,7 @@ test("release rendering requires every image digest and retains one release's me
   );
   renderRelease(...args);
   const compose = fs.readFileSync(path.join(output, "compose.yaml"), "utf8");
-  assert.equal((compose.match(/@sha256:/g) || []).length, 5);
-  assert.ok(compose.includes("website@sha256:"));
+  assert.equal((compose.match(/@sha256:/g) || []).length, 4);
   assert.ok(!compose.includes("__RELEASE__"));
   assert.ok(!compose.includes("build:"));
   assert.ok(!compose.includes("Deployment__Version"));

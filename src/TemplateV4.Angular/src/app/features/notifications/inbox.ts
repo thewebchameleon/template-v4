@@ -8,6 +8,7 @@ import {
   Resource,
   ListQuery,
   DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
 } from '../../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
 import { Auth } from '../../core/auth';
@@ -110,8 +111,11 @@ export class NotificationRow {
         <app-list-pager
           [total]="data.value()?.page?.total ?? 0"
           [page]="query.page"
+          [size]="pageSize()"
+          [showSizePicker]="true"
           [busy]="loading()"
           (pageChange)="query.set({ page: $event })"
+          (sizeChange)="query.set({ size: $event, page: 1 })"
         />
       </app-page-state>
     </div>
@@ -154,7 +158,7 @@ export class InboxPage {
         'notifications',
         {
           pageNumber: this.query.page,
-          pageSize: DEFAULT_PAGE_SIZE,
+          pageSize: this.pageSize(),
           unreadOnly: this.query.text('filter') === 'unread',
           sort: this.query.text('sort', 'createdAt'),
           direction: this.query.direction('desc'),
@@ -163,7 +167,11 @@ export class InboxPage {
       ),
     );
     if (loaded) this.unread.set(this.data.value()!.unread);
-    if (loaded) this.query.clamp(this.data.value()?.page.total);
+    if (loaded) this.query.clamp(this.data.value()?.page.total, this.pageSize());
+  }
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
   filter(value: unknown) {
     if (value === 'all' || value === 'unread') void this.query.set({ filter: value, page: 1 });
@@ -222,7 +230,7 @@ export class InboxPage {
     try {
       await this.api.post('notifications/read');
       this.applyRead(undefined, true);
-      this.query.clamp(this.data.value()?.page.total);
+      this.query.clamp(this.data.value()?.page.total, this.pageSize());
     } catch {
       /* central feedback */
     } finally {

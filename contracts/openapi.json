@@ -2219,42 +2219,6 @@
         ]
       }
     },
-    "/api/v1/auth/website-images": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "UploadWebsiteImage",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteImage"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
     "/api/v1/auth/administration/background-jobs": {
       "get": {
         "tags": [
@@ -2891,6 +2855,162 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FileMoveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/file-storage/batch/delete": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DeleteFileStorageBatch",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileSelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/file-storage/batch/move": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "MoveFileStorageBatch",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileBatchDestinationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/file-storage/batch/copy": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "CopyFileStorageBatch",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileBatchDestinationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/file-storage/batch/download": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "DownloadFileStorageBatch",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileSelectionRequest"
               }
             }
           },
@@ -5293,121 +5413,6 @@
         ]
       }
     },
-    "/api/v1/auth/website": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetWebsiteSettings",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteSettings"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SaveWebsiteSettings",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SaveWebsite"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteSettings"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/website/enabled": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SetWebsiteEnabled",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetWebsiteEnabled"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WebsiteSettings"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
     "/api/v1/auth/contact": {
       "get": {
         "tags": [
@@ -6423,6 +6428,31 @@
         ]
       }
     },
+    "/api/v1/auth/organisation": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetOrganisation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/organisation/users": {
       "get": {
         "tags": [
@@ -6498,31 +6528,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
-    "/api/v1/auth/organisation": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetOrganisation",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomerInfo"
-                }
-              }
-            }
           }
         },
         "security": [
@@ -7092,165 +7097,6 @@
             "Bearer": [ ]
           }
         ]
-      }
-    },
-    "/api/v1/website": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetPublicWebsite",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicWebsite"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/website/images/{id}": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetWebsiteImage",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/v1/website/contact": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "SubmitContactEnquiry",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ContactSubmission"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/website/cms/sections": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetPublicCmsSections",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LandingSection"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/website/cms/blog": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetPublicBlog",
-        "parameters": [
-          {
-            "name": "pageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageOfBlogSummary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/website/cms/blog/{slug}": {
-      "get": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "GetPublicBlogArticle",
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BlogArticle"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/external/cms/articles": {
@@ -8615,57 +8461,6 @@
           }
         }
       },
-      "BusinessDetails": {
-        "required": [
-          "name",
-          "description",
-          "logoUrl",
-          "primaryColor",
-          "email",
-          "phone",
-          "address",
-          "publicUrl",
-          "adminUrl",
-          "seoTitle",
-          "seoDescription"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "primaryColor": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          },
-          "publicUrl": {
-            "type": "string"
-          },
-          "adminUrl": {
-            "type": "string"
-          },
-          "seoTitle": {
-            "type": "string"
-          },
-          "seoDescription": {
-            "type": "string"
-          }
-        }
-      },
       "ChangeEmailRequest": {
         "required": [
           "email",
@@ -9595,29 +9390,6 @@
           }
         }
       },
-      "ContactSubmission": {
-        "required": [
-          "name",
-          "email",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "website": {
-            "type": "string",
-            "default": ""
-          }
-        }
-      },
       "CreateActionItem": {
         "required": [
           "title",
@@ -10201,6 +9973,7 @@
           "contactEmail",
           "timeZone",
           "country",
+          "primaryContactNumber",
           "logoUrl",
           "canManage",
           "users",
@@ -10232,6 +10005,12 @@
             "type": "string"
           },
           "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "primaryContactNumber": {
             "type": [
               "null",
               "string"
@@ -10401,6 +10180,29 @@
           "resendAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "FileBatchDestinationRequest": {
+        "required": [
+          "ids",
+          "parentId"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "parentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -10634,6 +10436,21 @@
           "slowUploadMode": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "FileSelectionRequest": {
+        "required": [
+          "ids"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
@@ -12429,36 +12246,6 @@
           }
         }
       },
-      "PublicWebsite": {
-        "required": [
-          "enabled",
-          "details",
-          "cmsEnabled",
-          "contactEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "details": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/BusinessDetails"
-              }
-            ]
-          },
-          "cmsEnabled": {
-            "type": "boolean"
-          },
-          "contactEnabled": {
-            "type": "boolean"
-          }
-        }
-      },
       "PublishArticle": {
         "required": [
           "version",
@@ -13000,21 +12787,13 @@
       },
       "SaveSupportModuleSettings": {
         "required": [
-          "enquiriesEnabled",
           "ticketsEnabled",
-          "notificationEmail",
           "version"
         ],
         "type": "object",
         "properties": {
-          "enquiriesEnabled": {
-            "type": "boolean"
-          },
           "ticketsEnabled": {
             "type": "boolean"
-          },
-          "notificationEmail": {
-            "type": "string"
           },
           "version": {
             "type": "string",
@@ -13025,22 +12804,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "SaveWebsite": {
-        "required": [
-          "version",
-          "details"
-        ],
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "details": {
-            "$ref": "#/components/schemas/BusinessDetails"
           }
         }
       },
@@ -13146,22 +12909,6 @@
           }
         }
       },
-      "SetWebsiteEnabled": {
-        "required": [
-          "version",
-          "enabled"
-        ],
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "enabled": {
-            "type": "boolean"
-          }
-        }
-      },
       "StartCommercialTrial": {
         "required": [
           "planId"
@@ -13243,21 +12990,13 @@
       },
       "SupportModuleSettings": {
         "required": [
-          "enquiriesEnabled",
           "ticketsEnabled",
-          "notificationEmail",
           "version"
         ],
         "type": "object",
         "properties": {
-          "enquiriesEnabled": {
-            "type": "boolean"
-          },
           "ticketsEnabled": {
             "type": "boolean"
-          },
-          "notificationEmail": {
-            "type": "string"
           },
           "version": {
             "type": "string",
@@ -13476,6 +13215,7 @@
           "contactEmail",
           "timeZone",
           "country",
+          "primaryContactNumber",
           "version"
         ],
         "type": "object",
@@ -13499,6 +13239,12 @@
             "type": "string"
           },
           "country": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "primaryContactNumber": {
             "type": [
               "null",
               "string"
@@ -13852,41 +13598,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "WebsiteImage": {
-        "required": [
-          "url"
-        ],
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        }
-      },
-      "WebsiteSettings": {
-        "required": [
-          "version",
-          "details",
-          "configured",
-          "enabled"
-        ],
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "details": {
-            "$ref": "#/components/schemas/BusinessDetails"
-          },
-          "configured": {
-            "type": "boolean"
-          },
-          "enabled": {
-            "type": "boolean"
           }
         }
       }

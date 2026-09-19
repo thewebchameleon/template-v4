@@ -63,6 +63,7 @@ public static class ApiResults
             "modules.unknown" => af ? "Kies 'n ondersteunde module." : "Choose a supported module.",
             "appearance.conflict" => af ? "Konfigurasie het verander. Herlaai die gestoorde instellings en probeer weer." : "Configuration changed. Reload the saved settings and try again.",
             "files.invalid_name" => af ? "Gebruik 'n naam van 1Ã¢â‚¬â€œ180 karakters sonder skuinsstrepe of beheertekens." : "Use a name of 1Ã¢â‚¬â€œ180 characters without slashes or control characters.",
+            "files.folder_name_exists" => af ? "'n Vouer met hierdie naam bestaan reeds op hierdie plek." : "A folder with this name already exists in this location.",
             "files.folder_not_empty" => af ? "Verwyder eers die inhoud van hierdie vouer." : "Delete the contents of this folder first.",
             "files.settings_conflict" => af ? "Berginginstellings het verander. Herlaai en probeer weer." : "Storage settings changed. Reload and try again.",
             "files.invalid_type" => af ? "Kies Ã¢â‚¬â„¢n ondersteunde lÃƒÂªer waarvan die inhoud by die lÃƒÂªertipe pas." : "Choose a supported file whose content matches its file type.",

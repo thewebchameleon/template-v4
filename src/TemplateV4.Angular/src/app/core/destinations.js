@@ -57,15 +57,6 @@ export const workspaceDestinations = {
         help: 'dashboardSupportHelp',
         hasPanel: false,
     },
-    commercialBilling: {
-        path: '/commercial-billing',
-        label: 'commercialBilling',
-        icon: 'lucideCreditCard',
-        capability: undefined,
-        permissions: ['commercial-billing.read'],
-        help: 'commercialBillingHelp',
-        hasPanel: false,
-    },
 };
 export const administrationDestinations = {
     supportSettings: {
@@ -78,7 +69,7 @@ export const administrationDestinations = {
         administratorOnly: true,
     },
     configuration: {
-        path: '/administration/configuration',
+        path: '/administration/branding',
         label: 'configuration',
         icon: 'lucidePalette',
         section: 'administration',
@@ -140,17 +131,24 @@ export const administrationDestinations = {
     apiKeys: {
         path: '/administration/api-keys',
         label: 'apiKeys',
-        icon: 'lucideSettings',
+        icon: 'lucideKeyRound',
         section: 'administration',
         permissions: ['api-keys.manage'],
     },
     paymentMethods: {
         path: '/administration/payment-methods',
         label: 'paymentMethods',
-        icon: 'lucideSettings',
+        icon: 'lucideCreditCard',
         section: 'administration',
         permissions: ['settings.manage'],
         administratorOnly: true,
+    },
+    license: {
+        path: '/administration/license',
+        label: 'commercialBilling',
+        icon: 'lucideDollarSign',
+        section: 'administration',
+        permissions: ['commercial-billing.read'],
     },
     commercialBilling: {
         path: '/administration/commercial-billing',
@@ -211,13 +209,6 @@ export const userManagementDestinations = {
         permissions: ['settings.manage'],
         administratorOnly: true,
     },
-};
-export const websiteSetupDestination = {
-    path: '/administration/website',
-    label: 'websiteSetup',
-    icon: 'lucideSettings',
-    administratorOnly: true,
-    permissions: ['settings.manage'],
 };
 export function destinationAvailable(destination, auth, features) {
     return (!auth.access()?.setupRequired &&

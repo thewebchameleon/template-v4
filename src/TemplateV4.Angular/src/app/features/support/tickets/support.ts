@@ -11,6 +11,7 @@ import {
   DebouncedSearch,
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
+  Confirmations,
 } from '../../../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
 import { RecordIdentity } from '../../../shared/workspace-cells';
@@ -29,6 +30,9 @@ const column = createColumnHelper<DataTableFeatures, TicketItem>();
       <hlm-drawer
         direction="right"
         [state]="newTicketOpen() ? 'open' : 'closed'"
+        [disableClose]="newTicketBusy() || newTicketDirty()"
+        [closeGuard]="confirmNewTicketClose"
+        [closeLabel]="'close' | t"
         (stateChanged)="newTicketOpen.set($event === 'open')"
       >
         <button hlmBtn hlmDrawerTrigger>{{ 'supportNew' | t }}</button>
@@ -208,6 +212,13 @@ const column = createColumnHelper<DataTableFeatures, TicketItem>();
     </section>`,
 })
 export class SupportPage {
+  private readonly confirm = inject(Confirmations);
+  readonly newTicketDirty = () => this.ticketEditor()?.hasUnsavedChanges() ?? false;
+  readonly newTicketBusy = () => this.ticketEditor()?.busy() ?? false;
+  readonly confirmNewTicketClose = () =>
+    !this.newTicketBusy() &&
+    (!this.newTicketDirty() ||
+      this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'));
   readonly newTicketOpen = signal(false);
   private readonly ticketEditor = viewChild(SupportNewPage);
   hasUnsavedChanges() {

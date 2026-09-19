@@ -3,17 +3,16 @@ import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { WorkspaceUi, protectUnload } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { CmsSections, LandingSection } from '../../../api/models';
-import { WebsiteImageUpload } from '../../website/website-image';
 @Component({
   selector: 'app-cms-sections',
-  imports: [WorkspaceUi, HlmTextareaImports, WebsiteImageUpload],
+  imports: [WorkspaceUi, HlmTextareaImports],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: `<app-page-header title="websiteSections" description="websiteSectionsHelp"
+  template: `<app-page-header title="cmsSections" description="cmsSectionsHelp"
       ><a hlmBtn variant="outline" routerLink="/cms">{{ 'cmsArticles' | t }}</a></app-page-header
     >
     @if (failed()) {
       <div hlmAlert variant="destructive" role="alert">
-        <p hlmAlertDescription>{{ 'websiteFailure' | t }}</p>
+        <p hlmAlertDescription>{{ 'cmsSectionsFailure' | t }}</p>
         <button hlmBtn variant="outline" (click)="load()">{{ 'retry' | t }}</button>
       </div>
     }
@@ -29,7 +28,7 @@ import { WebsiteImageUpload } from '../../website/website-image';
                 <fieldset hlmFieldSet [disabled]="busy()" class="grid gap-4">
                   <div hlmField>
                     <label hlmFieldLabel [for]="section.key + '-heading'">{{
-                      'websiteHeading' | t
+                      'cmsSectionHeading' | t
                     }}</label
                     ><input
                       hlmInput
@@ -42,7 +41,7 @@ import { WebsiteImageUpload } from '../../website/website-image';
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel [for]="section.key + '-text'">{{
-                      'websiteText' | t
+                      'cmsSectionText' | t
                     }}</label
                     ><textarea
                       hlmTextarea
@@ -56,7 +55,7 @@ import { WebsiteImageUpload } from '../../website/website-image';
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel [for]="section.key + '-image'">{{
-                      'websiteImage' | t
+                      'cmsSectionImage' | t
                     }}</label
                     ><input
                       hlmInput
@@ -68,7 +67,7 @@ import { WebsiteImageUpload } from '../../website/website-image';
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel [for]="section.key + '-alt'">{{
-                      'websiteImageAlt' | t
+                      'cmsSectionImageAlt' | t
                     }}</label
                     ><input
                       hlmInput
@@ -79,10 +78,6 @@ import { WebsiteImageUpload } from '../../website/website-image';
                       [required]="!!section.imageUrl"
                     />
                   </div>
-                  <app-website-image
-                    [controlId]="section.key + '-upload'"
-                    (uploaded)="section.imageUrl = $event"
-                  />
                 </fieldset>
               </div>
             </section>
@@ -97,12 +92,12 @@ import { WebsiteImageUpload } from '../../website/website-image';
               [disabled]="busy() || hasUnsavedChanges()"
               (click)="publish()"
             >
-              {{ 'websitePublishSections' | t }}
+              {{ 'cmsPublishSections' | t }}
             </button>
           </div>
           <section hlmCard>
             <div hlmCardHeader>
-              <h2 hlmCardTitle>{{ 'websitePreview' | t }}</h2>
+              <h2 hlmCardTitle>{{ 'cmsSectionsPreview' | t }}</h2>
             </div>
             <div hlmCardContent>
               @for (section of data()!.draft; track section.key) {
@@ -128,7 +123,7 @@ import { WebsiteImageUpload } from '../../website/website-image';
       <p role="status">{{ 'loading' | t }}</p>
     }
     @if (saved()) {
-      <p role="status">{{ 'websiteChanged' | t }}</p>
+      <p role="status">{{ 'cmsSectionsChanged' | t }}</p>
     }`,
 })
 export class CmsSectionsPage implements OnInit {
@@ -140,11 +135,11 @@ export class CmsSectionsPage implements OnInit {
   sections: LandingSection[] = [];
   private baseline = '';
   readonly labels: Record<string, string> = {
-    hero: 'websiteHero',
-    about: 'websiteAbout',
-    services: 'websiteServices',
-    testimonials: 'websiteTestimonials',
-    contact: 'websiteContact',
+    hero: 'cmsSectionHero',
+    about: 'cmsSectionAbout',
+    services: 'cmsSectionServices',
+    testimonials: 'cmsSectionTestimonials',
+    contact: 'cmsSectionContact',
   };
   ngOnInit() {
     void this.load();

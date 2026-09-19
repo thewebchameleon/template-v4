@@ -99,13 +99,13 @@ export const supportDictionary: Record<string, [string, string]> = {
     'Onaktiewe kategorieë bly op bestaande kaartjies. Hou minstens een aktiewe kategorie.',
   ],
   supportModuleHelp: [
-    'Contact form, tickets, agent queue and ticket attachments.',
-    'Kontakvorm, kaartjies, agentwaglys en kaartjie-aanhegsels.',
+    'Tickets, agent queue, ticket attachments and retained enquiries.',
+    'Kaartjies, agentwaglys, kaartjie-aanhegsels en behoue navrae.',
   ],
   enableSupportModule: ['Enable Support', 'Aktiveer Ondersteuning'],
   supportModuleDisableHelp: [
-    'Stops new enquiries and ticket access. Retained enquiries and accepted notifications remain available.',
-    'Stop nuwe navrae en kaartjietoegang. Bestaande navrae en aanvaarde kennisgewings bly beskikbaar.',
+    'Stops ticket access. Retained enquiries and accepted notifications remain available.',
+    'Stop kaartjietoegang. Bestaande navrae en aanvaarde kennisgewings bly beskikbaar.',
   ],
   notificationSupport: [
     'A support ticket has been updated.',

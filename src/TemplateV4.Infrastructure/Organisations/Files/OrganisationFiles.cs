@@ -8,7 +8,7 @@ namespace TemplateV4.Infrastructure.Storage;
 
 public sealed record OrganisationFileItem(Guid Id, string Name, long Size, DateTimeOffset CreatedAt, bool CanDelete);
 public sealed record OrganisationFilePage(Page<OrganisationFileItem> Page, long UsedBytes, long QuotaBytes);
-public sealed class OrganisationFiles(FrameworkDb db, ICustomerAccess customers, IStorageCapacity capacity, FileStorageService library)
+public sealed class OrganisationFiles(FrameworkDb db, ICustomerAccess customers, IStorageCapacity capacity, IStorageUsage usage, FileStorageService library)
 {
     private async Task<bool> Access(Guid actor, CancellationToken ct) => await customers.Find(actor, ct) is not null;
     private Task<bool> CanWrite(Guid actor, CancellationToken ct) => (from assignment in db.UserRoles
@@ -25,7 +25,7 @@ public sealed class OrganisationFiles(FrameworkDb db, ICustomerAccess customers,
         var canWrite = await CanWrite(actor, ct);
         var ordered = sort switch { "name" => direction == "asc" ? all.OrderBy(x => x.Name) : all.OrderByDescending(x => x.Name), "size" => direction == "asc" ? all.OrderBy(x => x.Size) : all.OrderByDescending(x => x.Size), _ => direction == "asc" ? all.OrderBy(x => x.CreatedAt) : all.OrderByDescending(x => x.CreatedAt) };
         var items = await ordered.ThenBy(x => x.Id).Skip((page - 1) * size).Take(size).Select(x => new OrganisationFileItem(x.Id, x.Name, x.Size, x.CreatedAt, canWrite)).ToArrayAsync(ct);
-        return Result<OrganisationFilePage>.Success(new(new(items, total, page, size), await db.Files.Where(x => x.PurgedAt == null).SumAsync(x => x.Size, ct), await capacity.Limit(ct)));
+        return Result<OrganisationFilePage>.Success(new(new(items, total, page, size), await usage.Read(ct), await capacity.Limit(ct)));
     }
     public async Task<Result<Guid>> Upload(Guid actor, string name, Stream input, CancellationToken ct)
     {

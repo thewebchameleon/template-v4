@@ -7,7 +7,7 @@ async function supportApp(
   page: Page,
   agent = false,
   enabled = true,
-  contact: 'none' | 'unconfigured' | 'configured' = 'none',
+  contact = false,
 ) {
   let failReply = false;
   let ticket = {
@@ -76,9 +76,9 @@ async function supportApp(
         culture: 'en-ZA',
         permissions: [
           ...(agent ? ['support.agent'] : []),
-          ...(contact === 'none' ? [] : ['contact.manage']),
+          ...(contact ? ['contact.manage'] : []),
         ],
-        isAdministrator: contact !== 'none',
+        isAdministrator: contact,
         mfaConfigured: true,
         setupRequired: false,
       },
@@ -88,7 +88,6 @@ async function supportApp(
       '/api/v1/capabilities': {
         support: enabled,
         'support-tickets': enabled,
-        'support-enquiries': contact === 'configured',
       },
       '/api/v1/auth/contact': { items: [], total: 0, pageNumber: 1, pageSize: 10 },
       '/api/v1/auth/support/options': {
@@ -139,18 +138,10 @@ test('support is guarded when disabled', async ({ page }) => {
   await expect(page.locator('a[href="/support/tickets"]')).toHaveCount(0);
 });
 
-test('contact inbox stays discoverable while its notification recipient is missing', async ({
-  page,
-}) => {
-  await supportApp(page, false, true, 'unconfigured');
+test('retained enquiry inbox stays discoverable', async ({ page }) => {
+  await supportApp(page, false, true, true);
   await page.goto('/support/contact');
-  await expect(page.getByRole('link', { name: 'Contact Form', exact: true })).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Contact form setup is incomplete', exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Configure notification recipient', exact: true }),
-  ).toHaveAttribute('href', '/administration/support');
+  await expect(page.getByRole('link', { name: 'Retained enquiries', exact: true })).toBeVisible();
   await expect(page.getByText('No enquiries found.', { exact: true })).toBeVisible();
 });
 

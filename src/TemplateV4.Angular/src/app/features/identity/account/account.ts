@@ -74,7 +74,8 @@ import { Translate } from '../../../core/i18n';
                 <hlm-spinner />
               }
               {{
-                (kind === 'Verification' || kind === 'EmailChange' ? 'confirm' : 'newPassword') | t
+                (kind === 'Verification' || kind === 'EmailChange' ? 'verifyEmail' : 'newPassword')
+                  | t
               }}
             </button>
           }

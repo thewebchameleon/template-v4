@@ -982,7 +982,7 @@ function FileStoragePage_hlm_drawer_content_60_Conditional_8_Conditional_0_Templ
     i0.ɵɵadvance(2);
     i0.ɵɵconditional(ctx_r2.canEditDetails(file_r27) ? 34 : 35);
     i0.ɵɵadvance(2);
-    i0.ɵɵconditional(!file_r27.isFolder ? 36 : -1);
+    i0.ɵɵconditional(36);
     i0.ɵɵadvance();
     i0.ɵɵconditional(ctx_r2.canShare(file_r27) ? 37 : -1);
     i0.ɵɵadvance();
@@ -1724,7 +1724,10 @@ export class FileStoragePage {
     async download(file) {
         this.busy.set(true);
         try {
-            await this.api.download(`${this.basePath}/${file.id}/download`, file.name);
+            if (file.isFolder)
+                await this.api.downloadPost('file-storage/batch/download', { ids: [file.id] }, `${file.name}.zip`);
+            else
+                await this.api.download(`${this.basePath}/${file.id}/download`, file.name);
         }
         catch {
             /* Central errors. */

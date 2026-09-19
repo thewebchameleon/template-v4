@@ -24,7 +24,7 @@ public sealed class CustomerAccess(FrameworkDb db) : ICustomerAccess
                                  join user in db.Users on profile.Id equals user.Id
                                  where !profile.Disabled && user.EmailConfirmed && (user.RegistrationState == "Approved" || user.RegistrationState == "NotRequired")
                                  select user.Id).CountAsync(ct);
-        return new(row.Id, row.Name, row.WebsiteUrl, row.ContactEmail, row.TimeZone, row.Country,
+        return new(row.Id, row.Name, row.WebsiteUrl, row.ContactEmail, row.TimeZone, row.Country, row.PrimaryContactNumber,
             row.LogoId is null ? null : $"/api/v1/auth/appearance/logos/{row.LogoId}",
             administrator, activeUsers, row.Version, TimeZones);
     }

@@ -16,12 +16,4 @@ public static class ContactEndpoints
             .ContinuesWhenDisabled(ModuleIds.Support, "Accepted enquiries can still be reviewed.");
         return group;
     }
-
-    public static RouteGroupBuilder MapPublicContact(this RouteGroupBuilder site)
-    {
-        site.MapPost("/contact", async (ContactSubmission request, IContact store, CancellationToken ct) => (await store.Submit(request, ct)).ToHttp())
-            .OwnedByModule(ModuleIds.Support).RequireCapability(CapabilityIds.SupportEnquiries).RequireRateLimiting("contact")
-            .WithName("SubmitContactEnquiry").Produces<Guid>();
-        return site;
-    }
 }

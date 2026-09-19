@@ -20,18 +20,6 @@ x-health: &health
   retries: 3
   start_period: 30s
 services:
-  website:
-    build: {context: ., dockerfile: src/TemplateV4.Website/Dockerfile}
-    restart: unless-stopped
-    environment:
-      WEBSITE_API_URL: http://api:8080
-      NODE_ENV: production
-      PORT: 4300
-    expose: [4300]
-    read_only: true
-    cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
-    depends_on: [api]
   postgres:
     image: postgres:18.6-alpine
     restart: unless-stopped

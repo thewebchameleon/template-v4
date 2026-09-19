@@ -14,8 +14,8 @@ website, primary contact email, default time zone and country/region in Administ
 → Configuration. The name and logo are the system-wide identity used by the application
 shell, authentication, email and newly issued commercial-document snapshots. Immutable
 logo rows remain available to render retained documents after the active logo changes.
-Existing appearance, public-website content, legal issuer and account-security settings
-retain their owners.
+Existing appearance, CMS content, legal issuer and account-security settings retain
+their owners.
 Public registration, invitations, administrator-created users and optional approval
 remain configurable through the existing account-security workflow.
 

@@ -55,6 +55,8 @@ export interface DataTableRowDragEvent<TData> {
                       hlmTh
                       class="first:ps-(--card-spacing) last:pe-(--card-spacing)"
                       [class.w-full]="header.column.id === fillColumn()"
+                      [class.w-px]="header.column.id === 'selection'"
+                      [class.whitespace-nowrap]="header.column.id === 'selection'"
                       [attr.colspan]="header.colSpan"
                       [attr.aria-sort]="ariaSort(header.column.id)"
                     >
@@ -87,7 +89,11 @@ export interface DataTableRowDragEvent<TData> {
                               let headerContent
                             "
                           >
-                            <span [class.sr-only]="header.column.id === 'actions'">
+                            <span
+                              [class.sr-only]="
+                                header.column.id === 'actions' || header.column.id === 'selection'
+                              "
+                            >
                               {{ headerContent }}
                             </span>
                           </ng-container>
@@ -108,6 +114,7 @@ export interface DataTableRowDragEvent<TData> {
                 [class.opacity-50]="rowDragging()?.(row.original)"
                 [class.file-storage-drop-target]="rowDropActive()?.(row.original)"
                 (click)="activateRow($event, row.original)"
+                (dblclick)="activateRowDouble($event, row.original)"
                 (keydown)="rowKeydown($event, row.original)"
                 (dragstart)="rowDragStart.emit({ event: $event, row: row.original })"
                 (dragend)="rowDragEnd.emit({ event: $event, row: row.original })"
@@ -115,11 +122,13 @@ export interface DataTableRowDragEvent<TData> {
                 (dragleave)="rowDragLeave.emit({ event: $event, row: row.original })"
                 (drop)="rowDrop.emit({ event: $event, row: row.original })"
               >
-                @for (cell of row.getAllCells(); track cell.id; let first = $first) {
+                @for (cell of row.getAllCells(); track cell.id) {
                   <td
                     hlmTd
                     class="first:ps-(--card-spacing) last:pe-(--card-spacing)"
                     [class.w-full]="cell.column.id === fillColumn()"
+                    [class.w-px]="cell.column.id === 'selection'"
+                    [class.whitespace-nowrap]="cell.column.id === 'selection'"
                     [class.text-end]="cell.column.id === 'actions'"
                   >
                     <ng-template #renderedCell
@@ -133,7 +142,10 @@ export interface DataTableRowDragEvent<TData> {
                         {{ cellContent }}
                       </ng-container></ng-template
                     >
-                    @if (rowActionLabel() && first) {
+                    @if (
+                      rowActionLabel() &&
+                      cell.column.id === (fillColumn() || row.getAllCells()[0]?.column.id)
+                    ) {
                       <button
                         hlmBtn
                         type="button"
@@ -141,8 +153,10 @@ export interface DataTableRowDragEvent<TData> {
                         class="h-auto whitespace-normal p-0 text-start"
                         data-row-action
                         aria-haspopup="dialog"
-                        [attr.aria-label]="rowActionLabel()?.(row.original)"
-                        (click)="rowAction.emit(row.original)"
+                        [attr.aria-label]="
+                          rowDoubleActionLabel()?.(row.original) ?? rowActionLabel()?.(row.original)
+                        "
+                        (click)="activateRowAction($event, row.original)"
                       >
                         <ng-container [ngTemplateOutlet]="renderedCell" />
                       </button>
@@ -192,7 +206,9 @@ export class DataTable<TData extends RowData> {
   readonly sortDirection = input.required<SortDirection>();
   readonly sortChange = output<ServerSort>();
   readonly rowActionLabel = input<(row: TData) => string>();
+  readonly rowDoubleActionLabel = input<(row: TData) => string>();
   readonly rowAction = output<TData>();
+  readonly rowDoubleAction = output<TData>();
   readonly rowDraggable = input<(row: TData) => boolean>();
   readonly rowDragging = input<(row: TData) => boolean>();
   readonly rowDropActive = input<(row: TData) => boolean>();
@@ -207,6 +223,7 @@ export class DataTable<TData extends RowData> {
       !this.rowActionLabel() ||
       this.loading() ||
       event.button !== 0 ||
+      event.detail > 1 ||
       event.ctrlKey ||
       event.metaKey ||
       event.shiftKey ||
@@ -226,12 +243,28 @@ export class DataTable<TData extends RowData> {
     this.rowAction.emit(row);
   }
 
+  protected activateRowAction(event: MouseEvent, row: TData) {
+    if (event.detail === 0 && this.rowDoubleActionLabel()) this.rowDoubleAction.emit(row);
+    else if (event.detail < 2) this.rowAction.emit(row);
+  }
+
   protected rowKeydown(event: KeyboardEvent, row: TData) {
     if (event.target !== event.currentTarget || !this.rowActionLabel() || this.loading()) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       this.rowAction.emit(row);
     }
+  }
+
+  protected activateRowDouble(event: MouseEvent, row: TData) {
+    if (!this.rowDoubleActionLabel() || this.loading() || event.button !== 0) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const control = target.closest(
+      'button, a, input, select, textarea, [role="button"], [role="checkbox"]',
+    );
+    if (control && !control.hasAttribute('data-row-action')) return;
+    this.rowDoubleAction.emit(row);
   }
 
   protected readonly table = injectTable(() => ({

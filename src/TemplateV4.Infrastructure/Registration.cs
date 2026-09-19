@@ -31,7 +31,6 @@ public static partial class Registration
         AddCrm(services);
         AddInvoicing(services);
         AddCms(services);
-        AddWebsite(services);
         AddOperations(services);
         AddAuditHistory(services);
         AddSupport(services);

@@ -18,8 +18,6 @@ public sealed partial class FileStorageService
         ".zip" or ".7z" or ".rar" or ".tar" or ".gz" => "archives",
         _ => "other"
     };
-    private async Task<long> Used(Guid owner, CancellationToken ct) =>
-        await db.Files.Where(x => x.PurgedAt == null).SumAsync(x => x.Size, ct);
     private static HashSet<Guid> Descendants(IEnumerable<StoredFile> files, Guid id)
     {
         var children = files.ToLookup(x => x.ParentId);
@@ -59,9 +57,13 @@ public sealed partial class FileStorageService
 
 public sealed record FileUsageSegment(string Category, long Bytes, int Count);
 
-public sealed record FileMetadataRequest(string Name, string Description, string Tags, bool Important, bool Starred);
+public sealed record FileMetadataRequest(bool Important, bool Starred);
 
 public sealed record FileMoveRequest(Guid? ParentId);
+
+public sealed record FileSelectionRequest(Guid[] Ids);
+
+public sealed record FileBatchDestinationRequest(Guid[] Ids, Guid? ParentId);
 
 public sealed record FileShareRequest(string? Email, string Permission, DateTimeOffset? ExpiresAt);
 

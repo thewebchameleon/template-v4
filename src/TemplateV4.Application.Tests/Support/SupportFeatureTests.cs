@@ -12,7 +12,6 @@ using TemplateV4.Application.Contact;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
-using TemplateV4.Application.Website;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure;
 using TemplateV4.Infrastructure.Contact;
@@ -44,7 +43,6 @@ public sealed class SupportFeatureTests
         builder.Services.AddScoped<IContact, ContactStore>();
         await using var app = builder.Build();
         app.MapGroup("/api/v1/auth").MapSupportEndpoints().MapContactAdministration();
-        app.MapGroup("/api/v1/website").MapPublicContact();
         var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(x => x.Endpoints).OfType<RouteEndpoint>().ToArray();
         Assert.NotEmpty(endpoints);
         foreach (var endpoint in endpoints)
@@ -56,8 +54,7 @@ public sealed class SupportFeatureTests
                 Assert.NotNull(endpoint.Metadata.GetMetadata<ModuleLifecycleException>());
                 Assert.Null(endpoint.Metadata.GetMetadata<CapabilityRequirement>());
             }
-            else Assert.Equal(path.EndsWith("contact", StringComparison.Ordinal) ? CapabilityIds.SupportEnquiries : CapabilityIds.SupportTickets,
-                endpoint.Metadata.GetMetadata<CapabilityRequirement>()?.Id);
+            else Assert.Equal(CapabilityIds.SupportTickets, endpoint.Metadata.GetMetadata<CapabilityRequirement>()?.Id);
         }
     }
 
@@ -129,31 +126,22 @@ public sealed class SupportFeatureTests
             return await scope.ServiceProvider.GetRequiredService<ICapabilities>().Read(default);
         }
         var initial = await Settings();
-        var races = await Task.WhenAll(Save(new(true, false, initial.NotificationEmail, initial.Version)),
-            Save(new(false, true, initial.NotificationEmail, initial.Version)));
+        var races = await Task.WhenAll(Save(new(false, initial.Version)), Save(new(true, initial.Version)));
         Assert.Single(races, x => x.IsSuccess);
         Assert.Single(races, x => !x.IsSuccess);
         var current = await Settings();
         using (var scope = Scope(administrator))
             Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<FrameworkDb>().Audit.CountAsync(x => x.Action == "module.support_features_changed"));
-        Assert.True((await Save(new(true, false, current.NotificationEmail, current.Version))).IsSuccess);
+        Assert.True((await Save(new(false, current.Version))).IsSuccess);
         var capabilities = await Capabilities();
-        Assert.True(capabilities[CapabilityIds.SupportEnquiries]);
         Assert.False(capabilities[CapabilityIds.SupportTickets]);
-        using (var scope = Scope(null))
-        {
-            Assert.True((await scope.ServiceProvider.GetRequiredService<IWebsite>().Public(default)).ContactEnabled);
-            var submitted = await scope.ServiceProvider.GetRequiredService<IContact>().Submit(new("Website visitor", "visitor@example.test", "New enquiry"), default);
-            Assert.True(submitted.IsSuccess);
-            Assert.True(await scope.ServiceProvider.GetRequiredService<FrameworkDb>().Outbox.AnyAsync(x => x.Type == "contact.notification.v1"));
-        }
         using (var scope = Scope(requester))
         {
             Assert.False((await scope.ServiceProvider.GetRequiredService<ISupportTickets>().Create(new("Blocked", "Ticket", new Guid("9a0e9b19-33fb-49e0-8bd0-77eb7eca5c20")), default)).IsSuccess);
             Assert.False((await scope.ServiceProvider.GetRequiredService<ISupportModuleSettings>().Read(default)).IsSuccess);
         }
         current = await Settings();
-        Assert.True((await Save(new(false, true, current.NotificationEmail, current.Version))).IsSuccess);
+        Assert.True((await Save(new(true, current.Version))).IsSuccess);
         Guid ticketId;
         using (var scope = Scope(requester))
             ticketId = (await scope.ServiceProvider.GetRequiredService<Dispatcher<CreateTicket, Guid>>().Send(new("Ticket", "Description", new Guid("9a0e9b19-33fb-49e0-8bd0-77eb7eca5c20")))).Value;
@@ -171,7 +159,7 @@ public sealed class SupportFeatureTests
         using (var scope = Scope(requester))
             Assert.True((await scope.ServiceProvider.GetRequiredService<ISupportAttachments>().Download(ticketId, attachment, default)).IsSuccess);
         current = await Settings();
-        Assert.True((await Save(new(false, false, current.NotificationEmail, current.Version))).IsSuccess);
+        Assert.True((await Save(new(false, current.Version))).IsSuccess);
         using (var scope = Scope(requester))
         {
             Assert.False((await scope.ServiceProvider.GetRequiredService<ISupportAttachments>().Download(ticketId, attachment, default)).IsSuccess);
@@ -185,9 +173,7 @@ public sealed class SupportFeatureTests
             var module = (await activation.Read(default)).Single(x => x.Id == ModuleIds.Support);
             Assert.True((await scope.ServiceProvider.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new(ModuleIds.Support, false, module.Version))).IsSuccess);
         }
-        Assert.False((await Capabilities())[CapabilityIds.SupportEnquiries]);
-        using (var scope = Scope(null))
-            Assert.False((await scope.ServiceProvider.GetRequiredService<IContact>().Submit(new("Blocked", "blocked@example.test", "Disabled"), default)).IsSuccess);
+        Assert.False((await Capabilities())[CapabilityIds.SupportTickets]);
         using (var scope = Scope(administrator))
         {
             var contact = scope.ServiceProvider.GetRequiredService<IContact>();
@@ -200,7 +186,7 @@ public sealed class SupportFeatureTests
         {
             var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
             await using var tx = await db.Database.BeginTransactionAsync();
-            Assert.True((await scope.ServiceProvider.GetRequiredService<ISupportModuleSettings>().Save(new(true, true, current.NotificationEmail, current.Version), default)).IsSuccess);
+            Assert.True((await scope.ServiceProvider.GetRequiredService<ISupportModuleSettings>().Save(new(true, current.Version), default)).IsSuccess);
             await db.SaveChangesAsync(); await tx.RollbackAsync();
         }
         Assert.Equal(current, await Settings());
@@ -212,23 +198,18 @@ public sealed class SupportFeatureTests
             return (await scope.ServiceProvider.GetRequiredService<Dispatcher<SaveModuleActivation, ModuleActivation>>().Send(new(ModuleIds.Support, true, module.Version))).IsSuccess;
         }
         var activationTask = EnableSupport();
-        var featureTask = Save(new(true, true, current.NotificationEmail, current.Version));
+        var featureTask = Save(new(true, current.Version));
         await Task.WhenAll(activationTask, featureTask);
         Assert.True(await activationTask);
         Assert.True((await featureTask).IsSuccess);
         capabilities = await Capabilities();
-        Assert.True(capabilities[CapabilityIds.SupportEnquiries]);
-        current = await Settings();
-        Assert.True((await Save(new(true, true, "", current.Version))).IsSuccess);
-        Assert.False((await Capabilities())[CapabilityIds.SupportEnquiries]);
+        Assert.True(capabilities[CapabilityIds.SupportTickets]);
         using (var scope = Scope(administrator))
         {
             var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
-            Assert.True(await db.Outbox.AnyAsync(x => x.Type == "contact.notification.v1"));
             await db.Set<SupportSettingsRow>().ExecuteDeleteAsync();
         }
         capabilities = await Capabilities();
         Assert.False(capabilities[CapabilityIds.SupportTickets]);
-        Assert.False(capabilities[CapabilityIds.SupportEnquiries]);
     }
 }

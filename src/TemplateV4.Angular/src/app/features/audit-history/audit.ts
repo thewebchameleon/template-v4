@@ -17,6 +17,8 @@ import {
   ListQuery,
   DebouncedSearch,
   DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+  Confirmations,
 } from '../../shared/workspace';
 
 import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
@@ -118,6 +120,9 @@ class RelatedRecordHeader {}
             <hlm-drawer
               direction="right"
               [state]="filtersOpen() ? 'open' : 'closed'"
+              [disableClose]="filtersChanged()"
+              [closeGuard]="confirmFiltersClose"
+              [closeLabel]="'close' | t"
               (stateChanged)="setFiltersOpen($event === 'open')"
             >
               <button hlmBtn hlmDrawerTrigger type="button" variant="outline">
@@ -329,13 +334,17 @@ class RelatedRecordHeader {}
             (sortChange)="sort($event)" /><app-list-pager
             [total]="data.value()?.total ?? 0"
             [page]="query.page"
+            [size]="pageSize()"
+            [showSizePicker]="true"
             (pageChange)="query.set({ page: $event })"
+            (sizeChange)="query.set({ size: $event, page: 1 })"
         /></app-page-state>
       </div>
     </section>
     <hlm-drawer
       direction="right"
       [state]="selected() ? 'open' : 'closed'"
+      [closeLabel]="'close' | t"
       (stateChanged)="$event === 'closed' && selected.set(null)"
     >
       <hlm-drawer-content
@@ -367,6 +376,10 @@ class RelatedRecordHeader {}
     </hlm-drawer>`,
 })
 export class AuditPage {
+  private readonly confirm = inject(Confirmations);
+  readonly confirmFiltersClose = () =>
+    !this.filtersChanged() ||
+    this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges');
   readonly selected = signal<AuditItem | null>(null);
   readonly detailsLabel = (entry: AuditItem) =>
     `${this.i18n.text('auditDetails')}: ${this.summary(entry.action)} · ${this.i18n.date(entry.at)}`;
@@ -534,7 +547,7 @@ export class AuditPage {
     const params: Record<string, string | number> = {
       pageNumber: this.query.page,
 
-      pageSize: DEFAULT_PAGE_SIZE,
+      pageSize: this.pageSize(),
 
       action: this.query.text('action'),
 
@@ -560,7 +573,12 @@ export class AuditPage {
 
     const loaded = await this.data.load((signal) => this.api.get('audit', params, signal));
 
-    if (loaded) this.query.clamp(this.data.value()?.total);
+    if (loaded) this.query.clamp(this.data.value()?.total, this.pageSize());
+  }
+
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
 
   sort(value: ServerSort) {

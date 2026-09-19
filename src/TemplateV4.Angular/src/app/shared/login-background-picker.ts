@@ -189,6 +189,7 @@ import { LoginBackgroundArtwork } from './login-background';
             <hlm-drawer
               direction="right"
               [state]="typeState()"
+              [closeLabel]="'close' | t"
               (stateChanged)="typeState.set($event)"
             >
               <button
@@ -242,6 +243,7 @@ import { LoginBackgroundArtwork } from './login-background';
             <hlm-drawer
               direction="right"
               [state]="presetState()"
+              [closeLabel]="'close' | t"
               (stateChanged)="presetState.set($event)"
             >
               <button

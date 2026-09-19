@@ -4,6 +4,7 @@ import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { Translate } from '../core/i18n';
 @Injectable({ providedIn: 'root' })
 export class Confirmations {
+  readonly open = signal(false);
   readonly current = signal<{
     title: string;
     description: string;
@@ -21,21 +22,26 @@ export class Confirmations {
   ) {
     this.finish(false);
     this.current.set({ title, description, detail, destructive, actionLabel });
+    this.open.set(true);
     return new Promise<boolean>((resolve) => (this.resolve = resolve));
   }
   finish(value: boolean) {
     const resolve = this.resolve;
     this.resolve = null;
-    this.current.set(null);
+    this.open.set(false);
     resolve?.(value);
+  }
+  closed() {
+    if (this.open()) this.finish(false);
+    this.current.set(null);
   }
 }
 @Component({
   selector: 'app-confirmation',
   imports: [HlmAlertDialogImports, Translate],
   template: ` <hlm-alert-dialog
-    [state]="confirm.current() ? 'open' : 'closed'"
-    (stateChanged)="$event === 'closed' && confirm.finish(false)"
+    [state]="confirm.open() ? 'open' : 'closed'"
+    (closed)="confirm.closed()"
   >
     <hlm-alert-dialog-content *hlmAlertDialogPortal
       ><hlm-alert-dialog-header
@@ -47,7 +53,7 @@ export class Confirmations {
           }
         </p></hlm-alert-dialog-header
       ><hlm-alert-dialog-footer
-        ><button hlmAlertDialogCancel (click)="confirm.finish(false)">{{ 'cancel' | t }}</button
+        ><button hlmAlertDialogCancel>{{ 'cancel' | t }}</button
         ><button
           hlmAlertDialogAction
           [variant]="confirm.current()?.destructive ? 'destructive' : 'default'"

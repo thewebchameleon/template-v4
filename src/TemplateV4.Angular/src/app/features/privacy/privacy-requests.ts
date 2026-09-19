@@ -7,6 +7,7 @@ import {
   ListQuery,
   Confirmations,
   DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
 } from '../../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
 import { RecordIdentity, RowActions } from '../../shared/workspace-cells';
@@ -47,7 +48,10 @@ const column = createColumnHelper<DataTableFeatures, DeletionItem>();
             (sortChange)="sort($event)" /><app-list-pager
             [total]="data.value()?.total ?? 0"
             [page]="query.page"
+            [size]="pageSize()"
+            [showSizePicker]="true"
             (pageChange)="query.set({ page: $event })"
+            (sizeChange)="query.set({ size: $event, page: 1 })"
         /></app-page-state>
       </div>
     </section>`,
@@ -114,14 +118,18 @@ export class PrivacyRequestsPage {
         'privacy/requests',
         {
           pageNumber: this.query.page,
-          pageSize: DEFAULT_PAGE_SIZE,
+          pageSize: this.pageSize(),
           sort: this.query.text('sort', 'requestedAt'),
           direction: this.query.direction('asc'),
         },
         signal,
       ),
     );
-    if (loaded) this.query.clamp(this.data.value()?.total);
+    if (loaded) this.query.clamp(this.data.value()?.total, this.pageSize());
+  }
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
   sort(value: ServerSort) {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });

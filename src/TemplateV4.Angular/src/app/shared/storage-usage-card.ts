@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FilePage } from '../api/models';
 import { I18n } from '../core/i18n';
 import { WorkspaceUi } from './workspace';
@@ -20,6 +20,7 @@ import { WorkspaceUi } from './workspace';
         </p>
         <div
           class="file-storage-quota"
+          [class.file-storage-quota-danger]="quotaReached(value)"
           role="img"
           [attr.aria-label]="
             ('storageUsage' | t) +
@@ -29,7 +30,7 @@ import { WorkspaceUi } from './workspace';
             (value.quotaBytes === -1 ? ('maxUploadNoLimit' | t) : bytes(value.quotaBytes))
           "
         >
-          @for (segment of value.usage; track segment.category) {
+          @for (segment of usageSegments(); track segment.category) {
             <span
               [attr.data-category]="segment.category"
               [style.width.%]="
@@ -41,12 +42,10 @@ import { WorkspaceUi } from './workspace';
           }
         </div>
         <ul class="file-storage-quota-legend">
-          @for (segment of value.usage; track segment.category) {
+          @for (segment of usageSegments(); track segment.category) {
             <li>
               <span class="file-storage-swatch" [attr.data-category]="segment.category"></span
-              ><span
-                >{{ 'fileType.' + segment.category | t }}
-                <small>({{ i18n.number(segment.count) }})</small></span
+              ><span>{{ 'fileType.' + segment.category | t }}</span
               ><strong>{{ bytes(segment.bytes) }}</strong>
             </li>
           }
@@ -62,7 +61,7 @@ import { WorkspaceUi } from './workspace';
         </ul>
       }
       @if (usage(); as value) {
-        @if (value.quotaBytes >= 0 && value.usedBytes >= value.quotaBytes) {
+        @if (showQuotaAlert() && quotaReached(value)) {
           <div hlmAlert class="mt-4" role="status">
             <h3 hlmAlertTitle>{{ 'quotaReached' | t }}</h3>
             <p hlmAlertDescription>{{ 'quotaReachedHelp' | t }}</p>
@@ -72,15 +71,16 @@ import { WorkspaceUi } from './workspace';
       <p class="workspace-meta mt-4">{{ 'fileStorageRetentionHelp' | t }}</p>
       <div class="mt-3 flex items-center justify-between gap-4">
         <a routerLink="/privacy" class="workspace-link text-sm">{{ 'privacyAndData' | t }}</a>
-        @if (allowPurge()) {
+        @if (allowEmptyTrash()) {
           <button
             hlmBtn
             type="button"
             variant="link"
             class="h-auto p-0 text-sm text-destructive"
-            (click)="purge.emit()"
+            [disabled]="emptyTrashBusy()"
+            (click)="emptyTrash.emit()"
           >
-            {{ 'purgeAllData' | t }}
+            {{ 'emptyTrash' | t }}
           </button>
         }
       </div>
@@ -89,10 +89,23 @@ import { WorkspaceUi } from './workspace';
 })
 export class StorageUsageCard {
   readonly usage = input<Pick<FilePage, 'usedBytes' | 'quotaBytes' | 'usage'> | null>(null);
-  readonly allowPurge = input(false);
-  readonly purge = output<void>();
+  readonly includeTrash = input(false);
+  readonly showQuotaAlert = input(true);
+  readonly allowEmptyTrash = input(false);
+  readonly emptyTrashBusy = input(false);
+  readonly emptyTrash = output<void>();
   readonly i18n = inject(I18n);
   readonly Math = Math;
+  readonly usageSegments = computed(() => {
+    const segments = this.usage()?.usage ?? [];
+    return this.includeTrash() && !segments.some((segment) => segment.category === 'trash')
+      ? [...segments, { category: 'trash', bytes: 0, count: 0 }]
+      : segments;
+  });
+
+  quotaReached(value: Pick<FilePage, 'usedBytes' | 'quotaBytes'>) {
+    return value.quotaBytes >= 0 && value.usedBytes >= value.quotaBytes;
+  }
 
   bytes(value: number) {
     if (value < 1024) return this.i18n.number(value) + ' B';

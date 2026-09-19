@@ -1,9 +1,15 @@
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Infrastructure.Images;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
+
+public sealed class AvatarStorageUsage(FrameworkDb db) : IStorageUsageSource
+{
+    public Task<long> Read(CancellationToken ct) => db.Set<UserAvatar>().SumAsync(x => (long)x.Png.Length, ct);
+}
 
 public sealed record UpdateProfileRequest(string DisplayName, string? FirstName, string? LastName, string? PhoneNumber,
     string Culture, string TimeZone, Guid Version, string? AvatarBase64 = null, bool RemoveAvatar = false);
@@ -46,6 +52,8 @@ public sealed partial class AccountService
         if (png is not null || request.RemoveAvatar)
         {
             var avatar = await db.Set<UserAvatar>().SingleOrDefaultAsync(x => x.UserId == actor, ct);
+            if (png is not null && !await storageQuota.Fits(avatar?.Png.LongLength ?? 0, png.LongLength, ct))
+                return Result<Guid>.Fail("files.quota", ErrorKind.Conflict);
             if (request.RemoveAvatar) { if (avatar is not null) db.Remove(avatar); }
             else if (avatar is null) db.Add(new UserAvatar { UserId = actor, Png = png! });
             else avatar.Png = png!;

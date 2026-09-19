@@ -12,6 +12,7 @@ public static partial class Registration
         services.AddScoped<FileStorageService>();
         services.AddScoped<IStorageCapacity, StorageCapacity>();
         services.AddScoped<IStorageUsage, StorageUsage>();
+        services.AddScoped<IStorageQuota, StorageQuota>();
         services.AddScoped<OrganisationFiles>();
         services.AddScoped<TemplateV4.Application.Crm.IOrganisationAttachments, OrganisationAttachments>();
         services.AddScoped<FileRetention>();

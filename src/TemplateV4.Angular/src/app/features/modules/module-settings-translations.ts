@@ -6,8 +6,8 @@ export const moduleSettingsDictionary: Record<string, [string, string]> = {
 
   supportSettings: ['Support settings', 'Ondersteuningsinstellings'],
   supportSettingsHelp: [
-    'Configure Support features and choose where new enquiry notifications are delivered.',
-    'Stel Ondersteuningskenmerke op en kies waarheen nuwe navraagkennisgewings gestuur word.',
+    'Configure the Support ticket feature.',
+    'Stel die Ondersteuningskaartjiekenmerk op.',
   ],
   moduleConflict: [
     'Another administrator changed these settings. Review the latest values before trying again.',
@@ -44,27 +44,10 @@ export const moduleSettingsDictionary: Record<string, [string, string]> = {
     'Aktiveer of deaktiveer modules vir almal in hierdie toepassing.',
   ],
 
-  supportEnquiriesFeature: ['Contact Form', 'Kontakvorm'],
-  supportEnquiriesFeatureHelp: [
-    'Accept public website enquiries. Existing enquiries and queued notifications remain available when disabled.',
-    'Aanvaar openbare webwerfnavrae. Bestaande navrae en kennisgewings in die tou bly beskikbaar wanneer dit gedeaktiveer is.',
-  ],
   supportTicketsFeature: ['Tickets', 'Kaartjies'],
   supportTicketsFeatureHelp: [
     'Enable requester tickets, conversations, agent triage, categories and attachments. Disabling preserves existing data.',
     'Aktiveer versoekerkaartjies, gesprekke, agenthantering, kategorieë en aanhegsels. Deaktivering behou bestaande data.',
-  ],
-  supportNotificationEmail: [
-    'Enquiry notification recipient',
-    'Ontvanger van navraagkennisgewings',
-  ],
-  supportNotificationHelp: [
-    'Send new enquiry notifications to this address. It is never shown on the public website.',
-    'Stuur nuwe navraagkennisgewings na hierdie adres. Dit word nooit op die openbare webwerf vertoon nie.',
-  ],
-  supportRecipientRequired: [
-    'Set a notification recipient before the public contact form can accept enquiries.',
-    'Stel ’n kennisgewingontvanger in voordat die openbare kontakvorm navrae kan aanvaar.',
   ],
   supportFeaturesSaved: ['Support features saved.', 'Ondersteuningskenmerke gestoor.'],
   demoActiveWarning: [

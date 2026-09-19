@@ -19,6 +19,7 @@ import {
   FileStorageFileIcon,
   FileStorageFileName,
   FileStorageFileActions,
+  FileStorageSelectionCheckbox,
   FileStorageActionDialog,
   FileStorageNavigation,
   fileGroups,
@@ -58,6 +59,7 @@ const parentEntryId = '__file-storage-parent__';
     HlmScrollAreaImports,
     NgScrollbar,
     FileStorageFileActions,
+    FileStorageSelectionCheckbox,
     FileStorageActionDialog,
     HlmDialogImports,
     FileStorageFileIcon,
@@ -82,34 +84,32 @@ const parentEntryId = '__file-storage-parent__';
           <ng-icon name="lucideSettings" aria-hidden="true" />{{ 'settings' | t }}
         </a>
       }
-      @if (data.value()?.folder; as folder) {
-        <button hlmBtn variant="ghost" [disabled]="busy()" (click)="detail(folder, 'fileDetails')">
-          {{ 'folderDetails' | t }}
-        </button>
-      }
-      @if (canManage() && group !== 'trash' && group !== 'shared') {
-        <button hlmBtn [disabled]="busy()" (click)="showUpload()">
-          <ng-icon name="lucideArrowUpFromLine" />{{ 'uploadFiles' | t }}</button
-        ><button hlmBtn variant="outline" (click)="openCreateFolder()">
-          <ng-icon name="lucideFolderPlus" aria-hidden="true" />{{ 'createFolder' | t }}
-        </button>
-      } @else if (canManage() && group === 'trash') {
-        <button hlmBtn variant="destructive" [disabled]="busy()" (click)="emptyTrash()">
-          <ng-icon name="lucideTrash2" aria-hidden="true" />{{ 'emptyTrash' | t }}
-        </button>
-      }
     </app-page-header>
     <app-file-storage-demo-banner
       [enabled]="data.value()?.demoMode ?? false"
       [minutes]="data.value()?.demoExpiryMinutes ?? 60"
     />
-    <ng-template #fileGridCard let-file>
+    <ng-template #fileGridCard let-file let-selectable="selectable">
+      @if (selectable && !isParentEntry(file)) {
+        <div class="file-storage-card-selection">
+          <hlm-checkbox
+            class="file-storage-selection-checkbox"
+            [inputId]="'file-grid-select-' + file.id"
+            [checked]="isSelected(file)"
+            [disabled]="busy()"
+            (checkedChange)="setSelected(file, $event)"
+          /><label class="sr-only" [for]="'file-grid-select-' + file.id">{{
+            selectionLabel(file)
+          }}</label>
+        </div>
+      }
       <button
         class="file-storage-card-open"
         type="button"
         [disabled]="busy()"
         [attr.aria-label]="entryLabel(file)"
-        (click)="openEntry(file)"
+        (click)="activateGridEntry($event, file, selectable)"
+        (dblclick)="openEntry(file)"
       >
         @if (isParentEntry(file)) {
           <ng-icon name="lucideArrowLeft" class="my-file-icon" aria-hidden="true" />
@@ -148,7 +148,7 @@ const parentEntryId = '__file-storage-parent__';
               <li class="file-storage-grid-card file-storage-recent-card">
                 <ng-container
                   [ngTemplateOutlet]="fileGridCard"
-                  [ngTemplateOutletContext]="{ $implicit: file }"
+                  [ngTemplateOutletContext]="{ $implicit: file, selectable: false }"
                 />
               </li>
             } @empty {
@@ -193,6 +193,132 @@ const parentEntryId = '__file-storage-parent__';
               </div>
             </div>
           </div>
+          <div
+            class="file-storage-selection-toolbar"
+            role="toolbar"
+            [attr.aria-label]="'selectionActions' | t"
+          >
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              size="sm"
+              [disabled]="busy() || allVisibleSelected() || !visibleSelectableItems().length"
+              (click)="selectVisible()"
+            >
+              {{ 'selectAll' | t }}
+            </button>
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="sm"
+              [disabled]="busy() || !selectedCount()"
+              (click)="clearSelection()"
+            >
+              {{ 'unselectAll' | t }}
+            </button>
+            <span class="workspace-meta" role="status">{{ selectionSummary() }}</span>
+            @if (selectedCount()) {
+              <span class="file-storage-selection-actions">
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  [disabled]="busy()"
+                  (click)="downloadSelected()"
+                >
+                  {{ 'download' | t }}
+                </button>
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  [disabled]="busy() || !selectedManageable()"
+                  (click)="openBulkDestination('move')"
+                >
+                  {{ 'moveFile' | t }}
+                </button>
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  [disabled]="busy() || !selectedManageable()"
+                  (click)="openBulkDestination('copy')"
+                >
+                  {{ 'copyItems' | t }}
+                </button>
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  [disabled]="busy() || !selectedManageable()"
+                  (click)="deleteSelected()"
+                >
+                  {{ 'delete' | t }}
+                </button>
+              </span>
+            } @else {
+              <span class="file-storage-selection-actions">
+                @if (data.value()?.folder; as folder) {
+                  @if (folder.permission === 'owner') {
+                    <button
+                      hlmBtn
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      [disabled]="busy()"
+                      (click)="openRename(folder)"
+                    >
+                      {{ 'renameFolder' | t }}
+                    </button>
+                  }
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    [disabled]="busy()"
+                    (click)="detail(folder, 'fileDetails')"
+                  >
+                    {{ 'details' | t }}
+                  </button>
+                }
+                @if (canManage() && group !== 'trash' && group !== 'shared') {
+                  <button hlmBtn type="button" size="sm" [disabled]="busy()" (click)="showUpload()">
+                    <ng-icon name="lucideArrowUpFromLine" aria-hidden="true" />{{
+                      'uploadFiles' | t
+                    }}
+                  </button>
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    [disabled]="busy()"
+                    (click)="openCreateFolder()"
+                  >
+                    <ng-icon name="lucideFolderPlus" aria-hidden="true" />{{ 'createFolder' | t }}
+                  </button>
+                } @else if (canManage() && group === 'trash') {
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    [disabled]="busy()"
+                    (click)="emptyTrash()"
+                  >
+                    <ng-icon name="lucideTrash2" aria-hidden="true" />{{ 'emptyTrash' | t }}
+                  </button>
+                }
+              </span>
+            }
+          </div>
           <app-page-state
             [state]="data.state()"
             [refreshing]="view() === 'grid' && data.refreshing()"
@@ -202,8 +328,11 @@ const parentEntryId = '__file-storage-parent__';
             @if (view() === 'list') {
               <app-data-table
                 [columns]="columns()"
-                [rowActionLabel]="entryLabel"
-                (rowAction)="openEntry($event)"
+                fillColumn="name"
+                [rowActionLabel]="selectionLabel"
+                [rowDoubleActionLabel]="entryLabel"
+                (rowAction)="toggleSelection($event)"
+                (rowDoubleAction)="openEntry($event)"
                 [data]="displayItems()"
                 [rowDraggable]="canDragEntry"
                 [rowDragging]="isDraggedEntry"
@@ -255,6 +384,7 @@ const parentEntryId = '__file-storage-parent__';
                     [attr.draggable]="canDragEntry(file) ? 'true' : null"
                     [class.opacity-50]="isDraggedEntry(file)"
                     [class.file-storage-drop-target]="isActiveDropTarget(file)"
+                    [class.file-storage-selected]="isSelected(file)"
                     (dragstart)="startEntryDrag($event, file)"
                     (dragend)="endEntryDrag()"
                     (dragover)="overEntryDrop($event, file)"
@@ -263,7 +393,7 @@ const parentEntryId = '__file-storage-parent__';
                   >
                     <ng-container
                       [ngTemplateOutlet]="fileGridCard"
-                      [ngTemplateOutletContext]="{ $implicit: file }"
+                      [ngTemplateOutletContext]="{ $implicit: file, selectable: group !== 'trash' }"
                     />
                   </li>
                 } @empty {
@@ -394,9 +524,11 @@ const parentEntryId = '__file-storage-parent__';
       [description]="actionDescription()"
       [destinations]="pageMoveDestinations()"
       [busy]="busy()"
-      (cancelled)="actionMode.set('')"
+      (cancelled)="cancelAction()"
       (createFolder)="createFolder($event)"
+      (renameFolder)="renameFolder($event)"
       (move)="move($event)"
+      (copy)="copySelected($event)"
     />
     <hlm-dialog
       [state]="shareOpen() ? 'open' : 'closed'"
@@ -452,6 +584,8 @@ const parentEntryId = '__file-storage-parent__';
     <hlm-drawer
       direction="right"
       [state]="detailMode() ? 'open' : 'closed'"
+      [disableClose]="busy()"
+      [closeLabel]="'close' | t"
       (stateChanged)="!busy() && $event === 'closed' && detailMode.set('')"
     >
       <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-lg">
@@ -464,13 +598,15 @@ const parentEntryId = '__file-storage-parent__';
               ) | t
             }}
           </h2>
-          <p hlmDrawerDescription>{{ detailFile()?.name }}</p></hlm-drawer-header
+          <p hlmDrawerDescription>
+            {{ (detailFile()?.isFolder ? 'manageFolderDetails' : 'manageFileDetails') | t }}
+          </p></hlm-drawer-header
         >
         <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
           <div class="grid content-start gap-4">
             @if (detailMode() === 'fileDetails') {
               @if (detailFile(); as file) {
-                <form id="file-details-form" class="grid gap-4" (ngSubmit)="saveDetails()">
+                <div class="grid gap-4">
                   <div class="flex items-center gap-3">
                     <app-my-file-icon [file]="file" /><span class="font-medium break-all">{{
                       file.name
@@ -504,43 +640,6 @@ const parentEntryId = '__file-storage-parent__';
                     </dd>
                   </dl>
                   @if (canEditDetails(file)) {
-                    <div hlmField>
-                      <label hlmFieldLabel for="detail-name">{{ 'entryName' | t }}</label
-                      ><input
-                        hlmInput
-                        id="detail-name"
-                        name="detailName"
-                        [(ngModel)]="detailName"
-                        required
-                        maxlength="180"
-                        [disabled]="busy()"
-                      />
-                    </div>
-                    <div hlmField>
-                      <label hlmFieldLabel for="detail-description">{{
-                        'fileDescription' | t
-                      }}</label
-                      ><input
-                        hlmInput
-                        id="detail-description"
-                        name="detailDescription"
-                        [(ngModel)]="detailDescription"
-                        maxlength="4000"
-                        [disabled]="busy()"
-                      />
-                    </div>
-                    <div hlmField>
-                      <label hlmFieldLabel for="detail-tags">{{ 'fileTags' | t }}</label
-                      ><input
-                        hlmInput
-                        id="detail-tags"
-                        name="detailTags"
-                        [(ngModel)]="detailTags"
-                        maxlength="1000"
-                        [disabled]="busy()"
-                      />
-                      <p hlmFieldDescription>{{ 'fileTagsHelp' | t }}</p>
-                    </div>
                     <label
                       hlmFieldLabel
                       for="detail-important"
@@ -548,9 +647,9 @@ const parentEntryId = '__file-storage-parent__';
                       ><div hlmField orientation="horizontal">
                         <hlm-checkbox
                           inputId="detail-important"
-                          name="detailImportant"
-                          [(ngModel)]="detailImportant"
+                          [checked]="file.important ?? false"
                           [disabled]="busy()"
+                          (checkedChange)="updateFlag(file, 'important', $event)"
                         /><span>{{ 'important' | t }}</span>
                       </div></label
                     >
@@ -561,38 +660,32 @@ const parentEntryId = '__file-storage-parent__';
                       ><div hlmField orientation="horizontal">
                         <hlm-checkbox
                           inputId="detail-starred"
-                          name="detailStarred"
-                          [(ngModel)]="detailStarred"
+                          [checked]="file.starred ?? false"
                           [disabled]="busy()"
+                          (checkedChange)="updateFlag(file, 'starred', $event)"
                         /><span>{{ 'starred' | t }}</span>
                       </div></label
                     >
                   } @else {
                     <dl class="file-storage-metadata">
-                      <dt>{{ 'fileDescription' | t }}</dt>
-                      <dd>{{ file.description || ('fileNotSet' | t) }}</dd>
-                      <dt>{{ 'fileTags' | t }}</dt>
-                      <dd>{{ file.tags || ('fileNotSet' | t) }}</dd>
                       <dt>{{ 'important' | t }}</dt>
                       <dd>{{ (file.important ? 'fileYes' : 'fileNo') | t }}</dd>
                       <dt>{{ 'starred' | t }}</dt>
                       <dd>{{ (file.starred ? 'fileYes' : 'fileNo') | t }}</dd>
                     </dl>
                   }
-                  @if (!file.isFolder) {
-                    <button
-                      hlmBtn
-                      class="w-full"
-                      size="lg"
-                      type="button"
-                      [disabled]="busy()"
-                      (click)="download(file)"
-                    >
-                      <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{
-                        'download' | t
-                      }}
-                    </button>
-                  }
+                  <button
+                    hlmBtn
+                    class="w-full"
+                    size="lg"
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="download(file)"
+                  >
+                    <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{
+                      'download' | t
+                    }}
+                  </button>
                   @if (canShare(file)) {
                     <button
                       hlmBtn
@@ -647,25 +740,11 @@ const parentEntryId = '__file-storage-parent__';
                       }
                     </div>
                   }
-                </form>
+                </div>
               }
             }
           </div>
         </ng-scrollbar>
-        @if (detailMode() === 'fileDetails' && detailFile(); as file) {
-          @if (canEditDetails(file)) {
-            <hlm-drawer-footer>
-              <button
-                hlmBtn
-                type="submit"
-                form="file-details-form"
-                [disabled]="busy() || !detailName.trim() || !detailsDirty()"
-              >
-                {{ 'saveChanges' | t }}
-              </button>
-            </hlm-drawer-footer>
-          }
-        }
       </hlm-drawer-content>
     </hlm-drawer>`,
 })
@@ -674,14 +753,10 @@ export class FileStoragePage {
   readonly canManage = computed(() => this.auth.has('organisation.files.manage'));
   readonly Math = Math;
   readonly navigation = inject(FileStorageNavigation);
-  readonly actionMode = signal<'create' | 'move' | ''>('');
+  readonly actionMode = signal<'create' | 'rename' | 'move' | 'copy' | ''>('');
+  readonly bulkAction = signal(false);
   readonly detailMode = signal('');
   readonly detailFile = signal<FileItem | null>(null);
-  detailName = '';
-  detailDescription = '';
-  detailTags = '';
-  detailImportant = false;
-  detailStarred = false;
   readonly shares = signal<FileShareItem[]>([]);
   readonly peopleShares = computed(() => this.shares().filter((share) => !!share.recipient));
   readonly shareOpen = signal(false);
@@ -692,6 +767,57 @@ export class FileStoragePage {
   }
   get groupLabel() {
     return fileGroups.find((x) => x.id === this.group)?.label ?? 'files';
+  }
+  readonly selectedEntries = signal<ReadonlyMap<string, FileItem>>(new Map());
+  readonly selectedCount = computed(() => this.selectedEntries().size);
+  readonly selectedManageable = computed(
+    () =>
+      this.selectedCount() > 0 &&
+      [...this.selectedEntries().values()].every((file) => file.permission === 'owner'),
+  );
+  readonly visibleSelectableItems = computed(() =>
+    this.group === 'trash' ? [] : this.displayItems().filter((file) => !this.isParentEntry(file)),
+  );
+  readonly allVisibleSelected = computed(() => {
+    const items = this.visibleSelectableItems();
+    const selected = this.selectedEntries();
+    return items.length > 0 && items.every((file) => selected.has(file.id));
+  });
+  readonly isSelected = (file: FileItem) => this.selectedEntries().has(file.id);
+  readonly selectionLabel = (file: FileItem) => {
+    return `${this.i18n.text('selectItem')}: ${file.name}`;
+  };
+  selectionSummary() {
+    return this.i18n
+      .text(this.selectedCount() === 1 ? 'oneItemSelected' : 'itemsSelected')
+      .replace('{count}', this.i18n.number(this.selectedCount()));
+  }
+  setSelected(file: FileItem, selected: boolean) {
+    if (this.busy() || this.isParentEntry(file) || this.group === 'trash') return;
+    this.selectedEntries.update((current) => {
+      const next = new Map(current);
+      if (selected) next.set(file.id, file);
+      else next.delete(file.id);
+      return next;
+    });
+  }
+  toggleSelection(file: FileItem) {
+    this.setSelected(file, !this.isSelected(file));
+  }
+  activateGridEntry(event: MouseEvent, file: FileItem, selectable: boolean) {
+    if (event.detail === 0) this.openEntry(file);
+    else if (event.detail === 1 && selectable) this.toggleSelection(file);
+  }
+  selectVisible() {
+    if (this.busy()) return;
+    this.selectedEntries.update((current) => {
+      const next = new Map(current);
+      for (const file of this.visibleSelectableItems()) next.set(file.id, file);
+      return next;
+    });
+  }
+  clearSelection() {
+    if (!this.busy()) this.selectedEntries.set(new Map());
   }
   readonly entryLabel = (file: FileItem) =>
     this.i18n.text(
@@ -722,26 +848,10 @@ export class FileStoragePage {
     return this.actions(file, busy).filter(
       (action) =>
         action.label !== 'download' &&
-        action.label !== 'editMetadata' &&
+        action.label !== 'openFolder' &&
+        action.label !== 'fileDetails' &&
+        action.label !== 'folderDetails' &&
         action.label !== 'shareFile',
-    );
-  }
-  private setDetailDraft(file: FileItem) {
-    this.detailName = file.name;
-    this.detailDescription = file.description ?? '';
-    this.detailTags = file.tags ?? '';
-    this.detailImportant = file.important ?? false;
-    this.detailStarred = file.starred ?? false;
-  }
-  detailsDirty() {
-    const file = this.detailFile();
-    return (
-      !!file &&
-      (this.detailName !== file.name ||
-        this.detailDescription !== (file.description ?? '') ||
-        this.detailTags !== (file.tags ?? '') ||
-        this.detailImportant !== (file.important ?? false) ||
-        this.detailStarred !== (file.starred ?? false))
     );
   }
   inlineActions(file: FileItem, busy: boolean) {
@@ -777,7 +887,7 @@ export class FileStoragePage {
       ...(file.permission !== 'viewer'
         ? [
             {
-              label: 'editMetadata',
+              label: file.isFolder ? 'folderDetails' : 'fileDetails',
               disabled: busy,
               run: () => void this.detail(file, 'fileDetails'),
             },
@@ -785,6 +895,9 @@ export class FileStoragePage {
         : []),
       ...(file.permission === 'owner'
         ? [
+            ...(file.isFolder
+              ? [{ label: 'renameFolder', disabled: busy, run: () => this.openRename(file) }]
+              : []),
             { label: 'moveFile', disabled: busy, run: () => this.openMove(file) },
             { label: 'shareFile', disabled: busy, run: () => void this.openShare(file) },
             {
@@ -799,7 +912,13 @@ export class FileStoragePage {
   }
   moveFolders() {
     const folders = this.data.value()?.folders ?? [];
-    const excluded = new Set([this.detailFile()?.id]);
+    const excluded = new Set(
+      this.bulkAction()
+        ? [...this.selectedEntries().values()]
+            .filter((file) => file.isFolder)
+            .map((file) => file.id)
+        : [this.detailFile()?.id],
+    );
     let changed = true;
     while (changed) {
       changed = false;
@@ -814,20 +933,30 @@ export class FileStoragePage {
   pageMoveDestinations() {
     const source = this.detailFile();
     const folders = this.data.value()?.folders ?? [];
-    if (!source || this.actionMode() !== 'move') return [];
+    const mode = this.actionMode();
+    if (mode !== 'move' && mode !== 'copy') return [];
+    if (!this.bulkAction() && !source) return [];
+    const sources = this.bulkAction() ? [...this.selectedEntries().values()] : [source!];
+    const available = (destination: string | null) =>
+      mode === 'copy' ||
+      sources.every(
+        (file) => file.parentId === destination || canMoveEntry(file, destination, folders),
+      );
     return [
       {
         value: 'root',
         label: this.i18n.text('files'),
-        disabled: !canMoveEntry(source, null, folders),
+        disabled: !available(null),
       },
       ...this.moveFolders()
-        .filter((folder) => canMoveEntry(source, folder.id, folders))
+        .filter((folder) => available(folder.id))
         .map((folder) => ({ value: folder.id, label: this.folderPath(folder) })),
     ];
   }
   actionDescription() {
-    if (this.actionMode() === 'move') return this.detailFile()?.name ?? '';
+    if (this.actionMode() === 'move' || this.actionMode() === 'copy')
+      return this.bulkAction() ? this.selectionSummary() : (this.detailFile()?.name ?? '');
+    if (this.actionMode() === 'rename') return this.detailFile()?.name ?? '';
     return this.data.value()?.folder?.name ?? this.i18n.text('files');
   }
   folderPath(file: FileItem) {
@@ -845,7 +974,6 @@ export class FileStoragePage {
   }
   async detail(file: FileItem, mode: string) {
     this.detailFile.set(file);
-    this.setDetailDraft(file);
     this.shares.set([]);
     this.shareEmail = '';
     this.sharePermission = 'viewer';
@@ -869,45 +997,33 @@ export class FileStoragePage {
     this.sharePermission = 'viewer';
     this.shareOpen.set(true);
   }
-  async saveDetails() {
-    const file = this.detailFile();
-    if (this.busy() || !file || !this.canEditDetails(file) || !this.detailName.trim()) return;
+  async updateFlag(file: FileItem, flag: 'important' | 'starred', checked: boolean) {
+    if (this.busy() || !this.canEditDetails(file)) return;
+    const updated = { ...file, [flag]: checked };
+    this.detailFile.set(updated);
     this.busy.set(true);
     try {
       await this.api.post(`file-storage/${file.id}/metadata`, {
-        name: this.detailName,
-        description: this.detailDescription,
-        tags: this.detailTags,
-        important: this.detailImportant,
-        starred: this.detailStarred,
+        important: updated.important ?? false,
+        starred: updated.starred ?? false,
       });
-      const updated = {
-        ...file,
-        name: this.detailName,
-        description: this.detailDescription,
-        tags: this.detailTags,
-        important: this.detailImportant,
-        starred: this.detailStarred,
-      };
-      this.detailFile.set(updated);
-      this.setDetailDraft(updated);
       this.toast.success('fileStorageSaved');
       await this.load();
       this.navigation.refresh();
     } catch {
-      /* Central errors; keep the draft. */
+      this.detailFile.set(file);
     } finally {
       this.busy.set(false);
     }
   }
-  async mutate(path: string, body: unknown = {}) {
+  async mutate(path: string, body: unknown = {}, success = 'fileStorageSaved') {
     if (this.busy()) return;
     this.busy.set(true);
     try {
       await this.api.post(`file-storage/${path}`, body);
       await this.load();
       this.navigation.refresh();
-      this.toast.success('fileStorageSaved');
+      this.toast.success(success);
       return true;
     } catch {
       return false;
@@ -917,10 +1033,47 @@ export class FileStoragePage {
   }
   openMove(file: FileItem) {
     if (this.busy()) return;
+    this.bulkAction.set(false);
     this.detailFile.set(file);
     this.actionMode.set('move');
   }
+  openRename(file: FileItem) {
+    if (this.busy() || !file.isFolder || file.permission !== 'owner') return;
+    this.bulkAction.set(false);
+    this.detailFile.set(file);
+    this.actionMode.set('rename');
+  }
+  async renameFolder(name: string) {
+    const folder = this.detailFile();
+    if (!folder?.isFolder || folder.permission !== 'owner') return;
+    if (await this.mutate(`${folder.id}/rename`, { name }, 'folderRenamed')) {
+      const updated = { ...folder, name };
+      this.detailFile.set(updated);
+      this.cancelAction();
+    }
+  }
+  openBulkDestination(mode: 'move' | 'copy') {
+    if (this.busy() || !this.selectedManageable()) return;
+    this.bulkAction.set(true);
+    this.actionMode.set(mode);
+  }
+  cancelAction() {
+    this.actionMode.set('');
+    this.bulkAction.set(false);
+  }
   async move(destination: string) {
+    if (this.bulkAction()) {
+      if (
+        await this.mutate('batch/move', {
+          ids: [...this.selectedEntries().keys()],
+          parentId: destination === 'root' ? null : destination,
+        })
+      ) {
+        this.clearSelection();
+        this.cancelAction();
+      }
+      return;
+    }
     const file = this.detailFile();
     if (!file) return;
     if (
@@ -931,6 +1084,49 @@ export class FileStoragePage {
       this.actionMode.set('');
       this.detailMode.set('');
     }
+  }
+  async copySelected(destination: string) {
+    if (!this.bulkAction() || !this.selectedManageable()) return;
+    if (
+      await this.mutate('batch/copy', {
+        ids: [...this.selectedEntries().keys()],
+        parentId: destination === 'root' ? null : destination,
+      })
+    ) {
+      this.clearSelection();
+      this.cancelAction();
+    }
+  }
+  async downloadSelected() {
+    if (this.busy() || !this.selectedCount()) return;
+    this.busy.set(true);
+    try {
+      await this.api.downloadPost(
+        'file-storage/batch/download',
+        { ids: [...this.selectedEntries().keys()] },
+        'files.zip',
+      );
+    } catch {
+      /* Central errors. */
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async deleteSelected() {
+    if (
+      this.busy() ||
+      !this.selectedManageable() ||
+      !(await this.confirm.ask(
+        'deleteSelectedTitle',
+        'deleteSelectedHelp',
+        this.selectionSummary(),
+        true,
+        'delete',
+      ))
+    )
+      return;
+    if (await this.mutate('batch/delete', { ids: [...this.selectedEntries().keys()] }))
+      this.clearSelection();
   }
   async purge(file: FileItem) {
     if (await this.confirm.ask('deletePermanently', 'purgeFileHelp', file.name, true))
@@ -1103,6 +1299,23 @@ export class FileStoragePage {
     this.i18n.culture();
     const busy = this.busy();
     return column.columns([
+      column.display({
+        id: 'selection',
+        enableSorting: false,
+        header: this.i18n.text('selection'),
+        cell: ({ row }) =>
+          this.isParentEntry(row.original) || this.group === 'trash'
+            ? ''
+            : flexRenderComponent(FileStorageSelectionCheckbox, {
+                inputs: {
+                  inputId: `file-list-select-${row.original.id}`,
+                  label: this.selectionLabel(row.original),
+                  selected: this.isSelected(row.original),
+                  disabled: busy,
+                  changed: (selected: boolean) => this.setSelected(row.original, selected),
+                },
+              }),
+      }),
       column.accessor('name', {
         header: this.i18n.text('fileName'),
         cell: ({ row }) =>
@@ -1165,7 +1378,6 @@ export class FileStoragePage {
       this.uploading() ||
       this.actionMode() !== '' ||
       this.shareOpen() ||
-      (this.detailMode() === 'fileDetails' && this.detailsDirty()) ||
       (this.detailMode() !== '' && this.detailMode() !== 'fileDetails')
     );
   }
@@ -1181,6 +1393,7 @@ export class FileStoragePage {
   async load() {
     const folder = this.query.text('folder');
     const folderChanged = this.loadedFolder !== undefined && this.loadedFolder !== folder;
+    if (folderChanged) this.selectedEntries.set(new Map());
     const loaded = await this.data.load((signal) =>
       this.api.get(
         this.basePath,
@@ -1197,6 +1410,12 @@ export class FileStoragePage {
       ),
     );
     if (loaded) {
+      const visible = this.data.value()?.page.items ?? [];
+      this.selectedEntries.update((current) => {
+        const next = new Map(current);
+        for (const file of visible) if (next.has(file.id)) next.set(file.id, file);
+        return next;
+      });
       const detail = this.detailFile();
       if (detail) {
         const updated = [
@@ -1307,7 +1526,13 @@ export class FileStoragePage {
   async download(file: FileItem) {
     this.busy.set(true);
     try {
-      await this.api.download(`${this.basePath}/${file.id}/download`, file.name);
+      if (file.isFolder)
+        await this.api.downloadPost(
+          'file-storage/batch/download',
+          { ids: [file.id] },
+          `${file.name}.zip`,
+        );
+      else await this.api.download(`${this.basePath}/${file.id}/download`, file.name);
     } catch {
       /* Central errors. */
     } finally {
@@ -1320,7 +1545,9 @@ export class FileStoragePage {
     void this.query.set({ folder: id, search: null, page: 1 });
   }
   openCreateFolder() {
-    if (!this.busy()) this.actionMode.set('create');
+    if (this.busy()) return;
+    this.bulkAction.set(false);
+    this.actionMode.set('create');
   }
   async createFolder(name: string) {
     if (this.busy() || !name) return;
@@ -1357,6 +1584,11 @@ export class FileStoragePage {
     this.busy.set(true);
     try {
       await this.api.post(`file-storage/${file.id}/delete`);
+      this.selectedEntries.update((current) => {
+        const next = new Map(current);
+        next.delete(file.id);
+        return next;
+      });
       this.detailMode.set('');
       this.toast.success('fileDeleted');
       await this.load();

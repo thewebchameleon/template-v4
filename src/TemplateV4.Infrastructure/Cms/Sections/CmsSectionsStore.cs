@@ -34,8 +34,7 @@ public sealed class CmsSectionsStore(FrameworkDb db, IExecutionContext context, 
         return Update(request.Version, row => row.Draft = JsonSerializer.Serialize(request.Sections), "cms.sections_saved", ct);
     }
     private static bool ValidImage(string value) => value.Length <= 2048 &&
-        (value.StartsWith("/api/v1/website/images/", StringComparison.Ordinal) && Guid.TryParse(value["/api/v1/website/images/".Length..], out _) ||
-        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.UserInfo == "");
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.UserInfo == "";
     public Task<Result<CmsSections>> Publish(PublishCmsSections request, CancellationToken ct) => Update(request.Version, row => row.Published = row.Draft, "cms.sections_published", ct);
     private async Task<Result<CmsSections>> Update(Guid version, Action<CmsSectionsRow> apply, string action, CancellationToken ct)
     {

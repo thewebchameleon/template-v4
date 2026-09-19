@@ -11,7 +11,6 @@ public sealed class SupportCapabilityRestrictions(FrameworkDb db) : ICapabilityR
         var settings = await db.Set<SupportSettingsRow>().AsNoTracking().SingleOrDefaultAsync(ct);
         return new Dictionary<string, bool>
         {
-            [CapabilityIds.SupportEnquiries] = settings?.EnquiriesEnabled == true && !string.IsNullOrWhiteSpace(settings.NotificationEmail),
             [CapabilityIds.SupportTickets] = settings?.TicketsEnabled == true
         };
     }

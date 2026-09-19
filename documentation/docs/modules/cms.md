@@ -1,4 +1,4 @@
-# CMS: site-wide public blog
+# CMS publishing
 
 CMS is an optional foundation module (`cms`), enabled in the baseline and excluded
 from the minimal preset. Its only dependencies are Identity and Audit Recording.
@@ -27,26 +27,16 @@ Republishing updates the modification date. Duplicate slugs and stale versions
 return 409; conflicting editor text is retained so it can be copied before reload.
 All writes and metadata-only audit entries commit in the same transaction.
 
-## Public delivery
+## Published content
 
-The separate [Angular SSR website](../website.md) owns public `/blog` and
-`/blog/{slug}` routes. It reads only published content from the anonymous
-`/api/v1/website/cms/blog` API, with the website's explicit enable state and CMS
-capability enforced by the backend. Canonical origins come from saved website
-settings. `Web:PublicUrl` remains the admin origin for account links.
-
-The admin and API hosts no longer render the public blog; route the public hostname
-to the Website Node service. SSR provides canonical URLs, Open Graph, JSON-LD and
-indexable content without JavaScript. CMS-disabled sites use bundled sample posts;
-transient CMS errors can use previously fetched published content. Confirmed 404s
-remove stale content. See [ADR 0044](../adr/0044-public-angular-website.md), which
-supersedes ADR 0041's HTTP HTML delivery decision.
+CMS retains explicit published snapshots for articles and landing sections. The
+application no longer includes a public website or anonymous CMS routes. Named external
+applications can read published content through the scoped external API.
 
 **CMS → Landing page sections** edits hero, about, services, testimonials/
 commitment and contact sections. Text, image URLs and alternative text are stored
 in a draft snapshot and explicitly published. Empty sections use bundled copy.
-Images support HTTPS URLs and the website's public image upload facility; article
-Markdown retains its existing image restrictions.
+Section images support HTTPS URLs; article Markdown retains its existing image restrictions.
 
 Markdown uses Markdig's basic syntax: headings, lists, emphasis, quotes, explicit
 links and fenced code. Raw HTML is disabled. Explicit links allow HTTP(S), mailto,
@@ -57,8 +47,7 @@ uploads and embedded content are outside v1. Angular also sanitizes preview HTML
 ## Disablement and scope
 
 Administration → Modules disables editor access, preview and CMS public data
-routes while retaining all articles and their last published snapshots. The separate
-public website remains available using bundled content. Requests
+routes while retaining all articles and their last published snapshots. Requests
 already admitted can finish, following the normal module admission policy.
 Re-enabling restores published content. Deployment exclusion also blocks the module.
 There are no background jobs or accepted obligations to drain, and no destructive

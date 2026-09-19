@@ -1,9 +1,9 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { NgScrollbar } from 'ngx-scrollbar';
-import { WorkspaceUi } from './workspace';
+import { Confirmations, WorkspaceUi } from './workspace';
 import { CustomBrandColor } from '../api/models';
 import { DEFAULT_PRIMARY_COLOR, validPrimaryColor } from '../core/brand-palette';
 import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
@@ -11,7 +11,14 @@ import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
 @Component({
   selector: 'app-custom-color-editor',
   imports: [WorkspaceUi, HlmDrawerImports, HlmSliderImports, HlmScrollAreaImports, NgScrollbar],
-  template: ` <hlm-drawer direction="right" [state]="state()" (stateChanged)="stateChanged($event)">
+  template: ` <hlm-drawer
+    direction="right"
+    [state]="state()"
+    [disableClose]="dirty()"
+    [closeGuard]="confirmClose"
+    [closeLabel]="'close' | t"
+    (stateChanged)="stateChanged($event)"
+  >
     @if (item(); as color) {
       <button
         hlmBtn
@@ -164,6 +171,7 @@ import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
   `,
 })
 export class CustomColorEditor {
+  private readonly confirm = inject(Confirmations);
   readonly item = input<CustomBrandColor | null>(null);
   readonly initialColor = input(DEFAULT_PRIMARY_COLOR);
   readonly usedNames = input<string[]>([]);
@@ -190,6 +198,14 @@ export class CustomColorEditor {
   });
   readonly displayColor = computed(() => hsvToHex(this.hsv()));
   readonly hueColor = computed(() => hsvToHex({ h: this.hsv().h, s: 100, v: 100 }));
+  readonly dirty = computed(
+    () =>
+      this.state() === 'open' &&
+      (this.name() !== (this.item()?.name ?? '') ||
+        this.hex().toUpperCase() !== (this.item()?.color ?? this.initialColor()).toUpperCase()),
+  );
+  readonly confirmClose = () =>
+    !this.dirty() || this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges');
   readonly axes: { key: keyof HsvColor; label: string; max: number }[] = [
     { key: 'h', label: 'colorHue', max: 360 },
     { key: 's', label: 'colorSaturation', max: 100 },

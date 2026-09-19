@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Infrastructure.Customers;
 
 namespace TemplateV4.Infrastructure;
@@ -12,5 +13,6 @@ public static partial class Registration
         services.AddScoped<CustomerAccess>();
         services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());
         services.AddScoped<ICustomers, CustomerStore>();
+        services.AddScoped<IStorageUsageSource, OrganisationLogoStorageUsage>();
     }
 }

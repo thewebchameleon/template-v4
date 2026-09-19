@@ -188,7 +188,6 @@ export class FileStorageFileActions {
       } @else {
         <span class="block truncate font-medium">{{ file().name }}</span>
       }
-      <p class="workspace-meta truncate">{{ file().description || file().tags }}</p>
       @if (file().important) {
         <span hlmBadge variant="outline">{{ 'important' | t }}</span>
       }
@@ -204,7 +203,25 @@ export class FileStorageFileName {
   readonly interactive = input(true);
   readonly back = input(false);
 }
-export type FileStorageActionMode = 'create' | 'move' | '';
+@Component({
+  selector: 'app-file-storage-selection-checkbox',
+  imports: [WorkspaceUi],
+  template: `<hlm-checkbox
+      class="file-storage-selection-checkbox"
+      [inputId]="inputId()"
+      [checked]="selected()"
+      [disabled]="disabled()"
+      (checkedChange)="changed()($event)"
+    /><label class="sr-only" [for]="inputId()">{{ label() }}</label>`,
+})
+export class FileStorageSelectionCheckbox {
+  readonly inputId = input.required<string>();
+  readonly label = input.required<string>();
+  readonly selected = input(false);
+  readonly disabled = input(false);
+  readonly changed = input.required<(selected: boolean) => void>();
+}
+export type FileStorageActionMode = 'create' | 'rename' | 'move' | 'copy' | '';
 export interface FileStorageMoveDestination {
   value: string;
   label: string;
@@ -219,11 +236,22 @@ export interface FileStorageMoveDestination {
   >
     <hlm-alert-dialog-content *hlmAlertDialogPortal>
       <hlm-alert-dialog-header
-        ><h2 hlmAlertDialogTitle>{{ (mode() === 'create' ? 'createFolder' : 'moveFile') | t }}</h2>
+        ><h2 hlmAlertDialogTitle>
+          {{
+            (mode() === 'create'
+              ? 'createFolder'
+              : mode() === 'rename'
+                ? 'renameFolder'
+                : mode() === 'copy'
+                  ? 'copyItems'
+                  : 'moveFile')
+              | t
+          }}
+        </h2>
         <p hlmAlertDialogDescription>{{ description() }}</p></hlm-alert-dialog-header
       >
-      @if (mode() === 'create') {
-        <form class="grid gap-4" (ngSubmit)="submitCreate()">
+      @if (mode() === 'create' || mode() === 'rename') {
+        <form class="grid gap-4" (ngSubmit)="submitName()">
           <div hlmField>
             <label hlmFieldLabel [for]="fieldId() + '-name'">{{ 'entryName' | t }}</label
             ><input
@@ -241,11 +269,11 @@ export interface FileStorageMoveDestination {
               {{ 'cancel' | t }}
             </button>
             <button hlmAlertDialogAction type="submit" [disabled]="busy() || !folderName.trim()">
-              {{ 'createFolder' | t }}
+              {{ (mode() === 'rename' ? 'renameFolder' : 'createFolder') | t }}
             </button>
           </hlm-alert-dialog-footer>
         </form>
-      } @else if (mode() === 'move') {
+      } @else if (mode() === 'move' || mode() === 'copy') {
         <div hlmField>
           <label hlmFieldLabel [for]="fieldId() + '-destination'">{{
             'destinationFolder' | t
@@ -268,9 +296,9 @@ export interface FileStorageMoveDestination {
           <button
             hlmAlertDialogAction
             [disabled]="busy() || !selectedDestinationValid()"
-            (click)="move.emit(moveTarget)"
+            (click)="mode() === 'copy' ? copy.emit(moveTarget) : move.emit(moveTarget)"
           >
-            {{ 'moveFile' | t }}
+            {{ (mode() === 'copy' ? 'copyItems' : 'moveFile') | t }}
           </button>
         </hlm-alert-dialog-footer>
       }
@@ -285,7 +313,9 @@ export class FileStorageActionDialog {
   readonly fieldId = input('file-storage-action');
   readonly cancelled = output<void>();
   readonly createFolder = output<string>();
+  readonly renameFolder = output<string>();
   readonly move = output<string>();
+  readonly copy = output<string>();
   folderName = '';
   moveTarget = 'root';
   readonly destinationLabel = (value: string) =>
@@ -295,7 +325,7 @@ export class FileStorageActionDialog {
     effect(() => {
       const open = !!this.mode();
       if (open && !wasOpen) {
-        this.folderName = '';
+        this.folderName = this.mode() === 'rename' ? this.description() : '';
         this.moveTarget = 'root';
       }
       wasOpen = open;
@@ -304,9 +334,11 @@ export class FileStorageActionDialog {
   stateChanged(state: 'open' | 'closed') {
     if (state === 'closed' && this.mode() && !this.busy()) this.cancelled.emit();
   }
-  submitCreate() {
+  submitName() {
     const name = this.folderName.trim();
-    if (name && !this.busy()) this.createFolder.emit(name);
+    if (!name || this.busy()) return;
+    if (this.mode() === 'rename') this.renameFolder.emit(name);
+    else this.createFolder.emit(name);
   }
   selectedDestinationValid() {
     const selected = this.destinations().find(
@@ -468,12 +500,18 @@ export class FileStorageNavigation {
                         >
                           {{ 'createFolder' | t }}
                         </button>
+                        <button
+                          hlmDropdownMenuItem
+                          [disabled]="busy()"
+                          (triggered)="beginContextAction(node.file, 'rename')"
+                        >
+                          {{ 'renameFolder' | t }}
+                        </button>
                         <hlm-dropdown-menu-separator />
                         <button
                           hlmDropdownMenuItem
                           variant="destructive"
-                          [disabled]="busy() || !!node.file.itemCount"
-                          [attr.title]="node.file.itemCount ? ('emptyFolderRequired' | t) : null"
+                          [disabled]="busy()"
                           (triggered)="deleteFolder(node.file)"
                         >
                           {{ 'delete' | t }}
@@ -490,12 +528,13 @@ export class FileStorageNavigation {
     </nav>
     <app-file-storage-action-dialog
       fieldId="submenu-folder-action"
-      [mode]="creating() ? 'create' : moving() ? 'move' : ''"
+      [mode]="creating() ? 'create' : renaming() ? 'rename' : moving() ? 'move' : ''"
       [description]="target()?.name ?? ''"
       [destinations]="contextMoveDestinations()"
       [busy]="busy()"
       (cancelled)="closeContext()"
       (createFolder)="createFolder($event)"
+      (renameFolder)="renameFolder($event)"
       (move)="moveFromContext($event)"
     />`,
 })
@@ -515,6 +554,7 @@ export class FileStorageTree {
   readonly collapsed = signal(new Set<string>());
   readonly target = signal<FileItem | null>(null);
   readonly creating = signal(false);
+  readonly renaming = signal(false);
   readonly busy = signal(false);
   readonly moving = signal(false);
   readonly dragged = signal<FileItem | null>(null);
@@ -684,10 +724,11 @@ export class FileStorageTree {
     if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))
       this.rememberContextTrigger(event);
   }
-  beginContextAction(file: FileItem, action: 'create' | 'move') {
+  beginContextAction(file: FileItem, action: 'create' | 'rename' | 'move') {
     queueMicrotask(() => {
       this.target.set(file);
       this.creating.set(action === 'create');
+      this.renaming.set(action === 'rename');
       this.moving.set(action === 'move');
     });
   }
@@ -695,12 +736,14 @@ export class FileStorageTree {
     queueMicrotask(() => {
       this.target.set(null);
       this.creating.set(true);
+      this.renaming.set(false);
       this.moving.set(false);
     });
   }
   closeContext() {
     this.target.set(null);
     this.creating.set(false);
+    this.renaming.set(false);
     this.moving.set(false);
     this.contextTrigger?.focus();
   }
@@ -722,8 +765,23 @@ export class FileStorageTree {
       this.busy.set(false);
     }
   }
+  async renameFolder(name: string) {
+    const folder = this.target();
+    if (this.busy() || !folder || !name) return;
+    this.busy.set(true);
+    try {
+      await this.api.post(`file-storage/${folder.id}/rename`, { name });
+      this.notifications.success('folderRenamed');
+      this.closeContext();
+      this.navigation.refresh();
+    } catch {
+      /* Keep the draft for retry. */
+    } finally {
+      this.busy.set(false);
+    }
+  }
   async deleteFolder(folder: FileItem) {
-    if (this.busy() || !!folder.itemCount) return;
+    if (this.busy()) return;
     if (
       !(await this.confirm.ask(
         this.i18n.text('deleteFolderTitle').replace('{name}', folder.name),
@@ -744,7 +802,7 @@ export class FileStorageTree {
       this.notifications.success('fileDeleted');
       this.navigation.refresh();
     } catch {
-      /* Server validates emptiness again. */
+      /* Central errors. */
     } finally {
       this.busy.set(false);
     }

@@ -30,7 +30,6 @@ export type CapabilityId =
   | 'organisations'
   | 'payments'
   | 'support'
-  | 'support-enquiries'
   | 'support-tickets';
 export const runtimeConfigurableModuleIds = [
   'cms',

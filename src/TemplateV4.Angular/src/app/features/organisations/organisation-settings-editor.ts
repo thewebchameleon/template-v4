@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { HlmCountrySelect, HlmPhoneNumberInput } from '@spartan-ng/helm/country-controls';
 import {
   Component,
   ElementRef,
@@ -11,6 +12,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { CustomerInfo } from '../../api/models';
 import { Auth } from '../../core/auth';
+import { I18n } from '../../core/i18n';
 import { PlatformAppearanceTheme } from '../../core/platform-appearance';
 import { Runtime } from '../../core/runtime';
 import { WorkspaceApi } from '../../core/workspace-api';
@@ -21,11 +23,11 @@ import { TimeZoneSelect } from '../../shared/time-zone-select';
 type OrganisationDraft = Pick<
   CustomerInfo,
   'name' | 'websiteUrl' | 'contactEmail' | 'timeZone' | 'country' | 'version' | 'logoUrl'
->;
+> & { primaryContactNumber: string | null };
 
 @Component({
   selector: 'app-organisation-settings-editor',
-  imports: [WorkspaceUi, TimeZoneSelect],
+  imports: [WorkspaceUi, TimeZoneSelect, HlmCountrySelect, HlmPhoneNumberInput],
   styles: `
     .organisation-logo-dropzone {
       min-block-size: 16rem;
@@ -208,14 +210,47 @@ type OrganisationDraft = Pick<
                     <label hlmFieldLabel for="organisation-country">{{
                       'organisationCountry' | t
                     }}</label>
-                    <input
-                      hlmInput
-                      id="organisation-country"
+                    <hlm-country-select
                       name="country"
                       [(ngModel)]="draft.country"
-                      maxlength="100"
-                      autocomplete="country-name"
+                      #organisationCountry="ngModel"
+                      [disabled]="busy()"
+                      [locale]="i18n.culture()"
+                      inputId="organisation-country"
+                      [placeholder]="'searchCountries' | t"
+                      [emptyLabel]="'noCountriesFound' | t"
+                      [clearLabel]="'clear' | t"
                     />
+                    @if (
+                      organisationCountry.invalid && (organisationCountry.touched || form.submitted)
+                    ) {
+                      <hlm-field-error forceShow>{{ 'countryInvalid' | t }}</hlm-field-error>
+                    }
+                  </div>
+                  <div hlmField>
+                    <label hlmFieldLabel for="organisation-phone">{{
+                      'organisationPrimaryContactNumber' | t
+                    }}</label>
+                    <hlm-phone-number-input
+                      name="primaryContactNumber"
+                      [(ngModel)]="draft.primaryContactNumber"
+                      #primaryContactNumber="ngModel"
+                      [disabled]="busy()"
+                      [locale]="i18n.culture()"
+                      [defaultCountry]="draft.country"
+                      inputId="organisation-phone"
+                      countryInputId="organisation-phone-country"
+                      [countryAriaLabel]="'phoneCountryCode' | t"
+                      [countryPlaceholder]="'searchCountries' | t"
+                      [emptyLabel]="'noCountriesFound' | t"
+                      [clearLabel]="'clear' | t"
+                    />
+                    @if (
+                      primaryContactNumber.invalid &&
+                      (primaryContactNumber.touched || form.submitted)
+                    ) {
+                      <hlm-field-error forceShow>{{ 'phoneInvalid' | t }}</hlm-field-error>
+                    }
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel for="organisation-time-zone">{{
@@ -265,6 +300,7 @@ type OrganisationDraft = Pick<
   </app-page-state>`,
 })
 export class OrganisationSettingsEditor implements OnDestroy {
+  readonly i18n = inject(I18n);
   readonly state = new Resource<CustomerInfo>();
   readonly busy = signal(false);
   readonly busyLogo = signal(false);
@@ -329,6 +365,7 @@ export class OrganisationSettingsEditor implements OnDestroy {
           contactEmail: this.draft.contactEmail || null,
           timeZone: this.draft.timeZone,
           country: this.draft.country || null,
+          primaryContactNumber: this.draft.primaryContactNumber || null,
           version: this.draft.version,
         });
         this.acceptSavedDetails(saved);
@@ -423,6 +460,7 @@ export class OrganisationSettingsEditor implements OnDestroy {
       contactEmail: value.contactEmail,
       timeZone: value.timeZone,
       country: value.country,
+      primaryContactNumber: value.primaryContactNumber ?? null,
       version: value.version,
       logoUrl: value.logoUrl,
     };
@@ -438,6 +476,7 @@ export class OrganisationSettingsEditor implements OnDestroy {
       this.draft.contactEmail = value.contactEmail;
       this.draft.timeZone = value.timeZone;
       this.draft.country = value.country;
+      this.draft.primaryContactNumber = value.primaryContactNumber ?? null;
       this.draft.version = value.version;
       this.draft.logoUrl = value.logoUrl;
       this.baseline = this.textValue(this.draft);
@@ -480,6 +519,7 @@ export class OrganisationSettingsEditor implements OnDestroy {
       value.contactEmail ?? '',
       value.timeZone,
       value.country ?? '',
+      value.primaryContactNumber ?? '',
     ]);
   }
 }

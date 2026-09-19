@@ -41,10 +41,10 @@ test("signed license cannot be reused for another deployment or extended past 24
     verifyLicense({ ...signed, payload: payload + " " }, configuration, now),
   );
 });
-test("coordinated deployment requires immutable images and includes the website", () => {
+test("coordinated deployment requires immutable workload images", () => {
   const image = "registry.example/app@sha256:" + "a".repeat(64);
   const services = Object.fromEntries(
-    ["api", "worker", "web", "website", "migrator", "postgres"].map((name) => [
+    ["api", "worker", "web", "migrator", "postgres"].map((name) => [
       name,
       { image },
     ]),
@@ -53,7 +53,6 @@ test("coordinated deployment requires immutable images and includes the website"
     "api",
     "worker",
     "web",
-    "website",
   ]);
   services.worker.image = "registry.example/worker:latest";
   assert.throws(() => validateCompose({ services }));

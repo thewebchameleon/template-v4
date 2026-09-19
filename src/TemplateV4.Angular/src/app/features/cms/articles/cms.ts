@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import {
@@ -14,7 +14,7 @@ import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-t
 import { RecordIdentity } from '../../../shared/workspace-cells';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { I18n } from '../../../core/i18n';
-import { CmsArticleSummary, PageOfCmsArticleSummary, PublicWebsite } from '../../../api/models';
+import { CmsArticleSummary, PageOfCmsArticleSummary } from '../../../api/models';
 
 const column = createColumnHelper<DataTableFeatures, CmsArticleSummary>();
 @Component({
@@ -22,13 +22,8 @@ const column = createColumnHelper<DataTableFeatures, CmsArticleSummary>();
   imports: [WorkspaceUi, HlmSelectImports, DataTable],
   providers: [workspaceIcons],
   template: ` <app-page-header title="cms" description="cmsIntro">
-      @if (publicBlog(); as url) {
-        <a hlmBtn variant="outline" [href]="url" target="_blank" rel="noopener">{{
-          'cmsOpenBlog' | t
-        }}</a>
-      }
       <a hlmBtn routerLink="/cms/new">{{ 'cmsNew' | t }}</a>
-      <a hlmBtn variant="outline" routerLink="/cms/sections">{{ 'websiteSections' | t }}</a>
+      <a hlmBtn variant="outline" routerLink="/cms/sections">{{ 'cmsSections' | t }}</a>
     </app-page-header>
     <section hlmCard>
       <div hlmCardHeader>
@@ -93,7 +88,6 @@ const column = createColumnHelper<DataTableFeatures, CmsArticleSummary>();
     </section>`,
 })
 export class CmsPage {
-  readonly publicBlog = signal('');
   readonly api = inject(WorkspaceApi);
   readonly i18n = inject(I18n);
   readonly query = new ListQuery();
@@ -131,13 +125,6 @@ export class CmsPage {
     ]);
   });
   constructor() {
-    void this.api
-      .get<PublicWebsite>('/website')
-      .then((site) => {
-        if (site.enabled && site.details)
-          this.publicBlog.set(site.details.publicUrl.replace(/\/$/, '') + '/blog');
-      })
-      .catch(() => this.publicBlog.set(''));
     this.query.connect(() => {
       this.search.sync(this.query.text('search'));
       void this.load();

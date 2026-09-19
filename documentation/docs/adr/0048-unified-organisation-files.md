@@ -13,10 +13,17 @@ control. User shares remain references in Shared with me; they do not override
 organisation write permissions. Public links remain token-scoped read access.
 
 Organisation attachment operations and File Storage use the same stored-file table and
-object keys. A single quota includes every user's uploads, reservations and retained
-trash. Subscription entitlements take precedence over the configured organisation
-quota. Per-user quota overrides and administrative user-library endpoints no longer
-apply. Existing module and attachment capability gates remain authoritative.
+object keys. A single quota includes every persisted upload in the application: every
+user's library uploads, reservations and retained trash, Support ticket attachments,
+profile avatars and every retained organisation logo. Replacing an upload accounts for
+the size difference; deleting data releases its usage when the owning workflow deletes
+the stored bytes. All upload paths use the storage-owned quota admission contract in
+their existing transaction, under one organisation lock, so concurrent uploads in
+different modules cannot overbook the allowance. Future persisted upload workflows must
+use the same contract and contribute their bytes to the storage usage implementation.
+Subscription entitlements take precedence over the configured organisation quota.
+Per-user quota overrides and administrative user-library endpoints no longer apply.
+Existing module and attachment capability gates remain authoritative.
 
 ## Migration and lifecycle
 

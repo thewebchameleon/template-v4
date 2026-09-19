@@ -6,7 +6,13 @@ import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { NgScrollbar } from 'ngx-scrollbar';
-import { WorkspaceUi, Resource, protectUnload, workspaceIcons } from '../../shared/workspace';
+import {
+  WorkspaceUi,
+  Resource,
+  protectUnload,
+  workspaceIcons,
+  Confirmations,
+} from '../../shared/workspace';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Auth } from '../../core/auth';
 import { Runtime } from '../../core/runtime';
@@ -198,6 +204,9 @@ export class InvitationEditor {
     <hlm-drawer
       direction="right"
       [state]="open() ? 'open' : 'closed'"
+      [disableClose]="busy() || hasUnsavedChanges()"
+      [closeGuard]="confirmClose"
+      [closeLabel]="'close' | t"
       (stateChanged)="open.set($event === 'open')"
     >
       <button hlmBtn hlmDrawerTrigger><ng-icon name="lucidePlus" />{{ 'invite' | t }}</button>
@@ -219,6 +228,12 @@ export class InvitationDrawer {
   readonly invited = output<void>();
   readonly open = signal(false);
   private readonly editor = viewChild(InvitationEditor);
+  private readonly confirm = inject(Confirmations);
+  readonly busy = () => this.editor()?.busy() ?? false;
+  readonly confirmClose = () =>
+    !this.busy() &&
+    (!this.hasUnsavedChanges() ||
+      this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'));
 
   hasUnsavedChanges() {
     return this.open() && (this.editor()?.hasUnsavedChanges() ?? false);

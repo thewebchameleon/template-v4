@@ -11,6 +11,11 @@ public static class CustomerRules
     public static bool ValidEmail(string? value) => string.IsNullOrWhiteSpace(value) ||
         value.Trim().Length <= 254 && System.Net.Mail.MailAddress.TryCreate(value.Trim(), out var address) &&
         string.Equals(address.Address, value.Trim(), StringComparison.OrdinalIgnoreCase);
+    public static bool ValidCountry(string? value) => string.IsNullOrWhiteSpace(value) ||
+        value is { Length: 2 } && value.All(character => character is >= 'A' and <= 'Z');
+    public static bool ValidPhone(string? value) => string.IsNullOrWhiteSpace(value) ||
+        value.Trim().Length is >= 8 and <= 16 && value.Trim()[0] == '+' &&
+        value.Trim().Skip(1).All(char.IsAsciiDigit);
     public static bool ValidTimeZone(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 100 &&
         (value == "UTC" || TimeZoneInfo.GetSystemTimeZones().Any(zone =>
             (zone.HasIanaId ? zone.Id : TimeZoneInfo.TryConvertWindowsIdToIanaId(zone.Id, out var id) ? id : null) == value));

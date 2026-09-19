@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
-import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { WorkspaceUi, Resource, protectUnload } from '../../../shared/workspace';
+import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { WorkspaceUi, Resource, protectUnload, Confirmations } from '../../../shared/workspace';
 import { StorageUsageCard } from '../../../shared/storage-usage-card';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { FilePage } from '../../../api/models';
@@ -18,10 +17,15 @@ import { Notifications } from '../../notifications/notifications';
     StorageUsageCard,
     DemoExpiryEditor,
     FileStorageSettingsEditor,
-    HlmDialogImports,
   ],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="storageSettings" description="storageSettingsHelp" />
+    @if (quotaReached()) {
+      <div hlmAlert variant="destructive" class="mb-6">
+        <h2 hlmAlertTitle>{{ 'quotaReached' | t }}</h2>
+        <p hlmAlertDescription>{{ 'quotaReachedHelp' | t }}</p>
+      </div>
+    }
     <div class="workspace-columns">
       <div class="workspace-stack min-w-0">
         <section hlmCard>
@@ -46,8 +50,11 @@ import { Notifications } from '../../notifications/notifications';
         >
           <app-storage-usage-card
             [usage]="usage.value()"
-            [allowPurge]="auth.has('file-storage.purge')"
-            (purge)="openPurge()"
+            [includeTrash]="true"
+            [showQuotaAlert]="false"
+            [allowEmptyTrash]="auth.has('organisation.files.manage')"
+            [emptyTrashBusy]="emptyTrashBusy()"
+            (emptyTrash)="emptyTrash()"
           />
         </app-page-state>
         <section hlmCard>
@@ -58,93 +65,24 @@ import { Notifications } from '../../notifications/notifications';
           <div hlmCardContent><app-demo-expiry-editor (saved)="demoExpirySaved()" /></div>
         </section>
       </aside>
-    </div>
-    <hlm-dialog
-      [state]="purgeOpen() ? 'open' : 'closed'"
-      (stateChanged)="$event === 'closed' && closePurge()"
-    >
-      <hlm-dialog-content *hlmDialogPortal>
-        <hlm-dialog-header>
-          <h2 hlmDialogTitle>{{ 'purgeAllDataTitle' | t }}</h2>
-          <p hlmDialogDescription>{{ 'purgeAllDataWarning' | t }}</p>
-        </hlm-dialog-header>
-        <form class="grid gap-4" (ngSubmit)="purgeAllData()">
-          <div hlmField>
-            <label hlmFieldLabel for="purge-confirmation">{{ 'purgeConfirmationLabel' | t }}</label>
-            <input
-              hlmInput
-              id="purge-confirmation"
-              name="confirmation"
-              autocomplete="off"
-              [(ngModel)]="purgeConfirmation"
-              required
-              [disabled]="purgeBusy()"
-              aria-describedby="purge-confirmation-help"
-            />
-            <p hlmFieldDescription id="purge-confirmation-help">
-              {{ 'purgeConfirmationHelp' | t }} <strong>PURGE ALL DATA</strong>
-            </p>
-          </div>
-          <div hlmField>
-            <label hlmFieldLabel for="purge-password">{{ 'password' | t }}</label>
-            <input
-              hlmInput
-              id="purge-password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              [(ngModel)]="purgePassword"
-              required
-              maxlength="1024"
-              [disabled]="purgeBusy()"
-            />
-          </div>
-          @if (purgeFailed()) {
-            <div hlmAlert role="alert">
-              <p hlmAlertDescription>{{ 'purgeAllDataFailed' | t }}</p>
-            </div>
-          }
-          <hlm-dialog-footer>
-            <button
-              hlmBtn
-              variant="outline"
-              type="button"
-              [disabled]="purgeBusy()"
-              (click)="closePurge()"
-            >
-              {{ 'cancel' | t }}
-            </button>
-            <button
-              hlmBtn
-              variant="destructive"
-              type="submit"
-              [disabled]="purgeBusy() || purgeConfirmation !== 'PURGE ALL DATA' || !purgePassword"
-            >
-              {{ 'purgeAllData' | t }}
-            </button>
-          </hlm-dialog-footer>
-        </form>
-      </hlm-dialog-content>
-    </hlm-dialog>`,
+    </div>`,
 })
-export class StorageSettingsPage implements OnInit, OnDestroy {
+export class StorageSettingsPage implements OnInit {
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
   private readonly toast = inject(Notifications);
+  private readonly confirm = inject(Confirmations);
   readonly usage = new Resource<FilePage>();
   readonly editor = viewChild(FileQuotaEditor);
   readonly demoEditor = viewChild(DemoExpiryEditor);
   readonly settingsEditor = viewChild(FileStorageSettingsEditor);
-  readonly purgeOpen = signal(false);
-  readonly purgeBusy = signal(false);
-  readonly purgeFailed = signal(false);
-  purgeConfirmation = '';
-  purgePassword = '';
+  readonly emptyTrashBusy = signal(false);
+  readonly quotaReached = computed(() => {
+    const value = this.usage.value();
+    return value !== null && value.quotaBytes >= 0 && value.usedBytes >= value.quotaBytes;
+  });
   ngOnInit() {
     void this.loadUsage();
-  }
-  ngOnDestroy() {
-    this.purgePassword = '';
   }
   loadUsage() {
     return this.usage.load((signal) =>
@@ -158,46 +96,25 @@ export class StorageSettingsPage implements OnInit, OnDestroy {
   demoExpirySaved() {
     void this.editor()?.load(true);
   }
-  openPurge() {
-    this.purgeConfirmation = '';
-    this.purgePassword = '';
-    this.purgeFailed.set(false);
-    this.purgeOpen.set(true);
-  }
-  closePurge() {
-    if (this.purgeBusy()) return;
-    this.purgeConfirmation = '';
-    this.purgePassword = '';
-    this.purgeOpen.set(false);
-  }
-  async purgeAllData() {
-    if (this.purgeBusy() || this.purgeConfirmation !== 'PURGE ALL DATA' || !this.purgePassword)
+  async emptyTrash() {
+    if (this.emptyTrashBusy() || !(await this.confirm.ask('emptyTrash', 'purgeFileHelp', '', true)))
       return;
-    this.purgeBusy.set(true);
-    this.purgeFailed.set(false);
+    this.emptyTrashBusy.set(true);
     try {
-      await this.api.post('file-storage/admin/purge', {
-        confirmation: this.purgeConfirmation,
-        password: this.purgePassword,
-      });
-      this.purgeBusy.set(false);
-      this.closePurge();
-      this.toast.success('purgeAllDataRequested');
+      await this.api.post('file-storage/trash/empty');
+      this.toast.success('fileStorageSaved');
       await this.loadUsage();
     } catch {
-      this.purgePassword = '';
-      this.purgeFailed.set(true);
-      this.purgeBusy.set(false);
+      /* Central error UI. */
+    } finally {
+      this.emptyTrashBusy.set(false);
     }
   }
   hasUnsavedChanges() {
     return (
       (this.editor()?.hasUnsavedChanges() ?? false) ||
       (this.demoEditor()?.hasUnsavedChanges() ?? false) ||
-      (this.settingsEditor()?.hasUnsavedChanges() ?? false) ||
-      this.purgeOpen() ||
-      !!this.purgeConfirmation ||
-      !!this.purgePassword
+      (this.settingsEditor()?.hasUnsavedChanges() ?? false)
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {

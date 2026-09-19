@@ -100,6 +100,11 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
   fileOwner: ['File manager', 'Lêerbestuurder'],
   fileDetails: ['File details', 'Lêerbesonderhede'],
   folderDetails: ['Folder details', 'Vouerbesonderhede'],
+  manageFileDetails: ['Manage this file', 'Bestuur hierdie lêer'],
+  manageFolderDetails: ['Manage this folder', 'Bestuur hierdie vouer'],
+  details: ['Details', 'Besonderhede'],
+  renameFolder: ['Rename', 'Hernoem'],
+  folderRenamed: ['Folder renamed', 'Vouer hernoem'],
   parentFolder: ['Parent folder', 'Boonste vouer'],
   fileKind: ['Type', 'Tipe'],
   fileContentType: ['Content type', 'Inhoudtipe'],
@@ -109,6 +114,19 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
   fileAdminAccess: ['Administrator (read-only)', 'Administrateur (leesalleen)'],
   folderMoved: ['Folder moved', 'Vouer geskuif'],
   itemMoved: ['Item moved', 'Item geskuif'],
+  selection: ['Selection', 'Keuse'],
+  selectionActions: ['Selection actions', 'Keuse-aksies'],
+  selectItem: ['Select item', 'Kies item'],
+  selectAll: ['Select all', 'Kies alles'],
+  unselectAll: ['Unselect all', 'Ontkies alles'],
+  oneItemSelected: ['1 item selected', '1 item gekies'],
+  itemsSelected: ['{count} items selected', '{count} items gekies'],
+  copyItems: ['Copy', 'Kopieer'],
+  deleteSelectedTitle: ['Delete selected items?', 'Verwyder gekose items?'],
+  deleteSelectedHelp: [
+    'Move the selected files, folders, and all folder contents to Trash? Existing sharing will be revoked.',
+    'Skuif die gekose lêers, vouers en alle vouerinhoud na die asblik? Bestaande deling sal herroep word.',
+  ],
   uploadFiles: ['Upload files', 'Laai lêers op'],
   uploadFilesHelp: [
     'Upload one or more files into the current folder.',
@@ -142,10 +160,6 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
     'Files in Trash count toward your quota. Trash is retained for 30 days. Space is released after storage cleanup completes.',
     'L�ers in die asblik tel teen jou kwota. Die asblik word vir 30 dae behou. Spasie word na bergingsopruiming vrygestel.',
   ],
-  fileDescription: ['Description', 'Beskrywing'],
-  fileTags: ['Tags', 'Etikette'],
-  fileTagsHelp: ['Separate tags with commas.', 'Skei etikette met kommas.'],
-  editMetadata: ['Edit metadata', 'Wysig metadata'],
   moveFile: ['Move', 'Skuif'],
   destinationFolder: ['Destination folder', 'Bestemmingsvouer'],
   shareFile: ['Share', 'Deel'],
@@ -200,8 +214,8 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
   sharedRoot: ['Shared folder', 'Gedeelde vouer'],
   deleteFolderTitle: ['Delete the {name} folder?', 'Verwyder die {name}-vouer?'],
   deleteFolderHelp: [
-    'Move this empty folder to Trash?',
-    'Skuif hierdie vouer wat leeg is na die asblik?',
+    'Move this folder and all its contents to Trash? Existing sharing will be revoked.',
+    'Skuif hierdie vouer en al sy inhoud na die asblik? Bestaande deling sal herroep word.',
   ],
   deleteFileHelp: [
     'Move this file to Trash? Existing sharing will be revoked.',
@@ -224,10 +238,6 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
     'Blaai deur l�ers en vouers en bestuur metadata en deling.',
   ],
   folderActions: ['Folder actions', 'Voueraksies'],
-  emptyFolderRequired: [
-    'Delete all items in the folder before deleting the folder.',
-    'Vee alle items in die vouer uit voordat jy die vouer uitvee.',
-  ],
 };
 
 // Retained audit records keep their original action identifiers.

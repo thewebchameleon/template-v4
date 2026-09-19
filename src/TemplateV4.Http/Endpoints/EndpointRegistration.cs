@@ -20,14 +20,12 @@ public static class EndpointRegistration
             .MapCrmEndpoints()
             .MapCmsEndpoints()
             .MapApiKeyEndpoints()
-            .MapWebsiteAdministration()
             .MapContactAdministration()
             .MapInvoicingEndpoints()
             .MapOrganisationAttachmentEndpoints()
             .MapCustomerAndCommercialBillingEndpoints();
 
         app.MapCommercialBillingCallbacks();
-        app.MapPublicWebsite();
         app.MapExternalCmsEndpoints();
 
         app.MapGroup("/api/v1/bootstrap")

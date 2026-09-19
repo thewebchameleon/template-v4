@@ -1,38 +1,13 @@
-using System.Net.Mail;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using TemplateV4.Application.Contact;
-using TemplateV4.Application.Modules;
-using TemplateV4.Application.Support;
 using TemplateV4.Application.Users;
-using TemplateV4.Application.Website;
 using TemplateV4.Infrastructure.Persistence;
 using IExecutionContext = TemplateV4.SharedKernel.IExecutionContext;
 
 namespace TemplateV4.Infrastructure.Contact;
 
-public sealed class ContactStore(FrameworkDb db, IExecutionContext context, ICapabilities capabilities,
-    IWebsite website, ISupportModuleSettings settings, IEventOutbox outbox, IDataProtectionProvider protection, TimeProvider time, IConfiguration config) : IContact
+public sealed class ContactStore(FrameworkDb db, IExecutionContext context, TimeProvider time) : IContact
 {
-    public async Task<Result<Guid>> Submit(ContactSubmission request, CancellationToken ct)
-    {
-        if (!await capabilities.Enabled(CapabilityIds.SupportEnquiries, ct) || !(await website.Public(ct)).Enabled || await settings.NotificationRecipient(ct) is not { } recipient)
-            return Result<Guid>.Fail("resource.not_found", ErrorKind.NotFound);
-        if (!string.IsNullOrEmpty(request.Website)) return Result<Guid>.Success(Guid.NewGuid());
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 120 || request.Email is not { Length: > 0 and <= 254 } ||
-            !MailAddress.TryCreate(request.Email, out var address) || address.Address != request.Email ||
-            string.IsNullOrWhiteSpace(request.Message) || request.Message.Length > 5000)
-            return Result<Guid>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        var row = new ContactRow { Name = request.Name.Trim(), Email = request.Email, Message = request.Message.Trim(), CreatedAt = time.GetUtcNow() };
-        db.Add(row);
-        outbox.Add(new ContactNotification(protection.CreateProtector("TemplateV4.email.recipient.v1").Protect(recipient),
-            protection.CreateProtector("TemplateV4.email.action.v1").Protect(config["Web:PublicUrl"]?.TrimEnd('/') + "/administration/contact")));
-        db.Audit.Add(new() { SubjectId = row.Id, Action = "contact.received", At = time.GetUtcNow() });
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
-        return Result<Guid>.Success(row.Id);
-    }
     private bool Allowed => context.ActorId is not null && context.Permissions.Contains(Permissions.ContactManage);
     public async Task<Result<Page<ContactEnquiry>>> List(string search, int pageNumber, int pageSize, string sort, string direction, CancellationToken ct)
     {

@@ -4,7 +4,8 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Customers;
 
-public sealed partial class CustomerStore(FrameworkDb db, CustomerAccess access, TimeProvider time) : ICustomers
+public sealed partial class CustomerStore(FrameworkDb db, CustomerAccess access, TimeProvider time,
+    TemplateV4.Application.FileStorage.IStorageQuota storageQuota) : ICustomers
 {
     public Task Lock(CancellationToken ct) => access.Lock(ct);
     public Task<CustomerInfo?> Find(Guid actor, CancellationToken ct) => access.Find(actor, ct);

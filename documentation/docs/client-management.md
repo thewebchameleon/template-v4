@@ -118,8 +118,8 @@ A restart does not
 resume an in-memory schedule. Publication never schedules it automatically.
 
 The tool verifies central entitlement, the expected baseline, the published component
-combination and digest-pinned Compose services. All writers, including Website where
-present, stop before migrations. `DEPLOYMENT_BACKUP_USER` defaults to `postgres` and
+combination and digest-pinned Compose services. All writers stop before migrations.
+`DEPLOYMENT_BACKUP_USER` defaults to `postgres` and
 `DEPLOYMENT_DATABASE` to `templatev4`; provide a role with backup access through the
 container's established local authentication configuration. Backup failure stops the
 rollout. The archive directory is checked with `pg_restore --list` before migration;

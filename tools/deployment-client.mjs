@@ -94,7 +94,7 @@ export function validateCompose(compose) {
       "Coordinated API, Worker, Migrator and PostgreSQL services are required.",
     );
   const workloads = Object.keys(services).filter((name) =>
-    ["api", "worker", "web", "website"].includes(name),
+    ["api", "worker", "web"].includes(name),
   );
   for (const name of [...workloads, "migrator"]) {
     if (

@@ -119,6 +119,9 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
               <hlm-drawer
                 direction="right"
                 [state]="filtersOpen() ? 'open' : 'closed'"
+                [disableClose]="filtersChanged()"
+                [closeGuard]="confirmFiltersClose"
+                [closeLabel]="'close' | t"
                 (stateChanged)="setFiltersOpen($event === 'open')"
               >
                 <button hlmBtn hlmDrawerTrigger type="button" variant="outline">
@@ -208,7 +211,9 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
         direction="right"
         [state]="selectedUser() ? 'open' : 'closed'"
         [disableClose]="detailsBusy() || (detailEditor()?.hasUnsavedChanges() ?? false)"
-        (stateChanged)="$event === 'closed' && closeDetails()"
+        [closeGuard]="confirmDetailsClose"
+        [closeLabel]="'close' | t"
+        (stateChanged)="$event === 'closed' && finishCloseDetails()"
       >
         <hlm-drawer-content
           *hlmDrawerPortal
@@ -261,6 +266,13 @@ export class UsersPage {
   readonly detailEditor = viewChild(UserDetailPage);
   readonly detailsBusy = computed(() => this.detailEditor()?.busy() ?? false);
   private readonly confirm = inject(Confirmations);
+  readonly confirmFiltersClose = () =>
+    !this.filtersChanged() ||
+    this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges');
+  readonly confirmDetailsClose = () =>
+    !this.detailsBusy() &&
+    (!this.detailEditor()?.hasUnsavedChanges() ||
+      this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'));
   private readonly route = inject(ActivatedRoute);
   readonly detailsLabel = (user: UserDto) =>
     `${this.i18n.text('personDetails')}: ${user.username || user.displayName}`;
@@ -390,6 +402,9 @@ export class UsersPage {
       !(await this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
     )
       return;
+    this.finishCloseDetails();
+  }
+  finishCloseDetails() {
     this.selectedUser.set(null);
   }
   beforeUnload(event: BeforeUnloadEvent) {

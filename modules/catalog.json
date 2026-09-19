@@ -65,10 +65,6 @@
     "category": "foundation",
     "capabilities": [
       {
-        "id": "support-enquiries",
-        "requires": []
-      },
-      {
         "id": "support-tickets",
         "requires": []
       }

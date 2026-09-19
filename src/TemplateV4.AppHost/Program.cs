@@ -77,12 +77,4 @@ builder
     .WithEnvironment("DOCMD_HOST", "0.0.0.0")
     .WithHttpEndpoint(targetPort: 3000);
 
-builder
-    .AddJavaScriptApp("website", "../TemplateV4.Website")
-    .WithRunScript("start")
-    .WithEnvironment("WEBSITE_API_URL", api.GetEndpoint("https"))
-    .WithEnvironment("NODE_USE_SYSTEM_CA", "1")
-    .WithHttpEndpoint(port: 4300, targetPort: 4300, isProxied: false)
-    .WaitFor(api);
-
 builder.Build().Run();

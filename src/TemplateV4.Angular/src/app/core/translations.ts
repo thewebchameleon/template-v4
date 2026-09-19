@@ -5,18 +5,17 @@ import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
-  websiteSetup: ['Website setup', 'Webwerfopstelling'],
-  contact: ['Contact Form', 'Kontakvorm'],
-  contactInbox: ['Contact Form', 'Kontakvorm'],
-  'permission.contact.manage': ['Manage website enquiries', 'Bestuur webwerfnavrae'],
+  contact: ['Retained enquiries', 'Behoue navrae'],
+  contactInbox: ['Retained enquiries', 'Behoue navrae'],
+  'permission.contact.manage': ['Manage contact enquiries', 'Bestuur kontaknavrae'],
   cms: ['CMS', 'CMS'],
   cmsModuleHelp: [
     'Site-wide public blog with Markdown publishing.',
     'Webwerfwye openbare blog met Markdown-publikasie.',
   ],
   cmsModuleDisableHelp: [
-    'Blocks CMS editing and data access. The public website uses bundled content.',
-    'Blokkeer CMS-redigering en datatoegang. Die openbare webwerf gebruik gebundelde inhoud.',
+    'Blocks CMS editing and published-data access while retaining stored snapshots.',
+    'Blokkeer CMS-redigering en toegang tot gepubliseerde data terwyl gestoorde weergawes behoue bly.',
   ],
   enableCmsModule: ['Enable CMS', 'Aktiveer CMS'],
   'permission.cms.edit': ['Edit and publish blog articles', 'Redigeer en publiseer blogartikels'],
@@ -474,7 +473,8 @@ export const dictionary: Record<string, [string, string]> = {
   sessions: ['Your sessions', 'Jou sessies'],
   revoke: ['Revoke', 'Herroep'],
   account: ['Account', 'Rekening'],
-  confirm: ['Verify email', 'Bevestig e-pos'],
+  confirm: ['Confirm', 'Bevestig'],
+  verifyEmail: ['Verify email', 'Bevestig e-pos'],
   newPassword: ['Set password', 'Stel wagwoord'],
   required: ['Please complete all required fields.', 'Voltooi asseblief alle vereiste velde.'],
   status: ['Status', 'Status'],

@@ -21,54 +21,28 @@ import { Notifications } from '../../notifications/notifications';
     }
     @if (data.value()) {
       <form #form="ngForm" class="grid gap-4" (ngSubmit)="form.valid && save()">
-        @for (feature of toggles; track feature.key) {
-          <label
-            hlmFieldLabel
-            [for]="'support-' + feature.key"
-            class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-          >
-            <div hlmField orientation="horizontal">
-              <hlm-switch
-                [inputId]="'support-' + feature.key"
-                [name]="feature.key"
-                [(ngModel)]="draft[feature.key]"
-                [disabled]="busy() || data.refreshing() || data.refreshError()"
-                [aria-label]="feature.label | t"
-                [aria-describedby]="'support-' + feature.key + '-help'"
-              />
-              <div hlmFieldContent>
-                <span hlmFieldTitle>{{ feature.label | t }}</span>
-                <p hlmFieldDescription [id]="'support-' + feature.key + '-help'">
-                  {{ feature.help | t }}
-                </p>
-              </div>
+        <label
+          hlmFieldLabel
+          for="support-ticketsEnabled"
+          class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+        >
+          <div hlmField orientation="horizontal">
+            <hlm-switch
+              inputId="support-ticketsEnabled"
+              name="ticketsEnabled"
+              [(ngModel)]="draft.ticketsEnabled"
+              [disabled]="busy() || data.refreshing() || data.refreshError()"
+              [aria-label]="'supportTicketsFeature' | t"
+              aria-describedby="support-ticketsEnabled-help"
+            />
+            <div hlmFieldContent>
+              <span hlmFieldTitle>{{ 'supportTicketsFeature' | t }}</span>
+              <p hlmFieldDescription id="support-ticketsEnabled-help">
+                {{ 'supportTicketsFeatureHelp' | t }}
+              </p>
             </div>
-          </label>
-        }
-        <div hlmField>
-          <label hlmFieldLabel for="support-notification-email">{{
-            'supportNotificationEmail' | t
-          }}</label>
-          <input
-            hlmInput
-            id="support-notification-email"
-            name="notificationEmail"
-            type="email"
-            email
-            maxlength="254"
-            [(ngModel)]="draft.notificationEmail"
-            [disabled]="busy()"
-            aria-describedby="support-notification-help"
-          />
-          <p hlmFieldDescription id="support-notification-help">
-            {{ 'supportNotificationHelp' | t }}
-          </p>
-        </div>
-        @if (draft.enquiriesEnabled && !draft.notificationEmail) {
-          <div hlmAlert>
-            <p hlmAlertDescription>{{ 'supportRecipientRequired' | t }}</p>
           </div>
-        }
+        </label>
         <div class="flex flex-wrap gap-3">
           <button
             hlmBtn
@@ -90,19 +64,7 @@ export class SupportSettingsEditor {
   private readonly api = inject(WorkspaceApi);
   private readonly features = inject(Features);
   private readonly toast = inject(Notifications);
-  draft = {
-    enquiriesEnabled: false,
-    ticketsEnabled: false,
-    notificationEmail: '',
-  };
-  readonly toggles = [
-    {
-      key: 'enquiriesEnabled',
-      label: 'supportEnquiriesFeature',
-      help: 'supportEnquiriesFeatureHelp',
-    },
-    { key: 'ticketsEnabled', label: 'supportTicketsFeature', help: 'supportTicketsFeatureHelp' },
-  ] as const;
+  draft = { ticketsEnabled: false };
   constructor() {
     void this.load();
   }
@@ -120,9 +82,7 @@ export class SupportSettingsEditor {
     const saved = this.data.value();
     return (
       !!saved &&
-      (this.draft.enquiriesEnabled !== saved.enquiriesEnabled ||
-        this.draft.ticketsEnabled !== saved.ticketsEnabled ||
-        this.draft.notificationEmail !== saved.notificationEmail)
+      this.draft.ticketsEnabled !== saved.ticketsEnabled
     );
   }
   async save() {
@@ -135,9 +95,7 @@ export class SupportSettingsEditor {
         'administration/modules/support/settings',
         {
           ...settings,
-          enquiriesEnabled: this.draft.enquiriesEnabled,
           ticketsEnabled: this.draft.ticketsEnabled,
-          notificationEmail: this.draft.notificationEmail.trim(),
           version: settings.version,
         },
       );

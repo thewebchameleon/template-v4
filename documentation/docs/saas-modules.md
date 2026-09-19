@@ -16,7 +16,7 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | CRM | `Modules:crm` | New CRM work stops; records remain; disable Invoicing first |
 | Invoicing | `Modules:invoicing` | New issuance and navigation stop; retained documents, settlement and correction remain available through direct links |
 | Support | `Modules:support` | New enquiries and ticket access stop; retained enquiry inbox, accepted delivery and privacy erasure continue |
-| CMS | `Modules:cms` | Editing and published CMS APIs stop; the public website uses bundled content |
+| CMS | `Modules:cms` | Editing and published CMS APIs stop; stored snapshots remain |
 | Maintenance | Required | Operational enable/pause controls govern scheduling; accepted jobs drain |
 | Audit history | Required | Permission-filtered audit browsing remains active with audit recording |
 

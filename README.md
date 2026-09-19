@@ -39,7 +39,7 @@ Copy the names from
 [`deploy/compose-platforms/.env.example`](deploy/compose-platforms/.env.example)
 into your platform's environment settings. At minimum, provide:
 
-- the public website URL;
+- the public admin-portal URL;
 - a strong database password;
 - a production RSA signing key;
 - private S3-compatible file storage credentials; and

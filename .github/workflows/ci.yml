@@ -33,11 +33,6 @@ jobs:
       - run: npm ci --prefix src/TemplateV4.Angular
       - run: npm run format:check --prefix src/TemplateV4.Angular
       - run: npm run lint --prefix src/TemplateV4.Angular
-      - run: npm ci --prefix src/TemplateV4.Website
-      - run: npm run format:check --prefix src/TemplateV4.Website
-      - run: npm run lint --prefix src/TemplateV4.Website
-      - run: npm test --prefix src/TemplateV4.Website
-      - run: npm run build --prefix src/TemplateV4.Website
       - name: Test frontend without a browser
         run: >-
           node --test
@@ -150,11 +145,6 @@ jobs:
               name: web,
               project: Web,
               dockerfile: src/TemplateV4.Angular/Dockerfile,
-            }
-          - {
-              name: website,
-              project: Website,
-              dockerfile: src/TemplateV4.Website/Dockerfile,
             }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

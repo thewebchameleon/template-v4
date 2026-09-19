@@ -134,7 +134,7 @@ Enabled actions use a pointer cursor through the semantic control selectors in `
 - `src/TemplateV4.Angular/src/styles.css`: global Tailwind/Spartan setup, color-scheme behavior, radius, and base element styles. Tailwind's `--spacing`, `--text-*`, and font-weight theme variables are the shared scales; override them with `@theme` to customize every copied component consistently.
 - `src/TemplateV4.Angular/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and artwork placement. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
 - Shared `hlmCard` panels use a muted rounded shell with an inset semantic card surface. Tune the `--panel-*` variables in `src/TemplateV4.Angular/src/design-tokens.css`; keep structural card styling centralized in `libs/ui/card` so light, dark and responsive treatments remain consistent across feature pages.
-- Right-side drawers use the same panel tokens and card-in-card composition. Put scrollable drawer content on an element with `hlmDrawerBody`; pair it with the shared drawer header and optional footer so the body uses matching top and horizontal insets across themes and viewport sizes. The notification drawer keeps its list-specific inset and edge treatment.
+- Right-side drawers use the same panel tokens and card-in-card composition. Put scrollable drawer content on an element with `hlmDrawerBody`; pair it with the shared drawer header and optional footer so the body uses matching top and horizontal insets across themes and viewport sizes. The shared header supplies the prominent close control; editable drawers provide a close guard backed by the unsaved-changes alert and disable implicit dismissal while dirty. The notification drawer keeps its list-specific inset and edge treatment.
 - `src/TemplateV4.Angular/src/app/features/identity/authentication/auth-layout.ts`: shared two-column authentication composition and the locally rendered FeralUI artwork. Administrators choose from all 30 gradient types and 298 color presets with thumbnails and a live preview under Configuration; see [ADR 0022](adr/0022-platform-configuration.md). Change the `appBrand` translation for branding.
 - `src/TemplateV4.Angular/libs/ui`: owned Helm variants and component styles. Extend these for control-wide changes; prefer their variants and semantic tokens in page templates. Use `hlm-select` with its trigger, value, portaled content, and items for dropdowns, including form drawers and table filters. Preserve accessible labels and required-value validation.
 
@@ -146,6 +146,5 @@ Extend `core/administration.ts` and the guarded child routes together for new ad
 
 See [File Storage](file-storage.md) for folders, sharing, Trash and storage accounting.
 
-The [CMS module](modules/cms.md) adds landing sections, a public blog and delegated
-Markdown editors. The separate [public Angular SSR website](website.md) renders
-the business website and contact form, with bundled content when CMS is disabled.
+The [CMS module](modules/cms.md) adds published landing-section and article snapshots
+with delegated Markdown editors and scoped external API access.

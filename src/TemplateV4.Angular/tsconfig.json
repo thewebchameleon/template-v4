@@ -58,7 +58,9 @@
       "@spartan-ng/helm/context-menu": ["./libs/ui/context-menu/src/index.ts"],
       "@templatev4/foundation": ["./src/public-api.ts"],
       "tslib": ["./node_modules/tslib"],
-      "@spartan-ng/helm/scroll-area": ["./libs/ui/scroll-area/src/index.ts"]
+      "@spartan-ng/helm/scroll-area": ["./libs/ui/scroll-area/src/index.ts"],
+      "@spartan-ng/helm/autocomplete": ["./libs/ui/autocomplete/src/index.ts"],
+      "@spartan-ng/helm/country-controls": ["./libs/ui/country-controls/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

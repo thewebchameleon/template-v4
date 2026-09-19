@@ -300,10 +300,8 @@ with the recovery point and data-loss impact visible. Never delete/regenerate EF
 migration history. Only schema-compatible, preconfigured recovery actions may run
 automatically; do not silently restore a database after a failed update.
 
-The inspected upgrade helper currently stops Web/API/Worker. The working tree also
-contains ongoing public Website work. Implementation must inventory all release
-workloads and writers, including Website where present, rather than copying that fixed
-list. Do not modify or absorb the ongoing Website changes as part of this proposal.
+The upgrade helper must inventory all release workloads and writers rather than copying
+a fixed list.
 
 ## Frozen versions and foundation upgrades
 

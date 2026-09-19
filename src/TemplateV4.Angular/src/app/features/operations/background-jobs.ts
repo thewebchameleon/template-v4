@@ -131,6 +131,7 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
       direction="right"
       [state]="selectedId() ? 'open' : 'closed'"
       [disableClose]="busy()"
+      [closeLabel]="'close' | t"
       (stateChanged)="$event === 'closed' && closeDetails()"
     >
       <hlm-drawer-content

@@ -1,44 +1,38 @@
 # Support features
 
-Support contains independently configured **Contact Form** and **Tickets** (including attachments). Categories are a separate implementation slice that follows
-Tickets. Administrators manage the master module switch under **Administration → Modules**
-and feature toggles under **Administration → Support**. Feature settings remain editable while the
-runtime module is off. Support is included in baseline and excluded by minimal.
+Support contains **Tickets** (including attachments), Categories, and a read-only inbox
+for enquiries retained from the removed public website. Administrators manage the master
+module switch under **Administration → Modules** and the Tickets switch under
+**Administration → Support**. Settings remain editable while the runtime module is off.
+Support is included in baseline and excluded by minimal.
 
 | Feature | Capability | When disabled |
 | --- | --- | --- |
-| Contact Form | `support-enquiries` | Public submissions and inbox access stop; retained data and queued notifications remain |
 | Tickets | `support-tickets` | Ticket, category and attachment APIs stop; portal is hidden; data remains |
 
-Attachments are part of Tickets and have no separate switch. The Modules page owns activation. The Support settings page owns the feature switches and enquiry notification recipient. Category management remains in the ticket area.
+Attachments are part of Tickets and have no separate switch. The Modules page owns activation. The Support settings page owns the Tickets switch. Category management remains in the ticket area.
 All new work requires Support activation. Account erasure and accepted email delivery
 continue independently of these switches. Permission and requester checks remain
 mandatory. See [ADR 0049](adr/0049-support-features.md).
 
-## Contact Form
+## Retained enquiries
 
-Set the **Enquiry notification recipient** and enable **Contact Form** under
-**Modules submenu → Support**. The public Website must also be configured and enabled. Without a
-recipient, the public form remains unavailable even if the preference is on. The
-recipient is never exposed through public website discovery.
-
-The inbox is available while the Contact Form capability is enabled under
-**Support → Contact Form** (`/support/contact`) and is also linked from Support settings. Support tickets are available
+The read-only inbox remains available under **Support → Retained enquiries**
+(`/support/contact`) and is also linked from Support settings. It accepts no new public
+submissions. Support tickets are available
 under **Support → Support tickets** (`/support/tickets`). Delegate
 `contact.manage` for inbox access. Existing permission values and notification links
 are unchanged. New email links use the deployment's `Web:PublicUrl`.
 
-The Support rail icon follows the base `support` capability. The Contact Form destination remains
-visible while Support is active for users with `contact.manage`, including when new enquiries
-cannot yet be accepted. Its inbox shows a setup alert and retains access to existing enquiries until
-the feature is enabled and a notification recipient is configured. Other submenu destinations
+The Support rail icon follows the base `support` capability. The retained-enquiries destination remains
+visible while Support is active for users with `contact.manage`. Other submenu destinations
 continue to require their feature capability and permission checks, and selecting the rail icon
 navigates to the first available destination. When no Support destination is available, the icon
 remains visible without opening a submenu.
 
 Run DatabaseMigrator when upgrading. The forward `SupportFeatureSettings` migration
 preserves existing enquiries, copies the previous Contact runtime switch and website
-recipient into Support settings, and removes the old Contact module activation row.
+recipient into historical Support columns, and removes the old Contact module activation row.
 Tickets default to enabled, still subject to Support activation. The later forward
 `TicketAttachmentsFollowTickets` migration removes the separate attachment setting;
 existing attachments are untouched and follow Tickets.

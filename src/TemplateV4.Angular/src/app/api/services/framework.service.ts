@@ -31,7 +31,6 @@ import { BackgroundJobPage } from '../models/background-job-page';
 import { BackgroundJobSummary } from '../models/background-job-summary';
 import { beginMfaEnrollment } from '../fn/framework/begin-mfa-enrollment';
 import { BeginMfaEnrollment$Params } from '../fn/framework/begin-mfa-enrollment';
-import { BlogArticle } from '../models/blog-article';
 import { cancelCommercialSubscription } from '../fn/framework/cancel-commercial-subscription';
 import { CancelCommercialSubscription$Params } from '../fn/framework/cancel-commercial-subscription';
 import { changeCrmAttachment } from '../fn/framework/change-crm-attachment';
@@ -63,6 +62,8 @@ import { confirmEmailChange } from '../fn/framework/confirm-email-change';
 import { ConfirmEmailChange$Params } from '../fn/framework/confirm-email-change';
 import { confirmMfaEnrollment } from '../fn/framework/confirm-mfa-enrollment';
 import { ConfirmMfaEnrollment$Params } from '../fn/framework/confirm-mfa-enrollment';
+import { copyFileStorageBatch } from '../fn/framework/copy-file-storage-batch';
+import { CopyFileStorageBatch$Params } from '../fn/framework/copy-file-storage-batch';
 import { createActionItem } from '../fn/framework/create-action-item';
 import { CreateActionItem$Params } from '../fn/framework/create-action-item';
 import { createApiKey } from '../fn/framework/create-api-key';
@@ -87,6 +88,8 @@ import { CrmNote } from '../models/crm-note';
 import { CrmOverview } from '../models/crm-overview';
 import { CrmRecord } from '../models/crm-record';
 import { CustomerInfo } from '../models/customer-info';
+import { deleteFileStorageBatch } from '../fn/framework/delete-file-storage-batch';
+import { DeleteFileStorageBatch$Params } from '../fn/framework/delete-file-storage-batch';
 import { deleteFileStorageFile } from '../fn/framework/delete-file-storage-file';
 import { DeleteFileStorageFile$Params } from '../fn/framework/delete-file-storage-file';
 import { deleteOrganisationFile } from '../fn/framework/delete-organisation-file';
@@ -96,6 +99,8 @@ import { disableMfa } from '../fn/framework/disable-mfa';
 import { DisableMfa$Params } from '../fn/framework/disable-mfa';
 import { downloadCommercialPdf } from '../fn/framework/download-commercial-pdf';
 import { DownloadCommercialPdf$Params } from '../fn/framework/download-commercial-pdf';
+import { downloadFileStorageBatch } from '../fn/framework/download-file-storage-batch';
+import { DownloadFileStorageBatch$Params } from '../fn/framework/download-file-storage-batch';
 import { downloadFileStorageFile } from '../fn/framework/download-file-storage-file';
 import { DownloadFileStorageFile$Params } from '../fn/framework/download-file-storage-file';
 import { downloadOrganisationFile } from '../fn/framework/download-organisation-file';
@@ -183,16 +188,8 @@ import { getProfileOptions } from '../fn/framework/get-profile-options';
 import { GetProfileOptions$Params } from '../fn/framework/get-profile-options';
 import { getPublicAppearance } from '../fn/framework/get-public-appearance';
 import { GetPublicAppearance$Params } from '../fn/framework/get-public-appearance';
-import { getPublicBlog } from '../fn/framework/get-public-blog';
-import { GetPublicBlog$Params } from '../fn/framework/get-public-blog';
-import { getPublicBlogArticle } from '../fn/framework/get-public-blog-article';
-import { GetPublicBlogArticle$Params } from '../fn/framework/get-public-blog-article';
-import { getPublicCmsSections } from '../fn/framework/get-public-cms-sections';
-import { GetPublicCmsSections$Params } from '../fn/framework/get-public-cms-sections';
 import { getPublicFileStorageFile } from '../fn/framework/get-public-file-storage-file';
 import { GetPublicFileStorageFile$Params } from '../fn/framework/get-public-file-storage-file';
-import { getPublicWebsite } from '../fn/framework/get-public-website';
-import { GetPublicWebsite$Params } from '../fn/framework/get-public-website';
 import { getRegistrationSettings } from '../fn/framework/get-registration-settings';
 import { GetRegistrationSettings$Params } from '../fn/framework/get-registration-settings';
 import { getReleaseUpdates } from '../fn/framework/get-release-updates';
@@ -209,17 +206,12 @@ import { getUserAccess } from '../fn/framework/get-user-access';
 import { GetUserAccess$Params } from '../fn/framework/get-user-access';
 import { getWebPushStatus } from '../fn/framework/get-web-push-status';
 import { GetWebPushStatus$Params } from '../fn/framework/get-web-push-status';
-import { getWebsiteImage } from '../fn/framework/get-website-image';
-import { GetWebsiteImage$Params } from '../fn/framework/get-website-image';
-import { getWebsiteSettings } from '../fn/framework/get-website-settings';
-import { GetWebsiteSettings$Params } from '../fn/framework/get-website-settings';
 import { InvitationPage } from '../models/invitation-page';
 import { invoiceAcceptedQuotation } from '../fn/framework/invoice-accepted-quotation';
 import { InvoiceAcceptedQuotation$Params } from '../fn/framework/invoice-accepted-quotation';
 import { issueCommercialDocument } from '../fn/framework/issue-commercial-document';
 import { IssueCommercialDocument$Params } from '../fn/framework/issue-commercial-document';
 import { IssuerSettings } from '../models/issuer-settings';
-import { LandingSection } from '../models/landing-section';
 import { listActionItems } from '../fn/framework/list-action-items';
 import { ListActionItems$Params } from '../fn/framework/list-action-items';
 import { listApiKeys } from '../fn/framework/list-api-keys';
@@ -275,6 +267,8 @@ import { MarkContactEnquiryRead$Params } from '../fn/framework/mark-contact-enqu
 import { MarkdownPreview } from '../models/markdown-preview';
 import { MfaEnrollment } from '../models/mfa-enrollment';
 import { ModuleActivation } from '../models/module-activation';
+import { moveFileStorageBatch } from '../fn/framework/move-file-storage-batch';
+import { MoveFileStorageBatch$Params } from '../fn/framework/move-file-storage-batch';
 import { moveFileStorageFile } from '../fn/framework/move-file-storage-file';
 import { MoveFileStorageFile$Params } from '../fn/framework/move-file-storage-file';
 import { NotificationPage } from '../models/notification-page';
@@ -284,7 +278,6 @@ import { OrganisationAttachment } from '../models/organisation-attachment';
 import { OrganisationFilePage } from '../models/organisation-file-page';
 import { PageOfActionItemDto } from '../models/page-of-action-item-dto';
 import { PageOfAuditItem } from '../models/page-of-audit-item';
-import { PageOfBlogSummary } from '../models/page-of-blog-summary';
 import { PageOfCmsArticleSummary } from '../models/page-of-cms-article-summary';
 import { PageOfCommercialDocument } from '../models/page-of-commercial-document';
 import { PageOfContactEnquiry } from '../models/page-of-contact-enquiry';
@@ -314,7 +307,6 @@ import { PrivacyStatus } from '../models/privacy-status';
 import { ProfileOptions } from '../models/profile-options';
 import { ProfileResponse } from '../models/profile-response';
 import { PublicAppearance } from '../models/public-appearance';
-import { PublicWebsite } from '../models/public-website';
 import { publishCmsArticle } from '../fn/framework/publish-cms-article';
 import { PublishCmsArticle$Params } from '../fn/framework/publish-cms-article';
 import { publishCmsSections } from '../fn/framework/publish-cms-sections';
@@ -402,8 +394,6 @@ import { saveSupportModuleSettings } from '../fn/framework/save-support-module-s
 import { SaveSupportModuleSettings$Params } from '../fn/framework/save-support-module-settings';
 import { saveWebPushPreferences } from '../fn/framework/save-web-push-preferences';
 import { SaveWebPushPreferences$Params } from '../fn/framework/save-web-push-preferences';
-import { saveWebsiteSettings } from '../fn/framework/save-website-settings';
-import { SaveWebsiteSettings$Params } from '../fn/framework/save-website-settings';
 import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
@@ -416,16 +406,12 @@ import { setMfaPreference } from '../fn/framework/set-mfa-preference';
 import { SetMfaPreference$Params } from '../fn/framework/set-mfa-preference';
 import { setSecuritySettings } from '../fn/framework/set-security-settings';
 import { SetSecuritySettings$Params } from '../fn/framework/set-security-settings';
-import { setWebsiteEnabled } from '../fn/framework/set-website-enabled';
-import { SetWebsiteEnabled$Params } from '../fn/framework/set-website-enabled';
 import { shareFileStorageFile } from '../fn/framework/share-file-storage-file';
 import { ShareFileStorageFile$Params } from '../fn/framework/share-file-storage-file';
 import { startCommercialBillingTrial } from '../fn/framework/start-commercial-billing-trial';
 import { StartCommercialBillingTrial$Params } from '../fn/framework/start-commercial-billing-trial';
 import { storeCommercialPdf } from '../fn/framework/store-commercial-pdf';
 import { StoreCommercialPdf$Params } from '../fn/framework/store-commercial-pdf';
-import { submitContactEnquiry } from '../fn/framework/submit-contact-enquiry';
-import { SubmitContactEnquiry$Params } from '../fn/framework/submit-contact-enquiry';
 import { SupportModuleSettings } from '../models/support-module-settings';
 import { SupportOptions } from '../models/support-options';
 import { TicketDetail } from '../models/ticket-detail';
@@ -454,14 +440,10 @@ import { uploadOrganisationFile } from '../fn/framework/upload-organisation-file
 import { UploadOrganisationFile$Params } from '../fn/framework/upload-organisation-file';
 import { uploadOrganisationLogo } from '../fn/framework/upload-organisation-logo';
 import { UploadOrganisationLogo$Params } from '../fn/framework/upload-organisation-logo';
-import { uploadWebsiteImage } from '../fn/framework/upload-website-image';
-import { UploadWebsiteImage$Params } from '../fn/framework/upload-website-image';
 import { UserAccessDetail } from '../models/user-access-detail';
 import { UserDirectoryPage } from '../models/user-directory-page';
 import { UserDto } from '../models/user-dto';
 import { WebPushStatus } from '../models/web-push-status';
-import { WebsiteImage } from '../models/website-image';
-import { WebsiteSettings } from '../models/website-settings';
 import { withdrawAccountDeletion } from '../fn/framework/withdraw-account-deletion';
 import { WithdrawAccountDeletion$Params } from '../fn/framework/withdraw-account-deletion';
 
@@ -2037,33 +2019,6 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `uploadWebsiteImage()` */
-  static readonly UploadWebsiteImagePath = '/api/v1/auth/website-images';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `uploadWebsiteImage()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  uploadWebsiteImage$Response(params: UploadWebsiteImage$Params, context?: HttpContext): Observable<StrictHttpResponse<WebsiteImage>> {
-    const obs = uploadWebsiteImage(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `uploadWebsiteImage$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  uploadWebsiteImage(params: UploadWebsiteImage$Params, context?: HttpContext): Observable<WebsiteImage> {
-    const resp = this.uploadWebsiteImage$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<WebsiteImage>): WebsiteImage => r.body)
-    );
-  }
-
   /** Path part for operation `listBackgroundJobs()` */
   static readonly ListBackgroundJobsPath = '/api/v1/auth/administration/background-jobs';
 
@@ -2410,6 +2365,114 @@ export class FrameworkService extends BaseService {
    */
   moveFileStorageFile(params: MoveFileStorageFile$Params, context?: HttpContext): Observable<void> {
     const resp = this.moveFileStorageFile$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `deleteFileStorageBatch()` */
+  static readonly DeleteFileStorageBatchPath = '/api/v1/auth/file-storage/batch/delete';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `deleteFileStorageBatch()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  deleteFileStorageBatch$Response(params: DeleteFileStorageBatch$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = deleteFileStorageBatch(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `deleteFileStorageBatch$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  deleteFileStorageBatch(params: DeleteFileStorageBatch$Params, context?: HttpContext): Observable<void> {
+    const resp = this.deleteFileStorageBatch$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `moveFileStorageBatch()` */
+  static readonly MoveFileStorageBatchPath = '/api/v1/auth/file-storage/batch/move';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `moveFileStorageBatch()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  moveFileStorageBatch$Response(params: MoveFileStorageBatch$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = moveFileStorageBatch(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `moveFileStorageBatch$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  moveFileStorageBatch(params: MoveFileStorageBatch$Params, context?: HttpContext): Observable<void> {
+    const resp = this.moveFileStorageBatch$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `copyFileStorageBatch()` */
+  static readonly CopyFileStorageBatchPath = '/api/v1/auth/file-storage/batch/copy';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `copyFileStorageBatch()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  copyFileStorageBatch$Response(params: CopyFileStorageBatch$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = copyFileStorageBatch(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `copyFileStorageBatch$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  copyFileStorageBatch(params: CopyFileStorageBatch$Params, context?: HttpContext): Observable<void> {
+    const resp = this.copyFileStorageBatch$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadFileStorageBatch()` */
+  static readonly DownloadFileStorageBatchPath = '/api/v1/auth/file-storage/batch/download';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadFileStorageBatch()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  downloadFileStorageBatch$Response(params: DownloadFileStorageBatch$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadFileStorageBatch(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadFileStorageBatch$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  downloadFileStorageBatch(params: DownloadFileStorageBatch$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadFileStorageBatch$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -3900,87 +3963,6 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `getWebsiteSettings()` */
-  static readonly GetWebsiteSettingsPath = '/api/v1/auth/website';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getWebsiteSettings()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getWebsiteSettings$Response(params?: GetWebsiteSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<WebsiteSettings>> {
-    const obs = getWebsiteSettings(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getWebsiteSettings$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getWebsiteSettings(params?: GetWebsiteSettings$Params, context?: HttpContext): Observable<WebsiteSettings> {
-    const resp = this.getWebsiteSettings$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<WebsiteSettings>): WebsiteSettings => r.body)
-    );
-  }
-
-  /** Path part for operation `saveWebsiteSettings()` */
-  static readonly SaveWebsiteSettingsPath = '/api/v1/auth/website';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveWebsiteSettings()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveWebsiteSettings$Response(params: SaveWebsiteSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<WebsiteSettings>> {
-    const obs = saveWebsiteSettings(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveWebsiteSettings$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveWebsiteSettings(params: SaveWebsiteSettings$Params, context?: HttpContext): Observable<WebsiteSettings> {
-    const resp = this.saveWebsiteSettings$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<WebsiteSettings>): WebsiteSettings => r.body)
-    );
-  }
-
-  /** Path part for operation `setWebsiteEnabled()` */
-  static readonly SetWebsiteEnabledPath = '/api/v1/auth/website/enabled';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `setWebsiteEnabled()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  setWebsiteEnabled$Response(params: SetWebsiteEnabled$Params, context?: HttpContext): Observable<StrictHttpResponse<WebsiteSettings>> {
-    const obs = setWebsiteEnabled(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `setWebsiteEnabled$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  setWebsiteEnabled(params: SetWebsiteEnabled$Params, context?: HttpContext): Observable<WebsiteSettings> {
-    const resp = this.setWebsiteEnabled$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<WebsiteSettings>): WebsiteSettings => r.body)
-    );
-  }
-
   /** Path part for operation `listContactEnquiries()` */
   static readonly ListContactEnquiriesPath = '/api/v1/auth/contact';
 
@@ -4575,6 +4557,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getOrganisation()` */
+  static readonly GetOrganisationPath = '/api/v1/auth/organisation';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getOrganisation()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisation$Response(params?: GetOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
+    const obs = getOrganisation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getOrganisation$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getOrganisation(params?: GetOrganisation$Params, context?: HttpContext): Observable<CustomerInfo> {
+    const resp = this.getOrganisation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
+    );
+  }
+
   /** Path part for operation `getOrganisationUsers()` */
   static readonly GetOrganisationUsersPath = '/api/v1/auth/organisation/users';
 
@@ -4626,33 +4635,6 @@ export class FrameworkService extends BaseService {
     const resp = this.renameOrganisation$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `getOrganisation()` */
-  static readonly GetOrganisationPath = '/api/v1/auth/organisation';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getOrganisation()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getOrganisation$Response(params?: GetOrganisation$Params, context?: HttpContext): Observable<StrictHttpResponse<CustomerInfo>> {
-    const obs = getOrganisation(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getOrganisation$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getOrganisation(params?: GetOrganisation$Params, context?: HttpContext): Observable<CustomerInfo> {
-    const resp = this.getOrganisation$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CustomerInfo>): CustomerInfo => r.body)
     );
   }
 
@@ -5058,168 +5040,6 @@ export class FrameworkService extends BaseService {
     const resp = this.saveCommercialBillingSettings$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `getPublicWebsite()` */
-  static readonly GetPublicWebsitePath = '/api/v1/website';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getPublicWebsite()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicWebsite$Response(params?: GetPublicWebsite$Params, context?: HttpContext): Observable<StrictHttpResponse<PublicWebsite>> {
-    const obs = getPublicWebsite(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getPublicWebsite$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicWebsite(params?: GetPublicWebsite$Params, context?: HttpContext): Observable<PublicWebsite> {
-    const resp = this.getPublicWebsite$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PublicWebsite>): PublicWebsite => r.body)
-    );
-  }
-
-  /** Path part for operation `getWebsiteImage()` */
-  static readonly GetWebsiteImagePath = '/api/v1/website/images/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getWebsiteImage()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getWebsiteImage$Response(params: GetWebsiteImage$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = getWebsiteImage(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getWebsiteImage$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getWebsiteImage(params: GetWebsiteImage$Params, context?: HttpContext): Observable<void> {
-    const resp = this.getWebsiteImage$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `submitContactEnquiry()` */
-  static readonly SubmitContactEnquiryPath = '/api/v1/website/contact';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `submitContactEnquiry()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  submitContactEnquiry$Response(params: SubmitContactEnquiry$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
-    const obs = submitContactEnquiry(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `submitContactEnquiry$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  submitContactEnquiry(params: SubmitContactEnquiry$Params, context?: HttpContext): Observable<string> {
-    const resp = this.submitContactEnquiry$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<string>): string => r.body)
-    );
-  }
-
-  /** Path part for operation `getPublicCmsSections()` */
-  static readonly GetPublicCmsSectionsPath = '/api/v1/website/cms/sections';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getPublicCmsSections()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicCmsSections$Response(params?: GetPublicCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<LandingSection>>> {
-    const obs = getPublicCmsSections(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getPublicCmsSections$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicCmsSections(params?: GetPublicCmsSections$Params, context?: HttpContext): Observable<Array<LandingSection>> {
-    const resp = this.getPublicCmsSections$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<Array<LandingSection>>): Array<LandingSection> => r.body)
-    );
-  }
-
-  /** Path part for operation `getPublicBlog()` */
-  static readonly GetPublicBlogPath = '/api/v1/website/cms/blog';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getPublicBlog()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicBlog$Response(params?: GetPublicBlog$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfBlogSummary>> {
-    const obs = getPublicBlog(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getPublicBlog$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicBlog(params?: GetPublicBlog$Params, context?: HttpContext): Observable<PageOfBlogSummary> {
-    const resp = this.getPublicBlog$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfBlogSummary>): PageOfBlogSummary => r.body)
-    );
-  }
-
-  /** Path part for operation `getPublicBlogArticle()` */
-  static readonly GetPublicBlogArticlePath = '/api/v1/website/cms/blog/{slug}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getPublicBlogArticle()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicBlogArticle$Response(params: GetPublicBlogArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<BlogArticle>> {
-    const obs = getPublicBlogArticle(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getPublicBlogArticle$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getPublicBlogArticle(params: GetPublicBlogArticle$Params, context?: HttpContext): Observable<BlogArticle> {
-    const resp = this.getPublicBlogArticle$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<BlogArticle>): BlogArticle => r.body)
     );
   }
 

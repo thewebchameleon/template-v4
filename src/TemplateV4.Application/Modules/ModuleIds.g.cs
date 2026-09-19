@@ -36,6 +36,5 @@ public static class CapabilityIds
     public const string Organisations = "organisations";
     public const string Payments = "payments";
     public const string Support = "support";
-    public const string SupportEnquiries = "support-enquiries";
     public const string SupportTickets = "support-tickets";
 }

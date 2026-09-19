@@ -1,10 +1,13 @@
 export const adminDictionary: Record<string, [string, string]> = {
-  'permission.commercial-billing.read': ['View commercial billing', 'Bekyk kommersiële fakturering'],
+  commercialBilling: ['License', 'Lisensie'],
+  commercialBillingSettings: ['License settings', 'Lisensie-instellings'],
+  paymentMethods: ['Payment methods', 'Betaalmetodes'],
+  'permission.commercial-billing.read': ['View license', 'Bekyk lisensie'],
   'permissionHelp.commercial-billing.read': [
     'View subscription terms, invoices, receipts, entitlements and usage.',
     'Bekyk intekeningvoorwaardes, fakture, kwitansies, aansprake en gebruik.',
   ],
-  'permission.commercial-billing.manage': ['Manage commercial billing', 'Bestuur kommersiële fakturering'],
+  'permission.commercial-billing.manage': ['Manage license', 'Bestuur lisensie'],
   'permissionHelp.commercial-billing.manage': [
     'Start trials and checkout, and cancel the organisation subscription.',
     'Begin proeftydperke en betaling, en kanselleer die organisasie se intekening.',

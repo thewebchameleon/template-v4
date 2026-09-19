@@ -1367,8 +1367,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(254)");
 
                     b.Property<string>("Country")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
 
                     b.Property<Guid?>("LogoId")
                         .HasColumnType("uuid");
@@ -1377,6 +1377,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
+
+                    b.Property<string>("PrimaryContactNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("TimeZone")
                         .IsRequired()
@@ -1406,6 +1410,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Country = "ZA",
                             Name = "Organisation",
                             TimeZone = "Africa/Johannesburg",
                             Version = new Guid("d473876e-a68f-4d80-8c97-ccdddcddbcdb")

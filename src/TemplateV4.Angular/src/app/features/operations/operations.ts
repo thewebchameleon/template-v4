@@ -9,6 +9,7 @@ import {
   ListQuery,
   Confirmations,
   DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
 } from '../../shared/workspace';
 
 import { DataTable, DataTableFeatures, ServerSort } from '../../shared/data-table';
@@ -186,7 +187,10 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
                 (sortChange)="sort($event)" /><app-list-pager
                 [total]="data.value()?.total ?? 0"
                 [page]="query.page"
+                [size]="pageSize()"
+                [showSizePicker]="true"
                 (pageChange)="query.set({ page: $event })"
+                (sizeChange)="query.set({ size: $event, page: 1 })"
             /></app-page-state>
           </div>
         </section>
@@ -469,7 +473,7 @@ export class OperationsPage {
 
           pageNumber: this.query.page,
 
-          pageSize: DEFAULT_PAGE_SIZE,
+          pageSize: this.pageSize(),
 
           failedOnly: this.query.text('failed') === 'true',
 
@@ -481,7 +485,12 @@ export class OperationsPage {
       ),
     );
 
-    if (loaded) this.query.clamp(this.data.value()?.total);
+    if (loaded) this.query.clamp(this.data.value()?.total, this.pageSize());
+  }
+
+  pageSize() {
+    const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
   }
 
   sort(value: ServerSort) {
