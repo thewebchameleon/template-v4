@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.CommercialBilling;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Payments;
 using TemplateV4.Infrastructure.Persistence;
@@ -16,7 +17,8 @@ public sealed partial class CommercialBillingStore(
     IDataProtectionProvider protection,
     TimeProvider time,
     ICapabilities capabilities,
-    ICommercialEntitlements entitlements) : ICommercialBilling
+    ICommercialEntitlements entitlements,
+    IStorageCapacity storageCapacity) : ICommercialBilling
 {
     private readonly IDataProtector _providerReferences = protection.CreateProtector("TemplateV4.commercial-billing.provider-reference.v1");
     private static Guid CustomerId => TemplateV4.Application.Customers.Organisation.Id;

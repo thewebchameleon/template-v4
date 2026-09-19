@@ -2,10 +2,7 @@
   "Modules": {
     "cms": false,
     "file-storage": false,
-    "maintenance": false,
-    "audit-history": false,
     "support": false,
-    "organisations": false,
     "commercial-billing": false,
     "crm": false,
     "invoicing": false

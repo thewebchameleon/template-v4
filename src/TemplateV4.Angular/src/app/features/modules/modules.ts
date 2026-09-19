@@ -82,7 +82,11 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
                   <ng-icon name="lucideTriangleAlert" size="2.5rem" aria-hidden="true" />
                 </span>
               }
-              @if (enabled[module.id] !== false && settingsDestination(module.id); as destination) {
+              @if (
+                (enabled[module.id] !== false || module.id === 'file-storage') &&
+                  settingsDestination(module.id);
+                as destination
+              ) {
                 <a hlmBtn variant="outline" [routerLink]="destination.path">{{ 'settings' | t }}</a>
               }
               <hlm-switch

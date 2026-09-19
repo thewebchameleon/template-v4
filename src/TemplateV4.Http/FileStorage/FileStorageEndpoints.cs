@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using TemplateV4.Application.FileStorage;
-using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 using TemplateV4.Infrastructure.Storage;
@@ -13,7 +12,7 @@ public static class FileStorageEndpoints
 {
     public static RouteGroupBuilder MapFileStorageEndpoints(this RouteGroupBuilder group)
     {
-        var files = group.MapGroup("/file-storage").OwnedByModule(ModuleIds.FileStorage).RequireCapability(CapabilityIds.FileStorage);
+        var files = group.MapGroup("/file-storage");
         files.MapGet("", async (FileStorageService service, ClaimsPrincipal principal, CancellationToken ct, int pageNumber = 1, int pageSize = 10, string? search = null, string sort = "createdAt", string direction = "desc", Guid? parentId = null, string group = "file-storage") => (await service.List(EndpointSecurity.Actor(principal), pageNumber, pageSize, search, sort, direction, ct, parentId, group)).ToHttp())
             .RequireAuthorization().WithName("ListFileStorage").Produces<FilePage>();
         files.MapPost("/upload", async (string name, HttpContext context, FileStorageService service, CancellationToken ct, Guid? parentId = null) =>

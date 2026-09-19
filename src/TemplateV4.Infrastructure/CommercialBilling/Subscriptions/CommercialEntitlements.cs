@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.CommercialBilling;
+using TemplateV4.Application.FileStorage;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.CommercialBilling;
 
-public sealed class CommercialEntitlements(FrameworkDb db, TimeProvider time) : ICommercialEntitlements
+public sealed class CommercialEntitlements(FrameworkDb db, TimeProvider time, IStorageUsage storageUsage) : ICommercialEntitlements
 {
     private static Guid CustomerId => TemplateV4.Application.Customers.Organisation.Id;
 
@@ -12,13 +13,11 @@ public sealed class CommercialEntitlements(FrameworkDb db, TimeProvider time) : 
     {
         var entitlement = await db.Set<CommercialEntitlementRow>().AsNoTracking().SingleOrDefaultAsync(x => x.CustomerId == CustomerId && x.Code == code, ct);
         if (entitlement is not null && (entitlement.ValidUntil == null || entitlement.ValidUntil > time.GetUtcNow())) return entitlement.Limit;
-        return code == "storage-bytes"
-            ? await db.Set<CommercialPlanRow>().Where(x => x.Id == "free").Select(x => (long?)x.StorageBytes).SingleAsync(ct)
-            : null;
+        return null;
     }
 
     public async Task<long> Usage(string code, CancellationToken ct) => code == "storage-bytes"
-        ? await db.Files.Where(x => x.PurgedAt == null).SumAsync(x => x.Size, ct)
+        ? await storageUsage.Read(ct)
         : await db.Set<CommercialUsageCounterRow>().Where(x => x.CustomerId == CustomerId && x.Code == code && x.PeriodEnd > time.GetUtcNow()).SumAsync(x => x.Quantity, ct);
 
     public async Task<bool> CanConsume(string code, long quantity, CancellationToken ct)

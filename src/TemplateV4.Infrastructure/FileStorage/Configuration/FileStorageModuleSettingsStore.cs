@@ -6,7 +6,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
 
-public sealed class FileStorageModuleSettingsStore(FrameworkDb db, ModuleCatalog catalog, IExecutionContext context, TimeProvider time, TemplateV4.Infrastructure.Security.FreshPasswordVerifier passwords) : IFileStorageModuleSettings
+public sealed class FileStorageModuleSettingsStore(FrameworkDb db, IExecutionContext context, TimeProvider time, TemplateV4.Infrastructure.Security.FreshPasswordVerifier passwords) : IFileStorageModuleSettings
 {
     public async Task<FileStorageModuleSettings> Read(CancellationToken ct)
     {
@@ -16,8 +16,6 @@ public sealed class FileStorageModuleSettingsStore(FrameworkDb db, ModuleCatalog
     public async Task<Result<FileStorageModuleSettings>> Save(SaveFileStorageModuleSettings request, CancellationToken ct)
     {
         if (!await ModuleActivationStore.IsAdministrator(db, context, ct)) return Result<FileStorageModuleSettings>.Fail("authorization.denied", ErrorKind.Forbidden);
-        if (!catalog.Enabled(ModuleIds.FileStorage)) return Result<FileStorageModuleSettings>.Fail("modules.unavailable", ErrorKind.Conflict);
-        await ModuleActivationStore.LockRows(db, ct);
         var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM file_storage.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         if (settings.Version != request.Version) return Result<FileStorageModuleSettings>.Fail("modules.conflict", ErrorKind.Conflict);
         if (request.DemoMode && !settings.DemoMode && !await passwords.Verify(context.ActorId!.Value, "file-storage-demo", request.Password, ct))

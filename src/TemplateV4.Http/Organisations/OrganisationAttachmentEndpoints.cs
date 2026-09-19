@@ -12,7 +12,7 @@ public static class OrganisationAttachmentEndpoints
     {
         MapRecords(group, "crm", ModuleIds.Crm, CapabilityIds.CrmFiles, AttachmentRecordKind.Crm);
         MapRecords(group, "invoicing", ModuleIds.Invoicing, CapabilityIds.InvoicingFiles, AttachmentRecordKind.Invoicing);
-        var files = group.MapGroup("/organisation/attachments").RequireAuthorization().OwnedByModule(ModuleIds.Organisations).RequireCapability(CapabilityIds.OrganisationFiles);
+        var files = group.MapGroup("/organisation/attachments").RequireAuthorization();
         files.MapGet("", async (ClaimsPrincipal user, IOrganisationAttachments library, CancellationToken ct, int pageNumber = 1, int pageSize = 10) =>
             (await library.List(Guid.Parse(user.FindFirstValue("sub")!), pageNumber, pageSize, ct)).ToHttp()).WithName("ListOrganisationAttachments").Produces<Page<OrganisationAttachment>>();
         files.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, IOrganisationAttachments library, CancellationToken ct) =>

@@ -2,15 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using TemplateV4.Application.Modules;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.BackgroundWorker;
 
-public sealed class CronDispatchJob(FrameworkDb db, TimeProvider time, ModuleCatalog modules) : IJob
+public sealed class CronDispatchJob(FrameworkDb db, TimeProvider time) : IJob
 {
     public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken)
     {
-        if (!modules.Enabled(ModuleIds.Maintenance)) return;
         if (await db.BackgroundJobSchedules.AsNoTracking().AnyAsync(x => x.Id == "maintenance" && x.Paused, cancellationToken)) return;
         var id = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes($"maintenance:{context.ScheduledFireTimeUtc:O}"))[..16]);
         var now = time.GetUtcNow();

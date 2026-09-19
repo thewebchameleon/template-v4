@@ -55,7 +55,7 @@ Run the PostgreSQL suite, independent package consumer and isolated browser harn
 
 ## Delegated access upgrade
 
-Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. Files now require `Features:file-storage:Enabled=true`; disabling the capability does not delete data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
+Run the database migrator before exposing Roles & permissions. It grants `roles.manage` to the protected Administrator role and revokes affected sessions. This release reuses Identity role/claim tables and needs no new schema migration. The File Storage library requires `Features:file-storage:Enabled=true`; disabling the capability hides its navigation and authenticated pages without disabling core storage or deleting data. Existing profile/session/invitation URLs redirect, and emailed account-action fragment links remain valid. See [ADR 0016](adr/0016-administration-and-delegated-access.md).
 
 ## File Storage upgrade
 
@@ -64,6 +64,12 @@ Stop API and Worker, then apply the forward `RenameFileStorageModule` migration 
 Change deployment overrides from `Modules:my-files` to `Modules:file-storage` and feature overrides from `Features:my-files:*` to `Features:file-storage:*`, including user/environment overrides and environment variables. Update bookmarks to `/file-storage` and `/administration/file-storage`. Regenerate API clients for `/api/v1/auth/file-storage` and the typed settings endpoint `/api/v1/auth/administration/modules/file-storage/settings`. Old module API paths are retired. Organisation attachment paths and permissions remain unchanged.
 
 The rename migration supports rollback while preserving activation, settings and shares; coordinate the application version and configuration with any rollback. Older migrations retain their historical names, including `MyFilesLibrary` and `RenameMyFilesModule`.
+
+## Platform core boundary upgrade
+
+Remove deployment overrides that set `Modules:organisations`, `Modules:audit-history` or `Modules:maintenance` to `false` before starting updated workloads. These facilities are required core entries and startup validation rejects attempts to disable them. The minimal preset now keeps them enabled.
+
+The existing `file-storage` deployment/runtime state is preserved, but now controls only library navigation and authenticated library pages. Core storage APIs, administration, attachments, valid public links and cleanup continue while the library is disabled. No schema or data migration is required. Commercial Billing contributes only a valid purchased storage allowance; otherwise the configured core storage quota applies. See [ADR 0051](adr/0051-platform-core-and-file-library.md).
 
 ## Foundation 0.2.0
 

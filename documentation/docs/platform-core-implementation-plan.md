@@ -1,6 +1,6 @@
 # Platform core and optional modules: implementation plan
 
-Status: proposed implementation of the agreed audit recommendations. Planning only; this document does not authorize implementation or test execution.
+Status: implemented. Test execution remains subject to repository permission requirements.
 
 ## Agreed outcome
 

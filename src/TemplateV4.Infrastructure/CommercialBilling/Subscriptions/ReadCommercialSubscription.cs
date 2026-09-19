@@ -36,7 +36,7 @@ public sealed partial class CommercialBillingStore
         var now = time.GetUtcNow();
         var usagePeriod = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
         var storageUsage = new CommercialUsage("storage-bytes", await entitlements.Usage("storage-bytes", ct), usagePeriod, usagePeriod.AddMonths(1));
-        var currentStorage = await entitlements.Limit("storage-bytes", ct) ?? plans.Single(x => x.Plan.Id == "free").Plan.StorageBytes;
+        var currentStorage = await storageCapacity.Limit(ct);
         var entitlementsResult = entitlementRows.Where(x => x.ValidUntil == null || x.ValidUntil > time.GetUtcNow())
             .Select(x => new CommercialEntitlement(x.Code, x.Limit, x.ValidUntil)).ToList();
         if (entitlementsResult.All(x => x.Code != "storage-bytes")) entitlementsResult.Add(new("storage-bytes", currentStorage, null));

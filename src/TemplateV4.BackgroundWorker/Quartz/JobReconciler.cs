@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using TemplateV4.Application.Modules;
-using TemplateV4.Infrastructure.Modules;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.BackgroundWorker;
 
-public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory schedulers, IConfiguration configuration, ModuleCatalog modules, ILogger<JobReconciler> logger) : BackgroundService
+public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory schedulers, IConfiguration configuration, ILogger<JobReconciler> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
@@ -48,7 +46,7 @@ public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory
         if (schedule is null) return;
 
         var triggerKey = new TriggerKey("maintenance-daily");
-        var enabled = modules.Enabled(ModuleIds.Maintenance) && configuration.GetValue("Maintenance:Enabled", true) && !schedule.Paused;
+        var enabled = configuration.GetValue("Maintenance:Enabled", true) && !schedule.Paused;
         DateTimeOffset? nextRun = null;
         if (!enabled)
         {

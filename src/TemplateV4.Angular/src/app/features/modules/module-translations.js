@@ -11,25 +11,25 @@ export const moduleDictionary = {
         'Aktiveer of deaktiveer modules vir almal in hierdie toepassing.',
     ],
     'file-storageModuleHelp': [
-        'Organisation file libraries, folders and storage allowances.',
-        'Organisasielêerbiblioteke, vouers en bergingtoelaes.',
+        'File library navigation and pages. Core storage, attachments, links and administration stay available.',
+        'Lêerbiblioteeknavigasie en -bladsye. Kernberging, aanhegsels, skakels en administrasie bly beskikbaar.',
     ],
     enableFileStorageModule: ['Enable File Storage', 'Aktiveer Lêerberging'],
     'file-storageModuleDisableHelp': [
-        'Disabling File Storage hides file pages and storage settings and blocks file access for everyone. Existing files are preserved and become available again when enabled. Changes apply immediately.',
-        'Deaktivering versteek lêerbladsye en berginginstellings en blokkeer lêertoegang vir almal. Bestaande lêers word behou en is weer beskikbaar wanneer dit geaktiveer word. Veranderinge word onmiddellik toegepas.',
+        'Disabling File Storage hides the library navigation and pages. Core storage, attachments, public links and storage settings continue. Existing files are preserved. Changes apply immediately.',
+        'Deaktivering van Lêerberging versteek die biblioteeknavigasie en -bladsye. Kernberging, aanhegsels, openbare skakels en berginginstellings gaan voort. Bestaande lêers word behou. Veranderinge word onmiddellik toegepas.',
     ],
     moduleUnavailable: [
         'This module is unavailable in this deployment. Contact your deployment administrator to make it available.',
         'Hierdie module is nie in hierdie ontplooiing beskikbaar nie. Kontak jou ontplooiingsadministrateur om dit beskikbaar te maak.',
     ],
     fileStorageModuleEnabled: [
-        'File Storage enabled for this application.',
-        'Lêerberging is vir hierdie toepassing geaktiveer.',
+        'File Storage library enabled for this application.',
+        'Die Lêerbergingbiblioteek is vir hierdie toepassing geaktiveer.',
     ],
     fileStorageModuleDisabled: [
-        'File Storage disabled. Existing files are preserved.',
-        'Lêerberging is gedeaktiveer. Bestaande lêers word behou.',
+        'File Storage library disabled. Core storage and existing files remain available.',
+        'Die Lêerbergingbiblioteek is gedeaktiveer. Kernberging en bestaande lêers bly beskikbaar.',
     ],
 };
 

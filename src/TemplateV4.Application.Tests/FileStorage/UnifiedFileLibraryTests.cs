@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using TemplateV4.Application.CommercialBilling;
 using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
@@ -83,7 +82,7 @@ public sealed class UnifiedFileLibraryTests
         var storage = new MemoryStorage();
         storage.Objects[personal.ToString("N")] = [1, 2, 3];
         storage.Objects["00000000000000000000000000000001-" + shared.ToString("N")] = [4, 5, 6, 7];
-        var service = new FileStorageService(db, storage, TimeProvider.System, new NoSubscription());
+        var service = new FileStorageService(db, storage, TimeProvider.System, new ConfiguredCapacity(db));
         var page = await service.List(reader, 1, 10, null, "name", "asc", default);
         Assert.True(page.IsSuccess);
         Assert.Equal(3, page.Value!.Page.Total);
@@ -117,7 +116,7 @@ public sealed class UnifiedFileLibraryTests
         async Task<bool> Reserve(string name)
         {
             await using var concurrentDb = new FrameworkDb(options);
-            return (await new FileStorageService(concurrentDb, storage, TimeProvider.System, new NoSubscription())
+            return (await new FileStorageService(concurrentDb, storage, TimeProvider.System, new ConfiguredCapacity(concurrentDb))
                 .Upload(writer, name, new MemoryStream([1]), default)).IsSuccess;
         }
         var reservations = await Task.WhenAll(Reserve("First.txt"), Reserve("Second.txt"));
@@ -161,12 +160,9 @@ public sealed class UnifiedFileLibraryTests
         Assert.DoesNotContain("top-secret", request.ToString(), StringComparison.Ordinal);
     }
 
-    private sealed class NoSubscription : ICommercialEntitlements
+    private sealed class ConfiguredCapacity(FrameworkDb db) : IStorageCapacity
     {
-        public Task<long?> Limit(string code, CancellationToken ct) => Task.FromResult<long?>(null);
-        public Task<long> Usage(string code, CancellationToken ct) => Task.FromResult(0L);
-        public Task<bool> CanConsume(string code, long quantity, CancellationToken ct) => Task.FromResult(true);
-        public Task RecordUsage(string code, long quantity, DateTimeOffset at, CancellationToken ct) => Task.CompletedTask;
+        public Task<long> Limit(CancellationToken ct) => db.FileStorageSettings.Select(x => x.DefaultQuotaBytes).SingleAsync(ct);
     }
 
     private sealed class TestExecutionContext(Guid actor) : IExecutionContext

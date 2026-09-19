@@ -1,10 +1,7 @@
 {
   "Modules": {
     "file-storage": true,
-    "maintenance": true,
-    "audit-history": true,
     "support": true,
-    "organisations": true,
     "commercial-billing": true,
     "crm": true,
     "invoicing": true

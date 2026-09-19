@@ -1,6 +1,6 @@
 # File Storage
 
-File Storage is the shared organisation library at `/file-storage`, with an expandable folder submenu and the shared server-paginated datatable. The module identifier and feature flag are `file-storage`. Organisation files retain their own routes and names; they still depend on this storage capability. See [the upgrade instructions](upgrades.md#file-storage-upgrade) before updating an existing deployment.
+File Storage is the selectable shared organisation library at `/file-storage`, with an expandable folder submenu and the shared server-paginated datatable. The module identifier and feature flag are `file-storage`; they control the library navigation and authenticated library pages only. Core storage APIs, administration, attachments, valid public links, quotas and retention remain available when the library is disabled. The stable `organisation-files` capability is core and does not depend on the library switch. See [the upgrade instructions](upgrades.md#file-storage-upgrade) before updating an existing deployment.
 
 ## Navigation and metadata
 
@@ -20,7 +20,7 @@ The account-wide segmented bar groups current bytes into Images, Documents/PDFs,
 
 Reservations, current files and retained deleted content count exactly once. PostgreSQL owner locks serialize quota reservations, file movement, recursive deletion/restoration and purge work. Interrupted uploads remain reserved until cleanup reconciles them.
 
-Folders can be deleted only after all live direct files and subfolders have been deleted, including unfinished uploads. Trashed contents do not block deleting the empty folder. Deletion revokes shares and records a deletion batch. Restore restores that batch while preserving entries trashed earlier; if the original parent is unavailable, the restored root moves to the library root. Trash defaults to a 30-day retention period. Delete permanently and Empty Trash make entries unavailable for restoration immediately and request Worker cleanup. Storage is released only after object deletion succeeds. File metadata is also covered by retention and privacy erasure; cleanup continues when the module is disabled.
+Folders can be deleted only after all live direct files and subfolders have been deleted, including unfinished uploads. Trashed contents do not block deleting the empty folder. Deletion revokes shares and records a deletion batch. Restore restores that batch while preserving entries trashed earlier; if the original parent is unavailable, the restored root moves to the library root. Trash defaults to a 30-day retention period. Delete permanently and Empty Trash make entries unavailable for restoration immediately and request Worker cleanup. Storage is released only after object deletion succeeds. File metadata is also covered by retention and privacy erasure; cleanup continues when the library is disabled.
 
 ## Extension and validation
 

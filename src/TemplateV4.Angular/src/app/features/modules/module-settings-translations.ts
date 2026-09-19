@@ -68,13 +68,13 @@ export const moduleSettingsDictionary: Record<string, [string, string]> = {
   ],
   supportFeaturesSaved: ['Support features saved.', 'Ondersteuningskenmerke gestoor.'],
   demoActiveWarning: [
-    'Demo expiry is active for the organisation’s files, even while Files is disabled. Turn it off to stop scheduling further demo deletions. Already scheduled deletions cannot be undone.',
-    'Demo-verval is aktief vir die organisasie se lêers, selfs wanneer Files gedeaktiveer is. Skakel dit af om verdere demo-verwyderings te stop. Reeds geskeduleerde verwyderings kan nie ongedaan gemaak word nie.',
+    'Demo expiry is active for the organisation’s files, even while the File Storage library is disabled. Turn it off to stop scheduling further demo deletions. Already scheduled deletions cannot be undone.',
+    'Demo-verval is aktief vir die organisasie se lêers, selfs wanneer die Lêerbergingbiblioteek gedeaktiveer is. Skakel dit af om verdere demo-verwyderings te stop. Reeds geskeduleerde verwyderings kan nie ongedaan gemaak word nie.',
   ],
   demoConfirmTitle: ['Enable demo mode', 'Aktiveer demomodus'],
   demoConfirmWarning: [
-    'This starts expiry for all existing and new organisation files and empty folders. Expired items are permanently deleted. Cleanup continues when Files is disabled. Disabling demo mode later cannot restore deleted items or cancel deletions already scheduled.',
-    'Dit begin verval vir alle bestaande en nuwe organisasielêers en leë vouers. Verstreke items word permanent verwyder. Opruiming gaan voort wanneer Files gedeaktiveer is. Latere deaktivering van demomodus herstel nie verwyderde items of kanselleer reeds geskeduleerde verwyderings nie.',
+    'This starts expiry for all existing and new organisation files and empty folders. Expired items are permanently deleted. Cleanup continues when the File Storage library is disabled. Disabling demo mode later cannot restore deleted items or cancel deletions already scheduled.',
+    'Dit begin verval vir alle bestaande en nuwe organisasielêers en leë vouers. Verstreke items word permanent verwyder. Opruiming gaan voort wanneer die Lêerbergingbiblioteek gedeaktiveer is. Latere deaktivering van demomodus herstel nie verwyderde items of kanselleer reeds geskeduleerde verwyderings nie.',
   ],
   demoPasswordHelp: [
     'Enter your administrator password to confirm. Verification is limited to five attempts per 15 minutes.',

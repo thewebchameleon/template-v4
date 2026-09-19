@@ -42,16 +42,15 @@
   },
   {
     "id": "maintenance",
-    "required": false,
+    "required": true,
     "enabledByDefault": true,
     "dependencies": ["delivery"],
     "runtimeConfigurable": false,
-    "featureFlag": "maintenance",
     "category": "core"
   },
   {
     "id": "audit-history",
-    "required": false,
+    "required": true,
     "enabledByDefault": true,
     "dependencies": ["audit-recording"],
     "runtimeConfigurable": false,
@@ -77,14 +76,14 @@
   },
   {
     "id": "organisations",
-    "required": false,
+    "required": true,
     "enabledByDefault": true,
     "dependencies": ["identity", "audit-recording", "delivery"],
     "runtimeConfigurable": false,
     "capabilities": [
       {
         "id": "organisation-files",
-        "requires": ["file-storage"]
+        "requires": []
       }
     ],
     "category": "core"
