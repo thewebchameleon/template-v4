@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
+using TemplateV4.Application.CommercialBilling;
+using TemplateV4.Application.Customers;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
@@ -9,11 +11,13 @@ using TemplateV4.Infrastructure.Security;
 
 namespace TemplateV4.Infrastructure.Users;
 
-public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IExecutionContext context, TimeProvider time, IEventOutbox outbox, AccessManagementService access) : IUserDirectory
+public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IExecutionContext context, TimeProvider time, IEventOutbox outbox,
+    AccessManagementService access, ICustomerAccess customers, ICommercialEntitlements entitlements) : IUserDirectory
 {
     public async Task<Result<UserDto>> Create(CreateUser command, CancellationToken cancellationToken)
     {
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", cancellationToken);
+        await customers.Lock(cancellationToken);
         if (!await CanAssign(command.Roles, cancellationToken)) return Result<UserDto>.Fail("role.delegation_denied", ErrorKind.Forbidden);
         var identity = new AppUser { Id = Guid.NewGuid(), UserName = command.Email, Email = command.Email, InvitationSentAt = time.GetUtcNow(), InvitationExpiresAt = time.GetUtcNow().AddHours(2) };
         var created = await users.CreateAsync(identity);
@@ -70,6 +74,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
     {
         // Serializes administrator changes, preventing concurrent removal of the last administrator.
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", cancellationToken);
+        await customers.Lock(cancellationToken);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({command.Id.ToString()}, 0))", cancellationToken);
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == command.Id, cancellationToken);
         var identity = await users.FindByIdAsync(command.Id.ToString());
@@ -86,6 +91,9 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         }
         if (!await CanAssign(command.Roles.Concat(oldRoles).Distinct().ToArray(), cancellationToken)) return Result<UserDto>.Fail("role.delegation_denied", ErrorKind.Forbidden);
         var wasDisabled = profile.Disabled;
+        if (wasDisabled && !command.Disabled && identity.EmailConfirmed && identity.RegistrationState is "Approved" or "NotRequired" &&
+            !await entitlements.CanActivateUser(identity.Id, cancellationToken))
+            return Result<UserDto>.Fail("commercial-billing.seats", ErrorKind.Conflict);
         profile.SetDisabled(command.Disabled);
         if (!(await users.RemoveFromRolesAsync(identity, oldRoles.Except(command.Roles))).Succeeded || !(await users.AddToRolesAsync(identity, command.Roles.Except(oldRoles))).Succeeded)
             throw new InvalidOperationException("Role update failed.");

@@ -3,7 +3,7 @@
 ## Organisation spelling
 
 The single-organisation model uses `/organisation` UI routes and
-`/api/v1/auth/organisation` API routes, with `/api/v1/auth/billing` for the shared
+`/api/v1/auth/organisation` API routes, with `/api/v1/auth/commercial-billing` for the shared
 subscription. Existing multi-organisation databases are not automatically
 consolidated: this change targets fresh installations. Retain all migration history
 and apply the forward migrations. See [ADR 0047](adr/0047-single-organisation.md).

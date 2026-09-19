@@ -42,7 +42,8 @@
     "role-management",
     "support",
     "organisations",
-    "billing",
+    "payments",
+    "commercial-billing",
     "crm",
     "invoicing"
   ],

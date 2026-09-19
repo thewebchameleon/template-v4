@@ -102,7 +102,7 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
           hlm
           hlmDrawerBody
           orientation="vertical"
-          class="min-h-0 flex-1 group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing) group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"
+          class="min-h-0 flex-1 [--drawer-body-padding-block-start:var(--panel-inset)] [--drawer-body-padding-inline:var(--card-spacing)]"
         >
           <app-page-state
             [state]="data.state()"

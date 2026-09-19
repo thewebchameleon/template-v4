@@ -7,7 +7,7 @@ namespace TemplateV4.Infrastructure.Storage;
 
 public sealed partial class FileStorageService
 {
-    private async Task<long> Quota(Guid owner, CancellationToken ct) => await entitlements.Quota(ct) ?? (await Settings(ct)).DefaultQuotaBytes;
+    private async Task<long> Quota(Guid owner, CancellationToken ct) => await entitlements.Limit("storage-bytes", ct) ?? (await Settings(ct)).DefaultQuotaBytes;
     public Task<FileStorageSettings> Settings(CancellationToken ct) => db.FileStorageSettings.AsNoTracking().SingleAsync(ct);
     public async Task<Result<Unit>> SaveSettings(Guid actor, StorageSettingsRequest request, CancellationToken ct)
     {

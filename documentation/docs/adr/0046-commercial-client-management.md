@@ -6,7 +6,7 @@ Status: Accepted for the initial implementation; production rollout validation p
 
 The provider composes a private Client Management module into its own foundation
 deployment. The module resides in the separate business-modules repository and owns
-clients, enrolled deployments, offers, manually provisioned commercial entitlements,
+clients, enrolled deployments, priced offers, purchases, subscriptions, payment receipts, payment-derived licence entitlements,
 immutable release metadata and audit records in the `client_management` schema.
 Client builds depend only on foundation licensing contracts. Their databases remain
 separate from the central installation.
@@ -42,10 +42,11 @@ No automatic database restore or module removal is performed.
 
 ## Scope and verification
 
-The initial commercial workflow is administrator provisioning, including recording
-manual grants, one-time purchases and subscriptions. It does not initiate payments or
-turn unverified payment notifications into grants. Automated merchant checkout,
-refunds, key-rotation orchestration and a durable centrally scheduled runner queue are
+The commercial workflow supports one-time and recurring purchases through the
+foundation Payments adapters. Only verified merchant callbacks or reconciliation can
+create licence entitlements; browser returns and administrator actions cannot grant
+them. Existing manual grants are intentionally removed by the forward migration.
+Refunds, key-rotation orchestration and a durable centrally scheduled runner queue are
 later extensions. The deployment tool must remain running for a scheduled invocation.
 
 PostgreSQL tests cover enrollment reuse, eligibility, expiry, frozen artifacts,

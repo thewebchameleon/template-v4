@@ -16,7 +16,7 @@ which distinguishes available functionality from remaining rollout and commercia
   Source repositories remain private; protection against inspection of deployed code
   is not required.
 - Licenses belong to a client organization and cover its production, staging and
-  development deployments. Support manual grants, subscriptions and one-time purchases.
+  development deployments. They are derived from verified subscriptions and one-time purchases.
 - Expiry either disables ordinary module operations or permits continued use of only
   the version installed in that deployment, with updates blocked. Data is retained.
 - Renewal administration and authorized data export remain accessible after expiry.
@@ -66,7 +66,7 @@ client deployment; it never queries client business databases for management inf
 Only the central build includes this private module. Client builds contain shared
 foundation license-validation and reporting functionality, consuming versioned central
 HTTP contracts without a source or assembly reference to the management module.
-Commercial licensing remains separate from in-application account/storage billing.
+Commercial licensing remains separate from in-application Commercial Billing persistence and policy. Both consume the required Payments provider layer.
 The management module must not require a renewable license issued by itself; licensing
 failure must not lock out the service responsible for renewal and recovery. Deployment
 execution remains in the separate runner.
@@ -323,17 +323,16 @@ requires a new module release and eligible update rights.
 
 | Phase | Deliverable | Completion evidence |
 | --- | --- | --- |
-| 1. Contracts and registry | Proposed ADRs, central private management module, connected-client dashboard, enrollment/heartbeats, catalog eligibility, manual entitlements, versioned API | PostgreSQL tests for isolation, concurrency, credential scoping/revocation and stale-client visibility; no automatic rollout |
+| 1. Contracts and registry | Proposed ADRs, central private management module, connected-client dashboard, enrollment/heartbeats, catalog eligibility and versioned API | PostgreSQL tests for isolation, concurrency, credential scoping/revocation and stale-client visibility; no automatic rollout |
 | 2. Runtime licensing | Signed snapshots, use/update separation, dependency gating, retained exports and renewal | Real PostgreSQL tests for expiry, renewal, frozen versions, replay/outage behavior and retained operations |
 | 3. Update notifications and release plans | License-aware client notifications, existing build tooling integration, immutable candidates, client-triggered immediate/scheduled redeployment | Deduplicated notices; tampered plans, stale baselines, unauthorized operators, cross-client artifacts and post-expiry installs rejected |
 | 4. Managed VPS execution | Enrolled runner, leases, coordinated migrations, backups and deployment receipts | Client-triggered installation/update and failure/recovery drill on a disposable VPS |
-| 5. Commercial automation | One-time purchases, subscriptions and verified payment reconciliation | Duplicate/out-of-order payment events cannot overgrant; merchant sandbox verification |
+| 5. Commercial automation | One-time purchases, subscriptions and verified payment reconciliation | Implemented locally; duplicate/out-of-order payment events cannot overgrant; merchant sandbox verification remains deployment work |
 | 6. Client-operated deployments | Self-hosted runner enrollment, credential rotation, diagnostics and operator guide | Same deployment/license protocol exercised on client-controlled infrastructure |
 
 The first usable pilot ends after phase 4: one managed client organization with
-production and staging, one shared paid module and one restricted module, manual
-entitlement grants, both expiry policies, update notifications and client-triggered redeployment.
-Payment automation follows once licensing and deployment behavior are proven.
+production and staging, one shared paid module and one restricted module, payment-derived
+licences, both expiry policies, update notifications and client-triggered redeployment.
 
 Before implementing new contracts, write proposed ADRs extending
 [component releases](adr/0039-component-releases-and-client-updates.md),

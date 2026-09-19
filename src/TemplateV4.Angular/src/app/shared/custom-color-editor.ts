@@ -46,7 +46,7 @@ import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
         hlm
         hlmDrawerBody
         orientation="vertical"
-        class="min-h-0 flex-1 pb-1"
+        class="min-h-0 flex-1 [--drawer-body-padding-block-end:--spacing(1)]"
         (pointerdown)="$event.stopPropagation()"
       >
         <div class="flex flex-col gap-6">

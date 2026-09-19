@@ -5,7 +5,7 @@
     "audit-history": true,
     "support": true,
     "organisations": true,
-    "billing": true,
+    "commercial-billing": true,
     "crm": true,
     "invoicing": true
   }

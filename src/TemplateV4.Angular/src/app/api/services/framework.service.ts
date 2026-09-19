@@ -31,20 +31,19 @@ import { BackgroundJobPage } from '../models/background-job-page';
 import { BackgroundJobSummary } from '../models/background-job-summary';
 import { beginMfaEnrollment } from '../fn/framework/begin-mfa-enrollment';
 import { BeginMfaEnrollment$Params } from '../fn/framework/begin-mfa-enrollment';
-import { BillingSettings } from '../models/billing-settings';
-import { BillingSummary } from '../models/billing-summary';
 import { BlogArticle } from '../models/blog-article';
-import { cancelCustomerSubscription } from '../fn/framework/cancel-customer-subscription';
-import { CancelCustomerSubscription$Params } from '../fn/framework/cancel-customer-subscription';
+import { cancelCommercialSubscription } from '../fn/framework/cancel-commercial-subscription';
+import { CancelCommercialSubscription$Params } from '../fn/framework/cancel-commercial-subscription';
 import { changeCrmAttachment } from '../fn/framework/change-crm-attachment';
 import { ChangeCrmAttachment$Params } from '../fn/framework/change-crm-attachment';
 import { changeInvoicingAttachment } from '../fn/framework/change-invoicing-attachment';
 import { ChangeInvoicingAttachment$Params } from '../fn/framework/change-invoicing-attachment';
 import { changeUsername } from '../fn/framework/change-username';
 import { ChangeUsername$Params } from '../fn/framework/change-username';
-import { CheckoutResponse } from '../models/checkout-response';
 import { CmsArticle } from '../models/cms-article';
 import { CmsSections } from '../models/cms-sections';
+import { CommercialBillingSettings } from '../models/commercial-billing-settings';
+import { CommercialBillingSummary } from '../models/commercial-billing-summary';
 import { CommercialDetail } from '../models/commercial-detail';
 import { CommercialDocument } from '../models/commercial-document';
 import { CommercialTotals } from '../models/commercial-totals';
@@ -70,12 +69,12 @@ import { createApiKey } from '../fn/framework/create-api-key';
 import { CreateApiKey$Params } from '../fn/framework/create-api-key';
 import { createBootstrapAdministrator } from '../fn/framework/create-bootstrap-administrator';
 import { CreateBootstrapAdministrator$Params } from '../fn/framework/create-bootstrap-administrator';
+import { createCommercialSubscriptionCheckout } from '../fn/framework/create-commercial-subscription-checkout';
+import { CreateCommercialSubscriptionCheckout$Params } from '../fn/framework/create-commercial-subscription-checkout';
 import { createFileStorageFolder } from '../fn/framework/create-file-storage-folder';
 import { CreateFileStorageFolder$Params } from '../fn/framework/create-file-storage-folder';
 import { createRole } from '../fn/framework/create-role';
 import { CreateRole$Params } from '../fn/framework/create-role';
-import { createSubscriptionCheckout } from '../fn/framework/create-subscription-checkout';
-import { CreateSubscriptionCheckout$Params } from '../fn/framework/create-subscription-checkout';
 import { createSupportTicket } from '../fn/framework/create-support-ticket';
 import { CreateSupportTicket$Params } from '../fn/framework/create-support-ticket';
 import { createUser } from '../fn/framework/create-user';
@@ -130,14 +129,16 @@ import { getAuditDetail } from '../fn/framework/get-audit-detail';
 import { GetAuditDetail$Params } from '../fn/framework/get-audit-detail';
 import { getBackgroundJob } from '../fn/framework/get-background-job';
 import { GetBackgroundJob$Params } from '../fn/framework/get-background-job';
-import { getBillingSettings } from '../fn/framework/get-billing-settings';
-import { GetBillingSettings$Params } from '../fn/framework/get-billing-settings';
 import { getCapabilities } from '../fn/framework/get-capabilities';
 import { GetCapabilities$Params } from '../fn/framework/get-capabilities';
 import { getCmsArticle } from '../fn/framework/get-cms-article';
 import { GetCmsArticle$Params } from '../fn/framework/get-cms-article';
 import { getCmsSections } from '../fn/framework/get-cms-sections';
 import { GetCmsSections$Params } from '../fn/framework/get-cms-sections';
+import { getCommercialBilling } from '../fn/framework/get-commercial-billing';
+import { GetCommercialBilling$Params } from '../fn/framework/get-commercial-billing';
+import { getCommercialBillingSettings } from '../fn/framework/get-commercial-billing-settings';
+import { GetCommercialBillingSettings$Params } from '../fn/framework/get-commercial-billing-settings';
 import { getCommercialDocument } from '../fn/framework/get-commercial-document';
 import { GetCommercialDocument$Params } from '../fn/framework/get-commercial-document';
 import { getCrmConfiguration } from '../fn/framework/get-crm-configuration';
@@ -148,8 +149,6 @@ import { getCrmOverview } from '../fn/framework/get-crm-overview';
 import { GetCrmOverview$Params } from '../fn/framework/get-crm-overview';
 import { getCsrfToken } from '../fn/framework/get-csrf-token';
 import { GetCsrfToken$Params } from '../fn/framework/get-csrf-token';
-import { getCustomerBilling } from '../fn/framework/get-customer-billing';
-import { GetCustomerBilling$Params } from '../fn/framework/get-customer-billing';
 import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
 import { getFileStorageModuleSettings } from '../fn/framework/get-file-storage-module-settings';
@@ -172,6 +171,8 @@ import { getOrganisationLogo } from '../fn/framework/get-organisation-logo';
 import { GetOrganisationLogo$Params } from '../fn/framework/get-organisation-logo';
 import { getOrganisationUsers } from '../fn/framework/get-organisation-users';
 import { GetOrganisationUsers$Params } from '../fn/framework/get-organisation-users';
+import { getPaymentMethods } from '../fn/framework/get-payment-methods';
+import { GetPaymentMethods$Params } from '../fn/framework/get-payment-methods';
 import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
 import { GetPlatformAppearance$Params } from '../fn/framework/get-platform-appearance';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
@@ -302,6 +303,8 @@ import { PasskeyMfaOptions$Params } from '../fn/framework/passkey-mfa-options';
 import { PasskeyOptions } from '../models/passkey-options';
 import { passkeyRegistrationOptions } from '../fn/framework/passkey-registration-options';
 import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-registration-options';
+import { PaymentCheckout } from '../models/payment-checkout';
+import { PaymentMethodStatus } from '../models/payment-method-status';
 import { PlatformAppearance } from '../models/platform-appearance';
 import { previewCmsMarkdown } from '../fn/framework/preview-cms-markdown';
 import { PreviewCmsMarkdown$Params } from '../fn/framework/preview-cms-markdown';
@@ -322,8 +325,8 @@ import { purgeFileStorageFile } from '../fn/framework/purge-file-storage-file';
 import { PurgeFileStorageFile$Params } from '../fn/framework/purge-file-storage-file';
 import { readNotifications } from '../fn/framework/read-notifications';
 import { ReadNotifications$Params } from '../fn/framework/read-notifications';
-import { receivePaymentCallback } from '../fn/framework/receive-payment-callback';
-import { ReceivePaymentCallback$Params } from '../fn/framework/receive-payment-callback';
+import { receiveCommercialBillingPaymentCallback } from '../fn/framework/receive-commercial-billing-payment-callback';
+import { ReceiveCommercialBillingPaymentCallback$Params } from '../fn/framework/receive-commercial-billing-payment-callback';
 import { RecordAttachment } from '../models/record-attachment';
 import { recordCommercialPayment } from '../fn/framework/record-commercial-payment';
 import { RecordCommercialPayment$Params } from '../fn/framework/record-commercial-payment';
@@ -373,12 +376,12 @@ import { RevokeSession$Params } from '../fn/framework/revoke-session';
 import { RoleItem } from '../models/role-item';
 import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
-import { saveBillingSettings } from '../fn/framework/save-billing-settings';
-import { SaveBillingSettings$Params } from '../fn/framework/save-billing-settings';
 import { saveCmsArticle } from '../fn/framework/save-cms-article';
 import { SaveCmsArticle$Params } from '../fn/framework/save-cms-article';
 import { saveCmsSections } from '../fn/framework/save-cms-sections';
 import { SaveCmsSections$Params } from '../fn/framework/save-cms-sections';
+import { saveCommercialBillingSettings } from '../fn/framework/save-commercial-billing-settings';
+import { SaveCommercialBillingSettings$Params } from '../fn/framework/save-commercial-billing-settings';
 import { saveCrmRecord } from '../fn/framework/save-crm-record';
 import { SaveCrmRecord$Params } from '../fn/framework/save-crm-record';
 import { saveFileStorageModuleSettings } from '../fn/framework/save-file-storage-module-settings';
@@ -389,6 +392,8 @@ import { saveModuleActivation } from '../fn/framework/save-module-activation';
 import { SaveModuleActivation$Params } from '../fn/framework/save-module-activation';
 import { saveNotificationPreferences } from '../fn/framework/save-notification-preferences';
 import { SaveNotificationPreferences$Params } from '../fn/framework/save-notification-preferences';
+import { savePaymentMethods } from '../fn/framework/save-payment-methods';
+import { SavePaymentMethods$Params } from '../fn/framework/save-payment-methods';
 import { savePlatformAppearance } from '../fn/framework/save-platform-appearance';
 import { SavePlatformAppearance$Params } from '../fn/framework/save-platform-appearance';
 import { saveSupportCategory } from '../fn/framework/save-support-category';
@@ -415,8 +420,8 @@ import { setWebsiteEnabled } from '../fn/framework/set-website-enabled';
 import { SetWebsiteEnabled$Params } from '../fn/framework/set-website-enabled';
 import { shareFileStorageFile } from '../fn/framework/share-file-storage-file';
 import { ShareFileStorageFile$Params } from '../fn/framework/share-file-storage-file';
-import { startBillingTrial } from '../fn/framework/start-billing-trial';
-import { StartBillingTrial$Params } from '../fn/framework/start-billing-trial';
+import { startCommercialBillingTrial } from '../fn/framework/start-commercial-billing-trial';
+import { StartCommercialBillingTrial$Params } from '../fn/framework/start-commercial-billing-trial';
 import { storeCommercialPdf } from '../fn/framework/store-commercial-pdf';
 import { StoreCommercialPdf$Params } from '../fn/framework/store-commercial-pdf';
 import { submitContactEnquiry } from '../fn/framework/submit-contact-enquiry';
@@ -466,28 +471,28 @@ export class FrameworkService extends BaseService {
     super(config, http);
   }
 
-  /** Path part for operation `receivePaymentCallback()` */
-  static readonly ReceivePaymentCallbackPath = '/api/v1/billing/callbacks/{provider}';
+  /** Path part for operation `receiveCommercialBillingPaymentCallback()` */
+  static readonly ReceiveCommercialBillingPaymentCallbackPath = '/api/v1/commercial-billing/callbacks/{provider}';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `receivePaymentCallback()` instead.
+   * To access only the response body, use `receiveCommercialBillingPaymentCallback()` instead.
    *
    * This method doesn't expect any request body.
    */
-  receivePaymentCallback$Response(params: ReceivePaymentCallback$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = receivePaymentCallback(this.http, this.rootUrl, params, context);
+  receiveCommercialBillingPaymentCallback$Response(params: ReceiveCommercialBillingPaymentCallback$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = receiveCommercialBillingPaymentCallback(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `receivePaymentCallback$Response()` instead.
+   * To access the full response (for headers, for example), `receiveCommercialBillingPaymentCallback$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  receivePaymentCallback(params: ReceivePaymentCallback$Params, context?: HttpContext): Observable<void> {
-    const resp = this.receivePaymentCallback$Response(params, context);
+  receiveCommercialBillingPaymentCallback(params: ReceiveCommercialBillingPaymentCallback$Params, context?: HttpContext): Observable<void> {
+    const resp = this.receiveCommercialBillingPaymentCallback$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -4840,163 +4845,217 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `getCustomerBilling()` */
-  static readonly GetCustomerBillingPath = '/api/v1/auth/billing';
+  /** Path part for operation `getCommercialBilling()` */
+  static readonly GetCommercialBillingPath = '/api/v1/auth/commercial-billing';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCustomerBilling()` instead.
+   * To access only the response body, use `getCommercialBilling()` instead.
    *
    * This method doesn't expect any request body.
    */
-  getCustomerBilling$Response(params?: GetCustomerBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<BillingSummary>> {
-    const obs = getCustomerBilling(this.http, this.rootUrl, params, context);
+  getCommercialBilling$Response(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSummary>> {
+    const obs = getCommercialBilling(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCustomerBilling$Response()` instead.
+   * To access the full response (for headers, for example), `getCommercialBilling$Response()` instead.
    *
    * This method doesn't expect any request body.
    */
-  getCustomerBilling(params?: GetCustomerBilling$Params, context?: HttpContext): Observable<BillingSummary> {
-    const resp = this.getCustomerBilling$Response(params, context);
+  getCommercialBilling(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<CommercialBillingSummary> {
+    const resp = this.getCommercialBilling$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<BillingSummary>): BillingSummary => r.body)
+      map((r: StrictHttpResponse<CommercialBillingSummary>): CommercialBillingSummary => r.body)
     );
   }
 
-  /** Path part for operation `startBillingTrial()` */
-  static readonly StartBillingTrialPath = '/api/v1/auth/billing/trial';
+  /** Path part for operation `startCommercialBillingTrial()` */
+  static readonly StartCommercialBillingTrialPath = '/api/v1/auth/commercial-billing/trial';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `startBillingTrial()` instead.
+   * To access only the response body, use `startCommercialBillingTrial()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  startBillingTrial$Response(params: StartBillingTrial$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = startBillingTrial(this.http, this.rootUrl, params, context);
+  startCommercialBillingTrial$Response(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = startCommercialBillingTrial(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `startBillingTrial$Response()` instead.
+   * To access the full response (for headers, for example), `startCommercialBillingTrial$Response()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  startBillingTrial(params: StartBillingTrial$Params, context?: HttpContext): Observable<void> {
-    const resp = this.startBillingTrial$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `createSubscriptionCheckout()` */
-  static readonly CreateSubscriptionCheckoutPath = '/api/v1/auth/billing/checkout';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `createSubscriptionCheckout()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createSubscriptionCheckout$Response(params: CreateSubscriptionCheckout$Params, context?: HttpContext): Observable<StrictHttpResponse<CheckoutResponse>> {
-    const obs = createSubscriptionCheckout(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `createSubscriptionCheckout$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createSubscriptionCheckout(params: CreateSubscriptionCheckout$Params, context?: HttpContext): Observable<CheckoutResponse> {
-    const resp = this.createSubscriptionCheckout$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CheckoutResponse>): CheckoutResponse => r.body)
-    );
-  }
-
-  /** Path part for operation `cancelCustomerSubscription()` */
-  static readonly CancelCustomerSubscriptionPath = '/api/v1/auth/billing/cancel';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `cancelCustomerSubscription()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  cancelCustomerSubscription$Response(params: CancelCustomerSubscription$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = cancelCustomerSubscription(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `cancelCustomerSubscription$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  cancelCustomerSubscription(params: CancelCustomerSubscription$Params, context?: HttpContext): Observable<void> {
-    const resp = this.cancelCustomerSubscription$Response(params, context);
+  startCommercialBillingTrial(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<void> {
+    const resp = this.startCommercialBillingTrial$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
   }
 
-  /** Path part for operation `getBillingSettings()` */
-  static readonly GetBillingSettingsPath = '/api/v1/auth/configuration/billing';
+  /** Path part for operation `createCommercialSubscriptionCheckout()` */
+  static readonly CreateCommercialSubscriptionCheckoutPath = '/api/v1/auth/commercial-billing/checkout';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getBillingSettings()` instead.
+   * To access only the response body, use `createCommercialSubscriptionCheckout()` instead.
    *
-   * This method doesn't expect any request body.
+   * This method sends `application/json` and handles request body of type `application/json`.
    */
-  getBillingSettings$Response(params?: GetBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<BillingSettings>> {
-    const obs = getBillingSettings(this.http, this.rootUrl, params, context);
+  createCommercialSubscriptionCheckout$Response(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<StrictHttpResponse<PaymentCheckout>> {
+    const obs = createCommercialSubscriptionCheckout(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getBillingSettings$Response()` instead.
+   * To access the full response (for headers, for example), `createCommercialSubscriptionCheckout$Response()` instead.
    *
-   * This method doesn't expect any request body.
+   * This method sends `application/json` and handles request body of type `application/json`.
    */
-  getBillingSettings(params?: GetBillingSettings$Params, context?: HttpContext): Observable<BillingSettings> {
-    const resp = this.getBillingSettings$Response(params, context);
+  createCommercialSubscriptionCheckout(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<PaymentCheckout> {
+    const resp = this.createCommercialSubscriptionCheckout$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<BillingSettings>): BillingSettings => r.body)
+      map((r: StrictHttpResponse<PaymentCheckout>): PaymentCheckout => r.body)
     );
   }
 
-  /** Path part for operation `saveBillingSettings()` */
-  static readonly SaveBillingSettingsPath = '/api/v1/auth/configuration/billing';
+  /** Path part for operation `cancelCommercialSubscription()` */
+  static readonly CancelCommercialSubscriptionPath = '/api/v1/auth/commercial-billing/cancel';
 
   /**
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveBillingSettings()` instead.
+   * To access only the response body, use `cancelCommercialSubscription()` instead.
    *
-   * This method sends `application/json` and handles request body of type `application/json`.
+   * This method doesn't expect any request body.
    */
-  saveBillingSettings$Response(params: SaveBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = saveBillingSettings(this.http, this.rootUrl, params, context);
+  cancelCommercialSubscription$Response(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = cancelCommercialSubscription(this.http, this.rootUrl, params, context);
     return obs;
   }
 
   /**
    * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveBillingSettings$Response()` instead.
+   * To access the full response (for headers, for example), `cancelCommercialSubscription$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  cancelCommercialSubscription(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<void> {
+    const resp = this.cancelCommercialSubscription$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getPaymentMethods()` */
+  static readonly GetPaymentMethodsPath = '/api/v1/auth/configuration/payment-methods';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPaymentMethods()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPaymentMethods$Response(params?: GetPaymentMethods$Params, context?: HttpContext): Observable<StrictHttpResponse<PaymentMethodStatus>> {
+    const obs = getPaymentMethods(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPaymentMethods$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPaymentMethods(params?: GetPaymentMethods$Params, context?: HttpContext): Observable<PaymentMethodStatus> {
+    const resp = this.getPaymentMethods$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PaymentMethodStatus>): PaymentMethodStatus => r.body)
+    );
+  }
+
+  /** Path part for operation `savePaymentMethods()` */
+  static readonly SavePaymentMethodsPath = '/api/v1/auth/configuration/payment-methods';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `savePaymentMethods()` instead.
    *
    * This method sends `application/json` and handles request body of type `application/json`.
    */
-  saveBillingSettings(params: SaveBillingSettings$Params, context?: HttpContext): Observable<void> {
-    const resp = this.saveBillingSettings$Response(params, context);
+  savePaymentMethods$Response(params: SavePaymentMethods$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = savePaymentMethods(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `savePaymentMethods$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  savePaymentMethods(params: SavePaymentMethods$Params, context?: HttpContext): Observable<void> {
+    const resp = this.savePaymentMethods$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getCommercialBillingSettings()` */
+  static readonly GetCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCommercialBillingSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBillingSettings$Response(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSettings>> {
+    const obs = getCommercialBillingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCommercialBillingSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBillingSettings(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<CommercialBillingSettings> {
+    const resp = this.getCommercialBillingSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialBillingSettings>): CommercialBillingSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCommercialBillingSettings()` */
+  static readonly SaveCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCommercialBillingSettings()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCommercialBillingSettings$Response(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveCommercialBillingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCommercialBillingSettings$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCommercialBillingSettings(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveCommercialBillingSettings$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

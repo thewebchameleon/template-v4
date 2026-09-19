@@ -3,7 +3,7 @@
 The central application is the template plus the private `client-management` module
 in [brinksolutions/business-modules](https://github.com/brinksolutions/business-modules).
 It provides a provider-only client/deployment dashboard, enrollment, shared or
-client-restricted offers, manually provisioned licenses, a release feed and deployment
+client-restricted paid offers, payment-derived licences, a release feed and deployment
 preflight. See [ADR 0046](adr/0046-commercial-client-management.md).
 
 ## Central setup
@@ -35,12 +35,20 @@ registered clients and deployments; disconnected deployments retain their last-k
 state. Recent contact is not a guarantee of application health. Application contact
 becomes stale after 15 minutes; licensing freshness is evaluated independently.
 
-Create an offer using the module's stable ID. No selected clients means a shared offer;
-selected clients restrict eligibility. Grant a license to a client with use/update
-deadlines, origin and `disable` or `keep-installed` expiry policy. Dates in the editor
-are UTC; empty dates mean perpetual rights. Existing grants use optimistic concurrency.
-The purchase/subscription origin records an administrator-provisioned entitlement;
-there is no automatic payment checkout or merchant callback in this module yet.
+Create an offer using the module's stable ID, immutable commercial terms, currency,
+price, one-time/monthly/annual interval, use/update duration and `disable` or
+`keep-installed` expiry policy. No selected clients means a shared offer; selected
+clients restrict eligibility. Purchasing starts Stripe or PayFast checkout. Only a
+verified callback or reconciliation result creates a receipt, subscription and
+`license_entitlements` row. The previous manual entitlement route and table are removed;
+existing manual grants are deliberately not carried forward.
+
+Recurring purchases can be cancelled from Client management. Paid use/update deadlines
+are derived from the settled offer and payment period. One-time licences follow the
+offer duration/policy and cannot be cancelled as subscriptions. Configure credentials
+under the foundation Payment methods settings; the private module stores its own orders,
+receipts, subscriptions and licences and uses
+`/api/v1/client-management/payment-callbacks/{provider}` for notifications.
 
 The API supports revoking a deployment credential. Revocation stops new central
 requests immediately; an already-issued client snapshot expires within its remaining

@@ -16,14 +16,14 @@ The canonical client file is ignored `client-modules.json`:
 ```json
 {
   "schemaVersion": 1,
-  "foundation": { "support": false, "billing": false },
+  "foundation": { "support": false, "commercial-billing": false },
   "privateModules": []
 }
 ```
 
 The catalog's `category` is `core`, `foundation`, or `private`. Core services retain
 existing presets/settings and permissions. Only optional foundation IDs (File Storage,
-support, CRM, invoicing, billing) are accepted in `foundation`. Omitted settings retain
+support, CRM, invoicing, commercial billing) are accepted in `foundation`. Omitted settings retain
 preset defaults; supplied settings override the preset, while runtime configuration can
 further restrict them. A client exclusion cannot be overridden by `Modules:<id> = true`.
 Dependency violations fail generation or startup.

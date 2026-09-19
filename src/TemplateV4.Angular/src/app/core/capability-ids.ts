@@ -2,8 +2,8 @@
 export type ModuleId =
   | 'audit-history'
   | 'audit-recording'
-  | 'billing'
   | 'cms'
+  | 'commercial-billing'
   | 'crm'
   | 'delivery'
   | 'file-storage'
@@ -11,12 +11,13 @@ export type ModuleId =
   | 'invoicing'
   | 'maintenance'
   | 'organisations'
+  | 'payments'
   | 'support';
 export type CapabilityId =
   | 'audit-history'
   | 'audit-recording'
-  | 'billing'
   | 'cms'
+  | 'commercial-billing'
   | 'crm'
   | 'crm-files'
   | 'delivery'
@@ -27,6 +28,7 @@ export type CapabilityId =
   | 'maintenance'
   | 'organisation-files'
   | 'organisations'
+  | 'payments'
   | 'support'
   | 'support-enquiries'
   | 'support-tickets';

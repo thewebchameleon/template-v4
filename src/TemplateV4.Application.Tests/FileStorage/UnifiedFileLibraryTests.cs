@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using TemplateV4.Application.Billing;
+using TemplateV4.Application.CommercialBilling;
 using TemplateV4.Application.FileStorage;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
@@ -161,10 +161,12 @@ public sealed class UnifiedFileLibraryTests
         Assert.DoesNotContain("top-secret", request.ToString(), StringComparison.Ordinal);
     }
 
-    private sealed class NoSubscription : IStorageEntitlements
+    private sealed class NoSubscription : ICommercialEntitlements
     {
-        public Task<long?> Quota(CancellationToken ct) => Task.FromResult<long?>(null);
-        public Task<bool> CanStore(long bytes, CancellationToken ct) => Task.FromResult(true);
+        public Task<long?> Limit(string code, CancellationToken ct) => Task.FromResult<long?>(null);
+        public Task<long> Usage(string code, CancellationToken ct) => Task.FromResult(0L);
+        public Task<bool> CanConsume(string code, long quantity, CancellationToken ct) => Task.FromResult(true);
+        public Task RecordUsage(string code, long quantity, DateTimeOffset at, CancellationToken ct) => Task.CompletedTask;
     }
 
     private sealed class TestExecutionContext(Guid actor) : IExecutionContext

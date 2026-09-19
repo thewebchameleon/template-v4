@@ -1,4 +1,14 @@
 export const adminDictionary: Record<string, [string, string]> = {
+  'permission.commercial-billing.read': ['View commercial billing', 'Bekyk kommersiële fakturering'],
+  'permissionHelp.commercial-billing.read': [
+    'View subscription terms, invoices, receipts, entitlements and usage.',
+    'Bekyk intekeningvoorwaardes, fakture, kwitansies, aansprake en gebruik.',
+  ],
+  'permission.commercial-billing.manage': ['Manage commercial billing', 'Bestuur kommersiële fakturering'],
+  'permissionHelp.commercial-billing.manage': [
+    'Start trials and checkout, and cancel the organisation subscription.',
+    'Begin proeftydperke en betaling, en kanselleer die organisasie se intekening.',
+  ],
   'audit.security.policy_changed': ['Security policy changed', 'Sekuriteitsbeleid verander'],
   'auditValue.preferredMfaMethod': ['Preferred MFA method', 'Voorkeur-MFA-metode'],
   'auditValue.optionalEmailEnabled': ['Optional email enabled', 'Opsionele e-pos geaktiveer'],

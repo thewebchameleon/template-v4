@@ -1104,18 +1104,8 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DefaultProvider")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("GraceDays")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("PayFastEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("StripeEnabled")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("TrialDays")
                         .HasColumnType("integer");
@@ -1126,22 +1116,244 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("settings", "billing", t =>
+                    b.ToTable("settings", "commercial_billing", t =>
                         {
-                            t.HasCheckConstraint("CK_billing_singleton", "\"Id\" = 1");
+                            t.HasCheckConstraint("CK_commercial_billing_singleton", "\"Id\" = 1");
                         });
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            DefaultProvider = "payfast",
                             GraceDays = 7,
-                            PayFastEnabled = true,
-                            StripeEnabled = true,
                             TrialDays = 14,
                             Version = new Guid("701d0245-9cc1-4028-a909-380f43739f13")
                         });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialBillingInvoiceRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<long>("TotalMinor")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Number")
+                        .IsUnique();
+
+                    b.HasIndex("PaymentOrderId");
+
+                    b.ToTable("invoices", "commercial_billing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialEntitlementRow", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Limit")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("ValidUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("CustomerId", "Code");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("entitlements", "commercial_billing");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialPlanPriceRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("MonthlyMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset?>("SupersededAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("YearlyMinor")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId")
+                        .IsUnique()
+                        .HasFilter("\"SupersededAt\" IS NULL");
+
+                    b.ToTable("plan_prices", "commercial_billing");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-4111-8111-111111111111"),
+                            Currency = "ZAR",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 9, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MonthlyMinor = 0L,
+                            PlanId = "free",
+                            YearlyMinor = 0L
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-4222-8222-222222222222"),
+                            Currency = "ZAR",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 9, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MonthlyMinor = 9900L,
+                            PlanId = "standard",
+                            YearlyMinor = 99000L
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-4333-8333-333333333333"),
+                            Currency = "ZAR",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 9, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            MonthlyMinor = 4900L,
+                            PlanId = "team",
+                            YearlyMinor = 49000L
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialPlanRow", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("Pricing")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<long>("StorageBytes")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("plans", "commercial_billing");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "free",
+                            Active = true,
+                            Name = "Free",
+                            Pricing = "Flat",
+                            StorageBytes = 104857600L
+                        },
+                        new
+                        {
+                            Id = "standard",
+                            Active = true,
+                            Name = "Standard",
+                            Pricing = "Flat",
+                            StorageBytes = 10737418240L
+                        },
+                        new
+                        {
+                            Id = "team",
+                            Active = true,
+                            Name = "Team",
+                            Pricing = "PerSeat",
+                            StorageBytes = 53687091200L
+                        });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialUsageCounterRow", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Quantity")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("CustomerId", "Code", "PeriodStart");
+
+                    b.HasIndex("PeriodEnd");
+
+                    b.ToTable("usage_counters", "commercial_billing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
@@ -1503,6 +1715,48 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("outbox", "messaging");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentMethodSettingsRow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultProvider")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<bool>("PayFastEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("StripeEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id")
+                        .HasName("PK_settings1");
+
+                    b.ToTable("settings", "payments", t =>
+                        {
+                            t.HasCheckConstraint("CK_payment_methods_singleton", "\"Id\" = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DefaultProvider = "payfast",
+                            PayFastEnabled = true,
+                            StripeEnabled = true,
+                            Version = new Guid("0fa2db45-b9b8-4cee-9320-84ebf3c5636b")
+                        });
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1526,27 +1780,38 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("Name");
+
                     b.Property<string>("Interval")
                         .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("PlanId")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("ProtectedSubscription")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("PlanPriceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProtectedProviderReference")
+                        .HasColumnType("text")
+                        .HasColumnName("ProtectedSubscription");
 
                     b.Property<string>("Provider")
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -1558,7 +1823,9 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("orders", "billing");
+                    b.HasIndex("PlanPriceId");
+
+                    b.ToTable("payment_orders", "commercial_billing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentReceiptRow", b =>
@@ -1571,17 +1838,27 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset>("At")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<long>("AmountMinor")
+                        .HasColumnType("bigint");
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("OrderId");
+
+                    b.Property<DateTimeOffset>("SettledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("At");
 
                     b.HasKey("Provider", "Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("PaymentOrderId");
 
-                    b.ToTable("receipts", "billing");
+                    b.ToTable("payment_receipts", "commercial_billing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PlatformAppearanceSettings", b =>
@@ -1633,6 +1910,29 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             PrimaryColor = "#2563EB",
                             Version = new Guid("06d9599a-a693-4d21-9745-152b0515b89b")
                         });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.ProcessedPaymentEventRow", b =>
+                {
+                    b.Property<string>("Provider")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Id")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("PaymentOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Provider", "Id");
+
+                    b.HasIndex("PaymentOrderId");
+
+                    b.ToTable("processed_payment_events", "commercial_billing");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.RateBucket", b =>
@@ -1904,16 +2204,20 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("NextCheckAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTimeOffset?>("PaidUntil")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PaymentOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("OrderId");
 
                     b.Property<string>("PlanId")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("PlanPriceId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Seats")
                         .HasColumnType("integer");
@@ -1928,9 +2232,11 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("NextCheckAt");
 
-                    b.ToTable("subscriptions", "billing", t =>
+                    b.HasIndex("PlanPriceId");
+
+                    b.ToTable("subscriptions", "commercial_billing", t =>
                         {
-                            t.HasCheckConstraint("CK_subscription_singleton", "\"CustomerId\" = '00000000-0000-0000-0000-000000000001'::uuid");
+                            t.HasCheckConstraint("CK_commercial_subscription_singleton", "\"CustomerId\" = '00000000-0000-0000-0000-000000000001'::uuid");
                         });
                 });
 
@@ -2174,7 +2480,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id")
-                        .HasName("PK_settings1");
+                        .HasName("PK_settings2");
 
                     b.ToTable("settings", "support");
 
@@ -2315,7 +2621,7 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id")
-                        .HasName("PK_settings2");
+                        .HasName("PK_settings3");
 
                     b.ToTable("settings", "website");
 
@@ -2469,6 +2775,32 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialBillingInvoiceRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialEntitlementRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CommercialBillingInvoiceRow", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CommercialPlanPriceRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CommercialPlanRow", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.CustomerRow", b =>
                 {
                     b.HasOne("TemplateV4.Infrastructure.Persistence.OrganisationLogoRow", null)
@@ -2500,11 +2832,28 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CommercialPlanPriceRow", null)
+                        .WithMany()
+                        .HasForeignKey("PlanPriceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentReceiptRow", b =>
                 {
                     b.HasOne("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", null)
                         .WithMany()
-                        .HasForeignKey("OrderId")
+                        .HasForeignKey("PaymentOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.ProcessedPaymentEventRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentOrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -2537,6 +2886,14 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.StoredFile", null)
                         .WithMany()
                         .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.SubscriptionRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Persistence.CommercialPlanPriceRow", null)
+                        .WithMany()
+                        .HasForeignKey("PlanPriceId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 

@@ -10,7 +10,8 @@ The starter is evolving into a modular monolith. Business modules own vertical s
 | Audit recording | Required | Security and business audit writes remain active |
 | Delivery | Required | Accepted messages, jobs and cleanup continue |
 | Organisations | `Modules:organisations` | New organisation routes stop; memberships and data remain |
-| Billing | `Modules:billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
+| Payments | Required | Provider adapters and payment-method configuration remain available to payment consumers |
+| Commercial Billing | `Modules:commercial-billing` | New checkout and trials stop; callbacks, cancellation and reconciliation continue |
 | File Storage | `Modules:file-storage` | File routes return 404; navigation is hidden; retention continues |
 | CRM | `Modules:crm` | New CRM work stops; records remain; disable Invoicing first |
 | Invoicing | `Modules:invoicing` | New issuance and navigation stop; retained documents, settlement and correction remain available through direct links |
@@ -77,7 +78,7 @@ Give accepted-obligation HTTP operations `ContinuesWhenDisabled` metadata and a 
 | 5 | API keys, service accounts, signed webhooks, retries and usage metering | API keys and aggregate usage implemented; remaining items planned |
 | 6 | Organisation SSO, domain verification, SCIM, custom domains and audited support tools | Planned |
 
-Personal subscription, team SaaS and combined product presets will be added with their working account and billing modules. They are not advertised as usable presets yet. Stripe and PayFast are the approved payment-provider choices; both adapters are implemented; see [provider setup and limitations](customer-billing.md). Verify their current payment and subscription contracts against official provider documentation when implementing phase 3.
+Stripe and PayFast are the approved payment providers. The required Payments core and optional Commercial Billing module are implemented; see [provider setup and limitations](customer-billing.md). Personal subscription, team SaaS and combined product presets are not advertised as separate usable presets yet.
 
 See [module lifecycle](adr/0018-saas-module-lifecycle.md), [customer isolation](adr/0019-saas-customer-isolation.md), and [billing boundaries](adr/0020-saas-billing-providers.md).
 

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application;
+using TemplateV4.Application.CommercialBilling;
+using TemplateV4.Application.Customers;
 using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
@@ -8,7 +10,8 @@ namespace TemplateV4.Infrastructure.Security;
 
 public sealed record RegistrationReviewItem(Guid Id, string DisplayName, string Email);
 public sealed record ReviewRegistration(Guid Id, bool Approve);
-public sealed class RegistrationReviewService(FrameworkDb db, SecurityService security, IActionItems items, IEventOutbox outbox, TimeProvider time)
+public sealed class RegistrationReviewService(FrameworkDb db, SecurityService security, IActionItems items, IEventOutbox outbox, TimeProvider time,
+    ICustomerAccess customers, ICommercialEntitlements entitlements)
 {
     public async Task<Result<Page<RegistrationReviewItem>>> List(int pageNumber, int pageSize, string sort, string direction, CancellationToken ct)
     {
@@ -24,11 +27,13 @@ public sealed class RegistrationReviewService(FrameworkDb db, SecurityService se
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
+        await customers.Lock(ct);
         var admin = await (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id join claim in db.RoleClaims on role.Id equals claim.RoleId where membership.UserId == actor && role.Name == "Administrator" && claim.ClaimType == "permission" && claim.ClaimValue == Permissions.Settings select membership).AnyAsync(ct);
         if (!admin || !await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct)) return Result.Fail("auth.forbidden", ErrorKind.Forbidden);
         await security.Lock(request.Id, ct);
         var user = await db.Users.SingleOrDefaultAsync(x => x.Id == request.Id, ct);
         if (user is null || user.RegistrationState != "Pending" || !user.EmailConfirmed || !await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct)) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
+        if (request.Approve && !await entitlements.CanActivateUser(user.Id, ct)) return Result.Fail("commercial-billing.seats", ErrorKind.Conflict);
         user.RegistrationState = request.Approve ? "Approved" : "Rejected";
         user.RegistrationReviewedAt = time.GetUtcNow(); user.RegistrationReviewedBy = actor;
         user.SecurityStamp = Guid.NewGuid().ToString();

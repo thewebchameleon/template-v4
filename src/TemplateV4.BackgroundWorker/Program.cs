@@ -19,7 +19,7 @@ builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();
 builder.Services.AddHostedService<OutboxPump>();
 builder.Services.AddHostedService<JobReconciler>();
 builder.Services.AddHostedService<StorageRetention>();
-builder.Services.AddHostedService<BillingReconciler>();
+builder.Services.AddHostedService<CommercialBillingReconciler>();
 builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddHostedService<UpdateChecker>();
 builder.Services.AddHostedService<LicenseRefresher>();

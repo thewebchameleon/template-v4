@@ -2,10 +2,15 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from './auth';
 import { Features } from './features';
-// Paths are relative to the selected organization workspace.
-export const organizationDestinations = [
+// Paths are relative to the organisation workspace.
+export const organisationDestinations = [
     { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
-    { path: 'invoicing', label: 'invoicing', icon: 'lucideReceipt', capability: 'invoicing' },
+    {
+        path: 'invoicing',
+        label: 'invoicing',
+        icon: 'lucideFileSpreadsheet',
+        capability: 'invoicing',
+    },
 ];
 export function activeDestinationIndex(items, path) {
     let result = -1;
@@ -20,11 +25,20 @@ export function activeDestinationIndex(items, path) {
     return result;
 }
 export const workspaceDestinations = {
-    organizations: {
-        path: '/organizations',
-        label: 'organizations',
+    cms: {
+        path: '/cms',
+        label: 'cms',
+        icon: 'lucideNewspaper',
+        capability: 'cms',
+        permissions: ['cms.edit'],
+        help: 'cmsModuleHelp',
+        hasPanel: false,
+    },
+    organisations: {
+        path: '/organisation',
+        label: 'organisation',
         icon: 'lucideUsersRound',
-        capability: 'organizations',
+        capability: 'organisations',
         help: 'dashboardTeamsHelp',
         hasPanel: false,
     },
@@ -37,34 +51,37 @@ export const workspaceDestinations = {
         hasPanel: true,
     },
     support: {
-        path: '/support',
-        label: 'support',
+        path: '/support/tickets',
+        label: 'supportTickets',
         icon: 'lucideLifeBuoy',
-        capability: 'support',
+        capability: 'support-tickets',
         help: 'dashboardSupportHelp',
+        hasPanel: false,
+    },
+    commercialBilling: {
+        path: '/commercial-billing',
+        label: 'commercialBilling',
+        icon: 'lucideCreditCard',
+        capability: undefined,
+        permissions: ['commercial-billing.read'],
+        help: 'commercialBillingHelp',
         hasPanel: false,
     },
 };
 export const administrationDestinations = {
-    billing: {
-        path: '/administration/billing',
-        label: 'billingSettings',
-        icon: 'lucideSettings',
+    supportSettings: {
+        path: '/administration/support',
+        label: 'support',
+        icon: 'lucideLifeBuoy',
         section: 'modules',
+        navigationCapability: 'support',
         permissions: ['settings.manage'],
         administratorOnly: true,
-    },
-    users: {
-        path: '/administration/users',
-        label: 'userManagement',
-        icon: 'lucideUsersRound',
-        section: 'administration',
-        permissions: ['users.read', 'users.manage', 'roles.manage', 'settings.manage'],
     },
     configuration: {
         path: '/administration/configuration',
         label: 'configuration',
-        icon: 'lucideSettings',
+        icon: 'lucidePalette',
         section: 'administration',
         permissions: ['settings.manage'],
         administratorOnly: true,
@@ -79,11 +96,25 @@ export const administrationDestinations = {
     },
     storage: {
         path: '/administration/file-storage',
-        label: 'storageSettings',
+        label: 'files',
         icon: 'lucideFolderOpen',
         section: 'modules',
         permissions: ['settings.manage'],
-        capability: 'file-storage',
+        administratorOnly: true,
+    },
+    crmConfiguration: {
+        path: '/administration/crm',
+        label: 'crm',
+        icon: 'lucideContactRound',
+        section: 'modules',
+        capability: 'crm',
+    },
+    invoicingSettings: {
+        path: '/administration/invoicing',
+        label: 'invoicing',
+        icon: 'lucideFileSpreadsheet',
+        section: 'modules',
+        capability: 'invoicing',
     },
     auditHistory: {
         path: '/administration/audit-history',
@@ -93,14 +124,102 @@ export const administrationDestinations = {
         permissions: ['settings.manage'],
         capability: 'audit-history',
     },
+    backgroundJobs: {
+        path: '/administration/background-jobs',
+        label: 'backgroundJobs',
+        icon: 'lucideClock3',
+        section: 'administration',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+    },
     operations: {
         path: '/administration/system-health',
         label: 'systemHealth',
         icon: 'lucideActivity',
         section: 'administration',
         permissions: ['settings.manage', 'jobs.trigger'],
-        capability: 'operations',
     },
+    apiKeys: {
+        path: '/administration/api-keys',
+        label: 'apiKeys',
+        icon: 'lucideSettings',
+        section: 'administration',
+        permissions: ['api-keys.manage'],
+    },
+    paymentMethods: {
+        path: '/administration/payment-methods',
+        label: 'paymentMethods',
+        icon: 'lucideSettings',
+        section: 'administration',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+    },
+    commercialBilling: {
+        path: '/administration/commercial-billing',
+        label: 'commercialBillingSettings',
+        icon: 'lucideCreditCard',
+        section: 'modules',
+        permissions: ['settings.manage'],
+        capability: 'commercial-billing',
+        administratorOnly: true,
+    },
+};
+export const supportDestinations = {
+    contact: {
+        path: '/support/contact',
+        label: 'contact',
+        icon: 'lucideMail',
+        permissions: ['contact.manage'],
+        capability: 'support',
+    },
+    tickets: workspaceDestinations.support,
+};
+export const userManagementDestinations = {
+    users: {
+        path: '/user-management/users',
+        label: 'users',
+        icon: 'lucideUsersRound',
+        permissions: ['users.read'],
+    },
+    invitations: {
+        path: '/user-management/invitations',
+        label: 'invitations',
+        icon: 'lucideMail',
+        permissions: ['users.manage'],
+    },
+    roles: {
+        path: '/user-management/roles',
+        label: 'roles',
+        icon: 'lucideShieldCheck',
+        permissions: ['roles.manage'],
+    },
+    accountSecurity: {
+        path: '/user-management/account-security',
+        label: 'security',
+        icon: 'lucideShieldCheck',
+        permissions: ['settings.manage'],
+    },
+    registrationRequests: {
+        path: '/user-management/registration-requests',
+        label: 'registrationRequests',
+        icon: 'lucideUsersRound',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+    },
+    privacyRequests: {
+        path: '/user-management/privacy-requests',
+        label: 'privacyRequests',
+        icon: 'lucideShieldCheck',
+        permissions: ['settings.manage'],
+        administratorOnly: true,
+    },
+};
+export const websiteSetupDestination = {
+    path: '/administration/website',
+    label: 'websiteSetup',
+    icon: 'lucideSettings',
+    administratorOnly: true,
+    permissions: ['settings.manage'],
 };
 export function destinationAvailable(destination, auth, features) {
     return (!auth.access()?.setupRequired &&
@@ -109,7 +228,11 @@ export function destinationAvailable(destination, auth, features) {
             destination.permissions.some((permission) => auth.has(permission))) &&
         (!destination.capability || features.enabled(destination.capability)));
 }
-export const destinationGuard = (destination) => async () => {
+export function destinationVisibleInNavigation(destination, auth, features) {
+    return (destinationAvailable(destination, auth, features) &&
+        (!destination.navigationCapability || features.enabled(destination.navigationCapability)));
+}
+export const destinationGuard = (destination) => async (_route, state) => {
     const auth = inject(Auth);
     const features = inject(Features);
     const router = inject(Router);
@@ -117,6 +240,11 @@ export const destinationGuard = (destination) => async () => {
         return router.createUrlTree(['/login']);
     await features.load();
     if (destination.capability && !features.enabled(destination.capability))
-        return router.createUrlTree(['/me']);
+        return router.createUrlTree(['/module-unavailable'], {
+            queryParams: {
+                returnUrl: state.url,
+                reason: features.state() === 'error' ? 'error' : 'disabled',
+            },
+        });
     return (destinationAvailable(destination, auth, features) || router.createUrlTree(['/forbidden']));
 };

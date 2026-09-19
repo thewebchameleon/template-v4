@@ -133,12 +133,15 @@ export const routes: Routes = [
       import('./features/organisations/organisation-detail').then((m) => m.OrganisationDetailPage),
   },
   {
-    path: 'organisation/billing',
+    path: 'commercial-billing',
     canDeactivate: [unsavedGuard],
     resolve: { customerTranslations, businessTranslations },
-    data: { breadcrumb: 'billing' },
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/billing/billing').then((m) => m.BillingPage),
+    data: { breadcrumb: 'commercialBilling' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.commercialBilling)],
+    loadComponent: () =>
+      import('./features/commercial-billing/commercial-billing').then(
+        (m) => m.CommercialBillingPage,
+      ),
   },
   {
     path: 'organisation/files',
@@ -445,13 +448,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/modules/modules').then((m) => m.ModulesPage),
       },
       {
-        path: 'license',
+        path: 'payment-methods',
         canDeactivate: [unsavedGuard],
         resolve: { customerTranslations, businessTranslations },
-        data: { breadcrumb: 'license', permission: 'settings.manage' },
-        canActivate: [authGuard, destinationGuard(administrationDestinations.license)],
+        data: { breadcrumb: 'paymentMethods', permission: 'settings.manage' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.paymentMethods)],
         loadComponent: () =>
-          import('./features/billing/billing-settings').then((m) => m.BillingSettingsPage),
+          import('./features/commercial-billing/payment-method-settings').then(
+            (m) => m.PaymentMethodSettingsPage,
+          ),
+      },
+      {
+        path: 'commercial-billing',
+        canDeactivate: [unsavedGuard],
+        resolve: { customerTranslations, businessTranslations },
+        data: { breadcrumb: 'commercialBillingSettings', permission: 'settings.manage' },
+        canActivate: [authGuard, destinationGuard(administrationDestinations.commercialBilling)],
+        loadComponent: () =>
+          import('./features/commercial-billing/commercial-billing-settings').then(
+            (m) => m.CommercialBillingSettingsPage,
+          ),
       },
       {
         path: 'configuration',

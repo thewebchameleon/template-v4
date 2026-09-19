@@ -118,10 +118,18 @@
     "category": "foundation"
   },
   {
-    "id": "billing",
+    "id": "payments",
+    "required": true,
+    "enabledByDefault": true,
+    "dependencies": ["identity", "audit-recording"],
+    "runtimeConfigurable": false,
+    "category": "core"
+  },
+  {
+    "id": "commercial-billing",
     "required": false,
     "enabledByDefault": true,
-    "dependencies": ["organisations", "delivery"],
+    "dependencies": ["organisations", "delivery", "payments"],
     "runtimeConfigurable": false,
     "category": "foundation"
   }

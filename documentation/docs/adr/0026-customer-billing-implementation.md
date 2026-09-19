@@ -1,9 +1,8 @@
 # ADR 0026: customer accounts and subscription implementation
 
-Status: Accepted; lifecycle and reconciliation updated by [ADR 0028](0028-review-hardening.md).
+Status: Superseded. Organisation ownership is superseded by [ADR 0047](0047-single-organisation.md), file ownership by [ADR 0048](0048-unified-organisation-files.md), and billing/provider boundaries by [ADR 0020](0020-saas-billing-providers.md).
 
-The account ownership and tenant model below is historical and superseded by
-[ADR 0047](0047-single-organisation.md).
+The decision below is retained as migration history. New work must use the current ADRs above and the [Commercial Billing guide](../customer-billing.md).
 
 ## Decision
 

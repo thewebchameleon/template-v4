@@ -6,7 +6,7 @@
     "audit-history": false,
     "support": false,
     "organisations": false,
-    "billing": false,
+    "commercial-billing": false,
     "crm": false,
     "invoicing": false
   }

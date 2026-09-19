@@ -75,6 +75,15 @@ export const workspaceDestinations = {
     help: 'dashboardSupportHelp',
     hasPanel: false,
   },
+  commercialBilling: {
+    path: '/commercial-billing',
+    label: 'commercialBilling',
+    icon: 'lucideCreditCard',
+    capability: undefined,
+    permissions: ['commercial-billing.read'],
+    help: 'commercialBillingHelp',
+    hasPanel: false,
+  },
 } as const satisfies Record<string, Destination>;
 
 export const administrationDestinations = {
@@ -155,12 +164,21 @@ export const administrationDestinations = {
     section: 'administration',
     permissions: ['api-keys.manage'],
   },
-  license: {
-    path: '/administration/license',
-    label: 'license',
+  paymentMethods: {
+    path: '/administration/payment-methods',
+    label: 'paymentMethods',
     icon: 'lucideSettings',
     section: 'administration',
     permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
+  commercialBilling: {
+    path: '/administration/commercial-billing',
+    label: 'commercialBillingSettings',
+    icon: 'lucideCreditCard',
+    section: 'modules',
+    permissions: ['settings.manage'],
+    capability: 'commercial-billing',
     administratorOnly: true,
   },
 } as const satisfies Record<string, Destination>;

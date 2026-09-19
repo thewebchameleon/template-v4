@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using TemplateV4.Application.CommercialBilling;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
 
-public sealed partial class FileStorageService(FrameworkDb db, IFileStorage storage, TimeProvider time, TemplateV4.Application.Billing.IStorageEntitlements entitlements)
+public sealed partial class FileStorageService(FrameworkDb db, IFileStorage storage, TimeProvider time, ICommercialEntitlements entitlements)
 {
     public const long DefaultMaxUploadBytes = 20L * 1024 * 1024;
     public const long MinimumUploadBytes = 5L * 1024 * 1024;

@@ -3,7 +3,13 @@ import { classes } from '@spartan-ng/helm/utils';
 
 @Directive({
   selector: '[hlmDrawerBody]',
-  host: { 'data-slot': 'drawer-body' },
+  host: {
+    'data-slot': 'drawer-body',
+    '[style.--_viewport-padding-block-start]': '"var(--drawer-body-padding-block-start, 0px)"',
+    '[style.--_viewport-padding-block-end]': '"var(--drawer-body-padding-block-end, 0px)"',
+    '[style.--_viewport-padding-inline-start]': '"var(--drawer-body-padding-inline, 0px)"',
+    '[style.--_viewport-padding-inline-end]': '"var(--drawer-body-padding-inline, 0px)"',
+  },
 })
 export class HlmDrawerBody {
   constructor() {

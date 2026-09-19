@@ -2,7 +2,9 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HlmDrawer, HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmTooltip } from '@spartan-ng/helm/tooltip';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { Auth } from '../../core/auth';
 import { I18n } from '../../core/i18n';
 import { UnreadNotifications } from './unread-notifications';
@@ -17,7 +19,8 @@ import * as i5 from "@spartan-ng/helm/button";
 import * as i6 from "@spartan-ng/helm/badge";
 import * as i7 from "@spartan-ng/helm/empty";
 import * as i8 from "@spartan-ng/helm/drawer";
-import * as i9 from "../../core/i18n";
+import * as i9 from "@spartan-ng/helm/scroll-area";
+import * as i10 from "../../core/i18n";
 const _c0 = () => [];
 const _forTrack0 = ($index, $item) => $item.id;
 function NotificationDrawer_Conditional_7_Template(rf, ctx) { if (rf & 1) {
@@ -99,7 +102,7 @@ function NotificationDrawer_hlm_drawer_content_8_Template(rf, ctx) { if (rf & 1)
     i0.ɵɵtext(10);
     i0.ɵɵpipe(11, "t");
     i0.ɵɵelementEnd()();
-    i0.ɵɵelementStart(12, "div", 11)(13, "app-page-state", 12);
+    i0.ɵɵelementStart(12, "ng-scrollbar", 11)(13, "app-page-state", 12);
     i0.ɵɵlistener("retry", function NotificationDrawer_hlm_drawer_content_8_Template_app_page_state_retry_13_listener() { i0.ɵɵrestoreView(_r2); const ctx_r0 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r0.load()); });
     i0.ɵɵelementStart(14, "ul", 13);
     i0.ɵɵrepeaterCreate(15, NotificationDrawer_hlm_drawer_content_8_For_16_Template, 16, 12, "li", 14, _forTrack0, false, NotificationDrawer_hlm_drawer_content_8_ForEmpty_17_Template, 10, 6, "div", 15);
@@ -284,7 +287,7 @@ export class NotificationDrawer {
             i0.ɵɵviewQuerySignal(ctx.drawer, HlmDrawer, 5);
         } if (rf & 2) {
             i0.ɵɵqueryAdvance();
-        } }, features: [i0.ɵɵProvidersFeature([workspaceIcons])], decls: 9, vars: 9, consts: [["drawer", "hlmDrawer"], ["direction", "right"], ["hlmBtn", "", "hlmDrawerTrigger", "", "size", "icon", "variant", "ghost", "position", "bottom", 1, "relative", 3, "click", "hlmTooltip"], ["name", "lucideBell"], ["hlmBadge", "", "variant", "notification", 1, "absolute", "-right-2", "-top-2"], ["class", "overflow-hidden sm:max-w-md", 4, "hlmDrawerPortal"], [1, "overflow-hidden", "sm:max-w-md"], [1, "flex", "items-center", "gap-2"], ["hlmDrawerTitle", ""], ["hlmBadge", "", "variant", "secondary"], ["hlmDrawerDescription", ""], ["hlmDrawerBody", "", 1, "notification-drawer-scroll", "min-h-0", "flex-1", "overflow-x-hidden", "overflow-y-auto", "group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing)", "group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"], [3, "retry", "state", "refreshing", "refreshError"], ["aria-live", "polite", 1, "-mx-(--card-spacing)"], ["data-notification-item", "", 1, "workspace-notice", "px-(--panel-header-padding-inline)"], ["hlmEmpty", ""], ["hlmBtn", "", 3, "click", "disabled"], ["name", "lucideCheck"], ["hlmBtn", "", "variant", "outline", 3, "click"], [1, "min-w-0", "flex-1"], [1, "inline-flex", "items-center", "gap-1", "font-medium", "underline-offset-4", "hover:underline", "focus-visible:underline", 3, "click", "routerLink"], ["name", "lucideArrowUpRight"], [1, "workspace-meta", "mt-1"], [1, "mt-2", "flex", "items-start", "gap-3"], [1, "workspace-meta"], ["hlmBtn", "", "type", "button", "variant", "link", "size", "text", 1, "shrink-0", 3, "click", "disabled"], ["hlmEmptyHeader", ""], ["hlmEmptyMedia", "", "variant", "icon"], ["name", "lucideInbox"], ["hlmEmptyTitle", ""], ["hlmEmptyDescription", ""]], template: function NotificationDrawer_Template(rf, ctx) { if (rf & 1) {
+        } }, features: [i0.ɵɵProvidersFeature([workspaceIcons])], decls: 9, vars: 9, consts: [["drawer", "hlmDrawer"], ["direction", "right"], ["hlmBtn", "", "hlmDrawerTrigger", "", "size", "icon", "variant", "ghost", "position", "bottom", 1, "relative", 3, "click", "hlmTooltip"], ["name", "lucideBell"], ["hlmBadge", "", "variant", "notification", 1, "notification-badge-pulse", "absolute", "-right-2", "-top-2"], ["class", "overflow-hidden sm:max-w-md", 4, "hlmDrawerPortal"], [1, "overflow-hidden", "sm:max-w-md"], [1, "flex", "items-center", "gap-2"], ["hlmDrawerTitle", ""], ["hlmBadge", "", "variant", "secondary"], ["hlmDrawerDescription", ""], ["hlm", "", "hlmDrawerBody", "", "orientation", "vertical", 1, "min-h-0", "flex-1", "[--drawer-body-padding-block-start:var(--panel-inset)]", "[--drawer-body-padding-inline:var(--card-spacing)]"], [3, "retry", "state", "refreshing", "refreshError"], ["aria-live", "polite", 1, "-mx-(--card-spacing)"], ["data-notification-item", "", 1, "workspace-notice", "px-(--panel-header-padding-inline)"], ["hlmEmpty", ""], ["hlmBtn", "", 3, "click", "disabled"], ["name", "lucideCheck"], ["hlmBtn", "", "variant", "outline", 3, "click"], [1, "min-w-0", "flex-1"], [1, "inline-flex", "items-center", "gap-1", "font-medium", "underline-offset-4", "hover:underline", "focus-visible:underline", 3, "click", "routerLink"], ["name", "lucideArrowUpRight"], [1, "workspace-meta", "mt-1"], [1, "mt-2", "flex", "items-start", "gap-3"], [1, "workspace-meta"], ["hlmBtn", "", "type", "button", "variant", "link", "size", "text", 1, "shrink-0", 3, "click", "disabled"], ["hlmEmptyHeader", ""], ["hlmEmptyMedia", "", "variant", "icon"], ["name", "lucideInbox"], ["hlmEmptyTitle", ""], ["hlmEmptyDescription", ""]], template: function NotificationDrawer_Template(rf, ctx) { if (rf & 1) {
             i0.ɵɵelementStart(0, "hlm-drawer", 1, 0)(2, "button", 2);
             i0.ɵɵpipe(3, "t");
             i0.ɵɵpipe(4, "t");
@@ -301,11 +304,11 @@ export class NotificationDrawer {
             i0.ɵɵattribute("aria-label", i0.ɵɵpipeBind1(4, 5, "notificationCentre") + ": " + ctx.unread.count() + " " + i0.ɵɵpipeBind1(5, 7, "unread"));
             i0.ɵɵadvance(5);
             i0.ɵɵconditional(ctx.unread.count() ? 7 : -1);
-        } }, dependencies: [i1.PageState, i2.FormsModule, i3.RouterLink, i4.NgIcon, i5.HlmButton, i6.HlmBadge, i7.HlmEmpty, i7.HlmEmptyDescription, i7.HlmEmptyHeader, i7.HlmEmptyTitle, i7.HlmEmptyMedia, i8.HlmDrawer, i8.HlmDrawerBody, i8.HlmDrawerContent, i8.HlmDrawerDescription, i8.HlmDrawerFooter, i8.HlmDrawerHeader, i8.HlmDrawerPortal, i8.HlmDrawerTitle, i8.HlmDrawerTrigger, HlmTooltip, i9.Translate], styles: [".notification-drawer-scroll[_ngcontent-%COMP%] {\n      scrollbar-color: color-mix(in srgb, var(--%NS%muted-foreground) 45%, transparent) transparent;\n      scrollbar-width: thin;\n    }\n\n    .notification-drawer-scroll[_ngcontent-%COMP%]::-webkit-scrollbar {\n      width: 0.375rem;\n    }\n\n    .notification-drawer-scroll[_ngcontent-%COMP%]::-webkit-scrollbar-track {\n      background: transparent;\n    }\n\n    .notification-drawer-scroll[_ngcontent-%COMP%]::-webkit-scrollbar-thumb {\n      background: color-mix(in srgb, var(--%NS%muted-foreground) 45%, transparent);\n      border-radius: 9999px;\n    }\n\n    .notification-drawer-scroll[_ngcontent-%COMP%]::-webkit-scrollbar-thumb:hover {\n      background: color-mix(in srgb, var(--%NS%muted-foreground) 65%, transparent);\n    }\n\n    [data-notification-item][_ngcontent-%COMP%] {\n      transition:\n        opacity 180ms cubic-bezier(0.4, 0, 1, 1),\n        transform 180ms cubic-bezier(0.4, 0, 1, 1);\n    }\n\n    [data-notification-item].notification-dismiss[_ngcontent-%COMP%] {\n      opacity: 0;\n      transform: translateX(100%);\n    }\n\n    [data-notification-item].notification-collapse[_ngcontent-%COMP%] {\n      height: 0 !important;\n      padding-block: 0 !important;\n      border-bottom-width: 0 !important;\n      transition:\n        height 180ms cubic-bezier(0, 0, 0.2, 1),\n        padding-block 180ms cubic-bezier(0, 0, 0.2, 1),\n        border-bottom-width 180ms cubic-bezier(0, 0, 0.2, 1);\n    }"] });
+        } }, dependencies: [i1.PageState, i2.FormsModule, i3.RouterLink, i4.NgIcon, i5.HlmButton, i6.HlmBadge, i7.HlmEmpty, i7.HlmEmptyDescription, i7.HlmEmptyHeader, i7.HlmEmptyTitle, i7.HlmEmptyMedia, i8.HlmDrawer, i8.HlmDrawerBody, i8.HlmDrawerContent, i8.HlmDrawerDescription, i8.HlmDrawerFooter, i8.HlmDrawerHeader, i8.HlmDrawerPortal, i8.HlmDrawerTitle, i8.HlmDrawerTrigger, i9.HlmScrollArea, NgScrollbar, HlmTooltip, i10.Translate], styles: ["@keyframes _ngcontent-%COMP%_notification-badge-pulse {\n      0%,\n      100% {\n        box-shadow:\n          0 0 0 0 color-mix(in srgb, var(--%NS%notification-badge) 70%, transparent),\n          0 0 0.375rem 0.125rem color-mix(in srgb, var(--%NS%notification-badge) 55%, transparent);\n        transform: scale(1);\n      }\n\n      50% {\n        box-shadow:\n          0 0 0 0.375rem color-mix(in srgb, var(--%NS%notification-badge) 0%, transparent),\n          0 0 1rem 0.375rem color-mix(in srgb, var(--%NS%notification-badge) 45%, transparent);\n        transform: scale(1.12);\n      }\n    }\n\n    @media (prefers-reduced-motion: no-preference) {\n      .notification-badge-pulse[_ngcontent-%COMP%] {\n        animation: _ngcontent-%COMP%_notification-badge-pulse 1.4s ease-in-out infinite;\n      }\n    }\n\n    [data-notification-item][_ngcontent-%COMP%] {\n      transition:\n        opacity 180ms cubic-bezier(0.4, 0, 1, 1),\n        transform 180ms cubic-bezier(0.4, 0, 1, 1);\n    }\n\n    [data-notification-item].notification-dismiss[_ngcontent-%COMP%] {\n      opacity: 0;\n      transform: translateX(100%);\n    }\n\n    [data-notification-item].notification-collapse[_ngcontent-%COMP%] {\n      height: 0 !important;\n      padding-block: 0 !important;\n      border-bottom-width: 0 !important;\n      transition:\n        height 180ms cubic-bezier(0, 0, 0.2, 1),\n        padding-block 180ms cubic-bezier(0, 0, 0.2, 1),\n        border-bottom-width 180ms cubic-bezier(0, 0, 0.2, 1);\n    }"] });
 }
 (() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadata(NotificationDrawer, [{
         type: Component,
-        args: [{ selector: 'app-notification-drawer', imports: [WorkspaceUi, HlmDrawerImports, HlmTooltip], providers: [workspaceIcons], template: `
+        args: [{ selector: 'app-notification-drawer', imports: [WorkspaceUi, HlmDrawerImports, HlmScrollAreaImports, NgScrollbar, HlmTooltip], providers: [workspaceIcons], template: `
     <hlm-drawer #drawer="hlmDrawer" direction="right">
       <button
         hlmBtn
@@ -322,7 +325,11 @@ export class NotificationDrawer {
       >
         <ng-icon name="lucideBell" />
         @if (unread.count()) {
-          <span hlmBadge variant="notification" class="absolute -right-2 -top-2">
+          <span
+            hlmBadge
+            variant="notification"
+            class="notification-badge-pulse absolute -right-2 -top-2"
+          >
             {{ unread.count() > 99 ? '99+' : unread.count() }}
           </span>
         }
@@ -338,9 +345,11 @@ export class NotificationDrawer {
           <p hlmDrawerDescription>{{ 'yourInboxHelp' | t }}</p>
         </hlm-drawer-header>
 
-        <div
+        <ng-scrollbar
+          hlm
           hlmDrawerBody
-          class="notification-drawer-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing) group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"
+          orientation="vertical"
+          class="min-h-0 flex-1 [--drawer-body-padding-block-start:var(--panel-inset)] [--drawer-body-padding-inline:var(--card-spacing)]"
         >
           <app-page-state
             [state]="data.state()"
@@ -391,7 +400,7 @@ export class NotificationDrawer {
               }
             </ul>
           </app-page-state>
-        </div>
+        </ng-scrollbar>
 
         <hlm-drawer-footer>
           <button hlmBtn [disabled]="busy() || !data.value()?.unread" (click)="readAll()">
@@ -403,6 +412,6 @@ export class NotificationDrawer {
         </hlm-drawer-footer>
       </hlm-drawer-content>
     </hlm-drawer>
-  `, styles: ["\n    .notification-drawer-scroll {\n      scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;\n      scrollbar-width: thin;\n    }\n\n    .notification-drawer-scroll::-webkit-scrollbar {\n      width: 0.375rem;\n    }\n\n    .notification-drawer-scroll::-webkit-scrollbar-track {\n      background: transparent;\n    }\n\n    .notification-drawer-scroll::-webkit-scrollbar-thumb {\n      background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);\n      border-radius: 9999px;\n    }\n\n    .notification-drawer-scroll::-webkit-scrollbar-thumb:hover {\n      background: color-mix(in srgb, var(--muted-foreground) 65%, transparent);\n    }\n\n    [data-notification-item] {\n      transition:\n        opacity 180ms cubic-bezier(0.4, 0, 1, 1),\n        transform 180ms cubic-bezier(0.4, 0, 1, 1);\n    }\n\n    [data-notification-item].notification-dismiss {\n      opacity: 0;\n      transform: translateX(100%);\n    }\n\n    [data-notification-item].notification-collapse {\n      height: 0 !important;\n      padding-block: 0 !important;\n      border-bottom-width: 0 !important;\n      transition:\n        height 180ms cubic-bezier(0, 0, 0.2, 1),\n        padding-block 180ms cubic-bezier(0, 0, 0.2, 1),\n        border-bottom-width 180ms cubic-bezier(0, 0, 0.2, 1);\n    }\n  "] }]
+  `, styles: ["\n    @keyframes notification-badge-pulse {\n      0%,\n      100% {\n        box-shadow:\n          0 0 0 0 color-mix(in srgb, var(--notification-badge) 70%, transparent),\n          0 0 0.375rem 0.125rem color-mix(in srgb, var(--notification-badge) 55%, transparent);\n        transform: scale(1);\n      }\n\n      50% {\n        box-shadow:\n          0 0 0 0.375rem color-mix(in srgb, var(--notification-badge) 0%, transparent),\n          0 0 1rem 0.375rem color-mix(in srgb, var(--notification-badge) 45%, transparent);\n        transform: scale(1.12);\n      }\n    }\n\n    @media (prefers-reduced-motion: no-preference) {\n      .notification-badge-pulse {\n        animation: notification-badge-pulse 1.4s ease-in-out infinite;\n      }\n    }\n\n    [data-notification-item] {\n      transition:\n        opacity 180ms cubic-bezier(0.4, 0, 1, 1),\n        transform 180ms cubic-bezier(0.4, 0, 1, 1);\n    }\n\n    [data-notification-item].notification-dismiss {\n      opacity: 0;\n      transform: translateX(100%);\n    }\n\n    [data-notification-item].notification-collapse {\n      height: 0 !important;\n      padding-block: 0 !important;\n      border-bottom-width: 0 !important;\n      transition:\n        height 180ms cubic-bezier(0, 0, 0.2, 1),\n        padding-block 180ms cubic-bezier(0, 0, 0.2, 1),\n        border-bottom-width 180ms cubic-bezier(0, 0, 0.2, 1);\n    }\n  "] }]
     }], () => [], { drawer: [{ type: i0.ViewChild, args: [i0.forwardRef(() => HlmDrawer), { isSignal: true }] }] }); })();
-(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(NotificationDrawer, { className: "NotificationDrawer", filePath: "src/app/features/notification-drawer.ts", lineNumber: 161 }); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(NotificationDrawer, { className: "NotificationDrawer", filePath: "src/app/features/notifications/notification-drawer.ts", lineNumber: 170 }); })();

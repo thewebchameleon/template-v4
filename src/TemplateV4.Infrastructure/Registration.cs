@@ -26,7 +26,8 @@ public static partial class Registration
         AddUpdates(services);
         AddLicensing(services);
         AddOrganisations(services, config);
-        AddBilling(services);
+        AddPayments(services);
+        AddCommercialBilling(services);
         AddCrm(services);
         AddInvoicing(services);
         AddCms(services);

@@ -24,9 +24,9 @@ public static class EndpointRegistration
             .MapContactAdministration()
             .MapInvoicingEndpoints()
             .MapOrganisationAttachmentEndpoints()
-            .MapCustomerBillingEndpoints();
+            .MapCustomerAndCommercialBillingEndpoints();
 
-        app.MapPaymentCallbacks();
+        app.MapCommercialBillingCallbacks();
         app.MapPublicWebsite();
         app.MapExternalCmsEndpoints();
 

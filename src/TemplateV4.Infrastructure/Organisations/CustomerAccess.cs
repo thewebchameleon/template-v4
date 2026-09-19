@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.CommercialBilling;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 
@@ -16,12 +17,16 @@ public sealed class CustomerAccess(FrameworkDb db) : ICustomerAccess
         if (!await db.Profiles.AnyAsync(x => x.Id == actor && !x.Disabled, ct) || !await db.Users.AnyAsync(x => x.Id == actor && x.EmailConfirmed && (x.RegistrationState == "Approved" || x.RegistrationState == "NotRequired"), ct)) return null;
         var row = await db.Set<CustomerRow>().AsNoTracking().SingleAsync(ct);
         var administrator = await (from assignment in db.UserRoles
-                                   join role in db.Roles on assignment.RoleId equals role.Id
-                                   where assignment.UserId == actor && role.Name == "Administrator"
+                                   join claim in db.RoleClaims on assignment.RoleId equals claim.RoleId
+                                   where assignment.UserId == actor && claim.ClaimType == "permission" && claim.ClaimValue == CommercialBillingPermissions.Manage
                                    select assignment).AnyAsync(ct);
+        var activeUsers = await (from profile in db.Profiles
+                                 join user in db.Users on profile.Id equals user.Id
+                                 where !profile.Disabled && user.EmailConfirmed && (user.RegistrationState == "Approved" || user.RegistrationState == "NotRequired")
+                                 select user.Id).CountAsync(ct);
         return new(row.Id, row.Name, row.WebsiteUrl, row.ContactEmail, row.TimeZone, row.Country,
             row.LogoId is null ? null : $"/api/v1/auth/appearance/logos/{row.LogoId}",
-            administrator, await db.Profiles.CountAsync(x => !x.Disabled, ct), row.Version, TimeZones);
+            administrator, activeUsers, row.Version, TimeZones);
     }
     public static Task MutationLock(FrameworkDb db, CancellationToken ct) => db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
 }

@@ -10,12 +10,12 @@
     }
   ],
   "paths": {
-    "/api/v1/billing/callbacks/{provider}": {
+    "/api/v1/commercial-billing/callbacks/{provider}": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "ReceivePaymentCallback",
+        "operationId": "ReceiveCommercialBillingPaymentCallback",
         "parameters": [
           {
             "name": "provider",
@@ -6831,19 +6831,19 @@
         ]
       }
     },
-    "/api/v1/auth/billing": {
+    "/api/v1/auth/commercial-billing": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetCustomerBilling",
+        "operationId": "GetCommercialBilling",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BillingSummary"
+                  "$ref": "#/components/schemas/CommercialBillingSummary"
                 }
               }
             }
@@ -6856,12 +6856,12 @@
         ]
       }
     },
-    "/api/v1/auth/billing/trial": {
+    "/api/v1/auth/commercial-billing/trial": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "StartBillingTrial",
+        "operationId": "StartCommercialBillingTrial",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -6877,7 +6877,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartTrial"
+                "$ref": "#/components/schemas/StartCommercialTrial"
               }
             }
           },
@@ -6895,12 +6895,12 @@
         ]
       }
     },
-    "/api/v1/auth/billing/checkout": {
+    "/api/v1/auth/commercial-billing/checkout": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "CreateSubscriptionCheckout",
+        "operationId": "CreateCommercialSubscriptionCheckout",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -6916,7 +6916,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckoutRequest"
+                "$ref": "#/components/schemas/CommercialCheckoutRequest"
               }
             }
           },
@@ -6928,7 +6928,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckoutResponse"
+                  "$ref": "#/components/schemas/PaymentCheckout"
                 }
               }
             }
@@ -6941,12 +6941,12 @@
         ]
       }
     },
-    "/api/v1/auth/billing/cancel": {
+    "/api/v1/auth/commercial-billing/cancel": {
       "post": {
         "tags": [
           "Framework"
         ],
-        "operationId": "CancelCustomerSubscription",
+        "operationId": "CancelCommercialSubscription",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -6970,19 +6970,19 @@
         ]
       }
     },
-    "/api/v1/auth/configuration/billing": {
+    "/api/v1/auth/configuration/payment-methods": {
       "get": {
         "tags": [
           "Framework"
         ],
-        "operationId": "GetBillingSettings",
+        "operationId": "GetPaymentMethods",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BillingSettings"
+                  "$ref": "#/components/schemas/PaymentMethodStatus"
                 }
               }
             }
@@ -6998,7 +6998,7 @@
         "tags": [
           "Framework"
         ],
-        "operationId": "SaveBillingSettings",
+        "operationId": "SavePaymentMethods",
         "parameters": [
           {
             "name": "X-CSRF-TOKEN",
@@ -7014,7 +7014,69 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BillingSettings"
+                "$ref": "#/components/schemas/PaymentMethodSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/configuration/commercial-billing": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetCommercialBillingSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialBillingSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "SaveCommercialBillingSettings",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialBillingSettings"
               }
             }
           },
@@ -8505,165 +8567,6 @@
           }
         }
       },
-      "BillingPlan": {
-        "required": [
-          "id",
-          "name",
-          "pricing",
-          "currency",
-          "monthlyMinor",
-          "yearlyMinor",
-          "storageBytes"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "pricing": {
-            "type": "string"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "monthlyMinor": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "yearlyMinor": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "storageBytes": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "BillingSettings": {
-        "required": [
-          "stripeEnabled",
-          "payFastEnabled",
-          "defaultProvider",
-          "trialDays",
-          "graceDays",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "stripeEnabled": {
-            "type": "boolean"
-          },
-          "payFastEnabled": {
-            "type": "boolean"
-          },
-          "defaultProvider": {
-            "type": "string"
-          },
-          "trialDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "graceDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "version": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "BillingSummary": {
-        "required": [
-          "customerId",
-          "plans",
-          "settings",
-          "planId",
-          "state",
-          "provider",
-          "trialUntil",
-          "paidUntil",
-          "seats",
-          "storageBytes",
-          "canManage",
-          "canCheckout",
-          "interval",
-          "canCancel",
-          "entitlementState"
-        ],
-        "type": "object",
-        "properties": {
-          "customerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "plans": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BillingPlan"
-            }
-          },
-          "settings": {
-            "$ref": "#/components/schemas/BillingSettings"
-          },
-          "planId": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string"
-          },
-          "provider": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "trialUntil": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "paidUntil": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "seats": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "storageBytes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "canManage": {
-            "type": "boolean"
-          },
-          "canCheckout": {
-            "type": "boolean"
-          },
-          "interval": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "canCancel": {
-            "type": "boolean"
-          },
-          "entitlementState": {
-            "type": "string"
-          }
-        }
-      },
       "BlogArticle": {
         "required": [
           "article",
@@ -8812,67 +8715,6 @@
       "ChargeCategory": {
         "type": "integer"
       },
-      "CheckoutRequest": {
-        "required": [
-          "planId",
-          "interval",
-          "provider",
-          "seats",
-          "requestId"
-        ],
-        "type": "object",
-        "properties": {
-          "planId": {
-            "type": "string"
-          },
-          "interval": {
-            "type": "string"
-          },
-          "provider": {
-            "type": "string"
-          },
-          "seats": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "requestId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "CheckoutResponse": {
-        "required": [
-          "id",
-          "url",
-          "fields"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "url": {
-            "type": "string"
-          },
-          "fields": {
-            "type": [
-              "null",
-              "object"
-            ],
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "reference": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
       "CmsArticle": {
         "required": [
           "id",
@@ -9009,6 +8851,167 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "CommercialBillingSettings": {
+        "required": [
+          "trialDays",
+          "graceDays",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "trialDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "graceDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CommercialBillingSummary": {
+        "required": [
+          "customerId",
+          "plans",
+          "paymentMethods",
+          "settings",
+          "planId",
+          "state",
+          "provider",
+          "trialUntil",
+          "paidUntil",
+          "seats",
+          "canManage",
+          "canCheckout",
+          "interval",
+          "canCancel",
+          "entitlements",
+          "usage",
+          "invoices",
+          "receipts"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialPlan"
+            }
+          },
+          "paymentMethods": {
+            "$ref": "#/components/schemas/PaymentMethodStatus"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CommercialBillingSettings"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "trialUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "paidUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "seats": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "canManage": {
+            "type": "boolean"
+          },
+          "canCheckout": {
+            "type": "boolean"
+          },
+          "interval": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "entitlements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialEntitlement"
+            }
+          },
+          "usage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialUsage"
+            }
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialInvoice"
+            }
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialPaymentReceipt"
+            }
+          }
+        }
+      },
+      "CommercialCheckoutRequest": {
+        "required": [
+          "planId",
+          "interval",
+          "provider",
+          "seats",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "interval": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "seats": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -9158,6 +9161,88 @@
       "CommercialDocumentKind": {
         "type": "integer"
       },
+      "CommercialEntitlement": {
+        "required": [
+          "code",
+          "limit",
+          "validUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CommercialInvoice": {
+        "required": [
+          "id",
+          "number",
+          "state",
+          "currency",
+          "totalMinor",
+          "issuedAt",
+          "paidAt",
+          "periodStart",
+          "periodEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "totalMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "periodStart": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "periodEnd": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "CommercialLine": {
         "required": [
           "description",
@@ -9209,6 +9294,99 @@
           "id": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "CommercialPaymentReceipt": {
+        "required": [
+          "provider",
+          "id",
+          "paymentOrderId",
+          "amountMinor",
+          "currency",
+          "settledAt"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "paymentOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amountMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "settledAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommercialPlan": {
+        "required": [
+          "id",
+          "name",
+          "pricing",
+          "storageBytes",
+          "price"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pricing": {
+            "type": "string"
+          },
+          "storageBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "price": {
+            "$ref": "#/components/schemas/CommercialPlanPrice"
+          }
+        }
+      },
+      "CommercialPlanPrice": {
+        "required": [
+          "id",
+          "currency",
+          "monthlyMinor",
+          "yearlyMinor",
+          "effectiveFrom"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "monthlyMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "yearlyMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "effectiveFrom": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -9277,6 +9455,32 @@
           "total": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "CommercialUsage": {
+        "required": [
+          "code",
+          "quantity",
+          "periodStart",
+          "periodEnd"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -11846,6 +12050,94 @@
           }
         }
       },
+      "PaymentCheckout": {
+        "required": [
+          "id",
+          "url",
+          "fields"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "fields": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PaymentMethodSettings": {
+        "required": [
+          "stripeEnabled",
+          "payFastEnabled",
+          "defaultProvider",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "stripeEnabled": {
+            "type": "boolean"
+          },
+          "payFastEnabled": {
+            "type": "boolean"
+          },
+          "defaultProvider": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PaymentMethodStatus": {
+        "required": [
+          "stripeEnabled",
+          "stripeReady",
+          "payFastEnabled",
+          "payFastReady",
+          "defaultProvider",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "stripeEnabled": {
+            "type": "boolean"
+          },
+          "stripeReady": {
+            "type": "boolean"
+          },
+          "payFastEnabled": {
+            "type": "boolean"
+          },
+          "payFastReady": {
+            "type": "boolean"
+          },
+          "defaultProvider": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "PermissionItem": {
         "required": [
           "key",
@@ -12870,7 +13162,7 @@
           }
         }
       },
-      "StartTrial": {
+      "StartCommercialTrial": {
         "required": [
           "planId"
         ],

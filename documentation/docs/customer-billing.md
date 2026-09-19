@@ -1,85 +1,53 @@
-# Organisation and subscription
+# Commercial billing
 
-Each deployment has one organisation and one shared subscription. Administrators
-manage its system-wide identity and general profile under Administration → Configuration.
-The organisation name and logo brand the application, authentication, email and newly
-issued commercial documents. Appearance, public website details, legal issuer address
-and account-security settings retain their existing settings pages.
-CRM, invoicing, shared files and billing open directly without selecting an account.
-See [ADR 0047](adr/0047-single-organisation.md).
+Each deployment has one organisation and one commercial subscription. Commercial Billing owns persisted plans and immutable price versions, trials, checkout orders, subscriptions, invoices, payment receipts, entitlements, usage counters and policy settings. Payments is a required provider foundation: it owns Stripe and PayFast adapters plus administrator payment-method configuration, but never decides what a successful payment grants.
 
-## Access and files
+The two commercial relationships remain separate payment consumers. A deployment's subscription and shared storage rights belong to Commercial Billing. A software vendor's central sales, client licences and deployment entitlements belong to the private Client Management module. They share provider adapters only; an event accepted by one consumer cannot create receipts or entitlements in the other.
 
-Public registration, invitations and administrator-created accounts remain
-configurable in User Management. Email confirmation and optional registration
-approval still apply. There is no separate organisation membership or role.
-Application roles grant permissions: `crm.manage` for business-record writes,
-`organisation.files.manage` for shared-file writes, and existing invoicing
-permissions for financial operations. Administrators configure the organisation
-and manage its subscription. Reader accounts can read shared records and files.
+See [ADR 0020](adr/0020-saas-billing-providers.md) and the [single-organisation decision](adr/0047-single-organisation.md).
 
-Files is one organisation-wide library, including former personal files and record
-attachments. All active users can read it; `organisation.files.manage` controls
-writes. A subscription supplies the shared storage quota; otherwise the configured
-organisation allowance applies. Retained trash and unfinished uploads count once.
-Reservations serialize across users. Cleanup continues while Files is disabled.
-Account erasure removes uploader attribution and preserves organisation files.
-See [the file-library merge](adr/0048-unified-organisation-files.md).
+## Plans, entitlements and usage
 
-## Plans and settings
+Plans and price versions are database records. A checkout snapshots the selected price identifier, amount, currency, interval and quantity. A later price change creates a new price row; retained orders and subscriptions continue to reference their original snapshot.
 
-Administration → License configures providers, checkout default, trial
-days and grace days. There is no personal/organisation ownership setting. Defaults
-remain Stripe and PayFast enabled, PayFast preferred, a 14-day trial and seven-day
-grace period. Credentials are required before a provider is ready at checkout.
-
-| Plan | Monthly | Annual | Storage for the deployment |
+| Plan | Monthly | Annual | Storage entitlement |
 | --- | --- | --- | --- |
 | Free | R0 | R0 | 100 MiB |
 | Standard (flat) | R99 | R990 | 10 GiB |
 | Team (per seat) | R49 per seat | R490 per seat | 50 GiB |
 
-Override `Billing:Plans` with `Id`, `Name`, `Pricing` (`Flat` or `PerSeat`),
-`Currency`, `MonthlyMinor`, `YearlyMinor` and `StorageBytes`. Prices use integer minor
-units and are snapshotted at checkout. Keep plan IDs available while retained
-subscriptions reference them. Per-seat checkout requires enough seats for enabled
-user profiles; storage is not multiplied by seats. Account creation continues to
-follow the configured registration policy, independently of checkout.
+The `storage-bytes` entitlement supplies the shared File Storage limit. Usage counters record consumption by entitlement code and period. Downloads remain available while usage exceeds a reduced limit, but new consumption is rejected. When trial, grace or paid access expires, the allowance becomes the advertised Free plan's 100 MiB and existing files are retained. Administrators manage trial and grace durations under **Administration → Commercial billing**. Users with `commercial-billing.read` see the current subscription, entitlements, usage, invoices and receipts at `/commercial-billing`. Users with `commercial-billing.manage` can start trials and checkout and cancel the subscription. Purchased seats are enforced whenever a user is approved, confirms an immediately approved registration, or is re-enabled.
 
-Trials require no payment method and do not automatically convert or charge.
-Checkout starts paid billing immediately. Expired trials use the free allowance;
-paid access lasts through the paid period and configured grace period. Cancelled
-subscriptions receive no additional grace. Downloads remain available over quota,
-but new uploads stop. Cancellation remains available independently of entitlements,
-including when checkout is disabled. A current subscription or paid period prevents
-a second checkout.
+Trials require no payment method and never convert automatically. Checkout starts paid billing immediately. Per-seat checkout must cover active users. Cancellation stops future recurring charges and preserves already-paid rights until the paid period ends. Commercial Billing callbacks and reconciliation continue while the optional module is disabled so accepted payment obligations can settle safely.
 
-## Provider setup
+## Payment methods
 
-Supply secrets through the existing secret configuration mechanism. Do not commit credentials.
+Administrators enable configured providers and select the default under **Administration → Payment methods**. A provider is offered only when it is both enabled and credential-ready.
 
 | Configuration | Purpose |
 | --- | --- |
-| `Billing:Stripe:SecretKey` | Direct Stripe merchant account key |
-| `Billing:Stripe:WebhookSecret` | Endpoint signing secret |
-| `Billing:Stripe:Live` | Expected event mode; false for testing |
-| `Billing:PayFast:MerchantId` | Merchant identifier |
-| `Billing:PayFast:MerchantKey` | Hosted checkout merchant key |
-| `Billing:PayFast:Passphrase` | Required recurring billing signature salt |
-| `Billing:PayFast:Sandbox` | Defaults to true |
-| `Billing:PublicApiUrl` | Public HTTPS API origin for PayFast ITNs |
+| `Payments:Stripe:SecretKey` | Direct Stripe merchant account key |
+| `Payments:Stripe:WebhookSecret` | Endpoint signing secret |
+| `Payments:Stripe:Live` | Expected event mode; false for testing |
+| `Payments:PayFast:MerchantId` | Merchant identifier |
+| `Payments:PayFast:MerchantKey` | Hosted checkout merchant key |
+| `Payments:PayFast:Passphrase` | Recurring-payment signature salt |
+| `Payments:PayFast:Sandbox` | Defaults to true |
+| `Payments:PublicApiUrl` | Public HTTPS API origin for PayFast notifications |
 | `Web:PublicUrl` | Public HTTPS application origin for checkout returns |
 
-Stripe uses API version `2025-06-30.basil`, hosted Checkout, recurring price data and stable order-based idempotency keys. Configure its webhook at `/api/v1/billing/callbacks/stripe` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated` and `customer.subscription.deleted`. Direct account integrations are supported; Stripe Connect is not. Prices support ZAR, USD, EUR and GBP in the catalog; merchant availability must be checked with Stripe.
+There are no `Billing:*` compatibility keys. Configure Stripe webhooks at `/api/v1/commercial-billing/callbacks/stripe`; PayFast notifications use `/api/v1/commercial-billing/callbacks/payfast`. Private-module purchases use the separate `/api/v1/client-management/payment-callbacks/{provider}` consumer path while sharing the same provider adapters.
 
-PayFast uses hosted form POST, ZAR subscriptions with monthly or annual frequency, ordered MD5 signatures with the merchant passphrase, server ITN validation and the recurring API. Its callback is `/api/v1/billing/callbacks/payfast`. The Nginx CSP explicitly allows form submission to the two PayFast checkout hosts. Recurring API tokens are protected at rest and excluded from HTTP logging/traces.
+Stripe uses API version `2025-06-30.basil`, hosted Checkout and stable payment-ID idempotency. PayFast supports ZAR hosted checkout and recurring monthly or annual payments. Provider references are protected at rest and excluded from HTTP logs and traces.
 
-Only verified payments update paid entitlements. Browser return URLs do not. Notification receipts, subscription changes and audit records commit together. Provider calls run outside database transactions. A worker reconciles accepted orders independently of module activation with up to four concurrent customer scopes and retries failed cancellation. Cancelled subscriptions continue reconciliation through their paid period; a confirmed settled cancellation retires polling. Polls do not create webhook receipts and audit only changed subscription facts. Duplicate receipts and older paid periods cannot extend access twice or reduce a newer period. Outages retain bounded paid/grace access; they do not grant indefinite storage.
+## Settlement and reconciliation
+
+Browser return URLs grant nothing. An authenticated provider notification or a provider reconciliation snapshot must match the stored payment ID, amount and currency before Commercial Billing writes a receipt, invoice, subscription state and derived entitlements. Provider event IDs make receipts idempotent. Older periods cannot shorten newer paid access, and duplicate events cannot grant twice.
+
+Provider HTTP calls occur outside database transactions. The worker reconciles accepted orders and cancellation requests independently of module activation. Provider outages retain only bounded paid/grace access; they do not create indefinite entitlements.
 
 ## Current limits and verification
 
-These adapters require sandbox verification with your merchant accounts before production use. No provider credentials or external payment sandbox sessions were available during implementation; local protocol tests do not establish merchant compatibility. Follow the [merchant verification checklist](billing-verification.md) and retain sanitized evidence before enabling live payments.
+Plan or seat changes require cancellation and a new checkout after the paid period. Automatic proration, tax calculation, discounts and refunds are not implemented. PayFast reconciliation validates subscription state but cannot reconstruct missed transaction history; replay a retained valid notification when required.
 
-Plan/seat changes currently require cancellation and a new checkout after the paid period ends; automatic proration, tax, discounts, refunds and invoice downloads are not implemented. PayFast reconciliation can verify subscription status but does not reconstruct missed payment ITNs from transaction history. Replay the original validated ITN to recover missed paid-period updates. Unrecognized or malformed callbacks are rejected. A late payment on an abandoned/replaced checkout is cancelled and does not grant entitlements; any necessary refund requires merchant review. Reusing a PayFast form can create another provider subscription; the callback cancels the extra subscription rather than attaching it to the account.
-
-Official contracts reviewed for implementation: [Stripe Checkout creation](https://docs.stripe.com/api/checkout/sessions/create), [Stripe subscriptions](https://docs.stripe.com/api/subscriptions/retrieve), [Stripe webhook signatures](https://docs.stripe.com/webhooks/signature), [PayFast integration documentation](https://developers.payfast.co.za/docs) and [PayFast recurring API](https://developers.payfast.co.za/api).
+Merchant sandbox verification remains a deployment responsibility. Follow the [merchant verification checklist](billing-verification.md) before enabling live payments. Local protocol tests do not prove merchant-account compatibility.
