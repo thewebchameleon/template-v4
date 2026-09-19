@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, type TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown, lucideChevronsUpDown, lucideChevronUp } from '@ng-icons/lucide';
@@ -6,6 +6,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmContextMenuImports } from '@spartan-ng/helm/context-menu';
 import {
   type ColumnDef,
   FlexRender,
@@ -37,6 +38,7 @@ export interface DataTableRowDragEvent<TData> {
     HlmEmptyImports,
     HlmSpinnerImports,
     HlmTableImports,
+    HlmContextMenuImports,
   ],
   providers: [provideIcons({ lucideChevronDown, lucideChevronsUpDown, lucideChevronUp })],
   template: `
@@ -110,6 +112,11 @@ export interface DataTableRowDragEvent<TData> {
               <tr
                 hlmTr
                 [class.cursor-pointer]="!!rowActionLabel()"
+                [hlmContextMenuTrigger]="rowContextMenu() ?? null"
+                [hlmContextMenuTriggerData]="{ file: row.original }"
+                [disabled]="
+                  loading() || !rowContextMenu() || !!rowContextMenuDisabled()?.(row.original)
+                "
                 [attr.draggable]="rowDraggable()?.(row.original) ? 'true' : null"
                 [class.opacity-50]="rowDragging()?.(row.original)"
                 [class.file-storage-drop-target]="rowDropActive()?.(row.original)"
@@ -129,7 +136,11 @@ export interface DataTableRowDragEvent<TData> {
                     [class.w-full]="cell.column.id === fillColumn()"
                     [class.w-px]="cell.column.id === 'selection'"
                     [class.whitespace-nowrap]="cell.column.id === 'selection'"
+                    [class.cursor-pointer]="
+                      cell.column.id === 'selection' && !!rowSelectionActionLabel()
+                    "
                     [class.text-end]="cell.column.id === 'actions'"
+                    (click)="activateSelectionCell($event, row.original, cell.column.id)"
                   >
                     <ng-template #renderedCell
                       ><ng-container
@@ -207,8 +218,12 @@ export class DataTable<TData extends RowData> {
   readonly sortChange = output<ServerSort>();
   readonly rowActionLabel = input<(row: TData) => string>();
   readonly rowDoubleActionLabel = input<(row: TData) => string>();
+  readonly rowSelectionActionLabel = input<(row: TData) => string>();
+  readonly rowContextMenu = input<TemplateRef<unknown>>();
+  readonly rowContextMenuDisabled = input<(row: TData) => boolean>();
   readonly rowAction = output<TData>();
   readonly rowDoubleAction = output<TData>();
+  readonly rowSelectionAction = output<TData>();
   readonly rowDraggable = input<(row: TData) => boolean>();
   readonly rowDragging = input<(row: TData) => boolean>();
   readonly rowDropActive = input<(row: TData) => boolean>();
@@ -246,6 +261,18 @@ export class DataTable<TData extends RowData> {
   protected activateRowAction(event: MouseEvent, row: TData) {
     if (event.detail === 0 && this.rowDoubleActionLabel()) this.rowDoubleAction.emit(row);
     else if (event.detail < 2) this.rowAction.emit(row);
+  }
+
+  protected activateSelectionCell(event: MouseEvent, row: TData, column: string) {
+    if (column !== 'selection' || !this.rowSelectionActionLabel() || this.loading()) return;
+    const target = event.target;
+    if (
+      !(target instanceof Element) ||
+      target.closest('button, a, input, select, textarea, [role="button"], [role="checkbox"]')
+    )
+      return;
+    event.stopPropagation();
+    this.rowSelectionAction.emit(row);
   }
 
   protected rowKeydown(event: KeyboardEvent, row: TData) {

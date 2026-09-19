@@ -128,7 +128,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     @if (auth.access() && !fullPageSetup()) {
       <div
         hlmSidebarWrapper
-        class="h-svh overflow-hidden"
+        class="app-modal-background h-svh overflow-hidden"
         sidebarWidth="var(--app-sidebar-total-width)"
         sidebarWidthIcon="var(--app-sidebar-rail-width)"
       >
@@ -490,7 +490,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
         </main>
       </div>
     } @else {
-      <main id="main" tabindex="-1" class="outline-none">
+      <main id="main" tabindex="-1" class="app-modal-background outline-none">
         <ng-container *ngTemplateOutlet="page" />
       </main>
     }

@@ -2,7 +2,7 @@
 
 Status: Accepted
 
-The manual host attachment convention below is superseded by
+Manual host attachment is superseded by
 [ADR 0033](0033-business-module-discovery.md) for repository source builds.
 
 The foundation is a modular monolith distributed as coordinated Domain, Application,

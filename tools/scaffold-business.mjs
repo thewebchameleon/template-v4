@@ -68,11 +68,11 @@ export function scaffoldBusiness(root, name) {
   );
   files.set(
     `${folder}/README.md`,
-    `# ${name}\n\nAutomatically discovered business starter, initially disabled in Administration. Implement owned operations, provider/HTTP registration in ModuleServices and ModuleHost, and a separate DbContext/migration history. The module.json host entries and Frontend/public-api.ts are discovered on build; no host edits are required. Reference foundation Application contracts; never query another module's tables. Generate identifiers and OpenAPI in this root. Own package metadata and generator configuration inside this module. Rebuild, run the Migrator, and enable the module in Administration after implementing and validating its operations. See documentation/docs/business-modules.md.\n`,
+    `# ${name}\n\nAutomatically discovered business starter, initially disabled in Administration. Implement owned operations, provider/HTTP registration in ModuleServices and ModuleHost, and a separate DbContext/migration history. The module.json host entries and Frontend/public-api.ts are discovered on build; no host edits are required. Reference foundation Application contracts; never query another module's tables. Generate identifiers and OpenAPI in this root. Own package metadata and generator configuration inside this module. Rebuild, run the Migrator, and enable the module in Administration after implementing and validating its operations. See documentation/docs/modules.md.\n`,
   );
   files.set(
     `${folder}/Docs/README.md`,
-    `# ${name} module design\n\nDocument owned use cases, public integration contracts, persistence and disable/retention behavior here. Use PascalCase backend and test folders and lowercase/kebab-case folders inside Frontend. Follow documentation/docs/module-layout.md in the foundation repository.\n`,
+    `# ${name} module design\n\nDocument owned use cases, public integration contracts, persistence and disable/retention behavior here. Use PascalCase backend and test folders and lowercase/kebab-case folders inside Frontend. Follow documentation/docs/modules.md in the foundation repository.\n`,
   );
   files.set(
     `${folder}/Tests/README.md`,

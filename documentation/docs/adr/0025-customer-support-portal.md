@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Decision
 
-Implement Support as an optional vertical module across the existing layers, with explicit handlers and validators, a `support` PostgreSQL schema, generated migrations/contracts and lazy Angular routes. Follow the deployment and runtime gates from ADR 0023. No organisation ownership is inferred: requesters own individual tickets until the customer-account design is implemented.
+Implement Support as an optional vertical module across the existing layers, with explicit handlers and validators, a `support` PostgreSQL schema, generated migrations/contracts and lazy Angular routes. Follow the capability and lifecycle gates from ADRs 0031 and 0036. Requester tickets remain private to their requester unless an agent permission authorizes access.
 
 Requester access is ownership-based. Dedicated `support.agent` and `support.admin` permissions control triage and category administration; admin includes agent behavior. Current database memberships are authoritative. Internal messages and their counts are filtered by the persistence service, not the UI. Ticket bodies and filenames never enter audit or email payloads.
 
@@ -16,4 +16,4 @@ Inactive categories remain referenced by existing tickets. Disabled modules reta
 
 ## Extension and verification
 
-See [Support](../support.md) for workflow, setup, permissions and limits. PostgreSQL integration tests exercise isolation, transactions, concurrent saves, attachment access and privacy. OpenAPI and clients are regenerated through owning tools. Browser and accessibility tests remain opt-in under repository guidance.
+See [Modules](../modules.md) for ownership and lifecycle rules. PostgreSQL integration tests exercise isolation, transactions, concurrent saves, attachment access and privacy. OpenAPI and clients are regenerated through owning tools. Browser and accessibility tests remain opt-in under repository guidance.

@@ -128,7 +128,7 @@ public sealed class UnifiedFileLibraryTests
         Assert.DoesNotContain("00000000000000000000000000000001-" + shared.ToString("N"), storage.Objects.Keys);
         Assert.Contains(personal.ToString("N"), storage.Objects.Keys);
         await db.RoleClaims.ExecuteDeleteAsync();
-        Assert.False((await service.Metadata(writer, personal, new("Denied", "", "", false, false), default)).IsSuccess);
+        Assert.False((await service.Metadata(writer, personal, new(false, false), default)).IsSuccess);
         db.RoleClaims.Add(new IdentityRoleClaim<Guid> { RoleId = role, ClaimType = "permission", ClaimValue = Permissions.FileStoragePurge });
         await db.SaveChangesAsync();
         var passwordVerifier = new FreshPasswordVerifier(db,

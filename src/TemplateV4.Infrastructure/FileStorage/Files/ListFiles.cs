@@ -7,7 +7,7 @@ public sealed partial class FileStorageService
 {
     public async Task<Result<FilePage>> List(Guid actor, int pageNumber, int pageSize, string? search, string sort, string direction, CancellationToken ct, Guid? parentId = null, string group = "file-storage", string? token = null)
     {
-        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || sort is not ("name" or "size" or "createdAt" or "updatedAt") || direction is not ("asc" or "desc") || group is not ("file-storage" or "important" or "shared" or "recent" or "starred" or "trash")) return Result<FilePage>.Fail("validation.failed", ErrorKind.Validation);
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || sort is not ("name" or "size" or "createdAt" or "updatedAt") || direction is not ("asc" or "desc") || group is not ("file-storage" or "important" or "shared" or "shared-with-someone" or "recent" or "starred" or "trash")) return Result<FilePage>.Fail("validation.failed", ErrorKind.Validation);
         if (token is null && !await Active(actor, ct)) return Result<FilePage>.Fail("files.not_found", ErrorKind.NotFound);
         StoredFile? folder = null;
         if (parentId != null)
@@ -22,9 +22,12 @@ public sealed partial class FileStorageService
             if (folder is null) return Result<FilePage>.Fail("files.not_found", ErrorKind.NotFound);
             all = all.Where(x => x.DeletedAt == null);
         }
-        else if (group == "shared")
+        else if (group is "shared" or "shared-with-someone")
         {
-            var roots = await db.Set<FileStorageShare>().Where(x => x.RecipientId == actor && (x.ExpiresAt == null || x.ExpiresAt > now)).Select(x => x.FileId).ToArrayAsync(ct);
+            var shares = db.Set<FileStorageShare>().Where(x => x.ExpiresAt == null || x.ExpiresAt > now);
+            var roots = group == "shared"
+                ? await shares.Where(x => x.RecipientId == actor).Select(x => x.FileId).ToArrayAsync(ct)
+                : await shares.Where(x => x.SharedById == actor && x.RecipientId != null).Select(x => x.FileId).ToArrayAsync(ct);
             var sharedRoots = await all.Where(x => roots.Contains(x.Id) && x.DeletedAt == null).ToArrayAsync(ct);
             var entries = await all.Where(x => x.DeletedAt == null).ToArrayAsync(ct);
             var ids = sharedRoots.SelectMany(x => Descendants(entries, x.Id)).Distinct().ToArray();
@@ -56,11 +59,14 @@ public sealed partial class FileStorageService
         var rows = await ordered.ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
         var childCounts = await all.Where(x => x.ParentId != null).GroupBy(x => x.ParentId!.Value).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
         var childFileCounts = await grouped.Where(x => x.ParentId != null && !x.IsFolder).GroupBy(x => x.ParentId!.Value).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
+        var sharedWithSomeone = token is null
+            ? await db.Set<FileStorageShare>().Where(x => x.SharedById == actor && x.RecipientId != null && (x.ExpiresAt == null || x.ExpiresAt > now)).Select(x => x.FileId).ToHashSetAsync(ct)
+            : new HashSet<Guid>();
         var permission = token is null && await CanWrite(actor, ct) ? "owner" : "viewer";
         FileItem[] Items(StoredFile[] values)
         {
             var result = new List<FileItem>();
-            foreach (var value in values) result.Add(Item(value) with { ItemCount = childCounts.GetValueOrDefault(value.Id), FileCount = childFileCounts.GetValueOrDefault(value.Id), Permission = permission });
+            foreach (var value in values) result.Add(Item(value) with { ItemCount = childCounts.GetValueOrDefault(value.Id), FileCount = childFileCounts.GetValueOrDefault(value.Id), Permission = permission, SharedWithSomeone = sharedWithSomeone.Contains(value.Id) });
             return result.ToArray();
         }
         var usage = owned.Where(x => !x.IsFolder).Select(x => new { Category = x.DeletedAt != null ? "trash" : !x.Ready ? "pending" : Category(x.Name), x.Size })

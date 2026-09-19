@@ -14,6 +14,9 @@ Profile audit events omit contact information and image data. Account exports in
 
 ## Extension points and verification
 
-Keep organisation-specific details on customer membership. If adding avatar visibility to a directory or public profile, define its authorization and response contract explicitly. Larger image libraries belong to Files; do not remove account-avatar limits to implement them.
+Keep organisation-wide details in organisation configuration or their owning business
+records, not on account profiles. If adding avatar visibility to a directory or public
+profile, define its authorization and response contract explicitly. Larger image
+libraries belong to core storage; do not remove account-avatar limits to implement them.
 
 The Account page composes the existing Helm fields, select and avatar, retains drafts on failure, confirms navigation away from unsaved edits, and offers explicit reload after a version conflict. Maintain both UI cultures. ProfileTests covers persistence, input rejection, stale versions, actor isolation, CSRF, time-zone refresh, export and erasure against PostgreSQL. Browser interaction and accessibility checks require the repository's E2E permission.

@@ -133,21 +133,20 @@
 @import './design-tokens.css';
 @import './workspace.css';
 
-/* CDK overlays are body siblings of app-root, so only the page is scaled. */
+/* Keep global feedback outside the transformed page stacking context so it remains above overlays. */
 @media (prefers-reduced-motion: no-preference) {
   :root:not([data-motion='reduced']):has(body > .cdk-overlay-container .cdk-overlay-backdrop) {
     overflow: clip;
   }
 
-  :root:not([data-motion='reduced']) app-root {
-    display: block;
+  :root:not([data-motion='reduced']) .app-modal-background {
     transform-origin: center center;
     transition: transform var(--app-modal-background-exit-duration) ease-out;
   }
 
   :root:not([data-motion='reduced'])
     body:has(> .cdk-overlay-container .cdk-overlay-backdrop[data-state='open'])
-    app-root {
+    .app-modal-background {
     transform: scale(var(--app-modal-background-scale));
     transition-duration: var(--app-modal-background-duration);
   }

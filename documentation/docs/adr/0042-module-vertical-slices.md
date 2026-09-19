@@ -11,7 +11,7 @@ was inconsistent. A change to one workflow required searching unrelated areas.
 
 ## Decision
 
-Use the [module layout convention](../module-layout.md): module first, then cohesive
+Use the [module layout convention](../modules.md): module first, then cohesive
 business concern or use case. Private module roots and backend/test subfolders use
 PascalCase, including `Frontend`, `Tests`, `Docs`, `Tools` and `Contracts`. Inside
 `Frontend`, folders remain lowercase/kebab-case. Module IDs stay kebab-case.

@@ -12,6 +12,10 @@ The nullable, additive migration leaves old events unversioned. The drawer label
 
 State changes and their audit entries retain their existing transaction boundaries. Audit success means the recorded domain operation succeeded; audit rows roll back with failed transactions. Expected failures that already commit an audit event retain that separate behavior. Audit events are not general diagnostic logs: never capture passwords, tokens, authorization headers, email action URLs, message bodies, or arbitrary request/entity dumps. Request IP and user-agent capture are not enabled. Reason is optional and reserved for explicit administrative justification; no free-text reason collection is added here.
 
-Historical names are personal data. The existing account anonymisation transaction clears actor snapshots and subject/file snapshots, changes, metadata, reasons and related details for the erased account and its owned files. Related user records currently store identifiers without name copies. Any new personally identifying metadata or related-name capture must extend that redaction path and its integration coverage.
+Historical names are personal data. Account anonymisation clears actor snapshots,
+personal subject snapshots, changes, metadata, reasons, uploader attribution, and related
+user details for the erased account. Organisation documents remain organisation records.
+Any new identifying metadata or related-name capture must extend the redaction path and
+its integration coverage.
 
 To extend auditing, add a stable action and localized label, explicitly supply the subject type for new record kinds, capture only the relevant safe before/after fields, and add real PostgreSQL behavior coverage. Register new detail queries explicitly, preserve permission/module gates and regenerate OpenAPI/clients through their owning tools. Do not backfill historical values from current state.

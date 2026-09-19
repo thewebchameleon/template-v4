@@ -1,28 +1,24 @@
 # ADR 0035: module categories and client configuration
 
-Status: Accepted
+Status: Accepted; current core boundaries are defined by
+[ADR 0051](0051-platform-core-and-file-library.md).
 
-Extends [ADR 0034](0034-private-client-module-composition.md). The catalog explicitly
-distinguishes `core`, `foundation` and `private`. Core includes identity, audit recording,
-delivery, maintenance, operations, audit history and organisations. These retain existing
-configuration and permissions. Core cannot expose runtime module activation switches.
-Optional foundation modules are File Storage, support, CRM, invoicing and SaaS billing.
-Foundation features remain compiled; private module exclusion remains physical.
+## Decision
 
-Ignored `client-modules.json` holds schemaVersion 1, a `foundation` map of optional
-foundation boolean settings and a `privateModules` list. The private selector updates
-only that list. Generated `business-modules.enabled` remains MSBuild's evaluation-time
-input, checked for consistency before compilation/restore. Run discovery after manual
-edits; stale selection fails closed. Frontend hooks and Docker regenerate before builds.
+The catalog distinguishes required `core`, optional `foundation`, and physically
+selected `private` modules. The catalog is authoritative for current category and
+dependency membership; ADRs must not duplicate its inventory.
 
-Hosts compile client foundation settings into a pre-registration configuration callback.
-Explicit choices override presets; deployment settings may restrict them further but
-cannot enable client-excluded modules. Dependencies are validated at generation and
-startup. No client settings are embedded in reusable foundation packages.
+Ignored `client-modules.json` uses schema version 1, a `foundation` boolean map, and a
+`privateModules` list. Foundation keys must name catalog foundation modules. Private IDs
+must be unique kebab-case identifiers. An absent file selects no private modules and
+uses preset/default foundation state.
 
-Administration returns only deployment-available modules with supported runtime controls.
-Unavailable modules retain their activation rows and data; re-inclusion restores access
-subject to the retained activation and normal authorization. No migrations are changed,
-no database schemas are dropped, and no new runtime switches are introduced.
+The discovery tool generates `business-modules.enabled` and all build-owned host and
+frontend composition. Stale generated selection fails before compilation. Explicit
+client choices override presets, while deployment restrictions may disable but never
+enable client-excluded modules.
 
-See the [integration guide](../business-modules.md) for use and upgrade instructions.
+Unavailable modules retain activation rows, migrations, and data. Re-inclusion restores
+availability subject to current runtime state, dependencies, permissions, and normal
+authorization. Package updates never rewrite client-owned selection or source.

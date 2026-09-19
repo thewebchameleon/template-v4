@@ -30,4 +30,5 @@ Existing deployment settings that disable `organisations`, `audit-history` or `m
 
 Core storage endpoint groups do not use module/capability admission metadata. The Angular File Storage destination and route use the `file-storage` capability. Storage administration and public-share routes remain outside that guard. Capability composition must not make `organisation-files` depend on the library presentation capability.
 
-See [module administration](../saas-modules.md), [File Storage](../file-storage.md) and the [implementation plan](../platform-core-implementation-plan.md).
+See [Modules](../modules.md) for module administration and
+[Deployment](../deployment.md) for migration and recovery rules.

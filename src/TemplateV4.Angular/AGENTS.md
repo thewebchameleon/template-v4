@@ -1,8 +1,8 @@
 # Angular guidance
 
-Applies to this workspace in addition to the root guidance. Read the relevant UI sections of the [developer guide](../../documentation/docs/README.md) and [ADR 0010](../../documentation/docs/adr/0010-spartan-design-tokens.md) for changes to shared components, layout, or interaction conventions.
+Applies to this workspace in addition to the root guidance. Read the frontend section of [Architecture](../../documentation/docs/architecture.md) and [ADR 0010](../../documentation/docs/adr/0010-spartan-design-tokens.md) for changes to shared components, layout, or interaction conventions.
 
-Group module-owned pages, resolvers, translations and services under `src/app/features/<module>/<concern>`, using lowercase/kebab-case folders. Keep shell services in `core` and controls with multiple consumers in `shared`. Private modules use a PascalCase `Frontend` root with lowercase/kebab-case folders inside it. See the [module layout convention](../../documentation/docs/module-layout.md).
+Group module-owned pages, resolvers, translations and services under `src/app/features/<module>/<concern>`, using lowercase/kebab-case folders. Keep shell services in `core` and controls with multiple consumers in `shared`. Private modules use a PascalCase `Frontend` root with lowercase/kebab-case folders inside it. See the [module conventions](../../documentation/docs/modules.md).
 
 ## Controls and accessibility
 

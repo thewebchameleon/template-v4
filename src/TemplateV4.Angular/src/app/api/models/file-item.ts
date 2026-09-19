@@ -7,7 +7,6 @@ export interface FileItem {
   createdAt: string;
   demoExpiryMinutes?: number;
   demoMode?: boolean;
-  description?: string;
   fileCount?: number;
   id: string;
   important?: boolean;
@@ -16,8 +15,8 @@ export interface FileItem {
   name: string;
   parentId: (string | null);
   permission?: string;
+  sharedWithSomeone?: boolean;
   size: number;
   starred?: boolean;
-  tags?: string;
   updatedAt?: (string | null);
 }

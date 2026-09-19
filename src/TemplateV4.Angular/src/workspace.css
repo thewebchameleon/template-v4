@@ -285,11 +285,63 @@
   block-size: 2.75rem;
   color: var(--file-color, var(--muted-foreground));
 }
+.my-file-status-icons {
+  position: absolute;
+  inset-block-start: -0.375rem;
+  inset-inline-end: -0.375rem;
+  display: inline-flex;
+  align-items: center;
+  flex-direction: row-reverse;
+}
+.my-file-status-icon {
+  --ng-icon__stroke-width: 3;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-inline-start: -0.25rem;
+  border: 1px solid var(--background);
+  border-radius: 9999px;
+  background: var(--card);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground), transparent 80%);
+}
+.my-file-status-icon:last-child {
+  margin-inline-start: 0;
+}
+.my-file-status-important {
+  color: var(--notification-badge);
+}
+.my-file-status-important-mark {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  color: var(--notification-badge-foreground);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  line-height: 1;
+  transform: translate(-50%, -54%);
+}
+.my-file-status-starred {
+  color: var(--warning);
+}
+.my-file-status-starred svg {
+  fill: currentColor;
+}
+.my-file-status-shared {
+  color: var(--primary);
+}
 .file-storage-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 0.75rem;
   padding-block: var(--card-spacing);
+}
+.file-storage-grid.file-storage-drop-target,
+app-data-table.file-storage-list-drop-area.file-storage-drop-target > div {
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
 }
 .file-storage-grid-card {
   display: flex;
@@ -344,6 +396,11 @@
   inline-size: 1.5rem;
   block-size: 1.5rem;
   background: transparent;
+}
+.file-storage-tree .my-file-status-icons {
+  inset-block-start: -0.375rem;
+  inset-inline-end: -0.5rem;
+  transform: scale(0.75);
 }
 .file-storage-tree {
   margin-block: 0.25rem;

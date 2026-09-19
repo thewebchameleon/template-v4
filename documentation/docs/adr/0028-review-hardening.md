@@ -1,21 +1,32 @@
-# ADR 0028: identity-bound requests and complete customer lifecycle
+# ADR 0028: identity-bound requests and lifecycle hardening
 
-Status: Accepted
+Status: Accepted; former multi-organisation lifecycle rules are superseded by
+[ADR 0047](0047-single-organisation.md).
 
 ## Decision
 
-HTTP refresh retries remain bound to their original actor. Cross-tab account changes discard the other tabs' cached state. Angular reuses routes only when path parameters match, preserving query-based list navigation while destroying entity drafts after approved navigation.
+HTTP refresh retries remain bound to their original actor. Cross-tab account changes
+discard stale cached identity state. Angular reuses routes only when path parameters
+match, preserving query-based list navigation while destroying entity drafts after
+approved navigation.
 
-Privileged accounts require user-verified passkeys by default. Persist factor verification time and passkey proof separately from session creation and generic MFA. MFA policy changes require recent proof. Idempotency records track actor and response subject; erasure keeps a payload-free tombstone until expiry. Account challenge consumers acquire account locks before challenge rows.
+Privileged accounts require user-verified passkeys under the configured policy. Persist
+factor verification time and passkey proof separately from session creation and generic
+MFA. MFA policy changes require recent proof. Account challenge consumers acquire the
+account lock before challenge rows.
 
-Organisation invitations may provision Reader accounts through verified email/password setup independently of public registration. They never confer membership before acceptance. Owners can close organisations after payment obligations end; closure revokes memberships and invitations, retains billing references and schedules shared files for retention cleanup.
+Idempotency records bind the actor, payload hash, and response subject. Privacy erasure
+retains only a payload-free tombstone until idempotency expiry. Storage providers enforce
+opaque-key validation. Retention claims rows with replica-safe locks, persists bounded
+failure backoff, and commits each object independently.
 
-Billing contracts expose cancellation eligibility separately from storage entitlement. Reconciliation uses bounded concurrency, audits changed facts, and retires confirmed settled cancellations. Webhook receipt deduplication is separate from polling.
-
-Storage providers share the same opaque key validation. Retention commits each object separately with replica-safe row locks, persisted failure backoff and independent metadata cleanup.
+Billing exposes cancellation eligibility separately from storage entitlement.
+Reconciliation uses bounded concurrency, deduplicates provider receipts, audits changed
+facts, and retires confirmed settled cancellations.
 
 ## Consequences
 
-Deploy the ReviewHardening migration before API/Worker rollout. Old privileged sessions must prove passkey possession. Keep two administrator passkeys and another active administrator available. Organisation invite emails use the durable outbox; delivery remains at least once. Closed organisation billing records remain for historical obligations. Merchant verification and browser acceptance remain separate from local integration tests.
-
-See [security](../security.md), [organisations and billing](../customer-billing.md), and [storage](../object-storage.md) for extension requirements and configuration.
+Keep two administrator passkeys on separate devices and another active administrator.
+External delivery remains at least once. Provider sandbox verification, browser
+acceptance, and production recovery remain separate from local integration checks. See
+[Security](../security.md) and [Deployment](../deployment.md).

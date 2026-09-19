@@ -30,4 +30,4 @@ EasyPanel maintenance alone is insufficient because it does not stop background 
 Release publication and live rollout remain separate. This introduces no runtime plugin
 loader, new module contract, persistence changes, or destructive migration behavior.
 
-See [EasyPanel examples](../easypanel.md) and [private composition](0034-private-client-module-composition.md).
+See [Deployment](../deployment.md) and [private composition](0034-private-client-module-composition.md).

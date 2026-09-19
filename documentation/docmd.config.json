@@ -5,6 +5,9 @@
   "security": {
     "html": "escape"
   },
+  "plugins": {
+    "ai": false
+  },
   "theme": {
     "name": "default",
     "appearance": "system"

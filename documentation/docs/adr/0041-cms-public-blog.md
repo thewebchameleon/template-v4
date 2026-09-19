@@ -31,5 +31,4 @@ preferences and use a small static stylesheet; the Angular editor retains existi
 application appearance settings. Alternate proxies must route `/blog` to the API.
 Accepted requests may finish after disablement, as for other modules.
 
-See [CMS extension and deployment guidance](../modules/cms.md).
-
+See [Modules](../modules.md) for extension and lifecycle rules.

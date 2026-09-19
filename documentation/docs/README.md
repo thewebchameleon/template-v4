@@ -1,150 +1,53 @@
 # Developer guide
 
-For module ownership, folder casing and use-case files, follow the
-[vertical slice layout](module-layout.md).
+TemplateV4 is a .NET and Angular modular-monolith starter backed by PostgreSQL.
+`framework.json` is the source of truth for tool versions, projects, modules, extension
+points, and generated outputs.
 
-For explicit registration, permission declarations and existing reference workflows,
-follow [module ownership](module-ownership.md).
+## Start locally
 
-For independent module versions, central release-feed hosting, administrator update
-notifications and client upgrade PRs, see [release updates](release-updates.md).
+Install Docker and the toolchain versions listed in `framework.json`, trust the .NET
+development HTTPS certificate, then run:
 
-For the finalized proposal covering organization licensing, commercial module distribution
-and client-triggered VPS redeployment, see [client deployment architecture](client-deployment-proposal.md).
+```powershell
+npm ci --prefix src/TemplateV4.Angular
+npm ci --prefix documentation
+dotnet tool restore
+node tools/framework.mjs dev
+```
 
-For the implemented private management module, enrollment and license setup, see
-[client management operations](client-management.md).
+Aspire starts the application and local dependencies. Use the Web address it reports.
+Development keys, Mailpit, and `compose.yaml` are not production configuration.
 
-For native Docker Compose deployments of the foundation demo and a generic client,
-see [EasyPanel deployment examples](easypanel.md) and [Coolify deployment examples](coolify.md).
+## Where to look
 
-For CRM, commercial documents, package composition and private extensions, see [business modules](business-modules.md) and [foundation packages](packages.md).
+- [Architecture](architecture.md): layer boundaries, request flow, persistence, and
+  compatibility contracts.
+- [Modules](modules.md): ownership, layout, capabilities, and composition.
+- [Security](security.md): authentication, authorization, secrets, recovery, and data
+  handling.
+- [Deployment and operations](deployment.md): production, upgrades, monitoring,
+  recovery, and troubleshooting.
+- [Verification](verification.md): the smallest relevant checks and generated-code
+  workflow.
+- [Decision log](adr/README.md): concise architectural history.
 
-For accounts, shared organisation files and subscriptions, see [Organisations and billing](customer-billing.md).
+Platform-specific deployment details live beside the deployment assets under
+`deploy/compose-platforms`. Feature behavior belongs with its owning source module.
 
-For the configurable SaaS starter, see [modules, deployment presets and roadmap](saas-modules.md). The module catalog complements the framework inventory; it does not replace feature flags or permission checks.
+## Change workflow
 
-The framework manifest is the inventory and version contract. CLI and CI load it directly. `global.json`, central NuGet versions, NuGet lockfiles, npm's exact versions and lockfile pin builds.
+Start at the owning module and implement the smallest complete vertical slice. Add a
+Domain invariant only for business behavior; otherwise add the Application
+command/query, permission, validator, and explicit handler directly. Add focused
+Infrastructure persistence or provider behavior, expose a versioned endpoint, regenerate
+the API client when its contract changes, and compose the lazy Angular route.
 
-| Layer            | Responsibility                                                    | Permitted dependencies           |
-| ---------------- | ----------------------------------------------------------------- | -------------------------------- |
-| SharedKernel     | Packaged CQRS/results/provider contracts                          | BCL only                         |
-| Domain           | User profile invariants and domain events                         | BCL only                         |
-| Application      | Feature validation, permissions, handlers and app event contracts | Domain, SharedKernel             |
-| Infrastructure   | EF, Identity, sessions, outbox, SMTP, storage                     | Application                      |
-| Http             | Packaged HTTP, authorization, Problem Details, OpenAPI            | Infrastructure, ServiceDefaults  |
-| ApiService       | Explicit foundation/business composition host                     | Http, selected business Api      |
-| BackgroundWorker | Durable delivery, Quartz scheduling and execution                 | Infrastructure, ServiceDefaults  |
-| DatabaseMigrator | Explicit schema and role-metadata seeding                         | Infrastructure                   |
-| AppHost          | Local orchestration only                                          | Executable project references    |
-| Angular          | Independent Angular/npm workspace                                 | Generated API contracts, Spartan |
-| Documentation    | Independent DocMD/npm workspace                                   | Markdown under `docs`            |
+Keep code, `framework.json`, module manifests, migrations, generated contracts,
+scaffolding, documentation, and CI consistent. Do not edit generated clients, EF
+designer/snapshot files, or generated module/capability files manually. Preserve
+existing migration history and public identifiers.
 
-Start with [administration and delegated access](administration.md), then [user management](user-management.md), then [security](security.md), [operations](operations.md), and [upgrades](upgrades.md). Decisions live in [adr](adr).
-
-The baseline also includes [platform workflows](platform-workflows.md), [S3 object storage](object-storage.md), and [monitoring and restore drills](monitoring.md). Their ownership, privacy and transaction conventions are recorded in [ADR 0015](adr/0015-platform-baseline-workflows.md).
-
-The developer guide is rendered by the DocMD project in `documentation`. Aspire runs it locally; `npm run validate --prefix documentation` checks internal links and `npm run build --prefix documentation` produces the static site.
-
-For personal action queues, dashboard oversight and optional registration approval, see [Action items](action-items.md).
-
-## Golden path
-
-Define a Domain invariant only when it represents business behavior. Add an Application command/query, permission, validator, and explicit handler. Add focused persistence operations to an Infrastructure implementation; never wrap EF in a generic repository. Register the handler and validator in `Registration.cs`. Expose a versioned endpoint with a stable operation ID and permission policy in a cohesive `ApiService/Endpoints/*Endpoints.cs` file; `Program.cs` only composes endpoint groups through `MapApiEndpoints`. Run the contract-export API test and regenerate Angular clients. Compose Helm components on a lazy route. Add behavioral tests and update documentation and ADRs.
-
-Dispatcher ordering is tracing → authorization → validation → custom decorators → handler, with the decorator/handler chain wrapped in a database transaction for commands. Expected failures are `Result<T>`; exceptions represent failures the caller did not reasonably cause. Error codes are the client contract; translated text is display-only. Pagination is 1-based, capped at 100 items, with stable secondary identifier sorting.
-
-See [the organisation file library](adr/0048-unified-organisation-files.md) for shared access, folders, attachments and storage quotas.
-
-## Extension points
-
-Account delivery preferences include opt-in [web push notifications](web-push.md),
-with per-browser subscriptions and generic-by-default notification previews.
-
-The [Support module](support.md) contains independently configured contact enquiries and requester tickets with bounded attachments, with a delegated agent queue, categories and private staff notes. Its ownership, workflow and storage decisions are in [ADR 0025](adr/0025-customer-support-portal.md).
-
-Audit events and the Audit History detail drawer follow [ADR 0024](adr/0024-audit-event-details.md). Services author stable actions and allowlisted field changes; the persistence interceptor captures historical names and execution context within the operation's transaction. Extend the privacy redaction path when adding personally identifying audit details.
-
-See [declarative capabilities](adr/0031-declarative-capabilities.md) for catalog-defined gates, runtime dependencies, typed settings and the module/feature extension workflow.
-
-Administrators manage application-wide module activation under Modules. File Storage is enabled by default and retains its data when disabled. See [ADR 0023](adr/0023-runtime-module-administration.md) for persistence, endpoint gates, deployment restrictions and adding future runtime modules.
-
-Platform-wide appearance is managed by Administrators under Configuration. See [ADR 0022](adr/0022-platform-configuration.md) for typed configuration sections, public branding, contrast generation and migration requirements.
-
-Replace `IIntegrationTransport`, `IEmailSender`, `IFeatureFlags`, or `IFileStorage` through Infrastructure registration. Domain and Application never import a provider. Outbound HTTP uses the shared HttpClient defaults: cancellation, discovery, tracing, bounded resilience, and no retries for unsafe methods. Opt-in idempotency needs a stable actor-scoped key and payload hash. Requests without a key execute normally.
-
-`IExecutionContext` is scoped. HTTP resolves claims and culture; jobs/messages populate an explicit background context. Never pass HttpContext into Application. W3C context is stored with events; diagnostic logs exclude payloads. Security/business audit records are separate from logs.
-
-Account and security HTTP handlers are contract adapters and do not access EF or Identity directly. Session, account, MFA, and passkey behavior belongs to their focused Infrastructure use-case services under the boundary defined by [ADR 0014](adr/0014-account-security-use-case-boundaries.md). Domain factories expose use-case event intent explicitly; callers do not create and then clear domain events.
-
-## Localisation and UI
-
-Each deployment has one organisation. Administration → Organisation edits its details.
-CRM, Invoicing, shared files and billing open directly. Existing application roles
-control access; there is no organisation selector or membership management. See
-[the single-organisation decision](adr/0047-single-organisation.md).
-
-Selected audible feedback uses [Foley interface sounds](ui-sounds.md), with enabled-by-default soft cues and a browser-local mute setting in the theme drawer. See [ADR 0030](adr/0030-interface-sounds.md) for ownership and lifecycle rules.
-
-Supported examples are en-ZA and af-ZA. User preference precedes Accept-Language and the application default. Background event contracts carry culture explicitly. Angular switches UI text at runtime and formats dates, numbers, and currency with Intl. Backend feature flags are authoritative; permission checks remain mandatory regardless of flag state.
-
-Spartan Brain supplies behavior; copied Helm components in `src/TemplateV4.Angular/libs/ui` supply customizable styling. Use semantic theme colors, fields with labels/errors, accessible dialogs with titles, and native form semantics. Shared switches keep track and thumb dimensions in rem, with a 0.125rem inset around the thumb formed by a 1px border plus padding to avoid fractional border-width rounding and one thumb-width of checked travel in either text direction, so text-size preferences preserve the primary-colored track around the checked thumb. A checkbox with supporting description text wraps its complete field in `hlmFieldLabel`, making the checkbox, title, description, and container one selectable area. Compact mutually exclusive choices use the shared tabs composition: a muted inset list and a primary active pill that slides with a transform and size transition, with an immediate reduced-motion fallback. Use the copied Helm date-picker for date entry, converting its local calendar dates to API contract values at the feature boundary. `components.json` records ownership and paths. Use `npx ng g @spartan-ng/cli:info --json` before adding components.
-
-Display tabular application data through `src/TemplateV4.Angular/src/app/shared/data-table.ts`, the shared implementation of [Spartan's Data Table guide](https://www.spartan.ng/components/data-table). Feature pages own typed TanStack column definitions and URL-backed server query state; every table must use server pagination and every data-bearing column must support server sorting. Action-only columns set `enableSorting: false`. APIs validate sort-column and direction allowlists and append a stable identifier ordering. Use `Resource.load(signal => api.get(path, params, signal))`, bind refreshing/error feedback, and clamp pagination only after a successful load. Data-table search inputs apply automatically after the shared 300 ms debounce, persist their value in URL query state, and reset pagination to page 1; do not place manual search buttons beside them. Render rich or interactive cells as Angular components with `flexRenderComponent`. Extend the shared composition for cross-cutting table behavior, and do not add page-local table implementations or competing grid libraries.
-
-Authenticated page navigation uses `src/TemplateV4.Angular/src/app/shared/breadcrumbs.ts` in the root header. Add `data: { breadcrumb: 'translationKey' }` to route levels for explicit localized labels; levels without data are derived from their URL segment. A page that needs runtime labels, such as an entity name, can inject `Breadcrumbs` and call `set([{ label: 'users', link: '/administration/users' }, { label: user.displayName }])`. The override lasts until the next navigation starts, and `clear()` restores route-derived values. The current level is text, ancestor levels are links, middle levels collapse on mobile, and the back action follows browser history when a previous in-app page is known.
-
-The root derives the document title from the current localized breadcrumb and moves focus to the main landmark after page navigation (query-only list changes retain focus). Keep every page's first heading descriptive and keep the main landmark programmatically focusable so keyboard and assistive-technology users receive clear navigation feedback.
-
-Authenticated shell content slides up and fades in when navigation changes rail destinations, including browser history. Navigation between pages within the same rail destination, query-string changes and fragment changes do not replay the entrance. Account pages share one destination. Customize `--app-content-enter-distance` (2rem) and `--app-content-enter-duration` (500ms) in `design-tokens.css`. Keep this animation on the shared `.app-content` container rather than individual page sections. System or app reduced-motion preferences disable it; routed components retain their state and the existing focus behavior.
-
-Sidebar submenu groups use the same fade and upward slide when switching between rail destinations. Apply `sidebar-submenu` to new submenu groups and reuse the content entrance tokens. The rail, panel shell and brand remain stationary. Navigation within the same submenu, reopening it, repeated activation and query-only changes do not replay the effect. Reduced-motion preferences disable it, and opening a submenu retains keyboard focus on its trigger.
-
-Individual submenu rows also fade and slide upward as they are inserted. Use `animate.enter="sidebar-item-enter"` with the row index in `--sidebar-item-index`. Shared `--sidebar-item-enter-*` tokens control the 220ms duration, 0.375rem distance and 35ms stagger, capped at six stagger steps. Apply the entrance to the row rather than a container of nested rows. Composite Administration and File Storage rail submenus are single grouped transitions and rely only on their `sidebar-submenu` container animation. Both system and app reduced-motion preferences disable these effects.
-
-User feedback follows Spartan's distinction between persistent and transient content: keep `hlmAlert` in the page for state, warnings, and actions that must remain visible, and publish operation results through the single root `hlm-toaster`. Toast copy is localized at publication time; HTTP Problem Details show only their human-readable title. Error codes and trace identifiers remain diagnostic data and must not appear in user notifications. Expected setup-only access failures do not produce a toast because the profile's persistent MFA setup alert provides the required guidance.
-
-The bottom rail account button opens the existing resizable sidebar label panel, replacing the individual account destination icons and the dropdown menu. The mobile navigation sheet exposes the same account group. This sidebar submenu links to the existing Profile (`/me`), Account Security (`/security`), Sessions (`/security/sessions`), Notifications (`/notifications`) and Privacy & Data (`/privacy`) pages, in that order. **Accessibility** is the final sidebar action and opens the shared drawer. Extend `accountMenuLinks` in the root component for account destinations, retaining setup-required filtering and localized labels. Sign out is a destructive button at the far right of the header.
-
-The header **Accessibility Settings** drawer, opened with a prominent accessibility icon, offers theme, language, text size, contrast, motion and interface-density preferences. Theme and language remain available before sign-in through the compact authentication controls. Following [Spartan dark-mode guidance](https://www.spartan.ng/documentation/dark-mode), `Theme` toggles the root `dark` class; the existing semantic tokens and `color-scheme` style controls and overlays. Browser-local preferences persist across reloads and synchronize across tabs. System theme follows live device changes, and system motion respects the device preference. `public/theme-init.js` applies the initial preferences before Angular renders using an external script permitted by the production CSP. Keep its storage keys and normalization consistent with the corresponding core services; storage failures must not prevent rendering or changing preferences.
-
-The desktop sidebar has a permanent 4rem destination rail and a separate label panel, defaulting to 16rem and resizable from 0 to 32rem. Each currently available destination has a localized icon link in the rail; the brand sits at the top and the account menu at the bottom. Dashboard is the first destination and has no secondary panel. Selecting it collapses the panel, including direct visits and browser history. Activating a destination with a panel, by pointer or keyboard, opens or switches the panel without navigating and repeated activation keeps it open. Dashboard is also available in the mobile sheet. A shared rounded rail indicator slides to the active destination over 200 ms and follows nested routes and browser history. System or app reduced-motion preferences move it instantly. Keep destination targets uniformly sized with `--app-sidebar-rail-target-size` and their spacing with `--app-sidebar-rail-gap` so the indicator stays aligned during scrolling and text scaling. Extend the root navigation arrays to add destinations and apply the same permission checks to rail and label links. The panel divider is a focusable resize separator with a 2rem arrow icon, a translucent 5rem guide, and a tooltip that follow the pointer vertically. Arrow keys resize by half a rem, Home collapses, End selects the maximum, Escape cancels dragging, and double-click restores the default. Dimensions use the centralized `--app-sidebar-rail-width`, `--app-sidebar-panel-width`, and `--app-sidebar-panel-max-width` tokens. Panel width and open state persist locally and synchronize across tabs; rem units scale the entire interaction with text-size preferences. Mobile keeps the existing sheet. The theme drawer reset action restores theme, language, text size, contrast, motion, density, panel width and expanded state.
-
-## CLI
-
-`node tools/framework.mjs inspect|validate|doctor|dev|clients|upgrade` inspects the manifest, verifies its schema, reports toolchains, starts development, regenerates clients, or explains supported upgrades. `new <kind> <PascalCaseName>` creates deterministic files without overwriting existing work. Supported kinds are command, query, entity, permission, event, consumer, endpoint, job, email, localisation, page, adr, feature, migration. Feature scaffolds require `--module <existing-module-id>`. Scaffolds require explicit implementation/registration review; they are not automatically enabled endpoints or jobs.
-
-## Production and security settings
-
-See [production deployment](production.md), [MFA and passkey policy](adr/0005-configurable-mfa-and-passkeys.md), [interactive administrator bootstrap](adr/0007-interactive-administrator-bootstrap.md), [delivery recovery](adr/0006-delivery-leases-and-reconciliation.md), and [package reuse](packages.md). Signed-in users land on Dashboard at `/dashboard`, after any required security setup. Navigation and route guards use the same permission catalog. See [ADR 0016](adr/0016-administration-and-delegated-access.md). The bootstrap administrator completes factor setup before managing users.
-
-## UI customization
-
-The authenticated Dashboard at `/dashboard` shows account/security actions, the current unread notification count and module/permission-filtered workspace links. Extend `src/TemplateV4.Angular/src/app/features/dashboard/dashboard.ts` with actual application metrics when available. Its action-item overview uses server-enforced visibility, including Administrator oversight. Keep labels in both UI cultures. The root rail marks destinations with `hasPanel`; destinations without a secondary menu suppress the desktop panel through `HlmSidebarService.setPanelAvailable`, preserving stored sizing and leaving the mobile sheet usable. See [ADR 0010](adr/0010-spartan-design-tokens.md).
-
-When a data table is the first content in a card (directly or through `app-page-state`), shared styles remove the top content padding and round the table's top corners to the inner card radius. Column headers then meet the card border without a blank strip. Cards with filters or status messages above the table retain their content spacing.
-
-For every data-table panel, compose `hlmCard`, `hlmCardHeader`, and `hlmCardContent` with the shared `app-data-table` followed immediately by `app-list-pager` as the final content. Do not put a grid/flex gap between the table and pager. Shared `workspace.css` aligns the panel heading, filters, outer columns and footer content using `--card-spacing` with a shared four-spacing-unit inset (16px at the default scale). The footer has a full-width card background matching the table rows, rounded bottom corners and equal compact vertical padding; results stay left and pagination right, stacking on mobile. Server pagination defaults to 10 rows; selectable page sizes use the shared 5, 10, 25 and 50 options. Extend these shared styles instead of adding page-local offsets. Review alignment, focus visibility, reflow and both themes when changing this composition; see [ADR 0010](adr/0010-spartan-design-tokens.md).
-
-The template follows [Spartan Sidebar 2](https://spartan.ng/blocks/sidebar#sidebar-2), [Login 2](https://spartan.ng/blocks/login#login-2), and [Signup 2](https://spartan.ng/blocks/signup#signup-2). See [ADR 0010](adr/0010-spartan-design-tokens.md).
-
-Enabled actions use a pointer cursor through the semantic control selectors in `src/TemplateV4.Angular/src/styles.css`, including buttons, links, selection controls, menu items, tabs, and wrapping choice labels. Use native controls or the appropriate accessible role for new actions, and expose disabled state through native `disabled`, `aria-disabled`, or Spartan `data-disabled`. Keep text-entry and resize cursors intact; copied Helm styles must not override actionable controls with `cursor-default`.
-
-- `src/TemplateV4.Angular/src/brand.css`: the project brand guide. Configure the complete primary and neutral shade palettes, light/dark semantic color mappings, chart palette, and heading/body font tokens here. Both font tokens default to locally bundled Inter 4.1 (variable weights 100–900), with system fallbacks and `font-display: swap`. Font assets and their license live in `public/fonts/inter`; update the font-face declaration and `src/index.html` preload together when replacing the font. The default primary is blue; components continue to consume semantic tokens rather than palette shades directly.
-- `src/TemplateV4.Angular/src/styles.css`: global Tailwind/Spartan setup, color-scheme behavior, radius, and base element styles. Tailwind's `--spacing`, `--text-*`, and font-weight theme variables are the shared scales; override them with `@theme` to customize every copied component consistently.
-- `src/TemplateV4.Angular/src/design-tokens.css`: sidebar dimensions, header/content spacing, form widths, page titles, authentication panel spacing and artwork placement. Keep responsive breakpoints aligned with the Sidebar config and Tailwind breakpoints when changing them.
-- Shared `hlmCard` panels use a muted rounded shell with an inset semantic card surface. Tune the `--panel-*` variables in `src/TemplateV4.Angular/src/design-tokens.css`; keep structural card styling centralized in `libs/ui/card` so light, dark and responsive treatments remain consistent across feature pages.
-- Right-side drawers use the same panel tokens and card-in-card composition. Put scrollable drawer content on an element with `hlmDrawerBody`; pair it with the shared drawer header and optional footer so the body uses matching top and horizontal insets across themes and viewport sizes. The shared header supplies the prominent close control; editable drawers provide a close guard backed by the unsaved-changes alert and disable implicit dismissal while dirty. The notification drawer keeps its list-specific inset and edge treatment.
-- `src/TemplateV4.Angular/src/app/features/identity/authentication/auth-layout.ts`: shared two-column authentication composition and the locally rendered FeralUI artwork. Administrators choose from all 30 gradient types and 298 color presets with thumbnails and a live preview under Configuration; see [ADR 0022](adr/0022-platform-configuration.md). Change the `appBrand` translation for branding.
-- `src/TemplateV4.Angular/libs/ui`: owned Helm variants and component styles. Extend these for control-wide changes; prefer their variants and semantic tokens in page templates. Use `hlm-select` with its trigger, value, portaled content, and items for dropdowns, including form drawers and table filters. Preserve accessible labels and required-value validation.
-
-Public registration is disabled by default. Administrators enable **Allow public registration** under **Users → Account security** without additional credential or factor confirmation. New users register at `/signup`, verify email, and receive Reader access. MFA policy still applies. See [registration policy](adr/0009-configurable-public-registration.md).
-
-Administration is one permission-filtered rail destination with a settings-cog icon. It opens the existing resizable label panel containing **API Keys** (`/administration/api-keys`), **User Management** (`/administration/users`), **Audit History** (`/administration/audit-history`), **System Health** (`/administration/system-health`), **Payment methods** (`/administration/payment-methods`) and core **File Storage** settings (`/administration/file-storage`) under **Administration**. API Keys requires `api-keys.manage`; see the [external API guide](external-api.md). Module-specific pages include **Commercial billing** (`/administration/commercial-billing`), **CRM configuration** (`/administration/crm`) and **Issuer settings** (`/administration/invoicing`) when their modules are enabled. Privacy Requests is a permission-aware tab under User Management at `/administration/users/privacy-requests`. Section labels use the shared eyebrow treatment. The panel shows these groups on administration routes; mobile includes them in the navigation sheet. The parent route opens the first permitted, enabled child. Nested user details remain under `/administration/users/:id`. Old top-level URLs redirect to their canonical routes, preserving query state and existing notification links. System Health replaces the Operations page name; API paths, module identifiers and audit event contracts retain `operations`.
-
-Extend `core/administration.ts` and the guarded child routes together for new administration pages. Navigation and the parent landing route share the permission/module-filtered list; endpoint and route guards remain authoritative. Keep localized breadcrumbs, active rail state, named links and panel expanded state consistent for direct visits and browser history.
-
-See [File Storage](file-storage.md) for folders, sharing, Trash and storage accounting.
-
-The [CMS module](modules/cms.md) adds published landing-section and article snapshots
-with delegated Markdown editors and scoped external API access.
+Before changing a convention or public contract, read the relevant maintained page and
+the [decision log](adr/README.md). Add a decision entry only for a durable architectural
+choice, not routine implementation detail.

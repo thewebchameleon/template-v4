@@ -36,6 +36,7 @@ import {
   phosphorFileZipDuotone,
   phosphorFolderDuotone,
 } from '@ng-icons/phosphor-icons/duotone';
+import { phosphorWarningCircleFill } from '@ng-icons/phosphor-icons/fill';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmContextMenuImports } from '@spartan-ng/helm/context-menu';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
@@ -61,6 +62,7 @@ import {
   lucideStar,
   lucideFlag,
   lucideUsers,
+  lucideUserPlus,
   lucideClock,
   lucideTrash2,
   lucideArrowLeft,
@@ -81,6 +83,7 @@ export const fileStorageFileIcons = provideIcons({
   lucideStar,
   lucideFlag,
   lucideUsers,
+  lucideUserPlus,
   lucideClock,
   lucideTrash2,
 });
@@ -88,6 +91,7 @@ export const fileGroups = [
   { id: 'file-storage', label: 'files', icon: 'lucideFolder' },
   { id: 'important', label: 'important', icon: 'lucideFlag' },
   { id: 'shared', label: 'sharedWithMe', icon: 'lucideUsers' },
+  { id: 'shared-with-someone', label: 'sharedWithSomeone', icon: 'lucideUserPlus' },
   { id: 'recent', label: 'recentFiles', icon: 'lucideClock' },
   { id: 'starred', label: 'starred', icon: 'lucideStar' },
   { id: 'trash', label: 'trash', icon: 'lucideTrash2' },
@@ -129,17 +133,53 @@ export const fileGroups = [
       phosphorFileXlsDuotone,
       phosphorFileZipDuotone,
       phosphorFolderDuotone,
+      phosphorWarningCircleFill,
+      lucideStar,
+      lucideUsers,
     }),
   ],
   host: {
     class: 'my-file-icon',
     '[attr.data-category]': 'file().isFolder ? "folders" : file().category || "other"',
   },
-  template: '<ng-icon [name]="icon()" size="100%" aria-hidden="true" />',
+  template: `
+    <ng-icon [name]="icon()" size="100%" aria-hidden="true" />
+    @if (statusLabel()) {
+      <span class="my-file-status-icons" role="img" [attr.aria-label]="statusLabel()">
+        @if (file().important) {
+          <span class="my-file-status-icon my-file-status-important" aria-hidden="true">
+            <ng-icon name="phosphorWarningCircleFill" size="1rem" />
+            <span class="my-file-status-important-mark">!</span>
+          </span>
+        }
+        @if (file().starred) {
+          <span class="my-file-status-icon my-file-status-starred" aria-hidden="true">
+            <ng-icon name="lucideStar" size="0.75rem" />
+          </span>
+        }
+        @if (file().sharedWithSomeone) {
+          <span class="my-file-status-icon my-file-status-shared" aria-hidden="true">
+            <ng-icon name="lucideUsers" size="0.75rem" />
+          </span>
+        }
+      </span>
+    }
+  `,
 })
 export class FileStorageFileIcon {
+  private readonly i18n = inject(I18n);
   readonly file = input.required<FileItem>();
   readonly icon = computed(() => fileIconName(this.file()));
+  readonly statusLabel = computed(() => {
+    const file = this.file();
+    return [
+      file.important ? this.i18n.text('important') : '',
+      file.starred ? this.i18n.text('starred') : '',
+      file.sharedWithSomeone ? this.i18n.text('sharedWithSomeone') : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+  });
 }
 @Component({
   selector: 'app-my-file-actions',

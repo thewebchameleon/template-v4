@@ -10,4 +10,5 @@ Shared toast methods own success/error cues. Unread summaries sound only for an 
 
 The service uses programmatic Foley calls and trusted gesture activation instead of global declarative binding. It discards cues while muted, hidden or without a running audio context, and catches playback failures. This avoids replaying stale feedback after an autoplay restriction. Audio remains supplementary to visible, accessible feedback. No backend or generated API contract changes are required.
 
-See [Interface sounds](../ui-sounds.md) for extension and validation guidance.
+The repository-local Foley skill defines the extension workflow. Audio remains
+supplementary to visible, accessible feedback.

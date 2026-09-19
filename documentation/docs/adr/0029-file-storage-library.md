@@ -1,25 +1,30 @@
-# ADR 0029: File Storage and sharing
+# ADR 0029: File Storage folders and sharing
 
-Status: Accepted
-
-## Context
-
-The personal file library needs folder navigation, metadata, useful file groups, recoverable deletion, public links and permission-based collaboration. These extend the folder and private-download conventions in [ADR 0021](0021-user-file-library.md).
+Status: Accepted; ownership and quota scope updated by
+[ADR 0048](0048-unified-organisation-files.md), and platform/module boundaries updated by
+[ADR 0051](0051-platform-core-and-file-library.md).
 
 ## Decision
 
-Rename the personal module and API to `file-storage`, with the library tables in the `file_storage` schema and organisation attachment routes unchanged. Migrate runtime activation by updating its key, preserving disabled state and concurrency version. Redirect old browser routes; regenerate consumers for renamed API paths and operation identifiers.
+The organisation-wide library supports folders, metadata, recent files, recoverable
+trash, user references, and public links. The stable file identity is also the content
+object identity. Reserve capacity under the organisation storage lock before writing
+bytes, then revalidate admission before publishing. Moves, recursive trash operations,
+replacement accounting, and cleanup use the same lock discipline.
 
-Use the file identity as its content-object identity. Reserve each upload under the owner quota lock before writing bytes, then revalidate access before publishing it. The same lock protects moves, recursive Trash operations and cleanup. Failed or interrupted provider work remains durably accounted for and is reconciled by retention.
+Grants expire independently and are checked on each request. Public links grant read
+access only: generate 256-bit capabilities, store hashes, keep raw tokens out of URLs
+recorded by logs, and validate expiry and revocation every time. User references may
+surface an item in “Shared with me” but do not override the organisation permission
+required for mutation. Email-addressed shares use the same revocable capability: queue
+the protected recipient and action URL through the outbox, and reveal the raw link to
+the sharer only when it is created so it can also be copied manually.
 
-Store independently expiring grants on entries. Effective permission comes from the owner or an active grant on the entry or a live ancestor. Viewer reads/downloads; Editor additionally updates metadata; ownership controls destructive operations and sharing. Public links grant Viewer only. Generate 256-bit capabilities, store hashes, keep raw tokens out of API paths and logs, and validate expiry/revocation on every request. Existing-user sharing records a grant and does not send an email.
+Folder deletion moves the folder and live descendants to Trash as one deletion batch so
+restoration cannot resurrect content deleted earlier. Purge immediately prevents restore
+while usage remains charged until provider deletion succeeds. Retention and privacy
+processing continue when the File Storage presentation module is disabled.
 
-Folder deletion recursively moves the folder and its live descendants to Trash under the owner lock. Trash records deletion batches so restoring a folder does not resurrect content trashed earlier. Purge requests immediately prevent restoration while retaining quota until storage removal succeeds. Current files, Trash and reservations form disjoint accounting categories. Shared recipients do not pay quota for content they do not own. Privacy export and erasure include the new metadata and grant records without exposing tokens.
-
-Use the existing resizable submenu for folder disclosures and predefined groups, with deferred component loading to retain the initial-bundle budget. Continue using the shared datatable, URL query state, dialogs, semantic tokens and both cultures. The recent strip is scoped independently of table pagination.
-
-## Consequences
-
-The deployment override names and generated personal API clients change; apply [upgrade instructions](../upgrades.md#file-storage-upgrade) before rollout. Space release can lag a purge request until Worker cleanup succeeds. Future content replacement, content scanning, previews, bulk archive downloads and ownership transfer require separate use cases. [File Storage documentation](../file-storage.md) records supported behavior and extension points.
-
-File Storage submenu groups are always expanded; nested folders start expanded and may be collapsed. Folders with zero direct items are hidden outside the File Storage group. Each group and folder badge displays a file-only count, while folder disclosure continues to account for child files and subfolders. Leaf folders have no disclosure caret. Owners can right-click a live folder or press Shift+F10 to create a subfolder or delete a folder and its contents.
+Downloads remain private, use attachment disposition, and disable caching unless an
+explicit public-link contract applies. Content scanning, previews, bulk archives, and
+replacement version history require separate decisions.

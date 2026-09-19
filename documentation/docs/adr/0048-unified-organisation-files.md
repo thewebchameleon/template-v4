@@ -1,49 +1,38 @@
 # ADR 0048: one organisation file library
 
-Status: Accepted
+Status: Accepted; platform/module boundary updated by
+[ADR 0051](0051-platform-core-and-file-library.md).
 
 ## Decision
 
-The single organisation has one **File Storage** page using the existing folder, metadata,
-sharing, recent-files and trash interface. Former personal files are organisation
-files visible to all enabled, confirmed, approved users. The existing
-`organisation.files.manage` permission authorizes upload, folder changes, metadata,
-sharing and trash operations. Uploader identity is nullable attribution, not access
-control. User shares remain references in Shared with me; they do not override
-organisation write permissions. Public links remain token-scoped read access.
+The deployment has one organisation-wide file library. All enabled, confirmed, approved
+users can read organisation files; `organisation.files.manage` authorizes library
+mutation. Uploader identity is nullable attribution, not ownership. User references may
+surface entries but do not override organisation mutation permissions. Public links are
+token-scoped read access.
 
-Organisation attachment operations and File Storage use the same stored-file table and
-object keys. A single quota includes every persisted upload in the application: every
-user's library uploads, reservations and retained trash, Support ticket attachments,
-profile avatars and every retained organisation logo. Replacing an upload accounts for
-the size difference; deleting data releases its usage when the owning workflow deletes
-the stored bytes. All upload paths use the storage-owned quota admission contract in
-their existing transaction, under one organisation lock, so concurrent uploads in
-different modules cannot overbook the allowance. Future persisted upload workflows must
-use the same contract and contribute their bytes to the storage usage implementation.
-Subscription entitlements take precedence over the configured organisation quota.
-Per-user quota overrides and administrative user-library endpoints no longer apply.
-Existing module and attachment capability gates remain authoritative.
+Every persisted upload uses the core storage admission contract and one organisation
+lock: library files, reservations, retained trash, business attachments, Support
+attachments, avatars, and retained organisation logos. Replacement accounts for the
+size delta. Usage is released only when the owning workflow deletes stored bytes.
+Concurrent workflows therefore cannot overbook the allowance.
+
+A currently valid purchased storage allowance overrides the configured core quota.
+Without one, the configured quota applies. Reducing an allowance never deletes data;
+reads and cleanup continue while new consumption is denied. Per-user quotas and
+administrative user-library endpoints do not exist.
+
+The `file-storage` module controls authenticated library navigation and pages only. Core
+storage persistence, quota administration, public links, privacy, retention, and
+attachments remain available under their own capabilities and permissions.
 
 ## Migration and lifecycle
 
-The forward `UnifiedFileLibrary` migration copies organisation rows into the file
-library with their IDs and object keys intact, preserving record attachment links.
-Personal rows and folder hierarchies remain intact. Folder parent constraints now
-permit moves across former uploader boundaries. The migration fails on ID collisions
-rather than silently dropping records. Back up the database before upgrading; the
-merge cannot be reversed automatically after users have changed shared folders.
-Stop API and Worker workloads while applying the migration, then restart both.
+The forward merge preserved file IDs and object keys and failed on collisions rather
+than dropping records. Migration history remains permanent. Privacy erasure removes
+uploader and sharer attribution and recipient references but does not delete organisation
+documents or public links. Retention uses persisted object keys and the organisation lock.
 
-Privacy erasure removes uploader attribution and recipient shares but does not
-delete organisation documents or public links. Retention uses the persisted object
-key and the same library lock as folder changes. The migration disables demo expiry to avoid newly scheduling deletion of imported
-organisation documents. Administrators can explicitly enable it again for the
-merged library. Already-requested purges continue.
-
-## Verification
-
-`UnifiedFileLibraryTests` migrates a disposable PostgreSQL database containing both
-old file types, checks preserved download keys, role-based access, cross-uploader
-folders, trash, shared quota and token boundaries. Set
-`TEMPLATEV4_FILES_TEST_DATABASE` to an empty disposable database to run it.
+New upload workflows must use storage admission and contribute their bytes to usage.
+Folder, sharing, trash, and public-capability behavior is defined by
+[ADR 0029](0029-file-storage-library.md).

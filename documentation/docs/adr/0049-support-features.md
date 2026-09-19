@@ -58,5 +58,4 @@ overrides; use Support deployment selection and its feature settings instead.
 Focused PostgreSQL tests verify migration preservation, cross-context concurrency,
 transactional settings, retained enquiries, attachment
 ownership and missing-state restrictions. Endpoint metadata and catalog tests verify
-feature gates and dependency propagation. See [Support](../support.md) and
-[module extension guidance](../saas-modules.md).
+feature gates and dependency propagation. See [Modules](../modules.md).

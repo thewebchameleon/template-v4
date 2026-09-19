@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TemplateV4.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FrameworkDb))]
-    partial class FrameworkDbModelSnapshot : ModelSnapshot
+    [Migration("20260919161418_AddFileShareAttribution")]
+    partial class AddFileShareAttribution
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1521,10 +1524,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(12)
                         .HasColumnType("character varying(12)");
-
-                    b.Property<string>("RecipientEmail")
-                        .HasMaxLength(254)
-                        .HasColumnType("character varying(254)");
 
                     b.Property<Guid?>("RecipientId")
                         .HasColumnType("uuid");

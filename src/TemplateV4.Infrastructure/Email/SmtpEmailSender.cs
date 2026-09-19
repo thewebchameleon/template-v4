@@ -29,6 +29,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
             EmailTemplate.SecurityNotification => af ? "Rekeningsekuriteit verander" : "Account security changed",
             EmailTemplate.SupportTicket => af ? "Jou ondersteuningskaartjie is opgedateer" : "Your support ticket has been updated",
             EmailTemplate.ContactEnquiry => af ? "Nuwe webwerfnavraag" : "New website enquiry",
+            EmailTemplate.FileShareInvitation => af ? "'n Item is met jou gedeel" : "An item has been shared with you",
             EmailTemplate.MfaCode => af ? "Jou aanmeldkode" : "Your sign-in code",
             _ => af ? "Kennisgewing" : "Notification"
         };
@@ -46,6 +47,7 @@ public sealed class SmtpEmailSender(IConfiguration config, IHostEnvironment envi
         var code = email.Template == EmailTemplate.MfaCode && email.ProtectedContent is not null ? _mfaCodeProtector.Unprotect(email.ProtectedContent) : null;
         if (email.Template == EmailTemplate.RegistrationApproved) { url = $"{config["Web:PublicUrl"]?.TrimEnd('/')}/login"; customBody = af ? "Jou registrasie is goedgekeur. Jy kan nou aanmeld." : "Your registration has been approved. You can now sign in."; }
         if (email.Template == EmailTemplate.RegistrationRejected) customBody = af ? "Jou registrasie is afgekeur. Kontak die administrateur vir hulp." : "Your registration has been rejected. Contact the administrator for assistance.";
+        if (email.Template == EmailTemplate.FileShareInvitation) customBody = af ? "Gebruik die veilige skakel hieronder om die gedeelde item te bekyk." : "Use the secure link below to view the shared item.";
         var introduction = customBody ?? (code is null ? subject : af ? "Gebruik hierdie kode om aan te meld. Dit verval oor 10 minute." : "Use this code to sign in. It expires in 10 minutes.");
         var textContent = url is not null ? $"{introduction}: {url}" : code is not null ? $"{introduction}\n\n{code}" : introduction;
         var text = $"{brand.Name}\n\n{textContent}";

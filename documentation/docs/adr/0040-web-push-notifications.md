@@ -29,4 +29,5 @@ Expired browser endpoints (404/410) are deleted without retrying.
 Subscription keys and endpoints are credentials, excluded from audit, application
 logs and account exports. Only known browser-vendor HTTPS endpoints are accepted;
 redirects are forbidden. Other providers require an explicit allowlist update.
-No Firebase account or third-party push SDK is required. See [web push setup](../web-push.md).
+No Firebase account or third-party push SDK is required. VAPID credentials are treated
+as production secrets under [Security](../security.md).

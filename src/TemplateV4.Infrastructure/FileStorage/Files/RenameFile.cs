@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Platform;
+using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
 

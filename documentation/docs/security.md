@@ -1,49 +1,59 @@
-# Security model
+# Security
 
-Verified email changes and administrator-reviewed anonymisation are described in [platform workflows](platform-workflows.md) and [ADR 0015](adr/0015-platform-baseline-workflows.md). Private file access is enforced by authenticated ownership on every operation; administrators do not bypass it.
+Security is enforced at the API and Application boundaries. Frontend route visibility,
+feature flags, and module state improve navigation but never replace authorization.
 
-Identity lives exclusively in Infrastructure. Access tokens are RS256 JWTs with five-minute lifetimes, held in Angular memory. Each authenticated request checks the session and current Identity security stamp in PostgreSQL. Role changes, disabling users, password resets, refresh reuse and explicit revocation invalidate sessions immediately.
+## Identity and access
 
-Refresh tokens contain 64 random bytes and are persisted only as SHA-256 hashes. Cookies use Secure, HttpOnly, SameSite=Strict, Path=/, and the __Host- prefix. Rotation consumes each token under a PostgreSQL session-family row lock. Consumed-token reuse revokes the entire family; old hashes remain until the family expires. Browser tabs serialize refresh via Web Locks. Login and logout broadcast identity invalidation; other tabs reload to discard identity-bound caches and drafts. HTTP retries compare the original actor with the refreshed actor and refuse cross-account replay. Opening Login first attempts cookie refresh.
+Use short-lived access with rotating, revocable sessions. Mutating browser requests
+require CSRF protection. Recent verification is required for sensitive account actions.
+MFA policy may be optional, Administrator-only, or universal; privileged accounts must
+not bypass the configured policy. Keep at least two passkeys on separate devices and a
+second active administrator.
 
-Every mutating cookie-authentication endpoint checks an explicit allowed Origin and an ASP.NET antiforgery token. Access-token endpoints require the Authorization header; they do not authenticate from cookies. Do not deploy Web/API on unrelated sites with these Strict-cookie defaults. Prefer one public origin and a reverse proxy.
+Permissions are stable public contracts. Built-in roles are protected, delegated roles
+receive only explicit grants, and last-administrator invariants must be transactional.
+Bind commands to the authenticated actor rather than trusting actor IDs supplied by a
+client. Background work receives an explicit execution context; never pass `HttpContext`
+into Application code.
 
-User invitations contain no password. Verification queues a password-setting link, protected by Identity's time-limited tokens. Persisted action URLs are encrypted using Data Protection, and links carry secrets in fragments to avoid proxy URL logging. While administrator bootstrap has not been completed, each API process generates a cryptographically random bootstrap token and writes it directly to its server console. The CSRF-protected, rate-limited bootstrap endpoint accepts that token with the initial username and password over HTTPS. A completion timestamp in PostgreSQL permanently disables the endpoint; existing Administrator membership upgrades older installations to the completed state. Tokens are never persisted or sent to the browser by the status endpoint.
+External API keys are random, one-time-displayed, hashed at rest, scoped, revocable, and
+audited. A key authorizes only explicitly supported external endpoints and never grants
+interactive browser access.
 
-The bootstrap administrator is a permanent account. Its reserved `@example.invalid` address is intentionally non-deliverable, so password-reset and security-notification email is never queued for it. Operators must preserve its username and credentials and use another administrator account for recovery actions. Derived applications that require email recovery must replace the reserved address and define a verified delivery workflow before production use.
+## Secrets and data
 
-## Production configuration
+Use production signing keys, shared persistent Data Protection keys, dedicated database
+roles, private S3 credentials, and real SMTP credentials. Keep secrets out of source,
+images, browser runtime configuration, logs, traces, audit details, support tickets, and
+backup reports. Never log authorization headers, refresh tokens, action URLs, message
+payloads, or file content.
 
-Set ConnectionStrings__app with a workload-specific PostgreSQL credential, Web__PublicUrl, exact Web__AllowedOrigins, Jwt__PrivateKeyPath, Jwt__KeyId, DataProtection__KeyPath, DataProtection__CertificatePath, and the wrapping-certificate password. Share durable Data Protection key storage across API/Worker replicas and restrict its filesystem permissions. Mount private keys read-only. Production startup refuses unencrypted Data Protection key persistence unless `DataProtection__AllowUnencryptedKeys=true` explicitly accepts that the private key-ring volume is the security boundary.
+Validate ownership on every private read and write. All uploads pass through the shared
+quota admission contract and use bounded size/type rules. Public file links use strong
+random capabilities stored only as hashes, with expiry and revocation checked on every
+request. Downloads default to attachment and `no-store` unless a public contract says
+otherwise.
 
-JWT signing keys are separate from Data Protection. Rotate by adding the previous public PEM and key ID under Jwt__PreviousKeys, changing the active private key/key ID, and retaining the old validation key beyond maximum access-token lifetime plus clock skew. Rotate wrapping certificates with a reviewed plan to retain access to old Data Protection keys.
+Audit records are separate from diagnostics. Store stable action names, actor/subject
+identifiers, and allowlisted structured changes; redact or erase personal details through
+the privacy lifecycle without weakening security-event retention requirements.
 
-Terminate TLS at a trusted ingress. Set ReverseProxy__Address to the immediate proxy IP or its trusted internal DNS name (Compose sets `web`). DNS addresses are refreshed on demand every ten seconds with a two-second lookup timeout; failed or empty lookups discard prior trust and ignore forwarded headers until discovery recovers. Only resolved addresses are trusted, with one forwarded hop. Keep Docker DNS and the private network under deployment control. Do not trust arbitrary forwarded headers. Apply body limits and endpoint rate limits. Use separate ingress rules for health endpoints and never expose internal Worker health publicly. Authenticated responses default to no-store. Do not add Output Cache policies to permission-sensitive responses without a specific reviewed isolation policy.
+## Browser and network
 
-SMTP requires STARTTLS in production. Supply provider credentials through secrets. Do not log token values, request bodies, cookies, database parameter values, or outbox payloads. Restrict audit access and define retention against your business/legal requirements before production rollout.
+Production uses one HTTPS origin through the Web proxy. Keep API, Worker, database,
+telemetry, and readiness endpoints private. Trust forwarded headers only from the known
+proxy. Maintain restrictive CSP, secure cookie settings, WebSocket proxying, request-size
+limits, and rate limits when changing ingress.
 
-## MFA and privileged passkeys
+## Recovery
 
-When policy requires enrollment, sign-in continues at `/login/setup` in the shared auth layout. The setup-only session stays outside the workspace while the user adds an authenticator or the required passkey. Authenticator recovery codes remain visible until acknowledged. Completion refreshes the session to verify that policy is satisfied, then returns to the requested internal destination. Accounts that do not require setup continue through the normal login flow; optional factor management remains on Security.
+Normal password, MFA, passkey, and session changes use the supported account flows and
+revoke affected sessions. There is no administrator MFA-bypass endpoint. Total loss of
+privileged factors requires a reviewed maintenance procedure with independent identity
+verification, a second operator, a current backup, a scoped database transaction,
+session revocation, security-stamp rotation, and an audit record. Never disable the
+deployment-wide policy or remove another account's factors to recover one user.
 
-Required enrollment reuses the preceding password login for five minutes, without asking for the password again or retaining it in the browser. The server accepts an empty password only for enrollment from a current, unverified setup-only session with no configured policy-eligible method. Refresh does not extend this window. Expired setup requires signing in again; later factor management keeps its password and factor proof requirements.
-
-The Account security tab under Users offers Optional, Administrators (default), and Everyone. Changing the MFA policy additionally requires MFA verification within five minutes; changing only public registration retains its existing session/permission checks. `Security:RequireAdministratorPasskey` defaults to true and additionally covers Administrator and delegated privileged permissions. These users must enroll a user-verified passkey; email and TOTP do not satisfy this stronger policy. Older sessions without passkey proof are restricted to setup. Set the option to false only for deployments intentionally using the weaker configurable MFA policy. Security owns the preferred method, authenticator enrollment, recovery codes, verified-email availability and optional passkeys. The Administrators policy covers custom roles with privileged permissions as well as the built-in Administrator role. Confirming an email automatically enables email-code MFA; the reserved bootstrap address does not. WebAuthn user verification is required. MFA is effective when the user has a configured email, authenticator or passkey method, or when the administrative policy requires it. Users with no configured method receive a setup-only session when policy requires MFA.
-
-After password verification, sign-in opens the preferred email or authenticator factor directly. A preferred passkey remains in the method chooser until the user starts the browser prompt. Users can switch among configured methods. Email codes expire after ten minutes, have a 30-second resend cooldown, and impose a ten-minute email-method cooldown after five failures. Codes remain protected in challenge and outbox storage. Authenticator recovery codes appear only as an authenticator fallback. Passkey assertions are user-scoped and tied to the password challenge. Successful MFA returns to the originally requested internal route. See ADR 0005 for single-use semantics, factor-management reauthentication, replay protection and recovery policy.
-
-Verification freshness uses the persisted `MfaVerifiedAt`, never session creation time. Credential removal does not refresh that timestamp. Factor enrollment, passkey registration, and passkey removal require a session with MFA verification completed within the previous five minutes when the account currently relies on email or passkeys without an enabled authenticator. The API returns `auth.reauthentication_required` when that window has elapsed. The Security page keeps this state visible and directs the user through sign-out and sign-in before retrying the change.
-
-Credential throttling uses PostgreSQL counters shared across replicas. Routine auth operations have a separate budget. Forgot-password and invitation requests have per-account cooldowns. The hosting-platform ingress must replace untrusted client forwarding headers. Nginx preserves its trusted client address and provides the API's only trusted immediate proxy hop.
-
-## Public registration
-
-Public registration is disabled by default. Administrators change the persisted flag using the settings permission and optimistic concurrency, without additional credential or factor confirmation. Signup always grants Reader and requires email confirmation before password login. The endpoint uses CSRF/Origin validation and the shared credential rate limit. Existing-account submissions do not replace passwords or resend email. Verification and password recovery continue working after registration is disabled. See [ADR 0009](adr/0009-configurable-public-registration.md).
-
-## Recovery and privacy caches
-
-Privileged users should register two passkeys on separate devices before relying on the account. The last required passkey cannot be removed. Preserve another active administrator for account recovery. If all administrator passkeys are lost, use the [privileged passkey recovery procedure](passkey-recovery.md) with identity verification and an audited, restricted maintenance window; do not disable the passkey requirement as a routine login fallback. Bootstrap credentials and backups alone do not demonstrate possession of a passkey.
-
-Idempotency responses identify their actor and any returned `UserDto` subject. Erasure replaces affected responses with payload-free tombstones until their original 24-hour expiry. A replay returns `idempotency.erased` instead of recreating an account or returning old personal data. New personal-data-bearing command responses must extend this subject mapping in `UnitOfWork`. The migration backfills existing response subjects and clears already-erased accounts' cached data.
-
-Nginx access logs record method, path, status and byte count without query strings or referrers. Native Nginx error logging is disabled because its errors can embed the original token-bearing request. Use sanitized API/worker logs, access status metrics and ingress health monitoring for diagnosis. Configure any upstream ingress to redact query strings too.
+Treat dependency alerts, authentication regressions, authorization gaps, secret
+exposure, and cross-tenant/cross-user access as release blockers.

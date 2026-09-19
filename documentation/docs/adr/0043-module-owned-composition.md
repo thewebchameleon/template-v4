@@ -39,5 +39,5 @@ from the manifest-pinned .NET SDK in the test project only.
 The boundary test covers typed source references for the named business modules,
 not arbitrary raw SQL or reflection. Common facilities, persistence composition and
 privacy workflows retain their current ownership and require their existing reviews
-and behavioral coverage. See [module ownership](../module-ownership.md) for reference
+and behavioral coverage. See [module ownership](../modules.md) for reference
 paths, scaffold behavior and validation.

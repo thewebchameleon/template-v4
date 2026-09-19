@@ -191,11 +191,14 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         {
             entity.ToTable("file_shares", "file_storage");
             entity.Property(x => x.TokenHash).HasMaxLength(64);
+            entity.Property(x => x.RecipientEmail).HasMaxLength(254);
             entity.Property(x => x.Permission).HasMaxLength(12);
             entity.HasIndex(x => x.TokenHash).IsUnique();
             entity.HasIndex(x => x.RecipientId);
+            entity.HasIndex(x => x.SharedById);
             entity.HasOne<StoredFile>().WithMany().HasForeignKey(x => x.FileId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.RecipientId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.SharedById).OnDelete(DeleteBehavior.SetNull);
         });
         model.Entity<FileStorageSettings>(entity =>
         {

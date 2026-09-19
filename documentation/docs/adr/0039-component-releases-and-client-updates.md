@@ -53,4 +53,4 @@ and retain reviewed dependency locks. Source and reusable workflow commits are p
 Deployment stays manually triggered. Copied/customized source repositories still need
 reviewed source merges; this mechanism does not overwrite client-owned code.
 
-See [release operations](../release-updates.md) for setup, publication and recovery.
+See [Deployment](../deployment.md) for publication and recovery rules.

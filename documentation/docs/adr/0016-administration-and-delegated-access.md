@@ -1,6 +1,7 @@
 # ADR 0016: administration workflows and delegated access
 
-Status: Accepted (file access, quota, type and enablement policy updated by [ADR 0021](0021-user-file-library.md))
+Status: Accepted; file availability is updated by
+[ADR 0051](0051-platform-core-and-file-library.md).
 
 ## Context
 
@@ -16,7 +17,7 @@ The reusable starter needs useful administration rather than a security-settings
 - `AccessManagementService` owns Identity-dependent access operations, following ADR 0014. HTTP endpoints remain adapters; no EF or Identity dependencies enter Application. Existing user commands still use explicitly registered handlers and the command transaction.
 - Reads use component-lifetime cancellation and superseded-request cancellation. Resources distinguish initial loading from refreshing retained content. Query-only navigation preserves focus while retaining browser history. Tables use stable entity identifiers and pages normalize pagination after data shrinks.
 - The notification badge calls a single-count summary endpoint, with single-flight visible-tab polling and bounded failure backoff. Local updates invalidate older poll results. Opening a notification does not await an inbox reload. SignalR invalidation now provides the real-time path while polling remains the degraded-mode fallback; see [ADR 0017](0017-signalr-notification-invalidation.md).
-- Personal files are an optional capability, disabled by `Features:files:Enabled` by default and checked on the server. Existing files and retention cleanup are not removed. The optional route is hidden when disabled.
+- The File Storage presentation is optional and server-gated. Disabling it hides the library route without disabling core storage, attachments, quotas, public links, privacy, or retention.
 
 ## Consequences and extension points
 
@@ -30,7 +31,7 @@ Run the migrator on upgrade to add the Administrator's new `roles.manage` claim;
 
 When adding a new privileged capability, review the administrator MFA policy and delegation rules. Do not infer authorization from navigation visibility. Role-management code and assignment code must retain the same lock ordering. Add real PostgreSQL coverage for delegation, conflicts, protected roles and session invalidation.
 
-Use the shared resource and table compositions for new pages. Keep a primary action above lists on narrow layouts; distinguish empty collections from filtered results. Keep audit content safe and explanatory, without credentials or message payloads. See [administration](../administration.md) for the user flow and validation expectations.
+Use the shared resource and table compositions for new pages. Keep a primary action above lists on narrow layouts; distinguish empty collections from filtered results. Keep audit content safe and explanatory, without credentials or message payloads. See [Architecture](../architecture.md) and [Security](../security.md).
 
 Account security is available at `/administration/users/account-security` with `settings.manage` permission, including for operators without directory or role access. It contains the MFA policy and public-registration controls and preserves version-conflict and unsaved-draft handling. The standalone `/settings` page and navigation entry are removed without a redirect. Extend the shared people navigation and permission-aware child routes when adding tabs.
 

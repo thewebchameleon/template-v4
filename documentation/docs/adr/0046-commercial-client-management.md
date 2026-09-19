@@ -54,5 +54,5 @@ revocation, release immutability, preflight, restart and replay protection. CLI 
 cover signature binding and image requirements. Browser verification and a complete
 VPS migration/recovery drill remain permission-gated and are required before rollout.
 
-See [operations and setup](../client-management.md) and the
-[architecture proposal](../client-deployment-proposal.md).
+See [Deployment](../deployment.md) for operational rules and
+[Modules](../modules.md) for private-module boundaries.

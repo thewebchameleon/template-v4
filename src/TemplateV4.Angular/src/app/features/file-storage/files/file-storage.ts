@@ -14,6 +14,8 @@ import {
   lucideUserPlus,
 } from '@ng-icons/lucide';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { HlmContextMenuImports } from '@spartan-ng/helm/context-menu';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { NgScrollbar } from 'ngx-scrollbar';
 import {
   FileStorageFileIcon,
@@ -48,6 +50,72 @@ import { Notifications } from '../../notifications/notifications';
 import { FileItem, FilePage, FileShareItem } from '../../../api/models';
 const column = createColumnHelper<DataTableFeatures, FileItem>();
 const parentEntryId = '__file-storage-parent__';
+interface PendingUpload {
+  file: File;
+  parentId: string | null;
+}
+interface DroppedFile {
+  file: File;
+  parentPath: readonly string[];
+}
+interface DroppedItems {
+  files: DroppedFile[];
+  directories: string[][];
+}
+interface BrowserFileEntry {
+  isFile: boolean;
+  isDirectory: boolean;
+  name: string;
+  file?: (success: (file: File) => void, failure?: (error: DOMException) => void) => void;
+  createReader?: () => {
+    readEntries(
+      success: (entries: BrowserFileEntry[]) => void,
+      failure?: (error: DOMException) => void,
+    ): void;
+  };
+}
+
+async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
+  const entries = Array.from(dataTransfer.items)
+    .filter((item) => item.kind === 'file')
+    .map((item) =>
+      (item as unknown as { webkitGetAsEntry?: () => BrowserFileEntry | null }).webkitGetAsEntry?.(),
+    )
+    .filter((entry): entry is BrowserFileEntry => !!entry);
+  if (!entries.length) {
+    return {
+      files: Array.from(dataTransfer.files, (file) => ({ file, parentPath: [] })),
+      directories: [],
+    };
+  }
+
+  const result: DroppedItems = { files: [], directories: [] };
+  const readDirectory = async (entry: BrowserFileEntry) => {
+    const reader = entry.createReader?.();
+    if (!reader) return [];
+    const children: BrowserFileEntry[] = [];
+    while (true) {
+      const page = await new Promise<BrowserFileEntry[]>((resolve, reject) =>
+        reader.readEntries(resolve, reject),
+      );
+      if (!page.length) return children;
+      children.push(...page);
+    }
+  };
+  const walk = async (entry: BrowserFileEntry, parentPath: readonly string[]) => {
+    if (entry.isFile && entry.file) {
+      const file = await new Promise<File>((resolve, reject) => entry.file!(resolve, reject));
+      result.files.push({ file, parentPath });
+      return;
+    }
+    if (!entry.isDirectory) return;
+    const path = [...parentPath, entry.name];
+    result.directories.push(path);
+    for (const child of await readDirectory(entry)) await walk(child, path);
+  };
+  for (const entry of entries) await walk(entry, []);
+  return result;
+}
 @Component({
   selector: 'app-file-storage',
   imports: [
@@ -59,11 +127,12 @@ const parentEntryId = '__file-storage-parent__';
     HlmScrollAreaImports,
     NgScrollbar,
     FileStorageFileActions,
-    FileStorageSelectionCheckbox,
     FileStorageActionDialog,
     HlmDialogImports,
     FileStorageFileIcon,
     HlmSelectImports,
+    HlmContextMenuImports,
+    HlmDropdownMenuImports,
     NgTemplateOutlet,
   ],
   providers: [
@@ -89,6 +158,52 @@ const parentEntryId = '__file-storage-parent__';
       [enabled]="data.value()?.demoMode ?? false"
       [minutes]="data.value()?.demoExpiryMinutes ?? 60"
     />
+    <ng-template #itemContextMenu let-file="file">
+      <hlm-dropdown-menu>
+        <button hlmDropdownMenuItem [disabled]="busy()" (triggered)="download(file)">
+          {{ 'download' | t }}
+        </button>
+        <button
+          hlmDropdownMenuItem
+          [disabled]="!canModifyFromContext(file)"
+          (triggered)="openCopy(file)"
+        >
+          {{ 'copyItems' | t }}
+        </button>
+        <button
+          hlmDropdownMenuItem
+          [disabled]="!canModifyFromContext(file)"
+          (triggered)="openMove(file)"
+        >
+          {{ 'moveFile' | t }}
+        </button>
+        <button
+          hlmDropdownMenuItem
+          [disabled]="!canModifyFromContext(file)"
+          (triggered)="openRename(file)"
+        >
+          {{ 'renameFile' | t }}
+        </button>
+        <button hlmDropdownMenuItem [disabled]="busy()" (triggered)="detail(file, 'fileDetails')">
+          {{ 'properties' | t }}
+        </button>
+        <button
+          hlmDropdownMenuItem
+          [disabled]="busy() || !canShare(file)"
+          (triggered)="openShare(file, false)"
+        >
+          {{ 'shareFile' | t }}
+        </button>
+        <button
+          hlmDropdownMenuItem
+          variant="destructive"
+          [disabled]="!canModifyFromContext(file)"
+          (triggered)="remove(file)"
+        >
+          {{ 'delete' | t }}
+        </button>
+      </hlm-dropdown-menu>
+    </ng-template>
     <ng-template #fileGridCard let-file let-selectable="selectable">
       @if (selectable && !isParentEntry(file)) {
         <div class="file-storage-card-selection">
@@ -108,8 +223,7 @@ const parentEntryId = '__file-storage-parent__';
         type="button"
         [disabled]="busy()"
         [attr.aria-label]="entryLabel(file)"
-        (click)="activateGridEntry($event, file, selectable)"
-        (dblclick)="openEntry(file)"
+        (click)="activateGridEntry($event, file)"
       >
         @if (isParentEntry(file)) {
           <ng-icon name="lucideArrowLeft" class="my-file-icon" aria-hidden="true" />
@@ -145,7 +259,12 @@ const parentEntryId = '__file-storage-parent__';
         <div hlmCardContent class="file-storage-recent-content">
           <ul class="file-storage-recent" role="region" [attr.aria-label]="'recentFiles' | t">
             @for (file of (data.value()?.recent ?? []).slice(0, 6); track file.id) {
-              <li class="file-storage-grid-card file-storage-recent-card">
+              <li
+                class="file-storage-grid-card file-storage-recent-card"
+                [hlmContextMenuTrigger]="itemContextMenu"
+                [hlmContextMenuTriggerData]="{ file }"
+                [disabled]="contextMenuDisabled(file)"
+              >
                 <ng-container
                   [ngTemplateOutlet]="fileGridCard"
                   [ngTemplateOutletContext]="{ $implicit: file, selectable: false }"
@@ -285,10 +404,10 @@ const parentEntryId = '__file-storage-parent__';
                     [disabled]="busy()"
                     (click)="detail(folder, 'fileDetails')"
                   >
-                    {{ 'details' | t }}
+                    {{ 'properties' | t }}
                   </button>
                 }
-                @if (canManage() && group !== 'trash' && group !== 'shared') {
+                @if (canManage() && group !== 'trash' && !sharingGroup) {
                   <button hlmBtn type="button" size="sm" [disabled]="busy()" (click)="showUpload()">
                     <ng-icon name="lucideArrowUpFromLine" aria-hidden="true" />{{
                       'uploadFiles' | t
@@ -327,12 +446,16 @@ const parentEntryId = '__file-storage-parent__';
           >
             @if (view() === 'list') {
               <app-data-table
+                class="file-storage-list-drop-area"
+                [class.file-storage-drop-target]="fileAreaDropActive()"
                 [columns]="columns()"
                 fillColumn="name"
-                [rowActionLabel]="selectionLabel"
-                [rowDoubleActionLabel]="entryLabel"
-                (rowAction)="toggleSelection($event)"
-                (rowDoubleAction)="openEntry($event)"
+                [rowActionLabel]="entryLabel"
+                [rowSelectionActionLabel]="selectionLabel"
+                [rowContextMenu]="itemContextMenu"
+                [rowContextMenuDisabled]="contextMenuDisabled"
+                (rowAction)="openEntry($event)"
+                (rowSelectionAction)="toggleSelection($event)"
                 [data]="displayItems()"
                 [rowDraggable]="canDragEntry"
                 [rowDragging]="isDraggedEntry"
@@ -342,6 +465,9 @@ const parentEntryId = '__file-storage-parent__';
                 (rowDragOver)="overEntryDrop($event.event, $event.row)"
                 (rowDragLeave)="leaveEntryDrop($event.event, $event.row)"
                 (rowDrop)="dropEntry($event.event, $event.row)"
+                (dragover)="overFileArea($event)"
+                (dragleave)="leaveFileArea($event)"
+                (drop)="dropFileArea($event)"
                 [loading]="data.state() === 'loading' || data.refreshing()"
                 [loadingText]="'loading' | t"
                 [emptyText]="'filesEmpty' | t"
@@ -375,8 +501,12 @@ const parentEntryId = '__file-storage-parent__';
               </div>
               <ul
                 class="file-storage-grid"
+                [class.file-storage-drop-target]="fileAreaDropActive()"
                 [attr.aria-label]="'files' | t"
                 [attr.aria-busy]="data.refreshing()"
+                (dragover)="overFileArea($event)"
+                (dragleave)="leaveFileArea($event)"
+                (drop)="dropFileArea($event)"
               >
                 @for (file of displayItems(); track file.id) {
                   <li
@@ -385,6 +515,9 @@ const parentEntryId = '__file-storage-parent__';
                     [class.opacity-50]="isDraggedEntry(file)"
                     [class.file-storage-drop-target]="isActiveDropTarget(file)"
                     [class.file-storage-selected]="isSelected(file)"
+                    [hlmContextMenuTrigger]="itemContextMenu"
+                    [hlmContextMenuTriggerData]="{ file }"
+                    [disabled]="contextMenuDisabled(file)"
                     (dragstart)="startEntryDrag($event, file)"
                     (dragend)="endEntryDrag()"
                     (dragover)="overEntryDrop($event, file)"
@@ -419,7 +552,7 @@ const parentEntryId = '__file-storage-parent__';
         </div>
       </section>
       <aside class="workspace-stack">
-        @if (canManage() && group !== 'trash' && group !== 'shared') {
+        @if (canManage() && group !== 'trash' && !sharingGroup) {
           <section hlmCard id="upload-panel" class="file-storage-upload-card">
             <div hlmCardHeader>
               <h2 hlmCardTitle>{{ 'uploadFiles' | t }}</h2>
@@ -497,8 +630,8 @@ const parentEntryId = '__file-storage-parent__';
                 <div class="grid gap-2">
                   <p class="workspace-meta" role="status">{{ 'uploadFailedFiles' | t }}</p>
                   <ul class="workspace-meta">
-                    @for (file of failedUploads(); track $index) {
-                      <li class="break-all">{{ file.name }}</li>
+                    @for (upload of failedUploads(); track $index) {
+                      <li class="break-all">{{ upload.file.name }}</li>
                     }
                   </ul>
                   <button
@@ -506,7 +639,7 @@ const parentEntryId = '__file-storage-parent__';
                     variant="outline"
                     type="button"
                     [disabled]="busy()"
-                    (click)="upload(failedUploads())"
+                    (click)="retryFailedUploads()"
                   >
                     {{ 'retryFailedUploads' | t }}
                   </button>
@@ -526,9 +659,9 @@ const parentEntryId = '__file-storage-parent__';
       [busy]="busy()"
       (cancelled)="cancelAction()"
       (createFolder)="createFolder($event)"
-      (renameFolder)="renameFolder($event)"
+      (renameFolder)="renameEntry($event)"
       (move)="move($event)"
-      (copy)="copySelected($event)"
+      (copy)="copy($event)"
     />
     <hlm-dialog
       [state]="shareOpen() ? 'open' : 'closed'"
@@ -538,6 +671,23 @@ const parentEntryId = '__file-storage-parent__';
         <hlm-dialog-header
           ><h2 hlmDialogTitle>{{ 'shareFile' | t }}</h2></hlm-dialog-header
         >
+        @if (shareLink()) {
+          <div class="grid gap-4">
+            <p role="status">{{ 'shareEmailSent' | t }}</p>
+            <div hlmField>
+              <label hlmFieldLabel for="share-link">{{ 'shareLink' | t }}</label>
+              <input hlmInput id="share-link" [value]="shareLink()" readonly />
+            </div>
+            <hlm-dialog-footer>
+              <button hlmBtn variant="outline" type="button" (click)="copyShareLink()">
+                {{ 'copyShareLink' | t }}
+              </button>
+              <button hlmBtn type="button" (click)="shareOpen.set(false)">
+                {{ 'done' | t }}
+              </button>
+            </hlm-dialog-footer>
+          </div>
+        } @else {
         <form class="grid gap-4" (ngSubmit)="share()">
           <div hlmField>
             <label hlmFieldLabel for="share-email">{{ 'shareEmail' | t }}</label
@@ -547,7 +697,7 @@ const parentEntryId = '__file-storage-parent__';
               id="share-email"
               name="email"
               [(ngModel)]="shareEmail"
-              maxlength="256"
+              maxlength="254"
               required
               [disabled]="busy()"
             />
@@ -579,24 +729,19 @@ const parentEntryId = '__file-storage-parent__';
             </button></hlm-dialog-footer
           >
         </form>
+        }
       </hlm-dialog-content>
     </hlm-dialog>
     <hlm-drawer
       direction="right"
       [state]="detailMode() ? 'open' : 'closed'"
-      [disableClose]="busy()"
       [closeLabel]="'close' | t"
-      (stateChanged)="!busy() && $event === 'closed' && detailMode.set('')"
+      (stateChanged)="$event === 'closed' && detailMode.set('')"
     >
       <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-lg">
         <hlm-drawer-header
           ><h2 hlmDrawerTitle>
-            {{
-              (detailMode() === 'fileDetails' && detailFile()?.isFolder
-                ? 'folderDetails'
-                : detailMode()
-              ) | t
-            }}
+            {{ (detailMode() === 'fileDetails' ? 'properties' : detailMode()) | t }}
           </h2>
           <p hlmDrawerDescription>
             {{ (detailFile()?.isFolder ? 'manageFolderDetails' : 'manageFileDetails') | t }}
@@ -682,9 +827,7 @@ const parentEntryId = '__file-storage-parent__';
                     [disabled]="busy()"
                     (click)="download(file)"
                   >
-                    <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{
-                      'download' | t
-                    }}
+                    <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{ 'download' | t }}
                   </button>
                   @if (canShare(file)) {
                     <button
@@ -760,6 +903,7 @@ export class FileStoragePage {
   readonly shares = signal<FileShareItem[]>([]);
   readonly peopleShares = computed(() => this.shares().filter((share) => !!share.recipient));
   readonly shareOpen = signal(false);
+  readonly shareLink = signal('');
   shareEmail = '';
   sharePermission = 'viewer';
   get group() {
@@ -767,6 +911,9 @@ export class FileStoragePage {
   }
   get groupLabel() {
     return fileGroups.find((x) => x.id === this.group)?.label ?? 'files';
+  }
+  get sharingGroup() {
+    return this.group === 'shared' || this.group === 'shared-with-someone';
   }
   readonly selectedEntries = signal<ReadonlyMap<string, FileItem>>(new Map());
   readonly selectedCount = computed(() => this.selectedEntries().size);
@@ -804,9 +951,8 @@ export class FileStoragePage {
   toggleSelection(file: FileItem) {
     this.setSelected(file, !this.isSelected(file));
   }
-  activateGridEntry(event: MouseEvent, file: FileItem, selectable: boolean) {
-    if (event.detail === 0) this.openEntry(file);
-    else if (event.detail === 1 && selectable) this.toggleSelection(file);
+  activateGridEntry(event: MouseEvent, file: FileItem) {
+    if (event.detail < 2) this.openEntry(file);
   }
   selectVisible() {
     if (this.busy()) return;
@@ -821,13 +967,17 @@ export class FileStoragePage {
   }
   readonly entryLabel = (file: FileItem) =>
     this.i18n.text(
-      this.isParentEntry(file) ? 'parentFolder' : file.isFolder ? 'openFolder' : 'fileDetails',
+      this.isParentEntry(file) ? 'parentFolder' : file.isFolder ? 'openFolder' : 'properties',
     ) + (this.isParentEntry(file) ? '' : ': ' + file.name);
   openEntry(file: FileItem) {
     if (this.busy()) return;
     if (this.isParentEntry(file)) this.openFolder(file.parentId ?? null);
     else if (file.isFolder) this.openFolder(file.id);
     else void this.detail(file, 'fileDetails');
+  }
+  readonly contextMenuDisabled = (file: FileItem) => this.busy() || this.isParentEntry(file);
+  canModifyFromContext(file: FileItem) {
+    return !this.busy() && this.group !== 'trash' && file.permission === 'owner';
   }
   isParentEntry(file: FileItem) {
     return file.id === parentEntryId;
@@ -842,15 +992,14 @@ export class FileStoragePage {
     return file.permission !== 'viewer';
   }
   canShare(file: FileItem) {
-    return file.permission === 'owner';
+    return this.group !== 'trash' && file.permission === 'owner';
   }
   detailActions(file: FileItem, busy: boolean) {
     return this.actions(file, busy).filter(
       (action) =>
         action.label !== 'download' &&
         action.label !== 'openFolder' &&
-        action.label !== 'fileDetails' &&
-        action.label !== 'folderDetails' &&
+        action.label !== 'properties' &&
         action.label !== 'shareFile',
     );
   }
@@ -887,7 +1036,7 @@ export class FileStoragePage {
       ...(file.permission !== 'viewer'
         ? [
             {
-              label: file.isFolder ? 'folderDetails' : 'fileDetails',
+              label: 'properties',
               disabled: busy,
               run: () => void this.detail(file, 'fileDetails'),
             },
@@ -988,13 +1137,28 @@ export class FileStoragePage {
       this.busy.set(false);
     }
   }
-  async openShare(file: FileItem) {
+  async openShare(file: FileItem, openProperties = true) {
     if (this.busy() || !this.canShare(file)) return;
-    if (this.detailFile()?.id !== file.id || this.detailMode() !== 'fileDetails')
-      await this.detail(file, 'fileDetails');
-    if (this.detailFile()?.id !== file.id || this.detailMode() !== 'fileDetails') return;
+    if (openProperties) {
+      if (this.detailFile()?.id !== file.id || this.detailMode() !== 'fileDetails')
+        await this.detail(file, 'fileDetails');
+      if (this.detailFile()?.id !== file.id || this.detailMode() !== 'fileDetails') return;
+    } else {
+      this.detailMode.set('');
+      this.detailFile.set(file);
+      this.shares.set([]);
+      this.busy.set(true);
+      try {
+        this.shares.set(await this.api.get<FileShareItem[]>(`file-storage/${file.id}/shares`));
+      } catch {
+        /* Central errors. */
+      } finally {
+        this.busy.set(false);
+      }
+    }
     this.shareEmail = '';
     this.sharePermission = 'viewer';
+    this.shareLink.set('');
     this.shareOpen.set(true);
   }
   async updateFlag(file: FileItem, flag: 'important' | 'starred', checked: boolean) {
@@ -1037,17 +1201,23 @@ export class FileStoragePage {
     this.detailFile.set(file);
     this.actionMode.set('move');
   }
+  openCopy(file: FileItem) {
+    if (this.busy() || file.permission !== 'owner') return;
+    this.bulkAction.set(false);
+    this.detailFile.set(file);
+    this.actionMode.set('copy');
+  }
   openRename(file: FileItem) {
-    if (this.busy() || !file.isFolder || file.permission !== 'owner') return;
+    if (this.busy() || file.permission !== 'owner') return;
     this.bulkAction.set(false);
     this.detailFile.set(file);
     this.actionMode.set('rename');
   }
-  async renameFolder(name: string) {
-    const folder = this.detailFile();
-    if (!folder?.isFolder || folder.permission !== 'owner') return;
-    if (await this.mutate(`${folder.id}/rename`, { name }, 'folderRenamed')) {
-      const updated = { ...folder, name };
+  async renameEntry(name: string) {
+    const file = this.detailFile();
+    if (!file || file.permission !== 'owner') return;
+    if (await this.mutate(`${file.id}/rename`, { name }, 'fileRenamed')) {
+      const updated = { ...file, name };
       this.detailFile.set(updated);
       this.cancelAction();
     }
@@ -1085,15 +1255,20 @@ export class FileStoragePage {
       this.detailMode.set('');
     }
   }
-  async copySelected(destination: string) {
-    if (!this.bulkAction() || !this.selectedManageable()) return;
+  async copy(destination: string) {
+    const ids = this.bulkAction()
+      ? [...this.selectedEntries().keys()]
+      : this.detailFile()
+        ? [this.detailFile()!.id]
+        : [];
+    if (!ids.length || (this.bulkAction() && !this.selectedManageable())) return;
     if (
       await this.mutate('batch/copy', {
-        ids: [...this.selectedEntries().keys()],
+        ids,
         parentId: destination === 'root' ? null : destination,
       })
     ) {
-      this.clearSelection();
+      if (this.bulkAction()) this.clearSelection();
       this.cancelAction();
     }
   }
@@ -1141,13 +1316,13 @@ export class FileStoragePage {
     this.busy.set(true);
     try {
       const file = this.detailFile()!;
-      await this.api.post<FileShareItem>(`file-storage/${file.id}/shares`, {
+      const created = await this.api.post<FileShareItem>(`file-storage/${file.id}/shares`, {
         email: this.shareEmail.trim(),
         permission: this.sharePermission,
         expiresAt: null,
       });
+      this.shareLink.set(`${location.origin}/shared-files/${file.id}#${created.token}`);
       this.shares.set(await this.api.get<FileShareItem[]>(`file-storage/${file.id}/shares`));
-      this.shareOpen.set(false);
       this.shareEmail = '';
       this.sharePermission = 'viewer';
       this.toast.success('fileStorageSaved');
@@ -1156,6 +1331,10 @@ export class FileStoragePage {
     } finally {
       this.busy.set(false);
     }
+  }
+  async copyShareLink() {
+    await navigator.clipboard.writeText(this.shareLink());
+    this.toast.success('shareLinkCopied');
   }
   async revoke(share: FileShareItem) {
     await this.mutate(`${this.detailFile()!.id}/shares/${share.id}/revoke`);
@@ -1209,13 +1388,14 @@ export class FileStoragePage {
   readonly uploadIndex = signal(0);
   readonly uploadCount = signal(0);
   readonly uploadCancelled = signal(false);
-  readonly failedUploads = signal<readonly File[]>([]);
+  readonly failedUploads = signal<readonly PendingUpload[]>([]);
   private uploadController?: AbortController;
   readonly progress = signal(0);
   readonly validation = signal('');
   readonly search = new DebouncedSearch(this.query);
   readonly draggedEntry = signal<FileItem | null>(null);
   readonly entryDropTarget = signal<string | null>(null);
+  readonly fileAreaDropActive = signal(false);
   readonly displayItems = computed(() => {
     const value = this.data.value();
     const items = value?.page?.items ?? [];
@@ -1258,6 +1438,12 @@ export class FileStoragePage {
       canMoveEntry(source, destination, this.data.value()?.folders ?? [])
     );
   }
+  private canAcceptUploadDrop() {
+    return this.canManage() && this.group !== 'trash' && !this.sharingGroup && !this.busy();
+  }
+  private isUploadDrag(event: DragEvent) {
+    return event.dataTransfer?.types.includes('Files') ?? false;
+  }
   startEntryDrag(event: DragEvent, file: FileItem) {
     if (!this.canDragEntry(file)) {
       event.preventDefault();
@@ -1274,8 +1460,18 @@ export class FileStoragePage {
     this.entryDropTarget.set(null);
   }
   overEntryDrop(event: DragEvent, file: FileItem) {
+    if (this.isUploadDrag(event)) {
+      if (!this.canAcceptUploadDrop()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+      this.fileAreaDropActive.set(false);
+      this.entryDropTarget.set(file.id);
+      return;
+    }
     if (!this.canDropEntryOn(file)) return;
     event.preventDefault();
+    event.stopPropagation();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.entryDropTarget.set(file.id);
   }
@@ -1287,6 +1483,17 @@ export class FileStoragePage {
   async dropEntry(event: DragEvent, file: FileItem) {
     event.preventDefault();
     event.stopPropagation();
+    if (this.isUploadDrag(event) && event.dataTransfer && this.canAcceptUploadDrop()) {
+      const destination = this.isParentEntry(file)
+        ? (file.parentId ?? null)
+        : file.isFolder
+          ? file.id
+          : this.query.text('folder') || null;
+      const navigateAfter = this.isParentEntry(file) || file.isFolder ? destination : undefined;
+      this.entryDropTarget.set(null);
+      void this.uploadDropped(droppedItems(event.dataTransfer), destination, navigateAfter);
+      return;
+    }
     const source = this.draggedEntry();
     const destination = this.entryDestination(file);
     const valid = !!source && destination !== undefined && this.canDropEntryOn(file);
@@ -1294,6 +1501,26 @@ export class FileStoragePage {
     if (!valid || !source) return;
     if (await this.mutate(`${source.id}/move`, { parentId: destination }))
       this.toast.success('itemMoved');
+  }
+  overFileArea(event: DragEvent) {
+    if (!this.isUploadDrag(event) || !this.canAcceptUploadDrop()) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    this.fileAreaDropActive.set(true);
+  }
+  leaveFileArea(event: DragEvent) {
+    const next = event.relatedTarget;
+    if (next instanceof Node && (event.currentTarget as HTMLElement).contains(next)) return;
+    this.fileAreaDropActive.set(false);
+  }
+  dropFileArea(event: DragEvent) {
+    if (!this.isUploadDrag(event) || !event.dataTransfer || !this.canAcceptUploadDrop()) return;
+    event.preventDefault();
+    this.fileAreaDropActive.set(false);
+    void this.uploadDropped(
+      droppedItems(event.dataTransfer),
+      this.query.text('folder') || null,
+    );
   }
   readonly columns = computed(() => {
     this.i18n.culture();
@@ -1453,10 +1680,11 @@ export class FileStoragePage {
   dropUpload(event: DragEvent) {
     event.preventDefault();
     this.uploadDragOver.set(false);
-    if (this.busy()) return;
-    const files = event.dataTransfer?.files;
-    if (!files?.length) return;
-    void this.upload(Array.from(files));
+    if (this.busy() || !event.dataTransfer) return;
+    void this.uploadDropped(
+      droppedItems(event.dataTransfer),
+      this.query.text('folder') || null,
+    );
   }
   choose(event: Event) {
     if (this.busy()) return;
@@ -1469,8 +1697,60 @@ export class FileStoragePage {
     this.uploadController?.abort();
   }
   async upload(files: readonly File[]) {
+    const parentId = this.query.text('folder') || null;
+    await this.runUploadBatch(
+      files,
+      async () => files.map((file) => ({ file, parentId })),
+    );
+  }
+  retryFailedUploads() {
+    const failed = this.failedUploads();
+    void this.runUploadBatch(
+      failed.map((upload) => upload.file),
+      async () => failed,
+    );
+  }
+  private async uploadDropped(
+    dropped: Promise<DroppedItems>,
+    destination: string | null,
+    navigateAfter?: string | null,
+  ) {
+    let items: DroppedItems;
+    try {
+      items = await dropped;
+    } catch {
+      return;
+    }
+    await this.runUploadBatch(
+      items.files.map(({ file }) => file),
+      async () => {
+        const folders = new Map<string, string | null>([['[]', destination]]);
+        for (const path of items.directories.sort((left, right) => left.length - right.length)) {
+          this.uploadController?.signal.throwIfAborted();
+          const parentPath = path.slice(0, -1);
+          const folder = await this.api.post<FileItem>('file-storage/folders', {
+            name: path.at(-1),
+            parentId: folders.get(JSON.stringify(parentPath)) ?? destination,
+          });
+          folders.set(JSON.stringify(path), folder.id);
+        }
+        return items.files.map(({ file, parentPath }) => ({
+          file,
+          parentId: folders.get(JSON.stringify(parentPath)) ?? destination,
+        }));
+      },
+      navigateAfter,
+      items.directories.length > 0,
+    );
+  }
+  private async runUploadBatch(
+    files: readonly File[],
+    prepare: () => Promise<readonly PendingUpload[]>,
+    navigateAfter?: string | null,
+    hasDirectories = false,
+  ) {
     if (!this.canManage()) return;
-    if (!files.length || this.busy()) return;
+    if ((!files.length && !hasDirectories) || this.busy()) return;
     const maxUploadBytes = this.data.value()?.maxUploadBytes ?? 20 * 1024 * 1024;
     this.validation.set(
       maxUploadBytes > 0 && files.some((file) => file.size > maxUploadBytes)
@@ -1486,29 +1766,37 @@ export class FileStoragePage {
     this.uploadCount.set(files.length);
     const controller = new AbortController();
     this.uploadController = controller;
-    const folder = this.query.text('folder');
     const slowUpload = this.data.value()?.slowUploadMode;
+    let batchFinished = false;
     try {
-      for (const [index, file] of files.entries()) {
+      const uploads = await prepare();
+      for (const [index, task] of uploads.entries()) {
         if (controller.signal.aborted) break;
+        const { file, parentId } = task;
         this.currentUpload.set(file);
         this.uploadIndex.set(index + 1);
         const progress = (value: number) =>
-          this.progress.set(Math.min(99, Math.floor(((index + value / 100) / files.length) * 100)));
+          this.progress.set(
+            Math.min(99, Math.floor(((index + value / 100) / uploads.length) * 100)),
+          );
         const upload = (report: (value: number) => void) =>
-          this.api.upload(file, report, folder, controller.signal);
+          this.api.upload(file, report, parentId ?? '', controller.signal);
         try {
           if (slowUpload) await simulateSlowUpload(upload, progress, controller.signal);
           else await upload(progress);
         } catch {
           if (controller.signal.aborted) break;
-          this.failedUploads.update((failed) => [...failed, file]);
+          this.failedUploads.update((failed) => [...failed, task]);
         }
       }
+      batchFinished = !controller.signal.aborted;
       if (!controller.signal.aborted && !this.failedUploads().length) {
         this.progress.set(100);
-        this.toast.success(files.length === 1 ? 'fileUploaded' : 'filesUploaded');
+        if (files.length)
+          this.toast.success(files.length === 1 ? 'fileUploaded' : 'filesUploaded');
       }
+    } catch {
+      /* Central API errors; the current directory is refreshed below. */
     } finally {
       this.uploadController = undefined;
       this.currentUpload.set(null);
@@ -1516,8 +1804,13 @@ export class FileStoragePage {
       const input = document.getElementById('file-upload') as HTMLInputElement | null;
       if (input) input.value = '';
       try {
-        await this.load();
         this.navigation.refresh();
+        if (batchFinished && navigateAfter !== undefined) {
+          this.busy.set(false);
+          this.openFolder(navigateAfter);
+        } else {
+          await this.load();
+        }
       } finally {
         this.busy.set(false);
       }

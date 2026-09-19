@@ -21,7 +21,7 @@ builds the four Docker images, and updates the `deploy-demo` branch only when
 everything succeeds.
 
 Private client apps use their own release workflow and a `deploy` branch. Read
-[Business modules](documentation/docs/business-modules.md) before creating one.
+[Modules](documentation/docs/modules.md) before creating one.
 
 ### 2. Set up your hosting platform
 
@@ -78,8 +78,8 @@ Before every update:
 
 Do not use `docker compose down -v`; `-v` removes persistent data volumes.
 
-See the full [production checklist](documentation/docs/production.md) for security,
-monitoring, TLS, backups, and recovery.
+See [Deployment and operations](documentation/docs/deployment.md) for security,
+monitoring, TLS, backups, recovery, and troubleshooting.
 
 ## Run locally
 
@@ -100,5 +100,5 @@ Local keys, Mailpit, and `compose.yaml` are for development only.
 
 - [Developer guide](documentation/docs/README.md)
 - [Verification and tests](documentation/docs/verification.md)
-- [Modules and deployment presets](documentation/docs/saas-modules.md)
-- [Upgrade notes](documentation/docs/upgrades.md)
+- [Modules](documentation/docs/modules.md)
+- [Deployment and operations](documentation/docs/deployment.md)

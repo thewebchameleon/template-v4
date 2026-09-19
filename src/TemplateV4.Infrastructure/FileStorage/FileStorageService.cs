@@ -6,7 +6,7 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Storage;
 
 public sealed partial class FileStorageService(FrameworkDb db, IFileStorage storage, TimeProvider time, IStorageCapacity capacity,
-    IStorageUsage storageUsage, IStorageQuota storageQuota)
+    IStorageUsage storageUsage, IStorageQuota storageQuota, IFileShareNotifier? shareNotifier = null)
 {
     public FileStorageService(FrameworkDb db, IFileStorage storage, TimeProvider time, IStorageCapacity capacity)
         : this(db, storage, time, capacity, new StorageUsage(db), new StorageQuota(db, capacity, new StorageUsage(db))) { }
@@ -37,7 +37,7 @@ public sealed partial class FileStorageService(FrameworkDb db, IFileStorage stor
                                                                                                              select claim).AnyAsync(ct);
 }
 
-public sealed record FileItem(Guid Id, string Name, string ContentType, long Size, DateTimeOffset CreatedAt, bool IsFolder, Guid? ParentId, DateTimeOffset? UpdatedAt = null, bool Important = false, bool Starred = false, string Permission = "owner", string Category = "other", int ItemCount = 0, int FileCount = 0, bool DemoMode = false, int DemoExpiryMinutes = 60);
+public sealed record FileItem(Guid Id, string Name, string ContentType, long Size, DateTimeOffset CreatedAt, bool IsFolder, Guid? ParentId, DateTimeOffset? UpdatedAt = null, bool Important = false, bool Starred = false, string Permission = "owner", string Category = "other", int ItemCount = 0, int FileCount = 0, bool DemoMode = false, int DemoExpiryMinutes = 60, bool SharedWithSomeone = false);
 
 public sealed record FilePage(Page<FileItem> Page, long UsedBytes, long QuotaBytes, long MaxUploadBytes, FileItem? Folder, long? QuotaOverrideBytes, string OwnerName, FileItem[] Recent, FileItem[] Folders, FileUsageSegment[] Usage, int FileCount = 0, bool DemoMode = false, int DemoExpiryMinutes = 60, bool SlowUploadMode = false);
 

@@ -10253,14 +10253,6 @@
             ],
             "format": "date-time"
           },
-          "description": {
-            "type": "string",
-            "default": ""
-          },
-          "tags": {
-            "type": "string",
-            "default": ""
-          },
           "important": {
             "type": "boolean",
             "default": false
@@ -10295,28 +10287,20 @@
             "type": "integer",
             "format": "int32",
             "default": 60
+          },
+          "sharedWithSomeone": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
       "FileMetadataRequest": {
         "required": [
-          "name",
-          "description",
-          "tags",
           "important",
           "starred"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "string"
-          },
           "important": {
             "type": "boolean"
           },

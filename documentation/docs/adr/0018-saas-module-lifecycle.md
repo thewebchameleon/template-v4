@@ -22,4 +22,4 @@ No hot-plug assembly discovery, runtime service location, separate module deploy
 
 ## Enforcement and extension points
 
-CLI/CI validate every preset. Hosts validate the embedded catalog on startup. Application validates the graph without framework dependencies. Endpoint gates, feature-flag upper bounds and frontend guards enforce activation. Focused tests cover invalid graphs, precedence and denied entry points. Persistence or delivery changes require real PostgreSQL coverage; browser tests require explicit permission. See [module extension guide](../saas-modules.md).
+CLI/CI validate every preset. Hosts validate the embedded catalog on startup. Application validates the graph without framework dependencies. Endpoint gates, feature-flag upper bounds and frontend guards enforce activation. Focused tests cover invalid graphs, precedence and denied entry points. Persistence or delivery changes require real PostgreSQL coverage; browser tests require explicit permission. See [Modules](../modules.md).

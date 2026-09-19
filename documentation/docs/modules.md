@@ -1,0 +1,66 @@
+# Modules
+
+`modules/catalog.json` defines available modules, capabilities, dependencies, runtime
+configuration, and feature flags. `modules/presets/*.json` selects deployment defaults.
+Those files are authoritative; this page defines ownership and composition rules.
+
+## Ownership
+
+A module owns its use cases, registration, permissions, persistence, API adapters,
+frontend routes, localisation, and disable behavior. Composition is explicit and the
+host must not infer ownership from namespaces. Cross-module calls use narrow public
+contracts; modules do not query each other's tables.
+
+Foundation modules use the coordinated repository packages and shared database.
+Business modules live under `business-modules/<Module>` with their own descriptor,
+DbContext, schema, migrations, API host, Worker host, and frontend entry point. Private
+client modules follow the same contract and may be distributed separately.
+
+Use Support, CMS, CRM, and Invoicing as reference implementations. Do not create a new
+service, assembly, or abstraction merely to satisfy folder shape.
+
+## Layout
+
+Use PascalCase module, backend, and test directories. Use lowercase or kebab-case below
+`Frontend`.
+
+```text
+<Module>/
+  Domain/<Concern>/
+  Application/<Concern>/<Operation>/
+  Infrastructure/<Concern>/<Operation>/
+  Api/Endpoints/
+  Worker/
+  Frontend/<concern>/
+  Tests/<Concern>/
+```
+
+Keep each command/query, validator, handler, endpoint, and focused persistence operation
+together by use case. Preserve existing public namespaces and migration paths when
+moving code.
+
+## Adding or changing a module
+
+1. Define the module and dependencies in `modules/catalog.json`; update presets only
+   when the deployment default changes.
+2. Add owned permissions and explicit registration. Register recovery dependencies that
+   must remain available while the module is disabled.
+3. Implement the use case through Domain, Application, Infrastructure, API/Worker, and
+   Frontend only where each layer is needed.
+4. Give business modules a `module.json` with build-discovered host and frontend entry
+   points. Run the owning discovery/generation tools instead of editing generated files.
+5. Define disable behavior: admission stops, accepted obligations settle safely, and
+   retained data remains accessible to authorized recovery workflows.
+6. Update contracts, migrations, manifest, documentation, and release inputs together.
+
+Runtime capability checks complement permissions and feature flags; none replaces the
+others. Dependency-safe activation is application-wide. Financial settlement, cleanup,
+and other accepted obligations continue when their optional UI capability is disabled.
+
+## Platform invariants
+
+Each deployment has one organisation. Shared organisation storage and quota admission
+are core; the File Storage capability controls the library UI, not whether attachments
+consume storage. Support features are independently configurable while retained inboxes
+remain available. Payments owns provider adapters; Commercial Billing and private client
+licensing are separate consumers and cannot grant each other's entitlements.

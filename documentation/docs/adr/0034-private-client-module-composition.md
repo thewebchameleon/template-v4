@@ -1,31 +1,26 @@
 # ADR 0034: public foundation and private client module composition
 
-Status: Accepted
+Status: Accepted; selection storage updated by
+[ADR 0035](0035-module-categories-and-client-configuration.md).
 
-Supersedes the include-every-module discovery policy in
-[ADR 0033](0033-business-module-discovery.md). Each client has its own deployment and
-database. The public foundation must build without access to private repositories.
+## Decision
 
-Private shared modules and client-specific extensions live in a separate repository,
-mounted at ignored `business-modules/` for source builds. Ignored
-`business-modules.enabled` is an explicit build allowlist, shared by backend and frontend
-composition. An absent or empty file includes no business modules. Missing selections
-or dependencies fail closed. Runtime activation cannot add excluded code.
+The public foundation builds without private repositories. Private shared modules and
+client-specific extensions are mounted in the ignored `business-modules/` directory for
+source builds. `client-modules.json` is the authoritative client selection: its
+`privateModules` allowlist controls physical inclusion and its `foundation` map controls
+optional foundation inclusion.
 
-Modules own their implementation, tests, schema history, generator configuration and
-documentation. Foundation tools are generic; foundation tests use synthetic business
-fixtures. Generated frontend imports/styles and client host dependency locks are local
-build artifacts. Public host lockfiles retain foundation-only dependencies.
+`business-modules.enabled` is generated compatibility input for MSBuild, not an editable
+configuration file. Discovery must regenerate it after `client-modules.json` changes;
+missing modules, dependencies, or stale generated selection fail closed. Runtime
+activation cannot add physically excluded code.
 
-Private release configuration records foundation/business commit pins, selection,
-reviewed dependency locks and image digests. Clean isolated client builds prevent stale
-outputs from crossing client boundaries. Current source integration uses the documented
-mount layout and foundation public APIs. Package composition is a future distribution
-option, not a claim that arbitrary standalone layouts are already supported.
+Private modules own implementation, tests, schema history, generator configuration, and
+module documentation. Clean isolated builds prevent generated frontend imports, styles,
+or dependency locks from crossing client boundaries. Release configuration records
+reviewed source pins, selection, dependency locks, and immutable image digests.
 
-Shared modules use configuration; unique client behavior uses extension modules through
-explicit application contracts. Source delivery to clients must select agreed module
-content without exposing the private repository's unrelated modules or history.
-
-No schema is dropped on module removal, and existing migration IDs and file sets remain
-permanent. See the [integration guide](../business-modules.md).
+Removing code does not drop its database schema or migration history. Existing
+obligations, retention, export, and document references require an explicit removal
+plan. See [Modules](../modules.md).

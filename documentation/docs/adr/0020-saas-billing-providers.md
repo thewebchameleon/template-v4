@@ -4,7 +4,9 @@ Status: Accepted; supersedes the billing parts of [ADR 0026](0026-customer-billi
 
 ## Context
 
-The starter needs configurable subscriptions for personal and organisation customers, with Stripe and a South African provider. Payment-provider capabilities differ.
+The single-organisation deployment needs configurable subscriptions, while private
+client licensing is sold through a separate central installation. Stripe and PayFast
+have different provider capabilities.
 
 ## Decision
 
@@ -22,4 +24,7 @@ A single broad interface does not pretend Stripe and PayFast are interchangeable
 
 ## Enforcement and extension points
 
-Test duplicate, invalid and out-of-order notifications, amount/currency mismatch, recovery after crashes, provider outages and cross-customer isolation. Use real PostgreSQL for durable processing and provider sandboxes for external contract verification. See the [roadmap](../saas-modules.md).
+Test duplicate, invalid and out-of-order notifications, amount/currency mismatch,
+recovery after crashes, provider outages, and separation between billing consumers. Use
+real PostgreSQL for durable processing and provider sandboxes for external contract
+verification. See [Modules](../modules.md).

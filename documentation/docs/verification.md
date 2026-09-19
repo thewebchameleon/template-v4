@@ -1,33 +1,29 @@
 # Verification
 
-CI runs browser-free frontend tests, backend tests, documentation builds, C# and Angular lint/format checks, and npm/NuGet vulnerability audits. Successful `main` pushes build and publish the API, Worker, Migrator, and Web runtime images to GHCR. CI does not run browser E2E or package-consumer checks.
+Choose the smallest checks relevant to the change. Test execution, including browser
+E2E, requires explicit user permission under the repository working agreement.
 
-Run `node tools/verify.mjs` for the broader local verification suite. Run `dotnet restore src/TemplateV4.Backend.slnx --locked-mode` followed by `node tools/audit-nuget.mjs --no-restore` to audit backend production/test dependencies. Stop a running Aspire instance before rebuilding Debug binaries on Windows.
+The broad local suite is:
 
-`node --test tools/cli.test.mjs` verifies deterministic generation, no-overwrite behavior and path validation. `npx ng g @spartan-ng/cli:healthcheck --interactive=false` inside Web verifies the copied component conventions.
+```powershell
+node tools/verify.mjs
+```
 
-Run `node tools/framework.mjs clients` after updating the OpenAPI contract. Generation cleans only its owned output path. Never format or edit generated client sources manually.
+Focused commands:
 
-After `docker compose up --build -d`, `pwsh tools/smoke-compose.ps1` checks sign-in through the local Nginx proxy, idempotent invitation, Worker delivery to the local Mailpit sink, durable maintenance request and logout. It reads the ignored local `.env`, never prints credentials, and creates clearly named smoke-test accounts. Its certificate bypass is limited to local development. Query the separate audit schema to verify job completion.
+| Change | Check |
+| --- | --- |
+| Framework, module, or capability metadata | `node tools/framework.mjs validate` and `node --test tools/cli.test.mjs tools/capabilities.test.mjs` |
+| OpenAPI contract | Export the owning document, run `node tools/framework.mjs clients`, then check the generated diff |
+| Angular UI | Run the workspace lint/build or focused browser-free test configured by the project |
+| Backend behavior | Run the smallest matching test project/filter; database tests require a disposable database |
+| Documentation | `npm run validate --prefix documentation` and `npm run build --prefix documentation` |
+| Compose | Render the production configuration, then use the repository smoke script only with explicit permission |
 
-Container images run nonroot with ICU-enabled .NET runtime images for localisation. Compose initializes key-volume ownership before starting workloads. The local PostgreSQL host port is 55432 to reduce collisions with installed databases.
+CI runs browser-free frontend tests, backend tests, documentation checks, formatting,
+and dependency audits. It does not prove browser accessibility, external provider
+compatibility, public TLS, SMTP delivery, backup recovery, or production readiness.
 
-`node --test tools/auth-retry.test.mjs` runs isolated Node/RxJS regression checks against the actual interceptor and route-reuse source. It launches no browser. Browser/E2E and merchant sandbox verification remain separate.
-
-Module/capability changes also use `node --test tools/cli.test.mjs tools/capabilities.test.mjs` and `node tools/framework.mjs validate`. `CapabilityTests` covers graph composition and runtime transition rules. See [ADR 0031](adr/0031-declarative-capabilities.md).
-
-Export contracts using the API host's development-only `OpenApi:ExportPath` setting.
-`OpenApi:DocumentName` defaults to `v1`; select a registered module document such as
-`vehicle-licensing` when regenerating that module's contracts. Use the owning client
-generators after exporting; never edit generated contracts by hand.
-
-Support feature changes use `SupportFeatureTests`. Set
-`TEMPLATEV4_SUPPORT_TEST_DATABASE` to an empty disposable PostgreSQL database to run
-the migration, concurrency, admission and retained-inbox test. It migrates from the
-previous schema and intentionally changes/removes test settings; never use a retained
-application database. The endpoint metadata test runs without PostgreSQL.
-
-API-key endpoint, credential-format and scope tests run without infrastructure.
-Set `TEMPLATEV4_API_KEYS_TEST_DATABASE` to an empty disposable PostgreSQL database
-to additionally verify the forward migration, one-time hashed secret, usage metering,
-transactional lifecycle audit and revocation. Never point it at a retained database.
+Never point integration tests or restore tools at a retained application database.
+Never edit generated clients or EF-generated migration files to make a check pass; fix
+the owning source and regenerate them.
