@@ -8,6 +8,8 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBlend, lucidePalette } from '@ng-icons/lucide';
 import { I18n, Translate } from '../core/i18n';
@@ -31,6 +33,8 @@ import { LoginBackgroundArtwork } from './login-background';
     HlmFieldImports,
     HlmSelectImports,
     HlmSwitchImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
     NgIcon,
     Translate,
     LoginBackgroundArtwork,
@@ -205,7 +209,7 @@ import { LoginBackgroundArtwork } from './login-background';
                   <h2 hlmDrawerTitle>{{ 'gradientType' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'gradientDrawerHelp' | t }}</p>
                 </hlm-drawer-header>
-                <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
                   <fieldset hlmFieldSet [disabled]="disabled()" data-testid="gradient-types">
                     <legend hlmFieldLegend>{{ 'gradientType' | t }}</legend>
                     <div class="presets">
@@ -232,7 +236,7 @@ import { LoginBackgroundArtwork } from './login-background';
                       }
                     </div>
                   </fieldset>
-                </div>
+                </ng-scrollbar>
               </hlm-drawer-content>
             </hlm-drawer>
             <hlm-drawer
@@ -258,7 +262,7 @@ import { LoginBackgroundArtwork } from './login-background';
                   <h2 hlmDrawerTitle>{{ 'gradientColorPreset' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'gradientDrawerHelp' | t }}</p>
                 </hlm-drawer-header>
-                <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
                   <fieldset hlmFieldSet [disabled]="disabled()" data-testid="gradient-presets">
                     <legend hlmFieldLegend>{{ 'gradientColorPreset' | t }}</legend>
                     <div class="presets">
@@ -279,7 +283,7 @@ import { LoginBackgroundArtwork } from './login-background';
                       }
                     </div>
                   </fieldset>
-                </div>
+                </ng-scrollbar>
               </hlm-drawer-content>
             </hlm-drawer>
           </div>

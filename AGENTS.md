@@ -27,12 +27,12 @@ Before changes spanning layers, contracts, dependencies, or conventions, read [f
 - Never delete and regenerate an existing EF migration. Treat every generated migration name, ID, and file set as permanent migration history; make later schema corrections with a new forward migration so retained databases remain aligned with the migration history table.
 - Never log secrets, authorization headers, email action URLs, refresh tokens, or message payloads.
 
-## Validation
+## Implementation and validation workflow
 
-Use existing tests first. Add or extend only the minimum number of tests needed to cover meaningful new behavior or a regression that existing coverage does not demonstrate. Skip new tests for styling, copy edits, and straightforward behavior-preserving refactors. Avoid redundant edge cases, tests that mirror implementation details, duplicate coverage across layers, and elaborate test scaffolding. Add cases only for distinct, concrete risks; do not pursue exhaustive coverage or a test-count target. Preserve mandatory security and correctness checks.
+Start with the smallest clear implementation that makes the requested core behavior work. Keep the core process visible and easy to understand; do not front-load supporting machinery that obscures it.
 
-Run the smallest checks that demonstrate the changed behavior and affected contracts. Focused reproduction tests may run early; complete relevant formatting/lint, manifest checks, builds, and behavioral tests before delivery. Broaden or repeat checks only for new changes, failures, or unresolved risks. Documentation-only edits need content/link/format checks, not application builds or test suites.
+Do not write tests, ordinary validation, fallback behavior, or defensive error handling unless the user explicitly requests them. When invalid input can fail naturally with an adequately clear failure, do not add a separate error check. This restriction does not remove mandatory security, data-integrity, or public-contract checks; include those from the start when the change requires them.
 
-Persistence, session, and messaging changes require focused behavioral tests. Read [verification guidance](documentation/docs/verification.md) and the affected package scripts or CI steps when choosing commands; do not run every check by default.
+After the core implementation is clear, explain the process and let the user use it to build shared understanding. If the user explicitly requests further hardening, work through concrete scenarios with them step by step, then add only the targeted tests, important checks, and justified fallbacks arising from those scenarios. Keep the user in control of that progression: do not infer permission to add these supporting layers from a general implementation request.
 
-E2E tests require explicit user permission: ask and stop if it has not already been granted for this work. This includes browser accessibility checks, Angular's `npm test` (Playwright), and end-to-end smoke scripts. Complete other authorized validation before requesting that permission.
+Any test execution also requires an explicit user request or permission. E2E tests require specific explicit permission and include browser accessibility checks, Angular's `npm test` (Playwright), and end-to-end smoke scripts. Read [verification guidance](documentation/docs/verification.md) before running requested checks, and choose the smallest relevant command set.

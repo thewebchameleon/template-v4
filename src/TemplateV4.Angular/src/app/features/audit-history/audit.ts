@@ -1,5 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { AuditDetailPanel } from './audit-detail';
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -71,7 +73,15 @@ class RelatedRecordHeader {}
 @Component({
   selector: 'app-audit',
 
-  imports: [WorkspaceUi, DataTable, HlmDatePickerImports, HlmDrawerImports, AuditDetailPanel],
+  imports: [
+    WorkspaceUi,
+    DataTable,
+    HlmDatePickerImports,
+    HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
+    AuditDetailPanel,
+  ],
 
   providers: [workspaceIcons],
 
@@ -122,7 +132,7 @@ class RelatedRecordHeader {}
                   <h2 hlmDrawerTitle>{{ 'filters' | t }}</h2>
                   <p hlmDrawerDescription>{{ 'auditFiltersHelp' | t }}</p>
                 </hlm-drawer-header>
-                <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
                   <div class="grid gap-4">
                     <div hlmField>
                       <label hlmFieldLabel for="audit-from">{{ 'fromDate' | t }}</label>
@@ -181,7 +191,7 @@ class RelatedRecordHeader {}
                       </div>
                     </div>
                   </div>
-                </div>
+                </ng-scrollbar>
                 <hlm-drawer-footer>
                   <button
                     hlmBtn
@@ -336,17 +346,18 @@ class RelatedRecordHeader {}
           <h2 hlmDrawerTitle>{{ 'auditDetails' | t }}</h2>
           <p hlmDrawerDescription>{{ 'auditDetailsHelp' | t }}</p>
         </hlm-drawer-header>
-        <div
+        <ng-scrollbar
+          hlm
           hlmDrawerBody
-          tabindex="0"
+          orientation="vertical"
           role="region"
           [attr.aria-label]="'auditDetails' | t"
-          class="min-h-0 flex-1 overflow-y-auto focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
+          class="min-h-0 flex-1"
         >
           @if (selected(); as entry) {
             <app-audit-detail [id]="entry.id!" />
           }
-        </div>
+        </ng-scrollbar>
         <hlm-drawer-footer
           ><button hlmBtn type="button" variant="outline" hlmDrawerClose>
             {{ 'close' | t }}

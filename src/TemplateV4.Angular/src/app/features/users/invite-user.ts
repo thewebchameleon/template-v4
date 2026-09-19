@@ -3,7 +3,9 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { WorkspaceUi, Resource, protectUnload, workspaceIcons } from '../../shared/workspace';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Auth } from '../../core/auth';
@@ -15,10 +17,17 @@ import { createUser } from '../../api/fn/framework/create-user';
 import { AccessCatalog } from '../../api/models';
 @Component({
   selector: 'app-invitation-editor',
-  imports: [WorkspaceUi, HlmCheckboxImports, HlmDrawerImports, HlmSelectImports],
+  imports: [
+    WorkspaceUi,
+    HlmCheckboxImports,
+    HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
+    HlmSelectImports,
+  ],
   template: `
     <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && invite()">
-      <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+      <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
         <app-page-state [state]="catalog.state()" (retry)="load()">
           <div class="grid gap-5">
             <div hlmField>
@@ -93,7 +102,7 @@ import { AccessCatalog } from '../../api/models';
             </fieldset>
           </div>
         </app-page-state>
-      </div>
+      </ng-scrollbar>
       <hlm-drawer-footer>
         <button hlmBtn [disabled]="busy() || form.invalid || catalog.state() !== 'ready'">
           @if (busy()) {

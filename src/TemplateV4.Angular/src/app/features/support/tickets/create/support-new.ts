@@ -2,7 +2,9 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { Component, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { WorkspaceUi, Resource, protectUnload } from '../../../../shared/workspace';
 import { WorkspaceApi } from '../../../../core/workspace-api';
 import { Notifications } from '../../../notifications/notifications';
@@ -10,13 +12,20 @@ import { SupportOptions } from '../../../../api/models';
 
 @Component({
   selector: 'app-support-new',
-  imports: [HlmSelectImports, WorkspaceUi, HlmTextareaImports, HlmDrawerImports],
+  imports: [
+    HlmSelectImports,
+    WorkspaceUi,
+    HlmTextareaImports,
+    HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
+  ],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `@if (!embedded()) {
       <app-page-header title="supportTicketDetails" description="supportNewHelp" />
     }
     <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && save()">
-      <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+      <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
         <app-page-state [state]="options.state()" (retry)="load()">
           <div class="grid gap-4">
             <div hlmField>
@@ -71,7 +80,7 @@ import { SupportOptions } from '../../../../api/models';
             </div>
           </div>
         </app-page-state>
-      </div>
+      </ng-scrollbar>
       <hlm-drawer-footer>
         <button
           hlmBtn

@@ -2,6 +2,8 @@ import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import {
   WorkspaceUi,
@@ -34,6 +36,8 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
     WorkspaceUi,
     DataTable,
     HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
     HlmSelectImports,
     InvitationDrawer,
     InvitationsPanel,
@@ -129,7 +133,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
                     <h2 hlmDrawerTitle>{{ 'filters' | t }}</h2>
                     <p hlmDrawerDescription>{{ 'roleFilterHelp' | t }}</p>
                   </hlm-drawer-header>
-                  <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+                  <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
                     <div hlmField class="w-full">
                       <label hlmFieldLabel for="user-role-filter">{{ 'role' | t }}</label>
                       <hlm-select
@@ -150,7 +154,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
                       </hlm-select>
                       <p hlmFieldDescription>{{ 'roleFilterHelp' | t }}</p>
                     </div>
-                  </div>
+                  </ng-scrollbar>
                   <hlm-drawer-footer>
                     <button
                       hlmBtn
@@ -214,11 +218,11 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
             <h2 hlmDrawerTitle>{{ 'personDetails' | t }}</h2>
             <p hlmDrawerDescription>{{ 'personDetailsHelp' | t }}</p>
           </hlm-drawer-header>
-          <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+          <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
             @if (selectedUser(); as user) {
               <app-user-detail [userId]="user.id" [embedded]="true" (saved)="load()" />
             }
-          </div>
+          </ng-scrollbar>
           <hlm-drawer-footer>
             <button
               hlmBtn

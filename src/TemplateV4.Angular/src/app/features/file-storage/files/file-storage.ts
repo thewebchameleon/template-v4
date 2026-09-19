@@ -1,6 +1,7 @@
 import { StorageUsageCard } from '../../../shared/storage-usage-card';
 import { Auth } from '../../../core/auth';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { FileStorageDemoBanner } from './file-storage-demo-banner';
 import { NgTemplateOutlet } from '@angular/common';
 import { provideIcons } from '@ng-icons/core';
@@ -13,6 +14,7 @@ import {
   lucideUserPlus,
 } from '@ng-icons/lucide';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { NgScrollbar } from 'ngx-scrollbar';
 import {
   FileStorageFileIcon,
   FileStorageFileName,
@@ -53,6 +55,8 @@ const parentEntryId = '__file-storage-parent__';
     StorageUsageCard,
     DataTable,
     HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
     FileStorageFileActions,
     FileStorageActionDialog,
     HlmDialogImports,
@@ -462,179 +466,192 @@ const parentEntryId = '__file-storage-parent__';
           </h2>
           <p hlmDrawerDescription>{{ detailFile()?.name }}</p></hlm-drawer-header
         >
-        <div hlmDrawerBody class="min-h-0 flex-1 content-start overflow-y-auto grid gap-4">
-          @if (detailMode() === 'fileDetails') {
-            @if (detailFile(); as file) {
-              <form id="file-details-form" class="grid gap-4" (ngSubmit)="saveDetails()">
-                <div class="flex items-center gap-3">
-                  <app-my-file-icon [file]="file" /><span class="font-medium break-all">{{
-                    file.name
-                  }}</span>
-                </div>
-                <dl class="file-storage-metadata">
-                  <dt>{{ 'fileKind' | t }}</dt>
-                  <dd>
-                    {{ (file.isFolder ? 'folder' : 'fileType.' + (file.category || 'other')) | t }}
-                  </dd>
-                  @if (!file.isFolder) {
-                    <dt>{{ 'fileSize' | t }}</dt>
-                    <dd>{{ bytes(file.size) }}</dd>
-                    <dt>{{ 'fileContentType' | t }}</dt>
-                    <dd>{{ file.contentType }}</dd>
-                  }
-                  <dt>{{ 'fileLocation' | t }}</dt>
-                  <dd>{{ fileLocation(file) }}</dd>
-                  <dt>{{ 'fileCreatedAt' | t }}</dt>
-                  <dd>{{ i18n.date(file.createdAt) }}</dd>
-                  <dt>{{ 'updatedAt' | t }}</dt>
-                  <dd>{{ i18n.date(file.updatedAt || file.createdAt) }}</dd>
-                  <dt>{{ 'sharePermission' | t }}</dt>
-                  <dd>
-                    {{
-                      (file.permission === 'owner' ? 'fileOwner' : file.permission || 'viewer') | t
-                    }}
-                  </dd>
-                </dl>
-                @if (canEditDetails(file)) {
-                  <div hlmField>
-                    <label hlmFieldLabel for="detail-name">{{ 'entryName' | t }}</label
-                    ><input
-                      hlmInput
-                      id="detail-name"
-                      name="detailName"
-                      [(ngModel)]="detailName"
-                      required
-                      maxlength="180"
-                      [disabled]="busy()"
-                    />
+        <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
+          <div class="grid content-start gap-4">
+            @if (detailMode() === 'fileDetails') {
+              @if (detailFile(); as file) {
+                <form id="file-details-form" class="grid gap-4" (ngSubmit)="saveDetails()">
+                  <div class="flex items-center gap-3">
+                    <app-my-file-icon [file]="file" /><span class="font-medium break-all">{{
+                      file.name
+                    }}</span>
                   </div>
-                  <div hlmField>
-                    <label hlmFieldLabel for="detail-description">{{ 'fileDescription' | t }}</label
-                    ><input
-                      hlmInput
-                      id="detail-description"
-                      name="detailDescription"
-                      [(ngModel)]="detailDescription"
-                      maxlength="4000"
-                      [disabled]="busy()"
-                    />
-                  </div>
-                  <div hlmField>
-                    <label hlmFieldLabel for="detail-tags">{{ 'fileTags' | t }}</label
-                    ><input
-                      hlmInput
-                      id="detail-tags"
-                      name="detailTags"
-                      [(ngModel)]="detailTags"
-                      maxlength="1000"
-                      [disabled]="busy()"
-                    />
-                    <p hlmFieldDescription>{{ 'fileTagsHelp' | t }}</p>
-                  </div>
-                  <label
-                    hlmFieldLabel
-                    for="detail-important"
-                    class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-                    ><div hlmField orientation="horizontal">
-                      <hlm-checkbox
-                        inputId="detail-important"
-                        name="detailImportant"
-                        [(ngModel)]="detailImportant"
-                        [disabled]="busy()"
-                      /><span>{{ 'important' | t }}</span>
-                    </div></label
-                  >
-                  <label
-                    hlmFieldLabel
-                    for="detail-starred"
-                    class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-                    ><div hlmField orientation="horizontal">
-                      <hlm-checkbox
-                        inputId="detail-starred"
-                        name="detailStarred"
-                        [(ngModel)]="detailStarred"
-                        [disabled]="busy()"
-                      /><span>{{ 'starred' | t }}</span>
-                    </div></label
-                  >
-                } @else {
                   <dl class="file-storage-metadata">
-                    <dt>{{ 'fileDescription' | t }}</dt>
-                    <dd>{{ file.description || ('fileNotSet' | t) }}</dd>
-                    <dt>{{ 'fileTags' | t }}</dt>
-                    <dd>{{ file.tags || ('fileNotSet' | t) }}</dd>
-                    <dt>{{ 'important' | t }}</dt>
-                    <dd>{{ (file.important ? 'fileYes' : 'fileNo') | t }}</dd>
-                    <dt>{{ 'starred' | t }}</dt>
-                    <dd>{{ (file.starred ? 'fileYes' : 'fileNo') | t }}</dd>
-                  </dl>
-                }
-                @if (!file.isFolder) {
-                  <button
-                    hlmBtn
-                    class="w-full"
-                    size="lg"
-                    type="button"
-                    [disabled]="busy()"
-                    (click)="download(file)"
-                  >
-                    <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{ 'download' | t }}
-                  </button>
-                }
-                @if (canShare(file)) {
-                  <button
-                    hlmBtn
-                    class="w-full"
-                    variant="outline"
-                    type="button"
-                    [disabled]="busy()"
-                    (click)="openShare(file)"
-                  >
-                    <ng-icon name="lucideUserPlus" aria-hidden="true" />{{ 'shareFile' | t }}
-                  </button>
-                  <section class="grid gap-3" aria-labelledby="shared-people-title">
-                    <h3 id="shared-people-title" class="font-medium">{{ 'sharedPeople' | t }}</h3>
-                    <ul class="grid gap-3">
-                      @for (share of peopleShares(); track share.id) {
-                        <li class="flex flex-wrap items-center gap-2">
-                          <span class="min-w-0 flex-1 break-all">{{ share.recipient }}</span>
-                          <span hlmBadge variant="secondary">{{ share.permission | t }}</span>
-                          <button
-                            hlmBtn
-                            variant="outline"
-                            size="sm"
-                            type="button"
-                            [disabled]="busy()"
-                            (click)="revoke(share)"
-                          >
-                            {{ 'revokeShare' | t }}
-                          </button>
-                        </li>
-                      } @empty {
-                        <li class="workspace-meta" role="status">{{ 'notSharedYet' | t }}</li>
-                      }
-                    </ul>
-                  </section>
-                }
-                @if (detailActions(file, busy()).length) {
-                  <div class="flex flex-wrap gap-2" role="group" [attr.aria-label]="'actions' | t">
-                    @for (action of detailActions(file, busy()); track action.label) {
-                      <button
-                        hlmBtn
-                        type="button"
-                        [variant]="action.destructive ? 'destructive' : 'outline'"
-                        [disabled]="action.disabled"
-                        (click)="action.run()"
-                      >
-                        {{ action.label | t }}
-                      </button>
+                    <dt>{{ 'fileKind' | t }}</dt>
+                    <dd>
+                      {{
+                        (file.isFolder ? 'folder' : 'fileType.' + (file.category || 'other')) | t
+                      }}
+                    </dd>
+                    @if (!file.isFolder) {
+                      <dt>{{ 'fileSize' | t }}</dt>
+                      <dd>{{ bytes(file.size) }}</dd>
+                      <dt>{{ 'fileContentType' | t }}</dt>
+                      <dd>{{ file.contentType }}</dd>
                     }
-                  </div>
-                }
-              </form>
+                    <dt>{{ 'fileLocation' | t }}</dt>
+                    <dd>{{ fileLocation(file) }}</dd>
+                    <dt>{{ 'fileCreatedAt' | t }}</dt>
+                    <dd>{{ i18n.date(file.createdAt) }}</dd>
+                    <dt>{{ 'updatedAt' | t }}</dt>
+                    <dd>{{ i18n.date(file.updatedAt || file.createdAt) }}</dd>
+                    <dt>{{ 'sharePermission' | t }}</dt>
+                    <dd>
+                      {{
+                        (file.permission === 'owner' ? 'fileOwner' : file.permission || 'viewer')
+                          | t
+                      }}
+                    </dd>
+                  </dl>
+                  @if (canEditDetails(file)) {
+                    <div hlmField>
+                      <label hlmFieldLabel for="detail-name">{{ 'entryName' | t }}</label
+                      ><input
+                        hlmInput
+                        id="detail-name"
+                        name="detailName"
+                        [(ngModel)]="detailName"
+                        required
+                        maxlength="180"
+                        [disabled]="busy()"
+                      />
+                    </div>
+                    <div hlmField>
+                      <label hlmFieldLabel for="detail-description">{{
+                        'fileDescription' | t
+                      }}</label
+                      ><input
+                        hlmInput
+                        id="detail-description"
+                        name="detailDescription"
+                        [(ngModel)]="detailDescription"
+                        maxlength="4000"
+                        [disabled]="busy()"
+                      />
+                    </div>
+                    <div hlmField>
+                      <label hlmFieldLabel for="detail-tags">{{ 'fileTags' | t }}</label
+                      ><input
+                        hlmInput
+                        id="detail-tags"
+                        name="detailTags"
+                        [(ngModel)]="detailTags"
+                        maxlength="1000"
+                        [disabled]="busy()"
+                      />
+                      <p hlmFieldDescription>{{ 'fileTagsHelp' | t }}</p>
+                    </div>
+                    <label
+                      hlmFieldLabel
+                      for="detail-important"
+                      class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+                      ><div hlmField orientation="horizontal">
+                        <hlm-checkbox
+                          inputId="detail-important"
+                          name="detailImportant"
+                          [(ngModel)]="detailImportant"
+                          [disabled]="busy()"
+                        /><span>{{ 'important' | t }}</span>
+                      </div></label
+                    >
+                    <label
+                      hlmFieldLabel
+                      for="detail-starred"
+                      class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+                      ><div hlmField orientation="horizontal">
+                        <hlm-checkbox
+                          inputId="detail-starred"
+                          name="detailStarred"
+                          [(ngModel)]="detailStarred"
+                          [disabled]="busy()"
+                        /><span>{{ 'starred' | t }}</span>
+                      </div></label
+                    >
+                  } @else {
+                    <dl class="file-storage-metadata">
+                      <dt>{{ 'fileDescription' | t }}</dt>
+                      <dd>{{ file.description || ('fileNotSet' | t) }}</dd>
+                      <dt>{{ 'fileTags' | t }}</dt>
+                      <dd>{{ file.tags || ('fileNotSet' | t) }}</dd>
+                      <dt>{{ 'important' | t }}</dt>
+                      <dd>{{ (file.important ? 'fileYes' : 'fileNo') | t }}</dd>
+                      <dt>{{ 'starred' | t }}</dt>
+                      <dd>{{ (file.starred ? 'fileYes' : 'fileNo') | t }}</dd>
+                    </dl>
+                  }
+                  @if (!file.isFolder) {
+                    <button
+                      hlmBtn
+                      class="w-full"
+                      size="lg"
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="download(file)"
+                    >
+                      <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{
+                        'download' | t
+                      }}
+                    </button>
+                  }
+                  @if (canShare(file)) {
+                    <button
+                      hlmBtn
+                      class="w-full"
+                      variant="outline"
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="openShare(file)"
+                    >
+                      <ng-icon name="lucideUserPlus" aria-hidden="true" />{{ 'shareFile' | t }}
+                    </button>
+                    <section class="grid gap-3" aria-labelledby="shared-people-title">
+                      <h3 id="shared-people-title" class="font-medium">{{ 'sharedPeople' | t }}</h3>
+                      <ul class="grid gap-3">
+                        @for (share of peopleShares(); track share.id) {
+                          <li class="flex flex-wrap items-center gap-2">
+                            <span class="min-w-0 flex-1 break-all">{{ share.recipient }}</span>
+                            <span hlmBadge variant="secondary">{{ share.permission | t }}</span>
+                            <button
+                              hlmBtn
+                              variant="outline"
+                              size="sm"
+                              type="button"
+                              [disabled]="busy()"
+                              (click)="revoke(share)"
+                            >
+                              {{ 'revokeShare' | t }}
+                            </button>
+                          </li>
+                        } @empty {
+                          <li class="workspace-meta" role="status">{{ 'notSharedYet' | t }}</li>
+                        }
+                      </ul>
+                    </section>
+                  }
+                  @if (detailActions(file, busy()).length) {
+                    <div
+                      class="flex flex-wrap gap-2"
+                      role="group"
+                      [attr.aria-label]="'actions' | t"
+                    >
+                      @for (action of detailActions(file, busy()); track action.label) {
+                        <button
+                          hlmBtn
+                          type="button"
+                          [variant]="action.destructive ? 'destructive' : 'outline'"
+                          [disabled]="action.disabled"
+                          (click)="action.run()"
+                        >
+                          {{ action.label | t }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </form>
+              }
             }
-          }
-        </div>
+          </div>
+        </ng-scrollbar>
         @if (detailMode() === 'fileDetails' && detailFile(); as file) {
           @if (canEditDetails(file)) {
             <hlm-drawer-footer>

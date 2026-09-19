@@ -46,12 +46,14 @@ import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollArea } from '@spartan-ng/helm/scroll-area';
 import { HlmTooltip } from '@spartan-ng/helm/tooltip';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { AdministrationNavigation } from './core/administration';
 import { Auth } from './core/auth';
 import { I18n, Translate } from './core/i18n';
 import { Theme } from './core/theme';
-import { Preferences } from './core/preferences';
+import { PreferencesDrawerBody } from './shared/preferences-drawer-body';
 import { AppBreadcrumbs, Breadcrumbs } from './shared/breadcrumbs';
 import { Confirmation } from './shared/confirmation';
 import { Features } from './core/features';
@@ -79,8 +81,10 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     HlmSeparatorImports,
     AppBreadcrumbs,
     HlmDrawerImports,
+    HlmScrollArea,
+    NgScrollbar,
     HlmTooltip,
-    Preferences,
+    PreferencesDrawerBody,
     FileStorageTree,
     Translate,
     Confirmation,
@@ -118,6 +122,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     @if (auth.access() && !fullPageSetup()) {
       <div
         hlmSidebarWrapper
+        class="h-svh overflow-hidden"
         sidebarWidth="var(--app-sidebar-total-width)"
         sidebarWidthIcon="var(--app-sidebar-rail-width)"
       >
@@ -387,83 +392,94 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
             </button>
           }
         </hlm-sidebar>
-        <main hlmSidebarInset id="main" tabindex="-1" class="min-w-0 outline-none">
-          <header class="app-header">
-            <div class="flex min-w-0 flex-1 items-center gap-2">
-              @if (sidebar.isMobile() || hasSecondaryNavigation()) {
+        <main
+          hlmSidebarInset
+          id="main"
+          tabindex="-1"
+          class="min-h-0 min-w-0 overflow-hidden outline-none"
+        >
+          <ng-scrollbar
+            hlm
+            orientation="vertical"
+            appearance="compact"
+            trackClass="my-2"
+            class="min-h-0 flex-1 rounded-[inherit] [--scrollbar-track-offset:0px]"
+          >
+            <header class="app-header">
+              <div class="flex min-w-0 flex-1 items-center gap-2">
+                @if (sidebar.isMobile() || hasSecondaryNavigation()) {
+                  <button
+                    hlmSidebarTrigger
+                    [srOnlyText]="'toggleNavigation' | t"
+                    [attr.aria-label]="'toggleNavigation' | t"
+                  ></button>
+                  <hlm-separator
+                    orientation="vertical"
+                    class="header-separator data-vertical:self-center"
+                  />
+                }
+                <app-breadcrumbs />
+              </div>
+              @if (!auth.access()?.setupRequired) {
+                @defer (on immediate) {
+                  <app-notification-drawer />
+                } @placeholder {
+                  <span class="size-10 shrink-0" aria-hidden="true"></span>
+                }
+              }
+              <hlm-drawer
+                direction="right"
+                [state]="themeDrawerOpen() ? 'open' : 'closed'"
+                (stateChanged)="themeDrawerOpen.set($event === 'open')"
+              >
                 <button
-                  hlmSidebarTrigger
-                  [srOnlyText]="'toggleNavigation' | t"
-                  [attr.aria-label]="'toggleNavigation' | t"
-                ></button>
-                <hlm-separator
-                  orientation="vertical"
-                  class="header-separator data-vertical:self-center"
-                />
-              }
-              <app-breadcrumbs />
-            </div>
-            @if (!auth.access()?.setupRequired) {
-              @defer (on immediate) {
-                <app-notification-drawer />
-              } @placeholder {
-                <span class="size-10 shrink-0" aria-hidden="true"></span>
-              }
-            }
-            <hlm-drawer
-              direction="right"
-              [state]="themeDrawerOpen() ? 'open' : 'closed'"
-              (stateChanged)="themeDrawerOpen.set($event === 'open')"
-            >
+                  hlmBtn
+                  hlmDrawerTrigger
+                  size="icon"
+                  variant="ghost"
+                  [attr.aria-label]="'openThemeDrawer' | t"
+                  [hlmTooltip]="'themeDrawer' | t"
+                  position="bottom"
+                >
+                  <ng-icon name="lucideAccessibility" size="1.25rem" />
+                </button>
+                <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
+                  <hlm-drawer-header>
+                    <h2 hlmDrawerTitle>{{ 'themeDrawer' | t }}</h2>
+                    <p hlmDrawerDescription>{{ 'themeDrawerDescription' | t }}</p>
+                  </hlm-drawer-header>
+                  @defer (when themeDrawerOpen()) {
+                    <app-preferences-drawer-body #preferences class="flex min-h-0 flex-1" />
+                    <hlm-drawer-footer>
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="warning"
+                        [disabled]="preferences.resetting()"
+                        (click)="preferences.reset()"
+                      >
+                        {{ 'resetSettings' | t }}
+                      </button>
+                    </hlm-drawer-footer>
+                  } @placeholder {
+                    <div hlmDrawerBody role="status">{{ 'loading' | t }}</div>
+                  }
+                </hlm-drawer-content>
+              </hlm-drawer>
               <button
                 hlmBtn
-                hlmDrawerTrigger
-                size="icon"
-                variant="ghost"
-                [attr.aria-label]="'openThemeDrawer' | t"
-                [hlmTooltip]="'themeDrawer' | t"
-                position="bottom"
+                type="button"
+                variant="destructive"
+                class="ml-auto shrink-0"
+                (click)="logout()"
               >
-                <ng-icon name="lucideAccessibility" size="1.25rem" />
+                <ng-icon name="lucideLogOut" aria-hidden="true" />{{ 'signOut' | t }}
               </button>
-              <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
-                <hlm-drawer-header>
-                  <h2 hlmDrawerTitle>{{ 'themeDrawer' | t }}</h2>
-                  <p hlmDrawerDescription>{{ 'themeDrawerDescription' | t }}</p>
-                </hlm-drawer-header>
-                @defer (when themeDrawerOpen()) {
-                  <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
-                    <app-preferences #preferences [expanded]="true" />
-                  </div>
-                  <hlm-drawer-footer>
-                    <button
-                      hlmBtn
-                      type="button"
-                      variant="warning"
-                      [disabled]="preferences.resetting()"
-                      (click)="preferences.reset()"
-                    >
-                      {{ 'resetSettings' | t }}
-                    </button>
-                  </hlm-drawer-footer>
-                } @placeholder {
-                  <div hlmDrawerBody role="status">{{ 'loading' | t }}</div>
-                }
-              </hlm-drawer-content>
-            </hlm-drawer>
-            <button
-              hlmBtn
-              type="button"
-              variant="destructive"
-              class="ml-auto shrink-0"
-              (click)="logout()"
-            >
-              <ng-icon name="lucideLogOut" aria-hidden="true" />{{ 'signOut' | t }}
-            </button>
-          </header>
-          <div class="app-content" [class.app-content-enter-alternate]="alternatePageEntrance()">
-            <ng-container *ngTemplateOutlet="page" />
-          </div>
+            </header>
+            <div class="app-content" [class.app-content-enter-alternate]="alternatePageEntrance()">
+              <ng-container *ngTemplateOutlet="page" />
+            </div>
+          </ng-scrollbar>
         </main>
       </div>
     } @else {

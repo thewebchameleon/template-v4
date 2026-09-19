@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import {
   WorkspaceUi,
   workspaceIcons,
@@ -26,7 +28,14 @@ import { AccessCatalog, RoleItem } from '../../api/models';
 const column = createColumnHelper<DataTableFeatures, RoleItem>();
 @Component({
   selector: 'app-roles-panel',
-  imports: [WorkspaceUi, DataTable, HlmCheckboxImports, HlmDrawerImports],
+  imports: [
+    WorkspaceUi,
+    DataTable,
+    HlmCheckboxImports,
+    HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
+  ],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `
@@ -108,75 +117,77 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
           </p>
         </hlm-drawer-header>
         <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && save()">
-          <div hlmDrawerBody class="grid min-h-0 flex-1 gap-5 overflow-y-auto">
-            <div hlmField>
-              <label hlmFieldLabel for="role-name">{{ 'roleName' | t }}</label
-              ><input
-                hlmInput
-                id="role-name"
-                name="name"
-                [(ngModel)]="name"
-                required
-                minlength="2"
-                maxlength="80"
-                pattern="[A-Za-z0-9 -]+"
-                [disabled]="selected()?.builtIn || busy()"
-              />
-            </div>
-            <div hlmField>
-              <label hlmFieldLabel for="role-description">{{ 'description' | t }}</label
-              ><input
-                hlmInput
-                id="role-description"
-                name="description"
-                [(ngModel)]="description"
-                maxlength="240"
-                [disabled]="selected()?.builtIn || busy()"
-              />
-            </div>
-            <div hlmField>
-              <label hlmFieldLabel for="permission-search">{{ 'findPermission' | t }}</label
-              ><input
-                hlmInput
-                id="permission-search"
-                name="permissionSearch"
-                [(ngModel)]="permissionSearch"
-              />
-            </div>
-            @for (group of groups(); track group) {
-              <fieldset hlmFieldSet>
-                <legend hlmFieldLegend>{{ 'permissionGroup.' + group | t }}</legend>
-                @for (permission of groupPermissions(group); track permission.key) {
-                  <label
-                    hlmFieldLabel
-                    [for]="'permission-' + permission.key"
-                    class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
-                  >
-                    <div hlmField orientation="horizontal">
-                      <hlm-checkbox
-                        [inputId]="'permission-' + permission.key"
-                        [checked]="permissions().includes(permission.key)"
-                        [disabled]="selected()?.builtIn || !auth.has(permission.key) || busy()"
-                        (checkedChange)="toggle(permission.key, $event)"
-                      />
-                      <div hlmFieldContent>
-                        <span hlmFieldTitle>{{ 'permission.' + permission.key | t }}</span>
-                        <p hlmFieldDescription>{{ 'permissionHelp.' + permission.key | t }}</p>
-                      </div>
-                    </div>
-                  </label>
-                }
-              </fieldset>
-            }
-            @if (conflict()) {
-              <div hlmAlert role="alert">
-                <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
-                <button hlmBtn variant="outline" type="button" (click)="discard()">
-                  {{ 'discardDraft' | t }}
-                </button>
+          <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
+            <div class="grid gap-5">
+              <div hlmField>
+                <label hlmFieldLabel for="role-name">{{ 'roleName' | t }}</label
+                ><input
+                  hlmInput
+                  id="role-name"
+                  name="name"
+                  [(ngModel)]="name"
+                  required
+                  minlength="2"
+                  maxlength="80"
+                  pattern="[A-Za-z0-9 -]+"
+                  [disabled]="selected()?.builtIn || busy()"
+                />
               </div>
-            }
-          </div>
+              <div hlmField>
+                <label hlmFieldLabel for="role-description">{{ 'description' | t }}</label
+                ><input
+                  hlmInput
+                  id="role-description"
+                  name="description"
+                  [(ngModel)]="description"
+                  maxlength="240"
+                  [disabled]="selected()?.builtIn || busy()"
+                />
+              </div>
+              <div hlmField>
+                <label hlmFieldLabel for="permission-search">{{ 'findPermission' | t }}</label
+                ><input
+                  hlmInput
+                  id="permission-search"
+                  name="permissionSearch"
+                  [(ngModel)]="permissionSearch"
+                />
+              </div>
+              @for (group of groups(); track group) {
+                <fieldset hlmFieldSet>
+                  <legend hlmFieldLegend>{{ 'permissionGroup.' + group | t }}</legend>
+                  @for (permission of groupPermissions(group); track permission.key) {
+                    <label
+                      hlmFieldLabel
+                      [for]="'permission-' + permission.key"
+                      class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
+                    >
+                      <div hlmField orientation="horizontal">
+                        <hlm-checkbox
+                          [inputId]="'permission-' + permission.key"
+                          [checked]="permissions().includes(permission.key)"
+                          [disabled]="selected()?.builtIn || !auth.has(permission.key) || busy()"
+                          (checkedChange)="toggle(permission.key, $event)"
+                        />
+                        <div hlmFieldContent>
+                          <span hlmFieldTitle>{{ 'permission.' + permission.key | t }}</span>
+                          <p hlmFieldDescription>{{ 'permissionHelp.' + permission.key | t }}</p>
+                        </div>
+                      </div>
+                    </label>
+                  }
+                </fieldset>
+              }
+              @if (conflict()) {
+                <div hlmAlert role="alert">
+                  <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
+                  <button hlmBtn variant="outline" type="button" (click)="discard()">
+                    {{ 'discardDraft' | t }}
+                  </button>
+                </div>
+              }
+            </div>
+          </ng-scrollbar>
           <hlm-drawer-footer>
             @if (!selected()?.builtIn) {
               <button

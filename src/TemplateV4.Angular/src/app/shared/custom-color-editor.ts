@@ -1,6 +1,8 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { WorkspaceUi } from './workspace';
 import { CustomBrandColor } from '../api/models';
 import { DEFAULT_PRIMARY_COLOR, validPrimaryColor } from '../core/brand-palette';
@@ -8,7 +10,7 @@ import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
 
 @Component({
   selector: 'app-custom-color-editor',
-  imports: [WorkspaceUi, HlmDrawerImports, HlmSliderImports],
+  imports: [WorkspaceUi, HlmDrawerImports, HlmSliderImports, HlmScrollAreaImports, NgScrollbar],
   template: ` <hlm-drawer direction="right" [state]="state()" (stateChanged)="stateChanged($event)">
     @if (item(); as color) {
       <button
@@ -40,89 +42,93 @@ import { hexToHsv, hsvToHex, HsvColor } from '../core/color-picker';
         <h2 hlmDrawerTitle>{{ (item() ? 'editCustomColor' : 'addCustomColor') | t }}</h2>
         <p hlmDrawerDescription>{{ 'customPickerHelp' | t }}</p>
       </hlm-drawer-header>
-      <div
+      <ng-scrollbar
+        hlm
         hlmDrawerBody
-        class="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-1"
+        orientation="vertical"
+        class="min-h-0 flex-1 pb-1"
         (pointerdown)="$event.stopPropagation()"
       >
-        <div hlmField>
-          <label hlmFieldLabel [for]="uid + '-name'">{{ 'customColorName' | t }}</label>
-          <input
-            hlmInput
-            [id]="uid + '-name'"
-            [ngModel]="name()"
-            (ngModelChange)="name.set($event)"
-            [ngModelOptions]="{ standalone: true }"
-            maxlength="40"
-            autocomplete="off"
-            [attr.aria-invalid]="!validName()"
-            [attr.aria-describedby]="uid + '-name-help'"
-          />
-          <p hlmFieldDescription [id]="uid + '-name-help'">{{ 'customColorNameHelp' | t }}</p>
-          @if (name() && !validName()) {
-            <hlm-field-error forceShow>{{ 'customColorNameInvalid' | t }}</hlm-field-error>
-          }
-        </div>
-        <div
-          class="color-plane"
-          [style.background-color]="hueColor()"
-          aria-hidden="true"
-          (pointerdown)="startDrag($event)"
-          (pointermove)="drag($event)"
-          (pointerup)="endDrag($event)"
-          (pointercancel)="endDrag($event)"
-        >
-          <span class="color-point" [style.left.%]="hsv().s" [style.top.%]="100 - hsv().v"></span>
-        </div>
-        @for (axis of axes; track axis.key) {
-          <div class="grid gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-3">
-            <div
-              class="flex items-center justify-between gap-3 text-sm font-medium leading-none"
-              [id]="uid + '-' + axis.key"
-            >
-              <span>{{ axis.label | t }}</span>
-              <span class="text-muted-foreground tabular-nums" aria-hidden="true">
-                {{ rounded(hsv()[axis.key]) }}{{ axis.key === 'h' ? '°' : '%' }}
-              </span>
-            </div>
-            <hlm-slider
-              class="py-1.5"
-              [value]="[hsv()[axis.key]]"
-              [min]="0"
-              [max]="axis.max"
-              [step]="1"
-              [aria-labelledby]="uid + '-' + axis.key"
-              (valueChange)="setAxis(axis.key, $event)"
-            />
-          </div>
-        }
-        <div hlmField>
-          <label hlmFieldLabel [for]="uid + '-hex'">{{ 'customHexColor' | t }}</label>
-          <div class="flex items-center gap-2">
-            <span
-              class="size-8 shrink-0 rounded-md border border-border"
-              [style.background-color]="displayColor()"
-              aria-hidden="true"
-            ></span>
+        <div class="flex flex-col gap-6">
+          <div hlmField>
+            <label hlmFieldLabel [for]="uid + '-name'">{{ 'customColorName' | t }}</label>
             <input
               hlmInput
-              [id]="uid + '-hex'"
-              [ngModel]="hex()"
-              (ngModelChange)="setHex($event)"
+              [id]="uid + '-name'"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event)"
               [ngModelOptions]="{ standalone: true }"
-              maxlength="7"
-              spellcheck="false"
+              maxlength="40"
               autocomplete="off"
-              [attr.aria-invalid]="!validHex()"
-              [attr.aria-describedby]="uid + '-hex-help'"
+              [attr.aria-invalid]="!validName()"
+              [attr.aria-describedby]="uid + '-name-help'"
             />
+            <p hlmFieldDescription [id]="uid + '-name-help'">{{ 'customColorNameHelp' | t }}</p>
+            @if (name() && !validName()) {
+              <hlm-field-error forceShow>{{ 'customColorNameInvalid' | t }}</hlm-field-error>
+            }
           </div>
-          <p hlmFieldDescription [id]="uid + '-hex-help'">{{ 'primaryColorHelp' | t }}</p>
-          @if (!validHex()) {
-            <hlm-field-error forceShow>{{ 'primaryColorInvalid' | t }}</hlm-field-error>
+          <div
+            class="color-plane"
+            [style.background-color]="hueColor()"
+            aria-hidden="true"
+            (pointerdown)="startDrag($event)"
+            (pointermove)="drag($event)"
+            (pointerup)="endDrag($event)"
+            (pointercancel)="endDrag($event)"
+          >
+            <span class="color-point" [style.left.%]="hsv().s" [style.top.%]="100 - hsv().v"></span>
+          </div>
+          @for (axis of axes; track axis.key) {
+            <div class="grid gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-3">
+              <div
+                class="flex items-center justify-between gap-3 text-sm font-medium leading-none"
+                [id]="uid + '-' + axis.key"
+              >
+                <span>{{ axis.label | t }}</span>
+                <span class="text-muted-foreground tabular-nums" aria-hidden="true">
+                  {{ rounded(hsv()[axis.key]) }}{{ axis.key === 'h' ? '°' : '%' }}
+                </span>
+              </div>
+              <hlm-slider
+                class="py-1.5"
+                [value]="[hsv()[axis.key]]"
+                [min]="0"
+                [max]="axis.max"
+                [step]="1"
+                [aria-labelledby]="uid + '-' + axis.key"
+                (valueChange)="setAxis(axis.key, $event)"
+              />
+            </div>
           }
+          <div hlmField>
+            <label hlmFieldLabel [for]="uid + '-hex'">{{ 'customHexColor' | t }}</label>
+            <div class="flex items-center gap-2">
+              <span
+                class="size-8 shrink-0 rounded-md border border-border"
+                [style.background-color]="displayColor()"
+                aria-hidden="true"
+              ></span>
+              <input
+                hlmInput
+                [id]="uid + '-hex'"
+                [ngModel]="hex()"
+                (ngModelChange)="setHex($event)"
+                [ngModelOptions]="{ standalone: true }"
+                maxlength="7"
+                spellcheck="false"
+                autocomplete="off"
+                [attr.aria-invalid]="!validHex()"
+                [attr.aria-describedby]="uid + '-hex-help'"
+              />
+            </div>
+            <p hlmFieldDescription [id]="uid + '-hex-help'">{{ 'primaryColorHelp' | t }}</p>
+            @if (!validHex()) {
+              <hlm-field-error forceShow>{{ 'primaryColorInvalid' | t }}</hlm-field-error>
+            }
+          </div>
         </div>
-      </div>
+      </ng-scrollbar>
       <hlm-drawer-footer>
         <button
           hlmBtn

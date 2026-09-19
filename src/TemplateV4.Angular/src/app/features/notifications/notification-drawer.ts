@@ -2,7 +2,9 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HlmDrawer, HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmTooltip } from '@spartan-ng/helm/tooltip';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { NotificationItem, NotificationPage } from '../../api/models';
 import { Auth } from '../../core/auth';
 import { I18n } from '../../core/i18n';
@@ -12,29 +14,30 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
 
 @Component({
   selector: 'app-notification-drawer',
-  imports: [WorkspaceUi, HlmDrawerImports, HlmTooltip],
+  imports: [WorkspaceUi, HlmDrawerImports, HlmScrollAreaImports, NgScrollbar, HlmTooltip],
   providers: [workspaceIcons],
   styles: `
-    .notification-drawer-scroll {
-      scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;
-      scrollbar-width: thin;
+    @keyframes notification-badge-pulse {
+      0%,
+      100% {
+        box-shadow:
+          0 0 0 0 color-mix(in srgb, var(--notification-badge) 70%, transparent),
+          0 0 0.375rem 0.125rem color-mix(in srgb, var(--notification-badge) 55%, transparent);
+        transform: scale(1);
+      }
+
+      50% {
+        box-shadow:
+          0 0 0 0.375rem color-mix(in srgb, var(--notification-badge) 0%, transparent),
+          0 0 1rem 0.375rem color-mix(in srgb, var(--notification-badge) 45%, transparent);
+        transform: scale(1.12);
+      }
     }
 
-    .notification-drawer-scroll::-webkit-scrollbar {
-      width: 0.375rem;
-    }
-
-    .notification-drawer-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .notification-drawer-scroll::-webkit-scrollbar-thumb {
-      background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
-      border-radius: 9999px;
-    }
-
-    .notification-drawer-scroll::-webkit-scrollbar-thumb:hover {
-      background: color-mix(in srgb, var(--muted-foreground) 65%, transparent);
+    @media (prefers-reduced-motion: no-preference) {
+      .notification-badge-pulse {
+        animation: notification-badge-pulse 1.4s ease-in-out infinite;
+      }
     }
 
     [data-notification-item] {
@@ -75,7 +78,11 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
       >
         <ng-icon name="lucideBell" />
         @if (unread.count()) {
-          <span hlmBadge variant="notification" class="absolute -right-2 -top-2">
+          <span
+            hlmBadge
+            variant="notification"
+            class="notification-badge-pulse absolute -right-2 -top-2"
+          >
             {{ unread.count() > 99 ? '99+' : unread.count() }}
           </span>
         }
@@ -91,9 +98,11 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
           <p hlmDrawerDescription>{{ 'yourInboxHelp' | t }}</p>
         </hlm-drawer-header>
 
-        <div
+        <ng-scrollbar
+          hlm
           hlmDrawerBody
-          class="notification-drawer-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing) group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"
+          orientation="vertical"
+          class="min-h-0 flex-1 group-data-[vaul-drawer-direction=right]/drawer-content:px-(--card-spacing) group-data-[vaul-drawer-direction=right]/drawer-content:pt-(--panel-inset)"
         >
           <app-page-state
             [state]="data.state()"
@@ -144,7 +153,7 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
               }
             </ul>
           </app-page-state>
-        </div>
+        </ng-scrollbar>
 
         <hlm-drawer-footer>
           <button hlmBtn [disabled]="busy() || !data.value()?.unread" (click)="readAll()">

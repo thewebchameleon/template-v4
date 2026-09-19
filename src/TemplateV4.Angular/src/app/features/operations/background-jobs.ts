@@ -1,7 +1,9 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { NgScrollbar } from 'ngx-scrollbar';
 import {
   WorkspaceUi,
   workspaceIcons,
@@ -32,7 +34,14 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
 
 @Component({
   selector: 'app-background-jobs',
-  imports: [WorkspaceUi, DataTable, HlmDrawerImports, HlmSelectImports],
+  imports: [
+    WorkspaceUi,
+    DataTable,
+    HlmDrawerImports,
+    HlmScrollAreaImports,
+    NgScrollbar,
+    HlmSelectImports,
+  ],
   providers: [workspaceIcons],
   template: `
     <app-page-header
@@ -132,7 +141,7 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
           <h2 hlmDrawerTitle>{{ 'backgroundJobDetails' | t }}</h2>
           <p hlmDrawerDescription>{{ 'backgroundJobDetailsHelp' | t }}</p>
         </hlm-drawer-header>
-        <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+        <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
           <app-page-state [state]="detail.state()" (retry)="loadDetail()">
             @if (detail.value(); as value) {
               <div class="grid gap-6">
@@ -195,7 +204,7 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
               </div>
             }
           </app-page-state>
-        </div>
+        </ng-scrollbar>
         <hlm-drawer-footer>
           <button
             hlmBtn
