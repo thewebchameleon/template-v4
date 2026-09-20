@@ -3302,7 +3302,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileItem"
+                  "$ref": "#/components/schemas/PublicFileShare"
                 }
               }
             }
@@ -12227,6 +12227,35 @@
           "loginBackground": {
             "type": "string",
             "default": "blue-sky"
+          }
+        }
+      },
+      "PublicFileShare": {
+        "required": [
+          "file",
+          "sharedByDisplayName",
+          "sharedByEmail",
+          "revoked"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/FileItem"
+          },
+          "sharedByDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sharedByEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revoked": {
+            "type": "boolean"
           }
         }
       },

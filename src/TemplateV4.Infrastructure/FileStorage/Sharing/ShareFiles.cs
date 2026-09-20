@@ -11,12 +11,14 @@ public sealed partial class FileStorageService
     public async Task<Result<FileShareItem[]>> Shares(Guid actor, Guid id, CancellationToken ct)
     {
         if (!await CanWrite(actor, ct) || !await db.Files.AnyAsync(x => x.Id == id && x.DeletedAt == null && x.Ready, ct)) return Result<FileShareItem[]>.Fail("files.not_found", ErrorKind.NotFound);
-        return Result<FileShareItem[]>.Success(await db.Set<FileStorageShare>().Where(x => x.FileId == id).OrderByDescending(x => x.CreatedAt).Select(x => new FileShareItem(x.Id, x.RecipientEmail ?? db.Users.Where(u => u.Id == x.RecipientId).Select(u => u.Email).FirstOrDefault(), x.Permission, x.ExpiresAt, null)).ToArrayAsync(ct));
+        var shares = await db.Set<FileStorageShare>().Where(x => x.FileId == id && x.RevokedAt == null).OrderByDescending(x => x.CreatedAt)
+            .Select(x => new { x.Id, Recipient = x.RecipientEmail ?? db.Users.Where(u => u.Id == x.RecipientId).Select(u => u.Email).FirstOrDefault(), x.ExpiresAt, x.ProtectedToken }).ToArrayAsync(ct);
+        return Result<FileShareItem[]>.Success(shares.Select(x => new FileShareItem(x.Id, x.Recipient, "viewer", x.ExpiresAt, shareNotifier?.UnprotectToken(x.ProtectedToken))).ToArray());
     }
     public async Task<Result<FileShareItem>> Share(Guid actor, Guid id, FileShareRequest request, CancellationToken ct)
     {
         var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
-        if (request.Permission is not ("viewer" or "editor") || request.ExpiresAt <= time.GetUtcNow() || email is { Length: > 254 } || email is not null && !new EmailAddressAttribute().IsValid(email) || email is null && request.Permission != "viewer") return Result<FileShareItem>.Fail("validation.failed", ErrorKind.Validation);
+        if (request.Permission != "viewer" || request.ExpiresAt <= time.GetUtcNow() || email is { Length: > 254 } || email is not null && !new EmailAddressAttribute().IsValid(email)) return Result<FileShareItem>.Fail("validation.failed", ErrorKind.Validation);
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct) || !await db.Files.AnyAsync(x => x.Id == id && x.Ready && x.DeletedAt == null, ct)) return Result<FileShareItem>.Fail("files.not_found", ErrorKind.NotFound);
         Guid? recipient = null;
@@ -26,7 +28,7 @@ public sealed partial class FileStorageService
             recipient = await db.Users.Where(x => x.NormalizedEmail == normalizedEmail && db.Profiles.Any(p => p.Id == x.Id && !p.Disabled)).Select(x => (Guid?)x.Id).SingleOrDefaultAsync(ct);
         }
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-        var row = new FileStorageShare { FileId = id, SharedById = actor, RecipientId = recipient, RecipientEmail = email, Permission = request.Permission, ExpiresAt = request.ExpiresAt?.ToUniversalTime(), CreatedAt = time.GetUtcNow(), TokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token))) };
+        var row = new FileStorageShare { FileId = id, SharedById = actor, RecipientId = recipient, RecipientEmail = email, ExpiresAt = request.ExpiresAt?.ToUniversalTime(), CreatedAt = time.GetUtcNow(), TokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token))), ProtectedToken = shareNotifier?.ProtectToken(token) };
         db.Add(row);
         if (email is not null)
         {
@@ -34,13 +36,14 @@ public sealed partial class FileStorageService
             shareNotifier?.Queue(email, culture, id, token);
         }
         Audit(actor, id, "shared"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
-        return Result<FileShareItem>.Success(new(row.Id, email, row.Permission, row.ExpiresAt, token));
+        return Result<FileShareItem>.Success(new(row.Id, email, "viewer", row.ExpiresAt, token));
     }
     public async Task<Result<Unit>> Revoke(Guid actor, Guid id, Guid shareId, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct) || !await db.Files.AnyAsync(x => x.Id == id, ct)) return Result.Fail("files.not_found", ErrorKind.NotFound);
-        await db.Set<FileStorageShare>().Where(x => x.FileId == id && x.Id == shareId).ExecuteDeleteAsync(ct);
+        await db.Set<FileStorageShare>().Where(x => x.FileId == id && x.Id == shareId && x.RevokedAt == null)
+            .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()).SetProperty(s => s.ProtectedToken, (string?)null), ct);
         Audit(actor, id, "share_revoked"); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Success();
     }
 }

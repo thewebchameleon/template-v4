@@ -44,7 +44,8 @@ public sealed class FileStorageShare
     public Guid? RecipientId { get; set; }
     public string? RecipientEmail { get; set; }
     public string? TokenHash { get; set; }
-    public string Permission { get; set; } = "viewer";
+    public string? ProtectedToken { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? RevokedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

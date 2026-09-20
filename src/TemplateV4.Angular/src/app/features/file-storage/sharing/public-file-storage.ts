@@ -13,7 +13,7 @@ import {
   PAGE_SIZE_OPTIONS,
 } from '../../../shared/workspace';
 import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
-import { FileItem, FilePage } from '../../../api/models';
+import { FileItem, FilePage, PublicFileShare } from '../../../api/models';
 import { FileStorageFileName } from '../files/file-storage-components';
 import { RowActions } from '../../../shared/workspace-cells';
 import { I18n } from '../../../core/i18n';
@@ -22,22 +22,46 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
 @Component({
   selector: 'app-public-file-storage',
   imports: [WorkspaceUi, DataTable, FileStorageDemoBanner],
-  template: `<app-page-header title="sharedFiles" description="publicFilesHelp" />
-    <app-file-storage-demo-banner
-      [enabled]="item.value()?.demoMode ?? false"
-      [minutes]="item.value()?.demoExpiryMinutes ?? 60"
-    />
-    <section hlmCard>
-      <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ item.value()?.name || ('sharedFiles' | t) }}</h2>
-      </div>
-      <div hlmCardContent>
-        <app-page-state
-          [state]="item.state()"
-          [refreshError]="item.refreshError()"
-          (retry)="load()"
-        >
-          @if (item.value()?.isFolder) {
+  template: `<div class="mx-auto flex w-full flex-col items-center gap-6 py-8 sm:py-16">
+    <section hlmCard size="sm" class="w-full max-w-lg">
+      <app-page-state
+        [state]="share.state()"
+        [refreshError]="share.refreshError()"
+        (retry)="load()"
+      >
+        @if (share.value(); as shared) {
+          <div hlmCardHeader>
+            <h1 hlmCardTitle>{{ shareMessage(shared) }}</h1>
+          </div>
+          <div hlmCardContent>
+            @if (shared.revoked) {
+              <div hlmAlert variant="destructive" role="status">
+                <p hlmAlertDescription>{{ 'publicShareRevoked' | t }}</p>
+              </div>
+            } @else if (!shared.file.isFolder) {
+              <button hlmBtn (click)="download(shared.file)">
+                {{ 'download' | t }} · {{ shared.file.name }}
+              </button>
+            } @else {
+              <p class="workspace-meta">{{ 'publicFilesHelp' | t }}</p>
+            }
+          </div>
+        }
+      </app-page-state>
+    </section>
+
+    @if (share.value(); as shared) {
+      <app-file-storage-demo-banner
+        class="w-full max-w-5xl"
+        [enabled]="!shared.revoked && (shared.file.demoMode ?? false)"
+        [minutes]="shared.file.demoExpiryMinutes ?? 60"
+      />
+      @if (!shared.revoked && shared.file.isFolder) {
+        <section hlmCard class="w-full max-w-5xl">
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>{{ 'sharedRoot' | t }}</h2>
+          </div>
+          <div hlmCardContent>
             <button hlmBtn variant="outline" (click)="query.set({ folder: null, page: 1 })">
               {{ 'sharedRoot' | t }}
             </button>
@@ -71,15 +95,14 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
                 (pageChange)="query.set({ page: $event })"
                 (sizeChange)="query.set({ size: $event, page: 1 })"
             /></app-page-state>
-          } @else if (item.value(); as file) {
-            <button hlmBtn (click)="download(file)">{{ 'download' | t }} · {{ file.name }}</button>
-          }
-        </app-page-state>
-      </div>
-    </section>`,
+          </div>
+        </section>
+      }
+    }
+  </div>`,
 })
 export class PublicFileStoragePage {
-  readonly item = new Resource<FileItem>();
+  readonly share = new Resource<PublicFileShare>();
   readonly data = new Resource<FilePage>();
   readonly query = new ListQuery('', true);
   readonly search = new DebouncedSearch(this.query);
@@ -144,13 +167,14 @@ export class PublicFileStoragePage {
   }
   async load() {
     if (
-      await this.item.load(() =>
+      await this.share.load(() =>
         firstValueFrom(
-          this.http.get<FileItem>(`${this.base}/${this.root}`, { headers: this.headers }),
+          this.http.get<PublicFileShare>(`${this.base}/${this.root}`, { headers: this.headers }),
         ),
       )
     ) {
-      if (this.item.value()?.isFolder)
+      const shared = this.share.value();
+      if (shared && !shared.revoked && shared.file.isFolder)
         await this.data.load(() =>
           firstValueFrom(
             this.http.get<FilePage>(
@@ -169,6 +193,13 @@ export class PublicFileStoragePage {
           ),
         );
     }
+  }
+  shareMessage(shared: PublicFileShare) {
+    return this.i18n
+      .text('publicShareMessage')
+      .replace('{displayName}', shared.sharedByDisplayName ?? '')
+      .replace('{email}', shared.sharedByEmail ?? '')
+      .replace('{filename}', shared.file.name);
   }
   pageSize() {
     const size = Number(this.query.text('size', String(DEFAULT_PAGE_SIZE)));

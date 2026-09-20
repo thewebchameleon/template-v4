@@ -307,6 +307,7 @@ import { PrivacyStatus } from '../models/privacy-status';
 import { ProfileOptions } from '../models/profile-options';
 import { ProfileResponse } from '../models/profile-response';
 import { PublicAppearance } from '../models/public-appearance';
+import { PublicFileShare } from '../models/public-file-share';
 import { publishCmsArticle } from '../fn/framework/publish-cms-article';
 import { PublishCmsArticle$Params } from '../fn/framework/publish-cms-article';
 import { publishCmsSections } from '../fn/framework/publish-cms-sections';
@@ -2649,7 +2650,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  getPublicFileStorageFile$Response(params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+  getPublicFileStorageFile$Response(params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<StrictHttpResponse<PublicFileShare>> {
     const obs = getPublicFileStorageFile(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -2660,10 +2661,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  getPublicFileStorageFile(params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<FileItem> {
+  getPublicFileStorageFile(params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<PublicFileShare> {
     const resp = this.getPublicFileStorageFile$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<FileItem>): FileItem => r.body)
+      map((r: StrictHttpResponse<PublicFileShare>): PublicFileShare => r.body)
     );
   }
 

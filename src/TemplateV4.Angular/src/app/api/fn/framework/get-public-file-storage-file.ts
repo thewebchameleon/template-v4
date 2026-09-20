@@ -7,14 +7,14 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { FileItem } from '../../models/file-item';
+import { PublicFileShare } from '../../models/public-file-share';
 
 export interface GetPublicFileStorageFile$Params {
   id: string;
   'X-File-Share'?: string;
 }
 
-export function getPublicFileStorageFile(http: HttpClient, rootUrl: string, params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<StrictHttpResponse<FileItem>> {
+export function getPublicFileStorageFile(http: HttpClient, rootUrl: string, params: GetPublicFileStorageFile$Params, context?: HttpContext): Observable<StrictHttpResponse<PublicFileShare>> {
   const rb = new RequestBuilder(rootUrl, getPublicFileStorageFile.PATH, 'get');
   if (params) {
     rb.path('id', params.id, {});
@@ -26,7 +26,7 @@ export function getPublicFileStorageFile(http: HttpClient, rootUrl: string, para
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<FileItem>;
+      return r as StrictHttpResponse<PublicFileShare>;
     })
   );
 }

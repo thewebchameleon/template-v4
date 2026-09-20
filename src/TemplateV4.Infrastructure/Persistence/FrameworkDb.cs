@@ -191,8 +191,8 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         {
             entity.ToTable("file_shares", "file_storage");
             entity.Property(x => x.TokenHash).HasMaxLength(64);
+            entity.Property(x => x.ProtectedToken).HasMaxLength(1024);
             entity.Property(x => x.RecipientEmail).HasMaxLength(254);
-            entity.Property(x => x.Permission).HasMaxLength(12);
             entity.HasIndex(x => x.TokenHash).IsUnique();
             entity.HasIndex(x => x.RecipientId);
             entity.HasIndex(x => x.SharedById);

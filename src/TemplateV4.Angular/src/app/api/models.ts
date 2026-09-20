@@ -153,6 +153,7 @@ export type { PrivacyStatus } from './models/privacy-status';
 export type { ProfileOptions } from './models/profile-options';
 export type { ProfileResponse } from './models/profile-response';
 export type { PublicAppearance } from './models/public-appearance';
+export type { PublicFileShare } from './models/public-file-share';
 export type { PublishArticle } from './models/publish-article';
 export type { PublishCmsSections } from './models/publish-cms-sections';
 export type { PurgeAllFileStorageData } from './models/purge-all-file-storage-data';

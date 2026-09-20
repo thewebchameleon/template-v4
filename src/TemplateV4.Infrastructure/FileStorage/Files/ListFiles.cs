@@ -24,10 +24,10 @@ public sealed partial class FileStorageService
         }
         else if (group is "shared" or "shared-with-someone")
         {
-            var shares = db.Set<FileStorageShare>().Where(x => x.ExpiresAt == null || x.ExpiresAt > now);
+            var shares = db.Set<FileStorageShare>().Where(x => x.RevokedAt == null && (x.ExpiresAt == null || x.ExpiresAt > now));
             var roots = group == "shared"
                 ? await shares.Where(x => x.RecipientId == actor).Select(x => x.FileId).ToArrayAsync(ct)
-                : await shares.Where(x => x.SharedById == actor && x.RecipientId != null).Select(x => x.FileId).ToArrayAsync(ct);
+                : await shares.Select(x => x.FileId).ToArrayAsync(ct);
             var sharedRoots = await all.Where(x => roots.Contains(x.Id) && x.DeletedAt == null).ToArrayAsync(ct);
             var entries = await all.Where(x => x.DeletedAt == null).ToArrayAsync(ct);
             var ids = sharedRoots.SelectMany(x => Descendants(entries, x.Id)).Distinct().ToArray();
@@ -49,18 +49,19 @@ public sealed partial class FileStorageService
         var fileCount = await scoped.CountAsync(x => !x.IsFolder, ct);
         if (!string.IsNullOrWhiteSpace(search)) scoped = scoped.Where(x => x.Name.Contains(search));
         var total = await scoped.CountAsync(ct); var desc = direction == "desc";
+        var foldersFirst = scoped.OrderByDescending(x => x.IsFolder);
         var ordered = sort switch
         {
-            "name" => desc ? scoped.OrderByDescending(x => x.Name) : scoped.OrderBy(x => x.Name),
-            "size" => desc ? scoped.OrderByDescending(x => x.Size) : scoped.OrderBy(x => x.Size),
-            "createdAt" => desc ? scoped.OrderByDescending(x => x.CreatedAt) : scoped.OrderBy(x => x.CreatedAt),
-            _ => desc ? scoped.OrderByDescending(x => x.UpdatedAt ?? x.CreatedAt) : scoped.OrderBy(x => x.UpdatedAt ?? x.CreatedAt)
+            "name" => desc ? foldersFirst.ThenByDescending(x => x.Name) : foldersFirst.ThenBy(x => x.Name),
+            "size" => desc ? foldersFirst.ThenByDescending(x => x.Size) : foldersFirst.ThenBy(x => x.Size),
+            "createdAt" => desc ? foldersFirst.ThenByDescending(x => x.CreatedAt) : foldersFirst.ThenBy(x => x.CreatedAt),
+            _ => desc ? foldersFirst.ThenByDescending(x => x.UpdatedAt ?? x.CreatedAt) : foldersFirst.ThenBy(x => x.UpdatedAt ?? x.CreatedAt)
         };
         var rows = await ordered.ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(ct);
         var childCounts = await all.Where(x => x.ParentId != null).GroupBy(x => x.ParentId!.Value).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
         var childFileCounts = await grouped.Where(x => x.ParentId != null && !x.IsFolder).GroupBy(x => x.ParentId!.Value).Select(x => new { Id = x.Key, Count = x.Count() }).ToDictionaryAsync(x => x.Id, x => x.Count, ct);
         var sharedWithSomeone = token is null
-            ? await db.Set<FileStorageShare>().Where(x => x.SharedById == actor && x.RecipientId != null && (x.ExpiresAt == null || x.ExpiresAt > now)).Select(x => x.FileId).ToHashSetAsync(ct)
+            ? await db.Set<FileStorageShare>().Where(x => x.RevokedAt == null && (x.ExpiresAt == null || x.ExpiresAt > now)).Select(x => x.FileId).ToHashSetAsync(ct)
             : new HashSet<Guid>();
         var permission = token is null && await CanWrite(actor, ct) ? "owner" : "viewer";
         FileItem[] Items(StoredFile[] values)

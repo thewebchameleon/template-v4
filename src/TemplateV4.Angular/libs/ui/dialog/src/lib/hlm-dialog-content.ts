@@ -6,6 +6,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   input,
 } from '@angular/core';
@@ -14,7 +15,7 @@ import { lucideX } from '@ng-icons/lucide';
 import { BrnDialogRef, injectBrnDialogContext } from '@spartan-ng/brain/dialog';
 import { HlmButton } from '@spartan-ng/helm/button';
 
-import { classes } from '@spartan-ng/helm/utils';
+import { classes, HlmModalState } from '@spartan-ng/helm/utils';
 import { HlmDialogClose } from './hlm-dialog-close';
 
 type HlmDialogContentContext = {
@@ -49,6 +50,8 @@ type HlmDialogContentContext = {
 })
 export class HlmDialogContent {
   private readonly _dialogRef = inject(BrnDialogRef);
+  private readonly _destroyRef = inject(DestroyRef);
+  private readonly _modalState = inject(HlmModalState);
   private readonly _dialogContext = injectBrnDialogContext<HlmDialogContentContext | null>({
     optional: true,
   });
@@ -66,6 +69,9 @@ export class HlmDialogContent {
   private readonly _dynamicComponentClass = this._dialogContext?.$dynamicComponentClass;
 
   constructor() {
+    const unregisterModal = this._modalState.register(this);
+    this._destroyRef.onDestroy(unregisterModal);
+
     classes(() => [
       'bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:slide-out-to-bottom-4 data-open:slide-in-from-bottom-4 data-open:duration-200 data-open:ease-out data-closed:duration-150 data-closed:ease-in ring-foreground/10 grid max-w-[calc(100%-2rem)] gap-6 rounded-xl p-6 text-sm ring-1 sm:max-w-md relative mx-auto w-full outline-none sm:mx-0',
       this._dynamicComponentClass,

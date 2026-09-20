@@ -291,7 +291,6 @@
   inset-inline-end: -0.375rem;
   display: inline-flex;
   align-items: center;
-  flex-direction: row-reverse;
 }
 .my-file-status-icon {
   --ng-icon__stroke-width: 3;
@@ -307,11 +306,12 @@
   background: var(--card);
   box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground), transparent 80%);
 }
-.my-file-status-icon:last-child {
+.my-file-status-icon:first-child {
   margin-inline-start: 0;
 }
 .my-file-status-important {
   color: var(--notification-badge);
+  z-index: 3;
 }
 .my-file-status-important-mark {
   position: absolute;
@@ -325,12 +325,14 @@
 }
 .my-file-status-starred {
   color: var(--warning);
+  z-index: 2;
 }
 .my-file-status-starred svg {
   fill: currentColor;
 }
 .my-file-status-shared {
   color: var(--primary);
+  z-index: 1;
 }
 .file-storage-grid {
   display: grid;
@@ -342,6 +344,40 @@
 app-data-table.file-storage-list-drop-area.file-storage-drop-target > div {
   outline: 2px dashed var(--primary);
   outline-offset: -2px;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-container'] {
+  overflow-x: hidden;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table'] {
+  table-layout: fixed;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-head']:nth-child(1),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(1) {
+  inline-size: 3rem;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-head']:nth-child(3),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(3) {
+  inline-size: 6.5rem;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-head']:nth-child(4),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(4) {
+  inline-size: clamp(10rem, 22vw, 12rem);
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-head']:nth-child(5),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(5) {
+  inline-size: 3.5rem;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-head']:nth-child(2),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(2),
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(2) > button,
+app-data-table.file-storage-list-drop-area app-my-file-name {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+app-data-table.file-storage-list-drop-area [data-slot='table-cell']:nth-child(2) > button,
+app-data-table.file-storage-list-drop-area app-my-file-name {
+  display: block;
+  inline-size: 100%;
 }
 .file-storage-grid-card {
   display: flex;

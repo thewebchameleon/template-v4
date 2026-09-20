@@ -10,12 +10,13 @@ import {
   lucideChevronsUpDown,
   lucideChevronUp,
   lucideFolderPlus,
+  lucideCopy,
   lucideSettings,
   lucideUserPlus,
 } from '@ng-icons/lucide';
-import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmContextMenuImports } from '@spartan-ng/helm/context-menu';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { NgScrollbar } from 'ngx-scrollbar';
 import {
   FileStorageFileIcon,
@@ -79,7 +80,9 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
   const entries = Array.from(dataTransfer.items)
     .filter((item) => item.kind === 'file')
     .map((item) =>
-      (item as unknown as { webkitGetAsEntry?: () => BrowserFileEntry | null }).webkitGetAsEntry?.(),
+      (
+        item as unknown as { webkitGetAsEntry?: () => BrowserFileEntry | null }
+      ).webkitGetAsEntry?.(),
     )
     .filter((entry): entry is BrowserFileEntry => !!entry);
   if (!entries.length) {
@@ -130,9 +133,9 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
     FileStorageActionDialog,
     HlmDialogImports,
     FileStorageFileIcon,
-    HlmSelectImports,
     HlmContextMenuImports,
     HlmDropdownMenuImports,
+    HlmTextareaImports,
     NgTemplateOutlet,
   ],
   providers: [
@@ -142,6 +145,7 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
       lucideChevronsUpDown,
       lucideChevronUp,
       lucideFolderPlus,
+      lucideCopy,
       lucideSettings,
       lucideUserPlus,
     }),
@@ -237,12 +241,6 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
               >{{ file.isFolder ? ('folder' | t) : bytes(file.size) }} &middot;
               {{ i18n.date(file.updatedAt || file.createdAt) }}</span
             >
-            @if (file.important) {
-              <span hlmBadge variant="outline">{{ 'important' | t }}</span>
-            }
-            @if (file.starred) {
-              <span hlmBadge variant="outline">{{ 'starred' | t }}</span>
-            }
           }
         </span>
       </button>
@@ -617,11 +615,11 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
                 >
                   <span class="font-medium">{{ 'dropFileHere' | t }}</span>
                   <span class="workspace-meta">{{ 'browseFileHelp' | t }}</span>
-                  <span class="workspace-meta">{{ 'uploadLimits' | t }}</span>
+                  <span class="workspace-meta">{{ uploadLimits() }}</span>
                 </button>
               }
               @if (validation()) {
-                <hlm-field-error forceShow>{{ validation() | t }}</hlm-field-error>
+                <hlm-field-error forceShow>{{ validationText() }}</hlm-field-error>
               }
               @if (!uploading() && uploadCancelled()) {
                 <p class="workspace-meta" role="status">{{ 'uploadBatchCancelled' | t }}</p>
@@ -673,63 +671,107 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
         >
         @if (shareLink()) {
           <div class="grid gap-4">
-            <p role="status">{{ 'shareEmailSent' | t }}</p>
+            <p role="status">{{ 'shareLinkReady' | t }}</p>
             <div hlmField>
               <label hlmFieldLabel for="share-link">{{ 'shareLink' | t }}</label>
               <input hlmInput id="share-link" [value]="shareLink()" readonly />
+              <p hlmFieldDescription>{{ 'copyLinkHelp' | t }}</p>
             </div>
             <hlm-dialog-footer>
               <button hlmBtn variant="outline" type="button" (click)="copyShareLink()">
                 {{ 'copyShareLink' | t }}
               </button>
-              <button hlmBtn type="button" (click)="shareOpen.set(false)">
-                {{ 'done' | t }}
+              <button hlmBtn type="button" (click)="shareLink.set('')">
+                {{ 'shareAnother' | t }}
               </button>
             </hlm-dialog-footer>
           </div>
         } @else {
-        <form class="grid gap-4" (ngSubmit)="share()">
-          <div hlmField>
-            <label hlmFieldLabel for="share-email">{{ 'shareEmail' | t }}</label
-            ><input
-              hlmInput
-              type="email"
-              id="share-email"
-              name="email"
-              [(ngModel)]="shareEmail"
-              maxlength="254"
-              required
-              [disabled]="busy()"
-            />
-          </div>
-          <div hlmField>
-            <label hlmFieldLabel for="share-role">{{ 'sharePermission' | t }}</label
-            ><hlm-select [(value)]="sharePermission"
-              ><hlm-select-trigger [buttonId]="'share-role'"
-                ><hlm-select-value [placeholder]="'viewer' | t" /></hlm-select-trigger
-              ><hlm-select-content *hlmSelectPortal
-                ><hlm-select-item value="viewer">{{ 'viewer' | t }}</hlm-select-item
-                ><hlm-select-item value="editor">{{
-                  'editor' | t
-                }}</hlm-select-item></hlm-select-content
-              ></hlm-select
+          <form class="grid gap-4" (ngSubmit)="share()">
+            <div hlmField>
+              <span hlmFieldLabel>{{ 'shareWith' | t }}</span>
+              <hlm-tabs [tab]="shareMode()" (tabActivated)="selectShareMode($event)">
+                <hlm-tabs-list class="flex-wrap" [attr.aria-label]="'shareWith' | t">
+                  <button hlmTabsTrigger="link" type="button" [disabled]="busy()">
+                    {{ 'anyoneWithLink' | t }}
+                  </button>
+                  <button hlmTabsTrigger="email" type="button" [disabled]="busy()">
+                    {{ 'specificEmails' | t }}
+                  </button>
+                </hlm-tabs-list>
+              </hlm-tabs>
+              <p hlmFieldDescription>
+                {{ (shareMode() === 'link' ? 'anyoneWithLinkHelp' : 'specificEmailsHelp') | t }}
+              </p>
+            </div>
+            @if (shareMode() === 'email') {
+              <div hlmField>
+                <label hlmFieldLabel for="share-email">{{ 'shareEmails' | t }}</label>
+                <textarea
+                  hlmTextarea
+                  id="share-email"
+                  name="email"
+                  [(ngModel)]="shareEmail"
+                  maxlength="2048"
+                  rows="4"
+                  [disabled]="busy()"
+                ></textarea>
+                <p hlmFieldDescription>{{ 'shareEmailHelp' | t }}</p>
+                @if (shareEmail.trim() && !validShareEmails()) {
+                  <hlm-field-error forceShow>{{ 'shareEmailInvalid' | t }}</hlm-field-error>
+                }
+              </div>
+            }
+            <p class="workspace-meta">{{ 'readOnlyShareHelp' | t }}</p>
+            <hlm-dialog-footer
+              ><button
+                hlmBtn
+                variant="outline"
+                type="button"
+                [disabled]="busy()"
+                (click)="shareOpen.set(false)"
+              >
+                {{ 'cancel' | t }}</button
+              ><button hlmBtn type="submit" [disabled]="busy() || !canCreateShare()">
+                {{ (shareMode() === 'link' ? 'createLink' : 'sendShareLinks') | t }}
+              </button></hlm-dialog-footer
             >
-          </div>
-          <hlm-dialog-footer
-            ><button
-              hlmBtn
-              variant="outline"
-              type="button"
-              [disabled]="busy()"
-              (click)="shareOpen.set(false)"
-            >
-              {{ 'cancel' | t }}</button
-            ><button hlmBtn type="submit" [disabled]="busy() || !shareEmail.trim()">
-              {{ 'createShare' | t }}
-            </button></hlm-dialog-footer
-          >
-        </form>
+          </form>
         }
+        <section class="mt-5 grid gap-3 border-t pt-5" aria-labelledby="share-access-title">
+          <h3 id="share-access-title" class="font-medium">{{ 'sharedPeople' | t }}</h3>
+          <ul class="grid gap-3">
+            @for (share of shares(); track share.id) {
+              <li class="flex flex-wrap items-center gap-2">
+                <span class="min-w-0 flex-1 break-all">{{ shareLabel(share) }}</span>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [disabled]="busy() || !share.token"
+                  [attr.aria-label]="('copyShareLink' | t) + ': ' + shareLabel(share)"
+                  [attr.title]="'copyShareLink' | t"
+                  (click)="copyShareLink(share)"
+                >
+                  <ng-icon name="lucideCopy" aria-hidden="true" />
+                </button>
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="sm"
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="revoke(share)"
+                >
+                  {{ 'revokeShare' | t }}
+                </button>
+              </li>
+            } @empty {
+              <li class="workspace-meta" role="status">{{ 'notSharedYet' | t }}</li>
+            }
+          </ul>
+        </section>
       </hlm-dialog-content>
     </hlm-dialog>
     <hlm-drawer
@@ -776,13 +818,6 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
                     <dd>{{ i18n.date(file.createdAt) }}</dd>
                     <dt>{{ 'updatedAt' | t }}</dt>
                     <dd>{{ i18n.date(file.updatedAt || file.createdAt) }}</dd>
-                    <dt>{{ 'sharePermission' | t }}</dt>
-                    <dd>
-                      {{
-                        (file.permission === 'owner' ? 'fileOwner' : file.permission || 'viewer')
-                          | t
-                      }}
-                    </dd>
                   </dl>
                   @if (canEditDetails(file)) {
                     <label
@@ -819,37 +854,43 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
                       <dd>{{ (file.starred ? 'fileYes' : 'fileNo') | t }}</dd>
                     </dl>
                   }
-                  <button
-                    hlmBtn
-                    class="w-full"
-                    size="lg"
-                    type="button"
-                    [disabled]="busy()"
-                    (click)="download(file)"
-                  >
-                    <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{ 'download' | t }}
-                  </button>
                   @if (canShare(file)) {
-                    <button
-                      hlmBtn
-                      class="w-full"
-                      variant="outline"
-                      type="button"
-                      [disabled]="busy()"
-                      (click)="openShare(file)"
-                    >
-                      <ng-icon name="lucideUserPlus" aria-hidden="true" />{{ 'shareFile' | t }}
-                    </button>
                     <section class="grid gap-3" aria-labelledby="shared-people-title">
-                      <h3 id="shared-people-title" class="font-medium">{{ 'sharedPeople' | t }}</h3>
+                      <div class="flex items-center justify-between gap-2">
+                        <h3 id="shared-people-title" class="font-medium">
+                          {{ 'sharedPeople' | t }}
+                        </h3>
+                        <button
+                          hlmBtn
+                          class="shrink-0"
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          [disabled]="busy()"
+                          (click)="openShare(file)"
+                        >
+                          <ng-icon name="lucideUserPlus" aria-hidden="true" />{{ 'shareFile' | t }}
+                        </button>
+                      </div>
                       <ul class="grid gap-3">
-                        @for (share of peopleShares(); track share.id) {
+                        @for (share of shares(); track share.id) {
                           <li class="flex flex-wrap items-center gap-2">
-                            <span class="min-w-0 flex-1 break-all">{{ share.recipient }}</span>
-                            <span hlmBadge variant="secondary">{{ share.permission | t }}</span>
+                            <span class="min-w-0 flex-1 break-all">{{ shareLabel(share) }}</span>
                             <button
                               hlmBtn
-                              variant="outline"
+                              variant="ghost"
+                              size="icon-sm"
+                              type="button"
+                              [disabled]="busy() || !share.token"
+                              [attr.aria-label]="('copyShareLink' | t) + ': ' + shareLabel(share)"
+                              [attr.title]="'copyShareLink' | t"
+                              (click)="copyShareLink(share)"
+                            >
+                              <ng-icon name="lucideCopy" aria-hidden="true" />
+                            </button>
+                            <button
+                              hlmBtn
+                              variant="destructive"
                               size="sm"
                               type="button"
                               [disabled]="busy()"
@@ -864,30 +905,29 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
                       </ul>
                     </section>
                   }
-                  @if (detailActions(file, busy()).length) {
-                    <div
-                      class="flex flex-wrap gap-2"
-                      role="group"
-                      [attr.aria-label]="'actions' | t"
-                    >
-                      @for (action of detailActions(file, busy()); track action.label) {
-                        <button
-                          hlmBtn
-                          type="button"
-                          [variant]="action.destructive ? 'destructive' : 'outline'"
-                          [disabled]="action.disabled"
-                          (click)="action.run()"
-                        >
-                          {{ action.label | t }}
-                        </button>
-                      }
-                    </div>
-                  }
                 </div>
               }
             }
           </div>
         </ng-scrollbar>
+        @if (detailMode() === 'fileDetails' && detailFile(); as file) {
+          <hlm-drawer-footer role="group" [attr.aria-label]="'actions' | t">
+            <button hlmBtn type="button" [disabled]="busy()" (click)="download(file)">
+              <ng-icon name="lucideArrowDownToLine" aria-hidden="true" />{{ 'download' | t }}
+            </button>
+            @for (action of detailActions(file, busy()); track action.label) {
+              <button
+                hlmBtn
+                type="button"
+                [variant]="action.destructive ? 'destructive' : 'outline'"
+                [disabled]="action.disabled"
+                (click)="action.run()"
+              >
+                {{ action.label | t }}
+              </button>
+            }
+          </hlm-drawer-footer>
+        }
       </hlm-drawer-content>
     </hlm-drawer>`,
 })
@@ -901,11 +941,10 @@ export class FileStoragePage {
   readonly detailMode = signal('');
   readonly detailFile = signal<FileItem | null>(null);
   readonly shares = signal<FileShareItem[]>([]);
-  readonly peopleShares = computed(() => this.shares().filter((share) => !!share.recipient));
   readonly shareOpen = signal(false);
   readonly shareLink = signal('');
+  readonly shareMode = signal<'link' | 'email'>('link');
   shareEmail = '';
-  sharePermission = 'viewer';
   get group() {
     return this.query.text('group', 'file-storage');
   }
@@ -1125,7 +1164,6 @@ export class FileStoragePage {
     this.detailFile.set(file);
     this.shares.set([]);
     this.shareEmail = '';
-    this.sharePermission = 'viewer';
     this.detailMode.set(mode);
     this.busy.set(true);
     try {
@@ -1157,9 +1195,32 @@ export class FileStoragePage {
       }
     }
     this.shareEmail = '';
-    this.sharePermission = 'viewer';
+    this.shareMode.set('link');
     this.shareLink.set('');
     this.shareOpen.set(true);
+  }
+  selectShareMode(mode: string) {
+    if (mode === 'link' || mode === 'email') this.shareMode.set(mode);
+  }
+  shareEmailValues() {
+    const values = this.shareEmail
+      .split(/[\s,;]+/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+    return [...new Map(values.map((value) => [value.toLocaleLowerCase(), value])).values()];
+  }
+  validShareEmails() {
+    const emails = this.shareEmailValues();
+    return (
+      emails.length > 0 &&
+      emails.every((email) => email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    );
+  }
+  canCreateShare() {
+    return this.shareMode() === 'link' || this.validShareEmails();
+  }
+  shareLabel(share: FileShareItem) {
+    return share.recipient || this.i18n.text('anyoneWithLink');
   }
   async updateFlag(file: FileItem, flag: 'important' | 'starred', checked: boolean) {
     if (this.busy() || !this.canEditDetails(file)) return;
@@ -1312,35 +1373,74 @@ export class FileStoragePage {
       await this.mutate('trash/empty');
   }
   async share() {
-    if (this.busy() || !this.shareEmail.trim()) return;
+    if (this.busy() || !this.canCreateShare()) return;
     this.busy.set(true);
     try {
       const file = this.detailFile()!;
-      const created = await this.api.post<FileShareItem>(`file-storage/${file.id}/shares`, {
-        email: this.shareEmail.trim(),
-        permission: this.sharePermission,
-        expiresAt: null,
-      });
-      this.shareLink.set(`${location.origin}/shared-files/${file.id}#${created.token}`);
-      this.shares.set(await this.api.get<FileShareItem[]>(`file-storage/${file.id}/shares`));
-      this.shareEmail = '';
-      this.sharePermission = 'viewer';
-      this.toast.success('fileStorageSaved');
+      if (this.shareMode() === 'link') {
+        const created = await this.api.post<FileShareItem>(`file-storage/${file.id}/shares`, {
+          email: null,
+          permission: 'viewer',
+          expiresAt: null,
+        });
+        this.shareLink.set(`${location.origin}/shared-files/${file.id}#${created.token}`);
+      } else {
+        const emails = this.shareEmailValues();
+        const results = await Promise.allSettled(
+          emails.map((email) =>
+            this.api.post<FileShareItem>(`file-storage/${file.id}/shares`, {
+              email,
+              permission: 'viewer',
+              expiresAt: null,
+            }),
+          ),
+        );
+        const failed = emails.filter((_, index) => results[index].status === 'rejected');
+        this.shareEmail = failed.join(', ');
+        if (failed.length === emails.length) return;
+        if (!failed.length) this.toast.success('shareEmailsSent');
+      }
+      const shares = await this.api.get<FileShareItem[]>(`file-storage/${file.id}/shares`);
+      this.shares.set(shares);
+      this.detailFile.update((value) =>
+        value ? { ...value, sharedWithSomeone: shares.length > 0 } : value,
+      );
+      await this.load();
+      this.navigation.refresh();
+      if (this.shareMode() === 'link') this.toast.success('fileStorageSaved');
     } catch {
       /* Preserve inputs. */
     } finally {
       this.busy.set(false);
     }
   }
-  async copyShareLink() {
-    await navigator.clipboard.writeText(this.shareLink());
+  async copyShareLink(share?: FileShareItem) {
+    const link = share
+      ? `${location.origin}/shared-files/${this.detailFile()!.id}#${share.token}`
+      : this.shareLink();
+    await navigator.clipboard.writeText(link);
     this.toast.success('shareLinkCopied');
   }
   async revoke(share: FileShareItem) {
+    if (
+      this.busy() ||
+      !(await this.confirm.ask(
+        'revokeShare',
+        'revokeShareHelp',
+        this.shareLabel(share),
+        true,
+        'revokeShare',
+      ))
+    )
+      return;
     await this.mutate(`${this.detailFile()!.id}/shares/${share.id}/revoke`);
     try {
-      this.shares.set(
-        await this.api.get<FileShareItem[]>(`file-storage/${this.detailFile()!.id}/shares`),
+      const shares = await this.api.get<FileShareItem[]>(
+        `file-storage/${this.detailFile()!.id}/shares`,
+      );
+      this.shares.set(shares);
+      this.detailFile.update((value) =>
+        value ? { ...value, sharedWithSomeone: shares.length > 0 } : value,
       );
     } catch {
       /* Central errors. */
@@ -1392,6 +1492,16 @@ export class FileStoragePage {
   private uploadController?: AbortController;
   readonly progress = signal(0);
   readonly validation = signal('');
+  readonly maxUploadBytes = computed(() => this.data.value()?.maxUploadBytes ?? 20 * 1024 * 1024);
+  readonly uploadLimits = computed(() => {
+    const maxUploadBytes = this.maxUploadBytes();
+    return maxUploadBytes === 0
+      ? this.i18n.text('uploadLimitsUnlimited')
+      : this.i18n.text('uploadLimits').replace('{size}', this.bytes(maxUploadBytes));
+  });
+  readonly validationText = computed(() =>
+    this.i18n.text(this.validation()).replace('{size}', this.bytes(this.maxUploadBytes())),
+  );
   readonly search = new DebouncedSearch(this.query);
   readonly draggedEntry = signal<FileItem | null>(null);
   readonly entryDropTarget = signal<string | null>(null);
@@ -1517,10 +1627,7 @@ export class FileStoragePage {
     if (!this.isUploadDrag(event) || !event.dataTransfer || !this.canAcceptUploadDrop()) return;
     event.preventDefault();
     this.fileAreaDropActive.set(false);
-    void this.uploadDropped(
-      droppedItems(event.dataTransfer),
-      this.query.text('folder') || null,
-    );
+    void this.uploadDropped(droppedItems(event.dataTransfer), this.query.text('folder') || null);
   }
   readonly columns = computed(() => {
     this.i18n.culture();
@@ -1681,10 +1788,7 @@ export class FileStoragePage {
     event.preventDefault();
     this.uploadDragOver.set(false);
     if (this.busy() || !event.dataTransfer) return;
-    void this.uploadDropped(
-      droppedItems(event.dataTransfer),
-      this.query.text('folder') || null,
-    );
+    void this.uploadDropped(droppedItems(event.dataTransfer), this.query.text('folder') || null);
   }
   choose(event: Event) {
     if (this.busy()) return;
@@ -1698,10 +1802,7 @@ export class FileStoragePage {
   }
   async upload(files: readonly File[]) {
     const parentId = this.query.text('folder') || null;
-    await this.runUploadBatch(
-      files,
-      async () => files.map((file) => ({ file, parentId })),
-    );
+    await this.runUploadBatch(files, async () => files.map((file) => ({ file, parentId })));
   }
   retryFailedUploads() {
     const failed = this.failedUploads();
@@ -1751,7 +1852,7 @@ export class FileStoragePage {
   ) {
     if (!this.canManage()) return;
     if ((!files.length && !hasDirectories) || this.busy()) return;
-    const maxUploadBytes = this.data.value()?.maxUploadBytes ?? 20 * 1024 * 1024;
+    const maxUploadBytes = this.maxUploadBytes();
     this.validation.set(
       maxUploadBytes > 0 && files.some((file) => file.size > maxUploadBytes)
         ? 'uploadValidation'
@@ -1792,8 +1893,7 @@ export class FileStoragePage {
       batchFinished = !controller.signal.aborted;
       if (!controller.signal.aborted && !this.failedUploads().length) {
         this.progress.set(100);
-        if (files.length)
-          this.toast.success(files.length === 1 ? 'fileUploaded' : 'filesUploaded');
+        if (files.length) this.toast.success(files.length === 1 ? 'fileUploaded' : 'filesUploaded');
       }
     } catch {
       /* Central API errors; the current directory is refreshed below. */

@@ -214,25 +214,25 @@ export class FileStorageFileActions {
   selector: 'app-my-file-name',
   imports: [WorkspaceUi, FileStorageFileIcon],
   providers: [provideIcons({ lucideArrowLeft })],
-  template: `<div class="flex items-center gap-3 min-w-0">
+  template: `<div class="flex w-full min-w-0 items-center gap-3">
     @if (back()) {
       <ng-icon name="lucideArrowLeft" class="my-file-icon" aria-hidden="true" />
     } @else {
       <app-my-file-icon [file]="file()" />
     }
-    <div class="min-w-0">
+    <div class="min-w-0 flex-1 overflow-hidden">
       @if (interactive()) {
-        <button hlmBtn variant="link" (click)="open()?.()" class="max-w-full">
-          <span class="truncate">{{ file().name }}</span>
+        <button
+          hlmBtn
+          variant="link"
+          (click)="open()?.()"
+          class="w-full min-w-0 max-w-full"
+          [attr.title]="file().name"
+        >
+          <span class="block truncate">{{ file().name }}</span>
         </button>
       } @else {
-        <span class="block truncate font-medium">{{ file().name }}</span>
-      }
-      @if (file().important) {
-        <span hlmBadge variant="outline">{{ 'important' | t }}</span>
-      }
-      @if (file().starred) {
-        <span hlmBadge variant="outline">{{ 'starred' | t }}</span>
+        <span class="block truncate font-medium" [attr.title]="file().name">{{ file().name }}</span>
       }
     </div>
   </div>`,
@@ -284,8 +284,8 @@ export interface FileStorageMoveDestination {
                 ? 'renameFolder'
                 : mode() === 'copy'
                   ? 'copyItems'
-                  : 'moveFile')
-              | t
+                  : 'moveFile'
+            ) | t
           }}
         </h2>
         <p hlmAlertDialogDescription>{{ description() }}</p></hlm-alert-dialog-header

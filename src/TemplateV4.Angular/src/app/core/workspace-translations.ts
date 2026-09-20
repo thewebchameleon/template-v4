@@ -310,8 +310,12 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   ],
   chooseFile: ['Choose a file', 'Kies ’n lêer'],
   uploadLimits: [
-    'Any file type. Up to 20 MB per file.',
-    'PDF, PNG, JPG, TXT of CSV. Tot 20 MB per lêer.',
+    'Any file type. Up to {size} per file.',
+    'Enige lêertipe. Tot {size} per lêer.',
+  ],
+  uploadLimitsUnlimited: [
+    'Any file type. No file size limit.',
+    'Enige lêertipe. Geen lêergroottelimiet nie.',
   ],
   uploadProgress: ['Upload progress', 'Oplaaivordering'],
   finishingUpload: ['Finishing your upload…', 'Voltooi jou oplaai…'],
@@ -331,8 +335,8 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   download: ['Download', 'Laai af'],
   delete: ['Delete', 'Verwyder'],
   uploadValidation: [
-    'Choose a file of 20 MB or less.',
-    'Kies ’n ondersteunde, nie-leë lêer van hoogstens 20 MB.',
+    'Choose a file of {size} or less.',
+    'Kies ’n lêer van hoogstens {size}.',
   ],
   createFolder: ['Create folder', 'Skep vouer'],
   openFolder: ['Open folder', 'Maak vouer oop'],
