@@ -14,6 +14,7 @@ TestResults/
 *.pem
 artifacts/
 /business-modules/
+/.private-modules/
 /business-modules.enabled
 /client-modules.json
 /src/TemplateV4.Angular/src/business-modules.g.ts

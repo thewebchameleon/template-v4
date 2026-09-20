@@ -1,6 +1,6 @@
 # ADR 0039: component releases and client update notifications
 
-Status: Accepted
+Status: Superseded by [ADR 0052](0052-provider-assigned-compiled-private-modules.md)
 
 Extends [ADR 0034](0034-private-client-module-composition.md) and
 [ADR 0038](0038-compose-client-releases.md). Bundled foundation modules share the

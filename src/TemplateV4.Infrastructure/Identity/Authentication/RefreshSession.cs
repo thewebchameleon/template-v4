@@ -5,7 +5,7 @@ namespace TemplateV4.Infrastructure.Security;
 public sealed partial class AuthService
 {
 
-    public async Task<Result<AuthTokens>> Refresh(string? raw, CancellationToken ct)
+    public async Task<Result<AuthTokens>> Refresh(string? raw, string? ipAddress, CancellationToken ct)
     {
         if (raw is null || raw.Length > 256) return Result<AuthTokens>.Fail("auth.session_invalid", ErrorKind.Unauthorized);
         var hash = Hash(raw);
@@ -27,6 +27,8 @@ public sealed partial class AuthService
         if (session.RevokedAt is not null || session.ExpiresAt <= now || token.ExpiresAt <= now || user is null || profile is null || profile.Disabled || user.RegistrationState is "Pending" or "Rejected" || session.SecurityStamp != user.SecurityStamp)
             return Result<AuthTokens>.Fail("auth.session_invalid", ErrorKind.Unauthorized);
         token.ConsumedAt = now;
+        session.IpAddress = NormalizeIp(ipAddress);
+        session.LastActivityAt = now;
         var tokens = await Issue(user, session, profile.Culture);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return Result<AuthTokens>.Success(tokens);

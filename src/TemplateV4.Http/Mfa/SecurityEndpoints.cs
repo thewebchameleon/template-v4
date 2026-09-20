@@ -10,7 +10,7 @@ public static class SecurityEndpoints
     public static RouteGroupBuilder MapSecurityEndpoints(this RouteGroupBuilder group)
     {
         group.MapPost("/mfa/login", async (MfaLoginRequest request, AuthService service, HttpContext http, CancellationToken ct) =>
-                EndpointSecurity.Tokens(await service.CompleteMfa(request, ct), http.Response))
+                EndpointSecurity.Tokens(await service.CompleteMfa(request, http.Connection.RemoteIpAddress?.ToString(), ct), http.Response))
             .WithName("CompleteMfa").Produces<AccessResponse>();
         group.MapPost("/mfa/email", async (EmailMfaChallengeRequest request, AuthService service, CancellationToken ct) =>
                 (await service.SendEmailCode(request, ct)).ToHttp())

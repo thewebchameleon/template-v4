@@ -1,6 +1,7 @@
 # ADR 0020: Payments, Commercial Billing and paid module licensing
 
 Status: Accepted; supersedes the billing parts of [ADR 0026](0026-customer-billing-implementation.md).
+The paid private-module licensing clauses are superseded by [ADR 0052](0052-provider-assigned-compiled-private-modules.md).
 
 ## Context
 

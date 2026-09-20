@@ -5,6 +5,7 @@ RUN npm install --global npm@12.0.2
 RUN npm ci
 COPY src/TemplateV4.Angular/ ./
 COPY . /source/
+RUN if [ -d /source/.private-modules/npm ]; then npm install --legacy-peer-deps --no-save /source/.private-modules/npm/*.tgz; fi
 RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.30.4-alpine
 COPY deploy/nginx.production.conf /etc/nginx/conf.d/default.conf

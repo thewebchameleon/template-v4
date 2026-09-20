@@ -28,6 +28,8 @@ Development keys, Mailpit, and `compose.yaml` are not production configuration.
   handling.
 - [Deployment and operations](deployment.md): production, upgrades, monitoring,
   recovery, and troubleshooting.
+- [Private modules](private-modules.md): registration, provider assignments, compiled artifacts,
+  and the Compose maintenance deployment.
 - [Verification](verification.md): the smallest relevant checks and generated-code
   workflow.
 - [Decision log](adr/README.md): concise architectural history.

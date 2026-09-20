@@ -10,8 +10,7 @@ import { Auth } from '../../core/auth';
   selector: 'app-privacy',
   imports: [WorkspaceUi, HlmDialogImports],
   providers: [workspaceIcons],
-  template: ` <app-page-header title="privacyAndData" description="privacyIntro" />
-    <app-page-state
+  template: ` <app-page-state
       [state]="data.state()"
       [refreshing]="data.refreshing()"
       [refreshError]="data.refreshError()"
@@ -93,7 +92,7 @@ import { Auth } from '../../core/auth';
               <p class="workspace-meta mt-5">{{ 'retentionExplanation' | t }}</p>
             </div>
             <div hlmCardFooter>
-              <a routerLink="/me" hlmBtn variant="outline"
+              <a routerLink="/me/profile" hlmBtn variant="outline"
                 >{{ 'account' | t }}<ng-icon name="lucideArrowUpRight"
               /></a>
             </div>

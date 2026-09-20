@@ -11,7 +11,7 @@ public sealed class JobReconciler(IServiceScopeFactory scopes, ISchedulerFactory
         {
             try { await Reconcile(ct); }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
-            catch (Exception error) { logger.LogError("Job reconciliation failed: {ErrorType}", error.GetType().Name); }
+            catch (Exception error) { logger.LogError(error, "Job reconciliation failed: {ErrorType}", error.GetType().Name); }
             await Task.Delay(TimeSpan.FromSeconds(10), ct);
         }
     }

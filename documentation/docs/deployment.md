@@ -6,15 +6,16 @@ public service; it serves Angular and proxies `/api` on the same origin. AppHost
 
 ## Deploy
 
-1. Build an immutable release with the repository workflow.
+1. Check out the intended public repository revision on the deployment server.
 2. Follow the maintained EasyPanel guide at `deploy/compose-platforms/README.md` or the
-   Coolify guide beside it, and use the release branch.
+   Coolify guide beside it.
 3. Supply every setting in `deploy/compose-platforms/.env.example`, including a strong
    database password, production RSA signing key, SMTP credentials, public origins, and
    private S3-compatible storage credentials.
 4. Expose only Web port 8080 through platform-managed HTTPS. Keep API, Worker, Migrator,
    PostgreSQL, health endpoints, and telemetry private. Preserve WebSocket upgrades.
-5. Run Migrator to completion before API and Worker. For a new installation, start one
+5. Run Migrator to completion before API and Worker. Deployments with private modules use
+   `deploy/private-module-deploy.sh` for the coordinated build and migration. For a new installation, start one
    API replica, retrieve the one-time token from protected logs, complete `/bootstrap`,
    confirm it is disabled, and then scale out.
 

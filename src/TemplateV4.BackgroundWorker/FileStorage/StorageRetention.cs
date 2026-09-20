@@ -17,7 +17,7 @@ public sealed class StorageRetention(IServiceScopeFactory scopes, ILogger<Storag
                 });
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception exception) { logger.LogError("Storage retention failed: {ErrorType}", exception.GetType().Name); }
+            catch (Exception exception) { logger.LogError(exception, "Storage retention failed: {ErrorType}", exception.GetType().Name); }
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }

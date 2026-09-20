@@ -6,7 +6,7 @@ ARG RELEASE_VERSION
 WORKDIR /source
 COPY . .
 RUN node tools/discover-business-modules.mjs
-RUN dotnet restore src/${PROJECT}/${PROJECT}.csproj --locked-mode
+RUN if [ -f .private-modules/NuGet.Config ]; then dotnet restore src/${PROJECT}/${PROJECT}.csproj --configfile .private-modules/NuGet.Config; else dotnet restore src/${PROJECT}/${PROJECT}.csproj --locked-mode; fi
 RUN dotnet publish src/${PROJECT}/${PROJECT}.csproj -c Release --no-restore -o /app /p:UseAppHost=false /p:ReleaseVersion="$RELEASE_VERSION"
 RUN cp /app/${PROJECT}.dll /app/entry.dll && cp /app/${PROJECT}.deps.json /app/entry.deps.json && cp /app/${PROJECT}.runtimeconfig.json /app/entry.runtimeconfig.json
 RUN install -d -m 700 /keys/ring

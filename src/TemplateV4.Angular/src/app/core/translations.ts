@@ -1,3 +1,4 @@
+import { navigationDictionary } from './navigation-translations';
 import { businessDictionary } from './business-translations';
 import { fileStorageDictionary } from '../features/file-storage/file-storage-translations';
 import { adminDictionary } from './admin-translations';
@@ -5,10 +6,9 @@ import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
-  contact: ['Retained enquiries', 'Behoue navrae'],
+  ...navigationDictionary,
   contactInbox: ['Retained enquiries', 'Behoue navrae'],
   'permission.contact.manage': ['Manage contact enquiries', 'Bestuur kontaknavrae'],
-  cms: ['CMS', 'CMS'],
   cmsModuleHelp: [
     'Site-wide public blog with Markdown publishing.',
     'Webwerfwye openbare blog met Markdown-publikasie.',
@@ -25,7 +25,6 @@ export const dictionary: Record<string, [string, string]> = {
     'Skep en herroep aanmeldbewyse vir eksterne toepassings.',
   ],
   'permissionGroup.api-keys': ['API keys', 'API-sleutels'],
-  apiKeys: ['API Keys', 'API-sleutels'],
   'permissionGroup.cms': ['CMS', 'CMS'],
   notificationReleaseAvailable: [
     'A foundation or business-module update is available',
@@ -41,17 +40,13 @@ export const dictionary: Record<string, [string, string]> = {
     'An action item needs your input',
     '’n Aksie-item benodig jou insette',
   ],
-  registrationRequests: ['Registration requests', 'Registrasieversoeke'],
   organisationFiles: ['Shared organisation files', 'Gedeelde organisasielêers'],
   billing: ['Subscription', 'Intekening'],
-  organisation: ['Organisation', 'Organisasie'],
   license: ['License', 'Lisensie'],
   notificationOrganisation: [
     'You have an organisation invitation.',
     'Jy het ’n organisasie-uitnodiging.',
   ],
-  support: ['Support', 'Ondersteuning'],
-  supportTickets: ['Support tickets', 'Ondersteuningskaartjies'],
   notificationSupport: [
     'A support ticket has been updated.',
     '�n Ondersteuningskaartjie is opgedateer.',
@@ -282,7 +277,6 @@ export const dictionary: Record<string, [string, string]> = {
   accountMenuProfile: ['Profile', 'Profiel'],
   accountMenuSessions: ['Sessions', 'Sessies'],
   accessibility: ['Accessibility', 'Toeganklikheid'],
-  security: ['Account security', 'Rekeningsekuriteit'],
   securityHelp: [
     'Confirm your password before changing security settings.',
     'Bevestig jou wagwoord voordat jy sekuriteitsinstellings verander.',
@@ -407,7 +401,6 @@ export const dictionary: Record<string, [string, string]> = {
   passwordSaved: ['Password saved. You can now sign in.', 'Wagwoord gestoor. Jy kan nou aanmeld.'],
   currentSession: ['This session', 'Hierdie sessie'],
   noSessions: ['No active sessions', 'Geen aktiewe sessies nie'],
-  users: ['Users', 'Gebruikers'],
   signIn: ['Sign in', 'Meld aan'],
   signOut: ['Sign out', 'Meld af'],
   email: ['Email', 'E-pos'],
@@ -471,8 +464,29 @@ export const dictionary: Record<string, [string, string]> = {
   forgot: ['Forgot password?', 'Wagwoord vergeet?'],
   sent: ['Check your email for the next step.', 'Gaan jou e-pos na vir die volgende stap.'],
   sessions: ['Your sessions', 'Jou sessies'],
+  sessionsIntro: [
+    'Review and sign out devices that have access to your account.',
+    'Hersien en meld toestelle af wat toegang tot jou rekening het.',
+  ],
+  searchSessions: ['Search sessions', 'Soek sessies'],
+  device: ['Device', 'Toestel'],
+  ipAddress: ['IP address', 'IP-adres'],
+  lastActivity: ['Last activity', 'Laaste aktiwiteit'],
+  createdAt: ['Created', 'Geskep'],
   revoke: ['Revoke', 'Herroep'],
   account: ['Account', 'Rekening'],
+  profileSummary: ['Profile summary', 'Profielopsomming'],
+  personalDetails: ['Personal details', 'Persoonlike besonderhede'],
+  organisationDetails: ['Organisation details', 'Organisasiebesonderhede'],
+  emailVerification: ['Email verification', 'E-posbevestiging'],
+  emailVerifiedStatus: ['Verified', 'Bevestig'],
+  emailUnverifiedStatus: ['Not verified', 'Nie bevestig nie'],
+  timeZone: ['Time zone', 'Tydsone'],
+  website: ['Website', 'Webwerf'],
+  primaryContactEmail: ['Primary contact email', 'Primêre kontak-e-pos'],
+  country: ['Country', 'Land'],
+  primaryContactNumber: ['Primary contact number', 'Primêre kontaknommer'],
+  edit: ['Edit', 'Wysig'],
   confirm: ['Confirm', 'Bevestig'],
   verifyEmail: ['Verify email', 'Bevestig e-pos'],
   newPassword: ['Set password', 'Stel wagwoord'],

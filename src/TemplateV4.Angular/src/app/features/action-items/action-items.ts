@@ -20,9 +20,6 @@ const column = createColumnHelper<DataTableFeatures, ActionItemDto>();
   selector: 'app-action-items',
   imports: [WorkspaceUi, DataTable],
   template: `
-    @if (!overview()) {
-      <app-page-header title="actionItems" description="actionItemsHelp" eyebrow="workspace" />
-    }
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ (overview() ? 'actionOverview' : 'actionInbox') | t }}</h2>
@@ -52,7 +49,7 @@ const column = createColumnHelper<DataTableFeatures, ActionItemDto>();
           >
           <button hlmBtn variant="outline" (click)="load()">{{ 'refresh' | t }}</button>
           @if (overview()) {
-            <a hlmBtn variant="outline" routerLink="/action-items">{{ 'actionInbox' | t }}</a>
+            <a hlmBtn variant="outline" routerLink="/me/action-items">{{ 'actionInbox' | t }}</a>
           }
         </div>
         <div hlmField>

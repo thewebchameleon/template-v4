@@ -1,5 +1,9 @@
 import { FOUNDATION_FEATURES } from './feature-extensions';
-import { administrationDestinations, destinationVisibleInNavigation } from './destinations';
+import {
+  administrationDestinations,
+  destinationVisibleInNavigation,
+  type Destination,
+} from './destinations';
 import { Injectable, computed, inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
@@ -10,7 +14,7 @@ export class AdministrationNavigation {
   private readonly extensions = inject(FOUNDATION_FEATURES);
   private readonly auth = inject(Auth);
   private readonly features = inject(Features);
-  readonly links = computed(() =>
+  readonly links = computed<readonly Destination[]>(() =>
     [
       ...Object.values(administrationDestinations),
       ...this.extensions.flatMap((x) => x.destinations ?? []).filter((x) => x.section),

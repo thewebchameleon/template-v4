@@ -10,6 +10,7 @@ Group module-owned pages, resolvers, translations and services under `src/app/fe
 - Use the Spartan `hlm-select` dropdown for selection fields, including drawer forms, rather than native `<select>` or `hlm-native-select`. Compose `hlm-select-trigger`, `hlm-select-value`, and portaled `hlm-select-content` with `hlm-select-item`; preserve accessible labels, placeholders, and required-value validation.
 - Checkbox and switch items must make their complete visual row clickable. Wrap the entire horizontal `hlmField` in `label[hlmFieldLabel]`, match the label's `for` to the control's `inputId`, and use pointer/not-allowed cursor states for enabled/disabled rows.
 - Keep shared styling in owned components and semantic theme/layout tokens. Maintain UI text in both manifest-supported cultures; keep generated API code untouched.
+- Register built-in destination labels in `core/navigation-translations.ts`, which loads with the shell. Keep the `BuiltInDestination` type checks in `core/destinations.ts`; a route resolver must never be required to translate a menu entry. Keep page-only text in feature translations.
 - Accessibility is an acceptance criterion: semantic HTML, keyboard operation, visible focus, accessible names and state announcements, contrast in both themes, reduced-motion preferences, and usable zoom/reflow.
 - Validate affected interactions with proportional keyboard and visual review and applicable automated accessibility checks. Root E2E permission requirements also apply to accessibility automation. Report any review that could not be performed.
 

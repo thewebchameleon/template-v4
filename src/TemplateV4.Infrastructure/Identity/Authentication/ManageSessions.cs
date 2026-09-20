@@ -6,7 +6,7 @@ namespace TemplateV4.Infrastructure.Security;
 public sealed partial class AuthService
 {
 
-    public async Task<bool> Validate(ClaimsPrincipal principal, CancellationToken ct)
+    public async Task<bool> Validate(ClaimsPrincipal principal, string? ipAddress, CancellationToken ct)
     {
         if (!Guid.TryParse(principal.FindFirstValue("sub"), out var userId) || !Guid.TryParse(principal.FindFirstValue("sid"), out var sessionId)) return false;
         var now = time.GetUtcNow();
@@ -16,6 +16,10 @@ public sealed partial class AuthService
                            where session.Id == sessionId && user.Id == userId && session.RevokedAt == null && session.ExpiresAt > now && !profile.Disabled && user.RegistrationState != "Pending" && user.RegistrationState != "Rejected" && user.SecurityStamp == session.SecurityStamp
                            select session.Id).AnyAsync(ct);
         if (!valid) return false;
+        await db.Sessions.Where(x => x.Id == sessionId)
+            .ExecuteUpdateAsync(x => x
+                .SetProperty(s => s.IpAddress, NormalizeIp(ipAddress))
+                .SetProperty(s => s.LastActivityAt, now), ct);
         var live = await db.Sessions.AsNoTracking().SingleAsync(x => x.Id == sessionId, ct);
         var owner = await users.FindByIdAsync(userId.ToString());
         if (await security.PasskeyRequired(owner!, ct) && !live.PasskeyVerified || live.SetupOnly || (!live.MfaVerified && await security.Required(owner!, ct)))
@@ -30,13 +34,41 @@ public sealed partial class AuthService
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
         Audit("auth.session_revoked", userId); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
     }
-    public async Task<SessionDto[]> ListSessions(Guid userId, Guid currentSessionId, CancellationToken ct) =>
-        await db.Sessions.AsNoTracking()
-            .Where(x => x.UserId == userId && x.RevokedAt == null && x.ExpiresAt > time.GetUtcNow())
-            .OrderByDescending(x => x.CreatedAt)
-            .Take(100)
-            .Select(x => new SessionDto(x.Id, x.Device, x.CreatedAt, x.ExpiresAt, x.Id == currentSessionId))
+    public async Task<Result<SessionPage>> ListSessions(Guid userId, Guid currentSessionId, SessionQuery query, CancellationToken ct)
+    {
+        if (query.Search is null or { Length: > 200 } || query.PageNumber is < 1 or > 10000 ||
+            query.PageSize is not (5 or 10 or 25 or 50) ||
+            query.Sort is not ("device" or "ipAddress" or "lastActivityAt" or "createdAt" or "expiresAt" or "current") ||
+            query.Direction is not ("asc" or "desc"))
+            return Result<SessionPage>.Fail("validation.failed", ErrorKind.Validation);
+
+        var sessions = db.Sessions.AsNoTracking()
+            .Where(x => x.UserId == userId && x.RevokedAt == null && x.ExpiresAt > time.GetUtcNow());
+        var search = query.Search.Trim();
+        if (search.Length > 0)
+            sessions = sessions.Where(x => x.Device.Contains(search) || x.IpAddress.Contains(search));
+
+        var total = await sessions.CountAsync(ct);
+        var ascending = query.Direction == "asc";
+        var ordered = query.Sort switch
+        {
+            "device" => ascending ? sessions.OrderBy(x => x.Device) : sessions.OrderByDescending(x => x.Device),
+            "ipAddress" => ascending ? sessions.OrderBy(x => x.IpAddress) : sessions.OrderByDescending(x => x.IpAddress),
+            "createdAt" => ascending ? sessions.OrderBy(x => x.CreatedAt) : sessions.OrderByDescending(x => x.CreatedAt),
+            "expiresAt" => ascending ? sessions.OrderBy(x => x.ExpiresAt) : sessions.OrderByDescending(x => x.ExpiresAt),
+            "current" => ascending ? sessions.OrderBy(x => x.Id == currentSessionId) : sessions.OrderByDescending(x => x.Id == currentSessionId),
+            _ => ascending
+                ? sessions.OrderBy(x => x.LastActivityAt < x.CreatedAt ? x.CreatedAt : x.LastActivityAt)
+                : sessions.OrderByDescending(x => x.LastActivityAt < x.CreatedAt ? x.CreatedAt : x.LastActivityAt)
+        };
+        var items = await ordered.ThenBy(x => x.Id)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(x => new SessionDto(x.Id, x.Device, x.IpAddress == "" ? "unknown" : x.IpAddress,
+                x.LastActivityAt < x.CreatedAt ? x.CreatedAt : x.LastActivityAt, x.CreatedAt, x.ExpiresAt, x.Id == currentSessionId))
             .ToArrayAsync(ct);
+        return Result<SessionPage>.Success(new(items, total, query.PageNumber, query.PageSize));
+    }
     public async Task Logout(string? raw, CancellationToken ct)
     {
         if (raw is null || raw.Length > 256) return;

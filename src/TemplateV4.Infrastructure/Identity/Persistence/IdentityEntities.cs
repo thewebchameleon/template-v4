@@ -53,7 +53,9 @@ public sealed class Session
     public Guid UserId { get; set; }
     public string SecurityStamp { get; set; } = "";
     public string Device { get; set; } = "";
+    public string IpAddress { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset LastActivityAt { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
     public bool MfaVerified { get; set; }

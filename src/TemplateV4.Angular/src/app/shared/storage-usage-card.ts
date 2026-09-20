@@ -70,7 +70,7 @@ import { WorkspaceUi } from './workspace';
       }
       <p class="workspace-meta mt-4">{{ 'fileStorageRetentionHelp' | t }}</p>
       <div class="mt-3 flex items-center justify-between gap-4">
-        <a routerLink="/privacy" class="workspace-link text-sm">{{ 'privacyAndData' | t }}</a>
+        <a routerLink="/me/privacy" class="workspace-link text-sm">{{ 'privacyAndData' | t }}</a>
         @if (allowEmptyTrash()) {
           <button
             hlmBtn

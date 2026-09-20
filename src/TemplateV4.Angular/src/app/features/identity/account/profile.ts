@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
@@ -11,7 +11,6 @@ import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { Auth } from '../../../core/auth';
@@ -34,7 +33,6 @@ type MfaProfile = ProfileResponse & {
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   imports: [
     FormsModule,
-    RouterLink,
     HlmButtonImports,
     HlmFieldImports,
     HlmInputImports,
@@ -43,20 +41,11 @@ type MfaProfile = ProfileResponse & {
     HlmAlertImports,
     HlmEmptyImports,
     HlmBadgeImports,
-    HlmSpinnerImports,
     HlmSeparatorImports,
     HlmTabsImports,
     Translate,
   ],
-  template: `<h1 class="page-title">{{ 'security' | t }}</h1>
-    <nav class="my-4 flex gap-3">
-      <a hlmBtn variant="outline" routerLink="/me">{{ 'account' | t }}</a>
-      @if (!auth.access()?.setupRequired) {
-        <a hlmBtn variant="outline" routerLink="/security/sessions">{{ 'sessions' | t }}</a>
-      }
-    </nav>
-    @if (profile(); as user) {
-      <p class="mt-3 break-words">{{ user.displayName }} · {{ user.email }}</p>
+  template: `@if (profile(); as user) {
       @if (auth.access()?.setupRequired) {
         <div hlmAlert role="status" class="my-4">
           <p hlmAlertDescription>
@@ -64,7 +53,7 @@ type MfaProfile = ProfileResponse & {
           </p>
         </div>
       }
-      <section hlmCard class="mt-6 max-w-(--form-content-width)">
+      <section hlmCard class="max-w-(--form-content-width)">
         <div hlmCardHeader>
           <h2 hlmCardTitle>{{ 'security' | t }}</h2>
           <p hlmCardDescription>{{ 'securityHelp' | t }}</p>
@@ -283,10 +272,6 @@ type MfaProfile = ProfileResponse & {
         <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
         <button hlmBtn variant="outline" (click)="retry()">{{ 'retry' | t }}</button>
       </div>
-    } @else {
-      <div class="flex items-center gap-2 mt-6" role="status">
-        <hlm-spinner />{{ 'loading' | t }}
-      </div>
     }`,
 })
 export class ProfilePage {
@@ -452,7 +437,7 @@ export class ProfilePage {
   }
   async signInAgain() {
     await this.auth.logout();
-    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/security' } });
+    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/me/security' } });
   }
   retry() {
     return this.run(() => this.load());

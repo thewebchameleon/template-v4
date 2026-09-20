@@ -197,7 +197,7 @@ export const adminGuard: CanActivateFn = async () => {
   const auth = inject(Auth);
   const router = inject(Router);
   if (!auth.access()) await auth.refresh();
-  return auth.has('users.manage') ? true : router.createUrlTree(['/security']);
+  return auth.has('users.manage') ? true : router.createUrlTree(['/me/security']);
 };
 export const administratorRoleGuard: CanActivateFn = () => {
   const auth = inject(Auth);

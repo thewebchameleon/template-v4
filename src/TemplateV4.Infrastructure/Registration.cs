@@ -24,7 +24,7 @@ public static partial class Registration
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
         AddUpdates(services);
-        AddLicensing(services);
+        AddPrivateModuleDistribution(services);
         AddOrganisations(services, config);
         AddPayments(services);
         AddCommercialBilling(services);

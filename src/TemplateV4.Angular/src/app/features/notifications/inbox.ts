@@ -260,12 +260,13 @@ export class InboxPage {
           /* Request errors are already reported centrally. */
         });
     }
-    await this.router.navigateByUrl(
-      item.link === '/profile'
-        ? '/security'
-        : item.link === '/operations'
-          ? '/administration/system-health'
-          : item.link,
-    );
+    await this.router.navigateByUrl(this.accountRoute(item.link));
+  }
+
+  private accountRoute(path: string) {
+    if (path === '/profile' || path === '/security') return '/me/security';
+    if (path === '/privacy') return '/me/privacy';
+    if (path === '/me') return '/me/profile';
+    return path === '/operations' ? '/administration/system-health' : path;
   }
 }

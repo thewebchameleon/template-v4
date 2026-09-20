@@ -153,7 +153,7 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="files" description="filesIntro">
       @if (auth.has('settings.manage')) {
-        <a hlmBtn variant="outline" routerLink="/administration/file-storage">
+        <a hlmBtn variant="outline" routerLink="/file-storage/settings">
           <ng-icon name="lucideSettings" aria-hidden="true" />{{ 'settings' | t }}
         </a>
       }

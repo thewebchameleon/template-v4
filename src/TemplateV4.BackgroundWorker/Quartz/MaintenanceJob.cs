@@ -60,7 +60,7 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
         }
         catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
-            logger.LogError("Maintenance failed: {ErrorType}", exception.GetType().Name);
+            logger.LogError(exception, "Maintenance failed: {ErrorType}", exception.GetType().Name);
             context.Result = new JobOutcome(false, exception.GetType().Name, attempt, now, time.GetUtcNow());
             db.ChangeTracker.Clear();
             using var recoveryTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -76,8 +76,8 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
                 db.Audit.Add(new() { Action = "job.maintenance.failed", SubjectId = runId, ActorId = execution.ActorId, At = time.GetUtcNow(), TraceParent = activity?.Id });
                 await db.SaveChangesAsync(recoveryTimeout.Token);
             }
-            catch (Exception recoveryException) { logger.LogError("Job recovery failed: {ErrorType}", recoveryException.GetType().Name); }
-            throw new JobExecutionException("Maintenance failed; inspect audit and telemetry.") { RefireImmediately = false };
+            catch (Exception recoveryException) { logger.LogError(recoveryException, "Job recovery failed: {ErrorType}", recoveryException.GetType().Name); }
+            throw new JobExecutionException("Maintenance failed; inspect audit and telemetry.", exception) { RefireImmediately = false };
         }
         finally { CultureInfo.CurrentCulture = originalCulture; CultureInfo.CurrentUICulture = originalUiCulture; }
     }

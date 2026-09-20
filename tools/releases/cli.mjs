@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { buildBundle, composePinned } from "./bundles.mjs";
 import { updateWorkflowPins } from "./client-workflows.mjs";
 import {
   httpsUrl,
@@ -64,11 +63,11 @@ if (command === "init-client") {
       breaking: notes.breaking,
       foundation: descriptor.foundationCompatibility,
       dependencies: descriptor.dependencyVersions ?? {},
-      artifact: { package: args[1], sha256: "0".repeat(64) },
+      artifact: { package: args[1], sha256: "0".repeat(64), downloadUrl: args[3] },
     }),
   );
 } else if (command === "bundle") {
-  buildBundle(path.resolve(args[0]), read(args[1]), path.resolve(args[2]));
+  throw new Error("Source bundles are retired. Build a compiled module bundle in the business-modules repository.");
 } else if (command === "digest") {
   const release = read(args[0]);
   release.artifact.sha256 = sha256(fs.readFileSync(args[1]));
@@ -113,11 +112,7 @@ if (command === "init-client") {
   if (!result.ok)
     throw new Error(`Release publication returned ${result.status}.`);
 } else if (command === "compose") {
-  await composePinned(
-    path.resolve(args[0]),
-    read(args[1]),
-    process.env.NODE_AUTH_TOKEN,
-  );
+  throw new Error("Source composition is retired. Run node tools/private-modules.mjs prepare.");
 } else if (command === "validate") {
   validateLock(read(args[0]));
 } else if (command === "check") {

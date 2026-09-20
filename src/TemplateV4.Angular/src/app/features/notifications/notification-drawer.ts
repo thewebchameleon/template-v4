@@ -289,11 +289,10 @@ export class NotificationDrawer {
       ].includes(item.link)
     )
       return null;
-    return item.link === '/profile'
-      ? '/security'
-      : item.link === '/operations'
-        ? '/administration/system-health'
-        : item.link;
+    if (item.link === '/profile' || item.link === '/security') return '/me/security';
+    if (item.link === '/privacy') return '/me/privacy';
+    if (item.link === '/me') return '/me/profile';
+    return item.link === '/operations' ? '/administration/system-health' : item.link;
   }
 
   open(item: NotificationItem) {
@@ -314,6 +313,6 @@ export class NotificationDrawer {
 
   async viewAll() {
     this.drawer().close();
-    await this.router.navigateByUrl('/notifications');
+    await this.router.navigateByUrl('/me/notifications');
   }
 }

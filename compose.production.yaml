@@ -51,6 +51,15 @@ services:
       ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_api;Password=${POSTGRES_PASSWORD}
       Jwt__PrivateKeyBase64: ${JWT_KEY_B64}
       ReverseProxy__Address: web
+      ModuleDistribution__Url: ${MODULE_DISTRIBUTION_URL:-}
+      ModuleDistribution__AppId: ${MODULE_APP_ID:-}
+      ModuleDistribution__AppToken: ${MODULE_APP_TOKEN:-}
+      ModuleDistribution__EnvironmentId: ${MODULE_ENVIRONMENT_ID:-}
+      ModuleDistribution__Environment: ${MODULE_ENVIRONMENT:-production}
+      ClientManagement__PublisherTokenHash: ${MODULE_PUBLISHER_TOKEN_HASH:-}
+      ClientManagement__PublisherModules: ${MODULE_PUBLISHER_MODULES:-}
+      ClientManagement__ArtifactHosts: ${MODULE_ARTIFACT_HOSTS:-}
+      ClientManagement__ArtifactToken: ${MODULE_ARTIFACT_TOKEN:-}
       OTEL_SERVICE_NAME: templatev4-api
     volumes: [keys:/keys]
     depends_on:

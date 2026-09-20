@@ -104,7 +104,8 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
         model.Entity<Session>(entity =>
         {
             entity.ToTable("sessions", "identity"); entity.HasIndex(x => new { x.UserId, x.RevokedAt });
-            entity.Property(x => x.Device).HasMaxLength(200); entity.Property(x => x.SecurityStamp).HasMaxLength(100);
+            entity.Property(x => x.Device).HasMaxLength(200); entity.Property(x => x.IpAddress).HasMaxLength(45);
+            entity.Property(x => x.SecurityStamp).HasMaxLength(100);
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
         model.Entity<RefreshToken>(entity =>

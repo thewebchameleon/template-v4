@@ -6,7 +6,8 @@ export function installedRelease(root, modules) {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(root, "framework.json"), "utf8"),
   );
-  const file = path.join(root, "client-template.json");
+  const prepared = path.join(root, ".private-modules/client-template.json");
+  const file = fs.existsSync(prepared) ? prepared : path.join(root, "client-template.json");
   if (!fs.existsSync(file))
     return {
       schemaVersion: 1,

@@ -1,3 +1,4 @@
+import type { NavigationLabel } from './navigation-translations';
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from './auth';
@@ -17,6 +18,9 @@ export interface Destination {
   hasPanel?: boolean;
 }
 
+// Built-in destinations require a startup-loaded label in both cultures.
+type BuiltInDestination = Omit<Destination, 'label'> & { label: NavigationLabel };
+
 // Paths are relative to the organisation workspace.
 export const organisationDestinations: readonly Destination[] = [
   { path: 'crm', label: 'crm', icon: 'lucideContactRound', capability: 'crm' },
@@ -26,7 +30,7 @@ export const organisationDestinations: readonly Destination[] = [
     icon: 'lucideFileSpreadsheet',
     capability: 'invoicing',
   },
-];
+] satisfies readonly BuiltInDestination[];
 
 export function activeDestinationIndex(items: readonly Destination[], path: string): number {
   let result = -1;
@@ -74,11 +78,11 @@ export const workspaceDestinations = {
     help: 'dashboardSupportHelp',
     hasPanel: false,
   },
-} as const satisfies Record<string, Destination>;
+} as const satisfies Record<string, BuiltInDestination>;
 
 export const administrationDestinations = {
   supportSettings: {
-    path: '/administration/support',
+    path: '/support/settings',
     label: 'support',
     icon: 'lucideLifeBuoy',
     section: 'modules',
@@ -102,11 +106,18 @@ export const administrationDestinations = {
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
+  privateModules: {
+    path: '/administration/private-modules',
+    label: 'privateModules',
+    icon: 'lucideShieldCheck',
+    section: 'administration',
+    permissions: ['settings.manage'],
+    administratorOnly: true,
+  },
   storage: {
-    path: '/administration/file-storage',
+    path: '/file-storage/settings',
     label: 'files',
     icon: 'lucideFolderOpen',
-    section: 'administration',
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
@@ -177,7 +188,7 @@ export const administrationDestinations = {
     capability: 'commercial-billing',
     administratorOnly: true,
   },
-} as const satisfies Record<string, Destination>;
+} as const satisfies Record<string, BuiltInDestination>;
 
 export const moduleSettingsDestinations: Readonly<Record<string, Destination>> = {
   'file-storage': administrationDestinations.storage,
@@ -195,7 +206,7 @@ export const supportDestinations = {
     capability: 'support',
   },
   tickets: workspaceDestinations.support,
-} as const satisfies Record<string, Destination>;
+} as const satisfies Record<string, BuiltInDestination>;
 
 export const userManagementDestinations = {
   users: {
@@ -236,7 +247,7 @@ export const userManagementDestinations = {
     permissions: ['settings.manage'],
     administratorOnly: true,
   },
-} as const satisfies Record<string, Destination>;
+} as const satisfies Record<string, BuiltInDestination>;
 
 export function destinationAvailable(
   destination: Destination,

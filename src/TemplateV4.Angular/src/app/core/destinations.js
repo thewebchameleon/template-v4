@@ -60,7 +60,7 @@ export const workspaceDestinations = {
 };
 export const administrationDestinations = {
     supportSettings: {
-        path: '/administration/support',
+        path: '/support/settings',
         label: 'support',
         icon: 'lucideLifeBuoy',
         section: 'modules',

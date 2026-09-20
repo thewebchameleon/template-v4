@@ -15,6 +15,7 @@ public static class EndpointRegistration
             .MapActionItemEndpoints()
             .MapConfigurationEndpoints()
             .MapUpdateEndpoints()
+            .MapPrivateModuleEndpoints()
             .MapRuntimeModuleEndpoints()
             .MapSupportEndpoints()
             .MapCrmEndpoints()

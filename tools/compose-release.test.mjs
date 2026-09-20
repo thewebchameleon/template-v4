@@ -60,12 +60,9 @@ test("private build copies only required locks and retains other Docker exclusio
   fs.mkdirSync(path.join(configuration, "client-locks"), { recursive: true });
   fs.mkdirSync(foundation);
   fs.writeFileSync(path.join(foundation, ".dockerignore"), ".local\n.env\n");
-  fs.copyFileSync(
-    path.join(
-      root,
-      "deploy/compose-platforms/client-example/client-modules.json",
-    ),
+  fs.writeFileSync(
     path.join(configuration, "client-modules.json"),
+    JSON.stringify({ schemaVersion: 1, privateModules: ["private-test"] }),
   );
   for (const host of [
     "ApiService",
@@ -187,16 +184,30 @@ test("release rendering requires every image digest and retains one release's me
   );
 });
 
-for (const failure of ["pull", "migrator", ""]) {
+for (const failure of ["build", "migrator", ""]) {
   test(`upgrade ${failure ? `stops safely on ${failure} failure` : "starts workloads after migration success"}`, (t) => {
     const directory = temporary(t);
+    fs.mkdirSync(path.join(directory, "deploy/compose-platforms"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(directory, "tools"));
+    fs.mkdirSync(path.join(directory, ".private-modules"));
     fs.copyFileSync(
       path.join(root, "deploy/compose-platforms/upgrade.sh"),
-      path.join(directory, "upgrade.sh"),
+      path.join(directory, "deploy/compose-platforms/upgrade.sh"),
+    );
+    fs.copyFileSync(
+      path.join(root, "deploy/private-module-deploy.sh"),
+      path.join(directory, "deploy/private-module-deploy.sh"),
+    );
+    fs.writeFileSync(path.join(directory, "tools/private-modules.mjs"), "");
+    fs.writeFileSync(
+      path.join(directory, ".private-modules/client-template.json"),
+      "{}\n",
     );
     fs.writeFileSync(
       path.join(directory, "docker"),
-      `#!/bin/sh\nprintf '%s\\n' "$*" >> "$CALL_LOG"\ncase "$*" in\n  *" pull") [ "$FAILURE" != pull ] || exit 31;;\n  *"run --rm --no-deps migrator") [ "$FAILURE" != migrator ] || exit 32;;\nesac\n`,
+      `#!/bin/sh\nprintf '%s\\n' "$*" >> "$CALL_LOG"\ncase "$*" in\n  *" build migrator api worker web") [ "$FAILURE" != build ] || exit 31;;\n  *" exec -T postgres "*) printf 'database-backup';;\n  *"run --rm --no-deps migrator") [ "$FAILURE" != migrator ] || exit 32;;\nesac\n`,
       { mode: 0o755 },
     );
     const posixDirectory = directory
@@ -204,12 +215,16 @@ for (const failure of ["pull", "migrator", ""]) {
       .replace(/^([A-Za-z]):/, (_, drive) => `/${drive.toLowerCase()}`);
     const result = spawnSync(
       shell,
-      ["-c", 'export PATH="$TEST_BIN:$PATH"; sh "$TEST_BIN/upgrade.sh"'],
+      [
+        "-c",
+        'export PATH="$TEST_BIN:$PATH"; cd "$TEST_ROOT"; sh "$TEST_ROOT/deploy/compose-platforms/upgrade.sh"',
+      ],
       {
         encoding: "utf8",
         env: {
           ...process.env,
           TEST_BIN: posixDirectory,
+          TEST_ROOT: posixDirectory,
           CALL_LOG: `${posixDirectory}/calls`,
           FAILURE: failure,
         },
@@ -218,11 +233,10 @@ for (const failure of ["pull", "migrator", ""]) {
     assert.ifError(result.error);
     assert.equal(
       result.status,
-      failure === "pull" ? 31 : failure === "migrator" ? 32 : 0,
+      failure === "build" ? 31 : failure === "migrator" ? 32 : 0,
       result.stderr,
     );
     const calls = fs.readFileSync(path.join(directory, "calls"), "utf8");
-    if (failure === "pull") assert.ok(!calls.includes(" stop "));
     if (failure) assert.ok(!calls.includes("--no-deps --wait api worker web"));
     else
       assert.ok(

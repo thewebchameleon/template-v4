@@ -1,6 +1,6 @@
 # ADR 0046: private central management and deployment licensing
 
-Status: Accepted for the initial implementation; production rollout validation pending.
+Status: Superseded by [ADR 0052](0052-provider-assigned-compiled-private-modules.md)
 
 ## Decision
 

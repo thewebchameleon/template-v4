@@ -48,7 +48,7 @@ internal sealed class DiscoveredProxyHeaders(
                         try { addresses = await lookup(proxy, timeout.Token); }
                         catch (Exception exception) when (exception is SocketException || exception is OperationCanceledException && !context.RequestAborted.IsCancellationRequested)
                         {
-                            logger.LogWarning("Trusted proxy DNS lookup failed; forwarded headers will be ignored until the next refresh.");
+                            logger.LogWarning(exception, "Trusted proxy DNS lookup failed; forwarded headers will be ignored until the next refresh.");
                         }
                     }
 

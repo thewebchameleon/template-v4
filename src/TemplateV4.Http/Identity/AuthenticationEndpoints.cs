@@ -30,10 +30,10 @@ public static class AuthenticationEndpoints
             return result.IsSuccess ? Results.Accepted() : ApiResults.Failure(result.Error!);
         }).WithName("RegisterAccount").Produces(StatusCodes.Status202Accepted);
         group.MapPost("/login", async (LoginRequest request, AuthService service, HttpContext context, CancellationToken ct) =>
-                EndpointSecurity.Tokens(await service.Login(request, ct), context.Response))
+                EndpointSecurity.Tokens(await service.Login(request, context.Connection.RemoteIpAddress?.ToString(), ct), context.Response))
             .WithName("Login").Produces<AccessResponse>();
         group.MapPost("/refresh", async (AuthService service, HttpContext context, CancellationToken ct) =>
-                EndpointSecurity.Tokens(await service.Refresh(context.Request.Cookies[EndpointSecurity.RefreshCookie], ct), context.Response))
+                EndpointSecurity.Tokens(await service.Refresh(context.Request.Cookies[EndpointSecurity.RefreshCookie], context.Connection.RemoteIpAddress?.ToString(), ct), context.Response))
             .WithName("Refresh").Produces<AccessResponse>();
         group.MapPost("/logout", async (AuthService service, HttpContext context, CancellationToken ct) =>
         {
@@ -41,10 +41,10 @@ public static class AuthenticationEndpoints
             context.Response.Cookies.Delete(EndpointSecurity.RefreshCookie, EndpointSecurity.RefreshCookieOptions());
             return Results.NoContent();
         }).WithName("Logout");
-        group.MapGet("/sessions", async (AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
+        group.MapGet("/sessions", async ([AsParameters] SessionQuery query, AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
-            return await service.ListSessions(EndpointSecurity.Actor(principal), EndpointSecurity.SessionId(principal), ct);
-        }).RequireAuthorization().WithName("ListSessions");
+            return (await service.ListSessions(EndpointSecurity.Actor(principal), EndpointSecurity.SessionId(principal), query, ct)).ToHttp();
+        }).RequireAuthorization().WithName("ListSessions").Produces<SessionPage>();
         group.MapDelete("/sessions/{id:guid}", async (Guid id, AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
             await service.Revoke(EndpointSecurity.Actor(principal), id, ct);

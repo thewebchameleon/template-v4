@@ -117,6 +117,10 @@ export type { GetOrganisationLogo$Params as GetOrganisationLogo$Params } from '.
 export { getOrganisationLogo as getOrganisationLogo } from './fn/framework/get-organisation-logo';
 export type { GetReleaseUpdates$Params as GetReleaseUpdates$Params } from './fn/framework/get-release-updates';
 export { getReleaseUpdates as getReleaseUpdates } from './fn/framework/get-release-updates';
+export type { GetPrivateModuleRegistration$Params as GetPrivateModuleRegistration$Params } from './fn/framework/get-private-module-registration';
+export { getPrivateModuleRegistration as getPrivateModuleRegistration } from './fn/framework/get-private-module-registration';
+export type { RegisterPrivateModuleApp$Params as RegisterPrivateModuleApp$Params } from './fn/framework/register-private-module-app';
+export { registerPrivateModuleApp as registerPrivateModuleApp } from './fn/framework/register-private-module-app';
 export type { ListBackgroundJobs$Params as ListBackgroundJobs$Params } from './fn/framework/list-background-jobs';
 export { listBackgroundJobs as listBackgroundJobs } from './fn/framework/list-background-jobs';
 export type { GetBackgroundJob$Params as GetBackgroundJob$Params } from './fn/framework/get-background-job';

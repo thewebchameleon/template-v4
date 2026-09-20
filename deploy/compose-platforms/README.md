@@ -1,150 +1,36 @@
 # TemplateV4 on EasyPanel
 
-Deploying with Coolify instead? Use the accompanying [Coolify guide](COOLIFY.md).
+Create a Git-backed Compose service from the public TemplateV4 repository and use
+`compose.production.yaml`. Keep the repository checkout and Compose project name stable so the
+same PostgreSQL, key, and object-storage volumes are reused.
 
-This release is an image-based deployment of TemplateV4. `release.json` records the
-foundation commit, business commit, selected modules and all four image digests.
-No source checkout, private module token, SDK or image build is needed on the server.
+Copy `.env.example` into EasyPanel's environment editor. For the first deployment, set the normal
+production values and `MODULE_DISTRIBUTION_URL`. Deploy the public application, complete
+`/bootstrap`, and register it under **Administration → Private modules**. Copy the returned app,
+environment, and build credentials back into the environment editor. Keep `MODULE_APP_TOKEN` so
+the same app can register another environment; each environment receives its own
+`MODULE_BUILD_TOKEN`.
 
-## Two examples
-
-| Deployment      | Configuration repository           | EasyPanel branch | Private modules               |
-| --------------- | ---------------------------------- | ---------------- | ----------------------------- |
-| Foundation demo | `thewebchameleon/template-v4`      | `deploy-demo`    | None                          |
-| Client example  | `your-organisation/client-example` | `deploy`         | Representative private module |
-
-The demo uses the foundation's normal defaults and administrator bootstrap. It does
-not enable an authentication bypass, seed shared passwords or erase demo data.
-The client example uses explicit placeholders for its private module, repository owner,
-foundation dependencies and deployment values. Replace them in the client repository.
-Deploying code makes a private module available; activate it under Administration →
-Modules after bootstrap. Existing module activation settings survive redeployment.
-
-## Create the release first
-
-The foundation `main` branch must contain the Compose release workflow and helpers.
-Local, uncommitted work is not included in a GitHub Actions release. Publish and
-validate the intended foundation and business revisions before building a release.
-
-For the demo, run **Publish Compose release** in the foundation repository's Actions
-tab, with `foundation_ref=main` (or an explicit tag/commit). It checks out a clean
-foundation with an empty private-module selection and creates `deploy-demo`.
-
-For a private client, copy `deploy/compose-platforms/client-example` into its own
-configuration repository and replace the organization/repository placeholders. Run
-**Release client example** there. Its `main` branch contains
-`client-modules.json`, reviewed `client-locks/`, and the caller workflow. Configure
-the Actions secret `BUSINESS_MODULES_TOKEN` with read-only contents access to
-the client's private business-module repository. Authorize it for the organization if required.
-The ordinary `GITHUB_TOKEN` publishes images and the deployment branch within the
-caller repository. Enable the organization's required Actions/package permissions.
-Keep all client packages private; grant the deployment registry identity read access.
-
-The workflow reads current source refs, records exact commits, runs locked restores,
-Angular lint/build, foundation integration tests and selected module tests, then builds
-and publishes API, Worker, Migrator and Web. Only after all four succeed does it
-advance the deployment branch. A failed build leaves the previous release branch
-unchanged. These workflows do not run browser/E2E tests or deploy to a live server.
-
-If a dependency lock is stale, the release fails. In a clean workstation checkout,
-select the same modules, intentionally restore without locked mode, review the
-resulting `.local/client-locks/` changes and commit those locks in the private client
-repository's `client-locks/` directory. Never silently unlock dependencies in release CI.
-
-## EasyPanel configuration
-
-Create a separate EasyPanel project and **Compose** service for each deployment:
-
-1. Choose **Git** source with the repository and deployment branch from the table.
-   Set **Build Path** to `/` and **Docker Compose File** to `compose.yaml`.
-2. For a client's private Git source, add the service-specific SSH public key displayed
-   by EasyPanel as a read-only deploy key on that client's repository, and use its
-   private SSH clone URL.
-3. Give the Docker identity used by EasyPanel read access to the GHCR packages.
-   Git deploy keys do not authenticate container pulls. Configure registry access
-   using your panel's registry facility, or `docker login ghcr.io` for the server
-   account that runs Compose, with a read-only package credential. Do not store it
-   in this repository or the Compose environment. Confirm a private image can pull.
-4. Copy `.env.example` into EasyPanel's Environment editor and enable **Create .env
-   file**. Set the public HTTPS origin, credentials and optional SMTP details. EasyPanel
-   stores these deployment secrets; do not commit the populated file.
-   Docker allocates the private subnet and container addresses. The API discovers
-   its trusted Web proxy through Docker DNS; no subnet or proxy IP variables are needed.
-5. Deploy. Initial startup orders
-   PostgreSQL, Migrator, API/Worker and Web using Compose dependencies.
-6. Add a domain targeting internal service **web**, port **8080**, protocol **HTTP**.
-   Let EasyPanel terminate HTTPS and manage redirects/certificates. Preserve WebSocket
-   upgrades and replace untrusted forwarded headers at the outer proxy. Do not publish
-   API, Worker or database ports. The Compose file has no fixed container names.
-7. Read the initial administrator bootstrap token from protected API logs, visit
-   `/bootstrap`, create your administrator and verify bootstrap is then unavailable.
-
-The Web image includes its production Nginx configuration. The generated release includes
-the PostgreSQL initialization script and uses project-scoped database, key-ring and SeaweedFS volumes.
-Keep the EasyPanel project/service identity and volume definitions stable.
-
-## Required secrets
-
-Set the database password, base64-encoded RSA signing key, S3 credentials and SeaweedFS
-configuration JSON in EasyPanel's Environment editor. PostgreSQL and the Migrator, API and
-Worker roles all use `POSTGRES_PASSWORD`; Compose builds the workload connection strings.
-The environment is not an encrypted vault; restrict panel and Docker access. On an existing
-database, initialization scripts do not rerun, so changing the value requires deliberately
-rotating all four role passwords.
-Do not mount development database volumes here.
-
-The EasyPanel examples explicitly allow the persistent Data Protection key ring to remain
-unencrypted inside its private Docker volume because the panel's environment editor cannot
-reliably store a full PKCS#12 value. Protect and back up the volume. Other production
-deployments still require a wrapping certificate unless they make the same explicit choice.
-
-## Updating to latest source
-
-**Build a release, then deploy that release.** Run the release workflow again with
-the desired refs (default `main`) to pull the latest foundation and configured business
-source. EasyPanel then fetches the updated deployment branch. Clicking Deploy alone
-pulls the newest _published release_; it does not compile unpublished source updates.
-
-Before every upgrade, verify an off-host backup and enable EasyPanel maintenance mode.
-It hides HTTP traffic but does **not** stop containers or background jobs.
-
-For a panel-managed upgrade, **Stop the Compose service before Deploy**. Confirm API
-and Worker are stopped, then deploy the new release branch. If the service remains
-disabled, use Start after deployment. The new image digests recreate the Migrator;
-its successful completion gates application startup. Inspect
-deployment logs for this release's migration run and health checks before disabling
-maintenance. A plain Restart is not an upgrade. For retrying an identical release,
-use the explicit script below so a previous successful Migrator is never reused.
-
-For an explicit server-side upgrade, use the EasyPanel service's actual Compose build
-directory after its source has been updated to the intended release branch. With no
-concurrent panel deployment, run:
+Disable automatic deployments. EasyPanel's ordinary Deploy operation does not stop API and Worker
+before a migration. For initial private-module installation and every later update, open a shell in
+the service's actual Git checkout and run the repository helper with the same Compose project name:
 
 ```sh
-sh upgrade.sh
+COMPOSE_PROJECT_NAME=<easypanel-project-name> \
+COMPOSE_FILE=compose.production.yaml \
+COMPOSE_ENV_FILE=.env \
+sh deploy/private-module-deploy.sh
 ```
 
-The script validates and pulls first, stops Web/API/Worker, waits for PostgreSQL, runs a
-fresh Migrator, and starts workloads only on success.
-Never run it from an unrelated clone: that would create a different Compose project
-and volumes. Do not use `down -v`. Failed migrations leave workloads stopped for
-investigation. Do not enable a generic deployment webhook until an external rollout
-process also stops workloads; EasyPanel's documented Deploy command alone does not
-guarantee that old Workers are stopped before a new migration.
+The helper stops writers, resolves one provider-assigned compatible module set, downloads and
+verifies compiled packages, builds all images, creates a PostgreSQL backup, runs a fresh migrator,
+and starts API, Worker, and Web. A failure leaves writers stopped. Fix it with a later release and
+run the helper again; do not roll back migrations or use `down -v`.
 
-Verify API and Worker readiness and the expected version in System Health, then
-disable maintenance. Image rollback is safe only when the retained schema remains
-compatible. Schema recovery requires a reviewed forward fix or coordinated database
-restore; do not delete migrations or assume changing image tags reverses migrations.
+Configure the public domain against Web port 8080. Do not publish API, Worker, Migrator, or
+PostgreSQL. Store `.local/backups` off-host according to your recovery policy. The build host needs
+Node 24, Docker with Compose, Git, and enough disk for image builds; customers never need access to
+the private source repository.
 
-## Documentation and verification boundary
-
-EasyPanel's current [Compose service documentation](https://easypanel.io/docs/services/compose)
-documents Git build paths, `.env` creation, domain targets, dependencies and volumes,
-and specifies that Deploy runs `docker compose up --build -d`. Maintenance does not
-stop containers. These examples use native Compose, not Swarm stack conversion.
-
-Repository validation cannot prove your registry permissions, environment-secret storage,
-DNS, TLS renewal, SMTP, S3 or server network configuration. Validate those on your instance
-before putting client data in service. No live EasyPanel deployment is implied by
-the presence of these example files.
+See [the private-module guide](../../documentation/docs/private-modules.md) for registration,
+assignment, freeze, and release behavior.

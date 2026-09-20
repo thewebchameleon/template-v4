@@ -2,32 +2,19 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Platform;
 using TemplateV4.Infrastructure.Persistence;
-using TemplateV4.Application.Licensing;
 
 namespace TemplateV4.Infrastructure.Updates;
 
-public sealed class UpdateStore(FrameworkDb db, UpdateConfiguration configuration, TimeProvider time, IModuleLicenses licenses) : IUpdates
+public sealed class UpdateStore(FrameworkDb db, UpdateConfiguration configuration, TimeProvider time) : IUpdates
 {
     public async Task<UpdateSummary> Read(CancellationToken ct)
     {
-        var license = await licenses.Read(ct);
-        ComponentUpdate[] ApplyUseStatus(ComponentUpdate[] items) => items.Select(item =>
-        {
-            var rights = license.Modules.FirstOrDefault(x => x.Id == item.Id);
-            return rights is null || item.AvailableVersion is not null ? item : item with
-            { Status = !rights.CanUse ? "license-unavailable" : !rights.CanUpdate ? "license-frozen" : item.Status };
-        }).ToArray();
-        if (!configuration.Enabled) return new(false, null, null, "disabled", ApplyUseStatus(ReleaseVersions.Evaluate(configuration.Installed, [])));
+        if (!configuration.Enabled) return new(false, null, null, "disabled", ReleaseVersions.Evaluate(configuration.Installed, []));
         var state = await db.Set<UpdateState>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == 1, ct);
         var matching = state?.InstalledHash == configuration.InstalledHash;
         var releases = matching ? JsonSerializer.Deserialize<ComponentRelease[]>(state!.ReleasesJson, UpdateConfiguration.Json)! : [];
         var status = !matching ? "pending" : state!.Status == "ok" && state.SucceededAt < time.GetUtcNow().AddHours(-48) ? "stale" : state.Status;
-        var restrictions = license.Modules.Where(x => !x.CanUpdate).Select(x => x.Id).ToHashSet();
-        var allowed = ReleaseVersions.Evaluate(configuration.Installed, releases.Where(x => !restrictions.Contains(x.Id)).ToArray());
-        var latest = ReleaseVersions.Evaluate(configuration.Installed, releases);
-        var components = allowed.Select(x => restrictions.Contains(x.Id) && latest.Single(y => y.Id == x.Id).AvailableVersion is not null
-            ? latest.Single(y => y.Id == x.Id) with { Status = "blocked", Requirements = ["license.update-required"] } : x).ToArray();
-        return new(true, state?.CheckedAt, matching ? state?.SucceededAt : null, status, ApplyUseStatus(components));
+        return new(true, state?.CheckedAt, matching ? state?.SucceededAt : null, status, ReleaseVersions.Evaluate(configuration.Installed, releases));
     }
     public async Task<bool> Due(CancellationToken ct) => configuration.Enabled && !await db.Set<UpdateState>().AnyAsync(x => x.Id == 1 && x.InstalledHash == configuration.InstalledHash && x.CheckedAt > time.GetUtcNow().AddHours(-6), ct);
     public async Task Record(ComponentRelease[]? releases, CancellationToken ct)

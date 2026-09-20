@@ -7,6 +7,7 @@ export interface ProfileResponse {
   culture: string;
   displayName: string;
   email: string;
+  emailConfirmed: boolean;
   emailMfaEnabled: boolean;
   firstName: (string | null);
   id: string;

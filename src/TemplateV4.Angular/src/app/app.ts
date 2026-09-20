@@ -385,7 +385,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                             [routerLink]="item.path"
                             routerLinkActive
                             [routerLinkActiveOptions]="{
-                              paths: item.path === '/security' ? 'exact' : 'subset',
+                              paths: item.path === '/me/notifications' ? 'subset' : 'exact',
                               queryParams: 'ignored',
                               matrixParams: 'ignored',
                               fragment: 'ignored',
@@ -399,15 +399,6 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                           </a>
                         </li>
                       }
-                      <li hlmSidebarMenuItem>
-                        <button hlmSidebarMenuButton type="button" (click)="openThemeDrawer()">
-                          <ng-icon
-                            name="lucideAccessibility"
-                            size="1.25rem"
-                            aria-hidden="true"
-                          /><span>{{ 'themeAccessibility' | t }}</span>
-                        </button>
-                      </li>
                     </ul>
                   </div>
                   @for (section of administrationSections(); track section.label) {
@@ -561,27 +552,37 @@ export class App {
   readonly themeDrawerOpen = signal(false);
   readonly accountMenuLinks = computed(() =>
     [
-      { path: '/me', label: 'accountMenuProfile', icon: 'lucideUserRound', requiresMfa: true },
-      { path: '/security', label: 'security', icon: 'lucideShieldCheck' },
       {
-        path: '/security/sessions',
+        path: '/me/profile',
+        label: 'accountMenuProfile',
+        icon: 'lucideUserRound',
+        requiresMfa: true,
+      },
+      { path: '/me/security', label: 'security', icon: 'lucideShieldCheck' },
+      {
+        path: '/me/sessions',
         label: 'accountMenuSessions',
         icon: 'lucideMonitor',
         requiresMfa: true,
       },
       {
-        path: '/action-items',
+        path: '/me/action-items',
         label: 'actionItems',
         icon: 'lucideBell',
         requiresMfa: true,
       },
       {
-        path: '/notifications',
+        path: '/me/notifications',
         label: 'notificationCentre',
         icon: 'lucideBell',
         requiresMfa: true,
       },
-      { path: '/privacy', label: 'privacyAndData', icon: 'lucideShieldCheck', requiresMfa: true },
+      {
+        path: '/me/privacy',
+        label: 'privacyAndData',
+        icon: 'lucideShieldCheck',
+        requiresMfa: true,
+      },
     ].filter((item) => !item.requiresMfa || !this.auth.access()?.setupRequired),
   );
 
@@ -640,19 +641,20 @@ export class App {
         label: 'administration',
         links: this.availableAdminLinks().filter((item) => item.section === 'administration'),
       },
-      {
-        label: 'modules',
-        links: this.availableAdminLinks().filter((item) => item.section === 'modules'),
-      },
     ].filter((section) => section.links.length),
   );
   readonly administrationDestination = computed(() => this.accountMenuLinks()[0].path);
   private previousPath = '';
   readonly alternatePageEntrance = signal(false);
+  readonly fileStorageSettingsActive = computed(() => {
+    this.navigationEnd();
+    return this.router.url.split(/[?#]/)[0] === moduleSettingsDestinations['file-storage'].path;
+  });
   readonly administrationActive = computed(() => {
     this.navigationEnd();
     return (
       this.accountRouteActive() ||
+      this.fileStorageSettingsActive() ||
       this.router.isActive('/administration', {
         paths: 'subset',
         queryParams: 'ignored',
@@ -668,7 +670,7 @@ export class App {
       (selectedPanel === null &&
         this.administrationActive() &&
         !this.supportRouteActive() &&
-        !this.moduleSettingsRouteActive())
+        (!this.moduleSettingsRouteActive() || this.fileStorageSettingsActive()))
     );
   });
   readonly supportRouteActive = computed(() => {
@@ -831,6 +833,7 @@ export class App {
     this.navigationEnd();
     const selectedPanel = this.selectedPanel();
     if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
+    if (this.fileStorageSettingsActive()) return -1;
     if (this.supportRouteActive())
       return this.railLinks().findIndex((item) => item.path === '/support');
     const path = this.router.url.split(/[?#]/)[0];
@@ -863,6 +866,7 @@ export class App {
 
   railPanelActive(path: string): boolean {
     this.navigationEnd();
+    if (path === '/file-storage' && this.fileStorageSettingsActive()) return false;
     const selectedPanel = this.selectedPanel();
     const settingsPath = this.moduleRailLinks().find((item) => item.path === path)
       ?.settingsDestination?.path;
@@ -883,6 +887,7 @@ export class App {
   }
 
   private routeDestination(path: string): string {
+    if (path === moduleSettingsDestinations['file-storage'].path) return '/administration';
     const settingsOwner = this.moduleRailLinks().find(
       (item) => item.settingsDestination?.path === path,
     );

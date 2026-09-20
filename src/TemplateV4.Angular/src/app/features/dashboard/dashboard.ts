@@ -26,7 +26,7 @@ import { PageHeader } from '../../shared/workspace';
         </div>
         <div hlmCardContent class="flex flex-wrap gap-2">
           <a hlmBtn routerLink="/me">{{ 'account' | t }}</a>
-          <a hlmBtn variant="outline" routerLink="/security">{{ 'security' | t }}</a>
+          <a hlmBtn variant="outline" routerLink="/me/security">{{ 'security' | t }}</a>
         </div>
       </section>
       <section hlmCard>
@@ -35,7 +35,7 @@ import { PageHeader } from '../../shared/workspace';
           <p hlmCardDescription>{{ 'dashboardUnread' | t }}: {{ unread.count() }}</p>
         </div>
         <div hlmCardContent>
-          <a hlmBtn variant="outline" routerLink="/notifications">{{ 'inbox' | t }}</a>
+          <a hlmBtn variant="outline" routerLink="/me/notifications">{{ 'inbox' | t }}</a>
         </div>
       </section>
       @for (action of actions(); track action.path) {

@@ -25,7 +25,7 @@ public sealed class DeliveryMetrics(IServiceScopeFactory scopes, ILogger<Deliver
                 Volatile.Write(ref _snapshot, value); Interlocked.Exchange(ref _lastSample, value.CheckedAt.ToUnixTimeSeconds());
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
-            catch (Exception exception) { logger.LogWarning("Delivery metrics collection failed: {ErrorType}", exception.GetType().Name); }
+            catch (Exception exception) { logger.LogWarning(exception, "Delivery metrics collection failed: {ErrorType}", exception.GetType().Name); }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
     public override void Dispose() { _meter.Dispose(); base.Dispose(); }

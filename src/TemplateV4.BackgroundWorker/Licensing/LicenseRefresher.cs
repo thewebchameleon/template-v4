@@ -17,7 +17,7 @@ public sealed class LicenseRefresher(IServiceScopeFactory scopes, LicenseConfigu
                 await scope.ServiceProvider.GetRequiredService<LicenseStore>().Record(signed, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception) { logger.LogWarning("Deployment license refresh unavailable; existing expiry remains enforced."); }
+            catch (Exception exception) { logger.LogWarning("Deployment license refresh unavailable with {ErrorType}; existing expiry remains enforced.", exception.GetType().Name); }
             await Task.Delay(TimeSpan.FromMinutes(5), time, stoppingToken);
         }
     }

@@ -182,6 +182,8 @@ import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
 import { GetPlatformAppearance$Params } from '../fn/framework/get-platform-appearance';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
 import { GetPrivacyStatus$Params } from '../fn/framework/get-privacy-status';
+import { getPrivateModuleRegistration } from '../fn/framework/get-private-module-registration';
+import { GetPrivateModuleRegistration$Params } from '../fn/framework/get-private-module-registration';
 import { getProfile } from '../fn/framework/get-profile';
 import { GetProfile$Params } from '../fn/framework/get-profile';
 import { getProfileOptions } from '../fn/framework/get-profile-options';
@@ -301,6 +303,8 @@ import { PlatformAppearance } from '../models/platform-appearance';
 import { previewCommercialDocument } from '../fn/framework/preview-commercial-document';
 import { PreviewCommercialDocument$Params } from '../fn/framework/preview-commercial-document';
 import { PrivacyStatus } from '../models/privacy-status';
+import { PrivateModuleRegistration } from '../models/private-module-registration';
+import { PrivateModuleRegistrationStatus } from '../models/private-module-registration-status';
 import { ProfileOptions } from '../models/profile-options';
 import { ProfileResponse } from '../models/profile-response';
 import { PublicAppearance } from '../models/public-appearance';
@@ -328,6 +332,8 @@ import { registerAccount } from '../fn/framework/register-account';
 import { RegisterAccount$Params } from '../fn/framework/register-account';
 import { registerPasskey } from '../fn/framework/register-passkey';
 import { RegisterPasskey$Params } from '../fn/framework/register-passkey';
+import { registerPrivateModuleApp } from '../fn/framework/register-private-module-app';
+import { RegisterPrivateModuleApp$Params } from '../fn/framework/register-private-module-app';
 import { registerWebPush } from '../fn/framework/register-web-push';
 import { RegisterWebPush$Params } from '../fn/framework/register-web-push';
 import { RegistrationSettings } from '../models/registration-settings';
@@ -2014,6 +2020,60 @@ export class FrameworkService extends BaseService {
     const resp = this.getReleaseUpdates$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<UpdateSummary>): UpdateSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `getPrivateModuleRegistration()` */
+  static readonly GetPrivateModuleRegistrationPath = '/api/v1/auth/private-modules';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPrivateModuleRegistration()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPrivateModuleRegistration$Response(params?: GetPrivateModuleRegistration$Params, context?: HttpContext): Observable<StrictHttpResponse<PrivateModuleRegistrationStatus>> {
+    const obs = getPrivateModuleRegistration(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPrivateModuleRegistration$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPrivateModuleRegistration(params?: GetPrivateModuleRegistration$Params, context?: HttpContext): Observable<PrivateModuleRegistrationStatus> {
+    const resp = this.getPrivateModuleRegistration$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PrivateModuleRegistrationStatus>): PrivateModuleRegistrationStatus => r.body)
+    );
+  }
+
+  /** Path part for operation `registerPrivateModuleApp()` */
+  static readonly RegisterPrivateModuleAppPath = '/api/v1/auth/private-modules/register';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `registerPrivateModuleApp()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerPrivateModuleApp$Response(params: RegisterPrivateModuleApp$Params, context?: HttpContext): Observable<StrictHttpResponse<PrivateModuleRegistration>> {
+    const obs = registerPrivateModuleApp(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `registerPrivateModuleApp$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  registerPrivateModuleApp(params: RegisterPrivateModuleApp$Params, context?: HttpContext): Observable<PrivateModuleRegistration> {
+    const resp = this.registerPrivateModuleApp$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PrivateModuleRegistration>): PrivateModuleRegistration => r.body)
     );
   }
 

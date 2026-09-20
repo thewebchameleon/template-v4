@@ -80,6 +80,6 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         timeout.CancelAfter(TimeSpan.FromSeconds(65));
         try { await storage.Delete(key, timeout.Token); return true; }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch (Exception exception) { logger.LogWarning("Object purge deferred: {ErrorType}", exception.GetType().Name); return false; }
+        catch (Exception exception) { logger.LogWarning(exception, "Object purge deferred: {ErrorType}", exception.GetType().Name); return false; }
     }
 }

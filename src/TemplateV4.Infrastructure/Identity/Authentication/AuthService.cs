@@ -20,10 +20,11 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
 
     public static string Hash(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 
-    public async Task<AuthTokens> CreateSession(AppUser user, string? device, bool verified, CancellationToken ct, bool passkeyVerified = false)
+    public async Task<AuthTokens> CreateSession(AppUser user, string? device, string? ipAddress, bool verified, CancellationToken ct, bool passkeyVerified = false)
     {
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
-        var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, Device = (device ?? "Browser")[..Math.Min(device?.Length ?? 7, 200)], CreatedAt = time.GetUtcNow(), ExpiresAt = time.GetUtcNow().AddDays(30), MfaVerified = verified, MfaVerifiedAt = verified ? time.GetUtcNow() : null, PasskeyVerified = passkeyVerified, SetupOnly = !verified && await security.Required(user, ct) || await security.PasskeyRequired(user, ct) && !passkeyVerified };
+        var now = time.GetUtcNow();
+        var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, Device = (device ?? "Browser")[..Math.Min(device?.Length ?? 7, 200)], IpAddress = NormalizeIp(ipAddress), CreatedAt = now, LastActivityAt = now, ExpiresAt = now.AddDays(30), MfaVerified = verified, MfaVerifiedAt = verified ? now : null, PasskeyVerified = passkeyVerified, SetupOnly = !verified && await security.Required(user, ct) || await security.PasskeyRequired(user, ct) && !passkeyVerified };
         db.Sessions.Add(session); Audit("auth.login", user.Id);
         return await Issue(user, session, profile.Culture);
     }
@@ -47,6 +48,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
         return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, IsAdministrator: !setup && roles.Contains("Administrator"), TimeZone: await db.Profiles.Where(x => x.Id == user.Id).Select(x => x.TimeZone).SingleAsync()), raw);
     }
     private void Audit(string action, Guid userId) => db.Audit.Add(new() { Action = action, ActorId = action == "auth.login_failed" ? null : userId, ActorType = action == "auth.login_failed" ? "anonymous" : "user", SubjectId = userId, SubjectType = "user", Outcome = action == "auth.login_failed" ? "failure" : action == "auth.refresh_reuse" ? "denied" : "success", FailureCode = action == "auth.login_failed" ? "auth.invalid_credentials" : action == "auth.refresh_reuse" ? "auth.refresh_reuse" : null, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
+    private static string NormalizeIp(string? ipAddress) => string.IsNullOrWhiteSpace(ipAddress) ? "unknown" : ipAddress[..Math.Min(ipAddress.Length, 45)];
 }
 
 public sealed record AccessResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid UserId, string[] Permissions, string Culture, bool MfaConfigured, bool SetupRequired = false, string? ChallengeId = null, bool PasskeyRequired = false, string[]? MfaMethods = null, string? PreferredMfaMethod = null, bool EmailCodeSent = false, DateTimeOffset? EmailResendAt = null, bool IsAdministrator = false, string TimeZone = "UTC");
@@ -55,7 +57,11 @@ public sealed record AuthTokens(AccessResponse Access, string RefreshToken);
 
 public sealed record LoginRequest(string Username, string Password, string Device);
 
-public sealed record SessionDto(Guid Id, string Device, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, bool Current);
+public sealed record SessionQuery(string Search = "", int PageNumber = 1, int PageSize = 10, string Sort = "lastActivityAt", string Direction = "desc");
+
+public sealed record SessionDto(Guid Id, string Device, string IpAddress, DateTimeOffset LastActivityAt, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, bool Current);
+
+public sealed record SessionPage(IReadOnlyList<SessionDto> Items, int Total, int PageNumber, int PageSize);
 
 public sealed record EmailMfaChallengeRequest(string ChallengeId);
 

@@ -35,7 +35,7 @@ const moduleRelease = {
   id: "reports",
   version: "1.0.0",
   foundation: { min: "0.2.0", maxExclusive: "0.3.0" },
-  artifact: { package: "@example/reports", sha256: "a".repeat(64) },
+  artifact: { package: "@example/reports", sha256: "a".repeat(64), downloadUrl: "https://example.test/reports.tgz" },
 };
 test("stable ordering, bounds and reverse compatibility prevent unsafe proposals", () => {
   assert.equal(compare("1.10.0", "1.9.9"), 1);

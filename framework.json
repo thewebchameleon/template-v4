@@ -79,8 +79,8 @@
   "documentation": "documentation/docs",
   "adrs": "documentation/docs/adr",
   "extensions": {
-    "commercialLicensing": "Private central client management; signed deployment licenses, organization entitlements, license-aware update notifications and client-triggered Compose redeployment",
-    "releaseUpdates": "services/release-feed: authenticated per-client release metadata; independently pinned GitHub Packages source bundles; administrator checks and reviewed client upgrade PRs",
+    "privateModuleDistribution": "Provider-assigned compiled module bundles; self-registered app environments, immutable admitted releases, absolute update freezes and Compose maintenance deployment",
+    "releaseUpdates": "Authenticated environment-scoped resolution of the latest complete compatible admitted release set; installed modules have no runtime licensing dependency",
     "persistence": "EF Core / PostgreSQL",
     "transport": "PostgreSQL outbox / local Worker consumers",
     "email": "SMTP",

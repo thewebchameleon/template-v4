@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace TemplateV4.Application.Platform;
 
 public sealed record ReleaseRange(string Min, string MaxExclusive);
-public sealed record ReleaseArtifact(string Package, string Sha256);
+public sealed record ReleaseArtifact(string Package, string Sha256, string DownloadUrl);
 public sealed record ComponentRelease(int SchemaVersion, string Id, string Version, string Commit, string NotesUrl,
     string MigrationNotes, bool Breaking, Dictionary<string, ReleaseRange> Dependencies,
     ReleaseRange? Foundation = null, ReleaseArtifact? Artifact = null, string? TemplateVersion = null, string? ScaffoldingVersion = null);
@@ -40,7 +40,8 @@ public static partial class ReleaseVersions
         Https(release.NotesUrl) && release.NotesUrl.Length <= 1500 && release.MigrationNotes is { Length: <= 8000 } &&
         release.Dependencies is not null && release.Dependencies.All(x => x.Key != "foundation" && x.Key != release.Id && Regex.IsMatch(x.Key, "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", RegexOptions.CultureInvariant) && ValidRange(x.Value)) &&
         (release.Id == "foundation" ? release.Dependencies.Count == 0 && Valid(release.TemplateVersion) && Valid(release.ScaffoldingVersion) :
-            ValidRange(release.Foundation) && release.Artifact is not null && Regex.IsMatch(release.Artifact.Package ?? "", "^@[a-z0-9-]+/[a-z0-9-]+$", RegexOptions.CultureInvariant) && Regex.IsMatch(release.Artifact.Sha256 ?? "", "^[a-f0-9]{64}$", RegexOptions.CultureInvariant));
+            ValidRange(release.Foundation) && release.Artifact is not null && Regex.IsMatch(release.Artifact.Package ?? "", "^@[a-z0-9-]+/[a-z0-9-]+$", RegexOptions.CultureInvariant) &&
+            Regex.IsMatch(release.Artifact.Sha256 ?? "", "^[a-f0-9]{64}$", RegexOptions.CultureInvariant) && Https(release.Artifact.DownloadUrl));
 
     public static ComponentUpdate[] Evaluate(InstalledRelease installed, ComponentRelease[] releases)
     {

@@ -20,11 +20,11 @@ public sealed class CommercialBillingReconciler(IServiceScopeFactory scopes, Tim
                 {
                     try { await using var scope = scopes.CreateAsyncScope(); await scope.ServiceProvider.GetRequiredService<CommercialBillingStore>().Reconcile(id, ct); }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-                    catch (Exception) { logger.LogWarning("Commercial billing reconciliation deferred for customer {CustomerId}; provider or persistence unavailable.", id); }
+                    catch (Exception exception) { logger.LogWarning("Commercial billing reconciliation deferred for customer {CustomerId} with {ErrorType}; provider or persistence unavailable.", id, exception.GetType().Name); }
                 });
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception) { logger.LogWarning("Commercial billing reconciliation scan deferred."); }
+            catch (Exception exception) { logger.LogWarning(exception, "Commercial billing reconciliation scan deferred with {ErrorType}.", exception.GetType().Name); }
             await Task.Delay(TimeSpan.FromMinutes(1), time, stoppingToken);
         }
     }

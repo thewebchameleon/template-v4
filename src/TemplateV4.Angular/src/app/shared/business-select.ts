@@ -1,8 +1,8 @@
-import { Component, input, model } from '@angular/core';
+import { Component, inject, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { Translate } from '../core/i18n';
+import { I18n, Translate } from '../core/i18n';
 
 export interface BusinessOption {
   id: string;
@@ -19,6 +19,7 @@ export interface BusinessOption {
       [ngModelOptions]="{ standalone: true }"
       (ngModelChange)="value.set($event)"
       [disabled]="disabled()"
+      [itemToString]="optionLabel"
     >
       <hlm-select-trigger [buttonId]="controlId()"><hlm-select-value /></hlm-select-trigger>
       <hlm-select-content *hlmSelectPortal>
@@ -35,10 +36,15 @@ export interface BusinessOption {
   </div>`,
 })
 export class BusinessSelect {
+  private readonly i18n = inject(I18n);
   readonly controlId = input.required<string>();
   readonly label = input.required<string>();
   readonly options = input<readonly BusinessOption[]>([]);
   readonly value = model('');
   readonly allowEmpty = input(true);
   readonly disabled = input(false);
+  readonly optionLabel = (value: string) =>
+    this.i18n.text(
+      this.options().find((option) => option.id === value)?.label ?? (value === '' ? 'none' : value),
+    );
 }

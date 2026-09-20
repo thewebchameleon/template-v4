@@ -80,7 +80,8 @@ export function validateRelease(r) {
     (!rangeValid(r.foundation) ||
       !r.artifact ||
       !/^@[a-z0-9-]+\/[a-z0-9-]+$/.test(r.artifact.package) ||
-      !/^[a-f0-9]{64}$/.test(r.artifact.sha256))
+      !/^[a-f0-9]{64}$/.test(r.artifact.sha256) ||
+      !httpsUrl(r.artifact.downloadUrl))
   )
     throw new Error("Invalid module artifact or compatibility.");
   if (

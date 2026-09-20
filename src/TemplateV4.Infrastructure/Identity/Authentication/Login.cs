@@ -4,7 +4,7 @@ namespace TemplateV4.Infrastructure.Security;
 
 public sealed partial class AuthService
 {
-    public async Task<Result<AuthTokens>> Login(LoginRequest request, CancellationToken ct)
+    public async Task<Result<AuthTokens>> Login(LoginRequest request, string? ipAddress, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password) || request.Password.Length > 1024 || request.Username.Length > 256)
             return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized);
@@ -41,12 +41,12 @@ public sealed partial class AuthService
             return Result<AuthTokens>.Success(new(new("", time.GetUtcNow().Add(EmailCodeLifetime), user.Id, [], profile.Culture, true, false, challenge, false, methods, preferred, codeSent, resendAt), ""));
         }
         await users.ResetAccessFailedCountAsync(user);
-        var tokens = await CreateSession(user, request.Device, false, ct);
+        var tokens = await CreateSession(user, request.Device, ipAddress, false, ct);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return Result<AuthTokens>.Success(tokens);
     }
 
-    public async Task<Result<AuthTokens>> CompleteMfa(MfaLoginRequest request, CancellationToken ct)
+    public async Task<Result<AuthTokens>> CompleteMfa(MfaLoginRequest request, string? ipAddress, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var challenge = await security.ReadChallenge(request.ChallengeId, "mfa-login", ct);
@@ -71,7 +71,7 @@ public sealed partial class AuthService
             return Result<AuthTokens>.Fail(user.EmailMfaLockedUntil > time.GetUtcNow() ? "auth.email_code_locked" : "auth.factor_invalid", ErrorKind.Unauthorized);
         }
         db.AuthChallenges.Remove(challenge.Row);
-        var tokens = await CreateSession(user, challenge.Row.Device, true, ct);
+        var tokens = await CreateSession(user, challenge.Row.Device, ipAddress, true, ct);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Success(tokens);
     }
 }

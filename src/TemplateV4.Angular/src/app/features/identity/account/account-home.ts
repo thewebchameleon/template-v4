@@ -8,15 +8,10 @@ import { ProfileResponse } from '../../../api/models';
   imports: [WorkspaceUi, ProfileEditor],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-header title="account" description="accountIntro"
-      ><a hlmBtn variant="outline" routerLink="/security"
-        ><ng-icon name="lucideShieldCheck" />{{ 'security' | t }}</a
-      ></app-page-header
-    >
-    <app-page-state [state]="data.state()" (retry)="load()"
-      ><div class="grid gap-6">
-        <app-profile-editor [profile]="data.value()" (saved)="data.value.set($event)" /></div
-    ></app-page-state>`,
+  template: ` <app-page-state [state]="data.state()" (retry)="load()"
+    ><div class="grid gap-6">
+      <app-profile-editor [profile]="data.value()" (saved)="data.value.set($event)" /></div
+  ></app-page-state>`,
 })
 export class AccountHomePage {
   readonly editor = viewChild(ProfileEditor);

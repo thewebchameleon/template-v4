@@ -2219,6 +2219,77 @@
         ]
       }
     },
+    "/api/v1/auth/private-modules": {
+      "get": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "GetPrivateModuleRegistration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateModuleRegistrationStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/private-modules/register": {
+      "post": {
+        "tags": [
+          "Framework"
+        ],
+        "operationId": "RegisterPrivateModuleApp",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPrivateModuleApp"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateModuleRegistration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/auth/administration/background-jobs": {
       "get": {
         "tags": [
@@ -12004,6 +12075,102 @@
           }
         }
       },
+      "PrivateModuleInstalled": {
+        "required": [
+          "id",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "PrivateModuleRegistration": {
+        "required": [
+          "appId",
+          "environmentId",
+          "buildToken",
+          "serviceUrl",
+          "environment",
+          "environmentVariables"
+        ],
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "environmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "buildToken": {
+            "type": "string"
+          },
+          "serviceUrl": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "environmentVariables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PrivateModuleRegistrationStatus": {
+        "required": [
+          "configured",
+          "serviceUrl",
+          "appId",
+          "environmentId",
+          "environment",
+          "installedModules"
+        ],
+        "type": "object",
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "serviceUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "appId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "environmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "installedModules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrivateModuleInstalled"
+            }
+          }
+        }
+      },
       "ProfileOptions": {
         "required": [
           "cultures",
@@ -12029,6 +12196,7 @@
         "required": [
           "id",
           "email",
+          "emailConfirmed",
           "username",
           "displayName",
           "culture",
@@ -12056,6 +12224,9 @@
           },
           "email": {
             "type": "string"
+          },
+          "emailConfirmed": {
+            "type": "boolean"
           },
           "username": {
             "type": "string"
@@ -12268,6 +12439,25 @@
           },
           "available": {
             "type": "boolean"
+          }
+        }
+      },
+      "RegisterPrivateModuleApp": {
+        "required": [
+          "name",
+          "environment",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
           }
         }
       },

@@ -10,8 +10,11 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
+import { provideIcons } from '@ng-icons/core';
+import { lucidePencil } from '@ng-icons/lucide';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { WorkspaceUi, Resource } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
@@ -26,7 +29,15 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
 
 @Component({
   selector: 'app-profile-editor',
-  imports: [WorkspaceUi, HlmAvatarImports, HlmDialogImports, HlmSelectImports, TimeZoneSelect],
+  imports: [
+    WorkspaceUi,
+    HlmAvatarImports,
+    HlmDialogImports,
+    HlmInputGroupImports,
+    HlmSelectImports,
+    TimeZoneSelect,
+  ],
+  providers: [provideIcons({ lucidePencil })],
   styles: `
     .profile-photo-dropzone {
       min-block-size: 16rem;
@@ -153,13 +164,26 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel for="profile-username">{{ 'username' | t }}</label>
-                    <input
-                      hlmInput
-                      id="profile-username"
-                      autocomplete="username"
-                      disabled
-                      [value]="profile()?.username ?? ''"
-                    />
+                    <hlm-input-group>
+                      <input
+                        hlmInputGroupInput
+                        id="profile-username"
+                        autocomplete="username"
+                        disabled
+                        [value]="profile()?.username ?? ''"
+                      />
+                      <hlm-input-group-addon align="inline-end">
+                        <button
+                          hlmInputGroupButton
+                          size="icon-sm"
+                          type="button"
+                          [attr.aria-label]="'changeUsername' | t"
+                          (click)="openUsernameDialog()"
+                        >
+                          <ng-icon name="lucidePencil" />
+                        </button>
+                      </hlm-input-group-addon>
+                    </hlm-input-group>
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel for="profile-first-name">{{
@@ -206,14 +230,27 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel for="profile-email">{{ 'emailAddress' | t }}</label>
-                    <input
-                      hlmInput
-                      id="profile-email"
-                      type="email"
-                      autocomplete="email"
-                      disabled
-                      [value]="profile()?.email ?? ''"
-                    />
+                    <hlm-input-group>
+                      <input
+                        hlmInputGroupInput
+                        id="profile-email"
+                        type="email"
+                        autocomplete="email"
+                        disabled
+                        [value]="profile()?.email ?? ''"
+                      />
+                      <hlm-input-group-addon align="inline-end">
+                        <button
+                          hlmInputGroupButton
+                          size="icon-sm"
+                          type="button"
+                          [attr.aria-label]="'changeEmail' | t"
+                          (click)="openEmailDialog()"
+                        >
+                          <ng-icon name="lucidePencil" />
+                        </button>
+                      </hlm-input-group-addon>
+                    </hlm-input-group>
                   </div>
                   <div hlmField>
                     <label hlmFieldLabel for="profile-culture">{{ 'culture' | t }}</label>
@@ -253,7 +290,7 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
               </section>
             </fieldset>
           </div>
-          <div hlmCardFooter class="grid gap-3">
+          <div hlmCardFooter class="-mt-px grid gap-3 rounded-t-none py-4">
             <div class="flex w-full flex-wrap items-center justify-between gap-3">
               <div class="flex flex-wrap gap-3">
                 <button hlmBtn [disabled]="busy() || form.invalid || !hasProfileChanges()">

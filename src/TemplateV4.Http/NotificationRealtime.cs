@@ -69,6 +69,7 @@ public sealed class NotificationChangeRelay(
             catch (Exception exception)
             {
                 logger.LogWarning(
+                    exception,
                     "Notification change listener disconnected with {ErrorType}; retrying.",
                     exception.GetType().Name);
                 await Task.Delay(retryDelay, cancellationToken);

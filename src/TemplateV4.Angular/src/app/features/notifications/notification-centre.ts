@@ -8,7 +8,6 @@ import { WorkspaceUi } from '../../shared/workspace';
   selector: 'app-notification-centre',
   imports: [WorkspaceUi, RouterOutlet],
   template: `
-    <app-page-header title="notificationCentre" description="notificationIntro" />
     <hlm-tabs [tab]="tab()" (tabActivated)="select($event)" class="mb-5">
       <hlm-tabs-list [attr.aria-label]="'notificationCentre' | t">
         <button hlmTabsTrigger="inbox">{{ 'inbox' | t }}</button>
@@ -33,13 +32,13 @@ export class NotificationCentrePage {
   }
 
   select(value: unknown) {
-    if (value === 'inbox') void this.router.navigateByUrl('/notifications');
-    if (value === 'preferences') void this.router.navigateByUrl('/notifications/preferences');
+    if (value === 'inbox') void this.router.navigateByUrl('/me/notifications');
+    if (value === 'preferences') void this.router.navigateByUrl('/me/notifications/preferences');
   }
 
   private syncTab() {
     this.tab.set(
-      this.router.url.split(/[?#]/, 1)[0] === '/notifications/preferences'
+      this.router.url.split(/[?#]/, 1)[0] === '/me/notifications/preferences'
         ? 'preferences'
         : 'inbox',
     );

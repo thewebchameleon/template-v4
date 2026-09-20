@@ -17,12 +17,12 @@ public sealed class UpdateChecker(IServiceScopeFactory scopes, TimeProvider time
                     TemplateV4.Application.Platform.ComponentRelease[]? releases = null;
                     try { releases = await scope.ServiceProvider.GetRequiredService<UpdateFeedClient>().Fetch(stoppingToken); }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-                    catch (Exception) { logger.LogWarning("Release feed check deferred; feed unavailable or invalid."); }
+                    catch (Exception exception) { logger.LogWarning("Release feed check deferred with {ErrorType}; feed unavailable or invalid.", exception.GetType().Name); }
                     await store.Record(releases, stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-            catch (Exception) { logger.LogWarning("Release update scan deferred."); }
+            catch (Exception exception) { logger.LogWarning(exception, "Release update scan deferred with {ErrorType}.", exception.GetType().Name); }
             await Task.Delay(TimeSpan.FromMinutes(5), time, stoppingToken);
         }
     }

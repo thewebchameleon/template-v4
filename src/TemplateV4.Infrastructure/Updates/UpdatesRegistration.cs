@@ -10,6 +10,7 @@ public static partial class Registration
         services.AddSingleton<Updates.UpdateConfiguration>();
         services.AddScoped<Updates.UpdateStore>();
         services.AddScoped<IUpdates>(p => p.GetRequiredService<Updates.UpdateStore>());
+        services.AddHostedService<Updates.DeploymentManifestGuard>();
         services.AddHttpClient<Updates.UpdateFeedClient>(http => http.Timeout = TimeSpan.FromSeconds(30))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false }).RemoveAllLoggers();
     }

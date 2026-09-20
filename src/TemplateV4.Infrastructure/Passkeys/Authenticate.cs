@@ -27,7 +27,7 @@ public sealed partial class PasskeyService
         { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized); }
         if (!(await users.AddOrUpdatePasskeyAsync(user, result.Passkey!)).Succeeded) throw new InvalidOperationException("Passkey update failed.");
         await users.ResetAccessFailedCountAsync(user);
-        var tokens = await auth.CreateSession(user, challenge.Row.Device, true, ct, passkeyVerified: true);
+        var tokens = await auth.CreateSession(user, challenge.Row.Device, http.Connection.RemoteIpAddress?.ToString(), true, ct, passkeyVerified: true);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<AuthTokens>.Success(tokens);
     }
 }

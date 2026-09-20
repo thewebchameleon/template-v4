@@ -19,7 +19,7 @@ public sealed class OutboxPump(IServiceScopeFactory scopes, ILogger<OutboxPump> 
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception exception)
             {
-                logger.LogError("Outbox iteration failed: {ErrorType}", exception.GetType().Name);
+                logger.LogError(exception, "Outbox iteration failed: {ErrorType}", exception.GetType().Name);
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }

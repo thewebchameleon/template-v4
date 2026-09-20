@@ -90,7 +90,7 @@ public static class FoundationHost
                 },
                 OnTokenValidated = async context =>
             {
-                if (!await context.HttpContext.RequestServices.GetRequiredService<AuthService>().Validate(context.Principal!, context.HttpContext.RequestAborted)) context.Fail("Session revoked.");
+                if (!await context.HttpContext.RequestServices.GetRequiredService<AuthService>().Validate(context.Principal!, context.HttpContext.Connection.RemoteIpAddress?.ToString(), context.HttpContext.RequestAborted)) context.Fail("Session revoked.");
             }
             };
         });
