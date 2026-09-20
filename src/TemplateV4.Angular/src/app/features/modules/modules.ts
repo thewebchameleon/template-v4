@@ -17,6 +17,7 @@ import { FOUNDATION_FEATURES } from '../../core/feature-extensions';
 import {
   administrationDestinations,
   Destination,
+  moduleSettingsDestinations,
   organisationDestinations,
   workspaceDestinations,
 } from '../../core/destinations';
@@ -141,14 +142,8 @@ export class ModulesPage implements OnInit {
     );
   }
   settingsDestination(id: string) {
-    const destinations: Record<string, { path: string; label: string }> = {
-      'file-storage': { path: '/administration/file-storage', label: 'storageSettings' },
-      support: { path: '/administration/support', label: 'support' },
-      crm: { path: '/administration/crm', label: 'crmConfiguration' },
-      invoicing: { path: '/administration/invoicing', label: 'issuerSettings' },
-    };
     return (
-      destinations[id] ??
+      moduleSettingsDestinations[id] ??
       this.contributions.find((feature) => feature.id === id)?.moduleSettingsDestination
     );
   }

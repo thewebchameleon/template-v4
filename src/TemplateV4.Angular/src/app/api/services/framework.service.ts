@@ -264,7 +264,6 @@ import { manageInvitation } from '../fn/framework/manage-invitation';
 import { ManageInvitation$Params } from '../fn/framework/manage-invitation';
 import { markContactEnquiryRead } from '../fn/framework/mark-contact-enquiry-read';
 import { MarkContactEnquiryRead$Params } from '../fn/framework/mark-contact-enquiry-read';
-import { MarkdownPreview } from '../models/markdown-preview';
 import { MfaEnrollment } from '../models/mfa-enrollment';
 import { ModuleActivation } from '../models/module-activation';
 import { moveFileStorageBatch } from '../fn/framework/move-file-storage-batch';
@@ -299,8 +298,6 @@ import { PasskeyRegistrationOptions$Params } from '../fn/framework/passkey-regis
 import { PaymentCheckout } from '../models/payment-checkout';
 import { PaymentMethodStatus } from '../models/payment-method-status';
 import { PlatformAppearance } from '../models/platform-appearance';
-import { previewCmsMarkdown } from '../fn/framework/preview-cms-markdown';
-import { PreviewCmsMarkdown$Params } from '../fn/framework/preview-cms-markdown';
 import { previewCommercialDocument } from '../fn/framework/preview-commercial-document';
 import { PreviewCommercialDocument$Params } from '../fn/framework/preview-commercial-document';
 import { PrivacyStatus } from '../models/privacy-status';
@@ -3772,33 +3769,6 @@ export class FrameworkService extends BaseService {
     const resp = this.publishCmsArticle$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
-    );
-  }
-
-  /** Path part for operation `previewCmsMarkdown()` */
-  static readonly PreviewCmsMarkdownPath = '/api/v1/auth/cms/preview';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `previewCmsMarkdown()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  previewCmsMarkdown$Response(params: PreviewCmsMarkdown$Params, context?: HttpContext): Observable<StrictHttpResponse<MarkdownPreview>> {
-    const obs = previewCmsMarkdown(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `previewCmsMarkdown$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  previewCmsMarkdown(params: PreviewCmsMarkdown$Params, context?: HttpContext): Observable<MarkdownPreview> {
-    const resp = this.previewCmsMarkdown$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<MarkdownPreview>): MarkdownPreview => r.body)
     );
   }
 

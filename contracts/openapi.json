@@ -5142,52 +5142,6 @@
         ]
       }
     },
-    "/api/v1/auth/cms/preview": {
-      "post": {
-        "tags": [
-          "Framework"
-        ],
-        "operationId": "PreviewCmsMarkdown",
-        "parameters": [
-          {
-            "name": "X-CSRF-TOKEN",
-            "in": "header",
-            "description": "Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PreviewMarkdown"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MarkdownPreview"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": [ ]
-          }
-        ]
-      }
-    },
     "/api/v1/auth/cms/sections": {
       "get": {
         "tags": [
@@ -10955,17 +10909,6 @@
       "ManualPaymentMethod": {
         "type": "integer"
       },
-      "MarkdownPreview": {
-        "required": [
-          "html"
-        ],
-        "type": "object",
-        "properties": {
-          "html": {
-            "type": "string"
-          }
-        }
-      },
       "MfaConfirmation": {
         "required": [
           "code"
@@ -12000,17 +11943,6 @@
             "items": {
               "$ref": "#/components/schemas/CommercialLine"
             }
-          }
-        }
-      },
-      "PreviewMarkdown": {
-        "required": [
-          "markdown"
-        ],
-        "type": "object",
-        "properties": {
-          "markdown": {
-            "type": "string"
           }
         }
       },

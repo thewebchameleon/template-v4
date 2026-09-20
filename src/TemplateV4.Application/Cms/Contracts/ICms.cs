@@ -8,7 +8,6 @@ public interface ICms
     Task<Result<CmsArticle>> Detail(Guid id, CancellationToken ct);
     Task<Result<CmsArticle>> Save(SaveArticle request, CancellationToken ct);
     Task<Result<CmsArticle>> Publish(Guid id, PublishArticle request, CancellationToken ct);
-    Task<Result<MarkdownPreview>> Preview(PreviewMarkdown request, CancellationToken ct);
     Task<Result<Page<BlogSummary>>> Blog(int pageNumber, int pageSize, CancellationToken ct);
     Task<Result<BlogArticle>> Article(string slug, CancellationToken ct);
 }

@@ -20,7 +20,6 @@ public static class CmsEndpoints
         cms.MapGet("/{id:guid}", async (Guid id, ICms store, CancellationToken ct) => (await store.Detail(id, ct)).ToHttp()).WithName("GetCmsArticle").Produces<CmsArticle>();
         cms.MapPost("", async (SaveArticle request, ICms store, CancellationToken ct) => (await store.Save(request, ct)).ToHttp()).WithName("SaveCmsArticle").Produces<CmsArticle>();
         cms.MapPost("/{id:guid}/publish", async (Guid id, PublishArticle request, ICms store, CancellationToken ct) => (await store.Publish(id, request, ct)).ToHttp()).WithName("PublishCmsArticle").Produces<CmsArticle>();
-        cms.MapPost("/preview", async (PreviewMarkdown request, ICms store, CancellationToken ct) => (await store.Preview(request, ct)).ToHttp()).WithName("PreviewCmsMarkdown").Produces<MarkdownPreview>();
         cms.MapGet("/sections", async (ICmsSections store, CancellationToken ct) => (await store.Read(ct)).ToHttp()).WithName("GetCmsSections").Produces<CmsSections>();
         cms.MapPost("/sections", async (SaveCmsSections request, ICmsSections store, CancellationToken ct) => (await store.Save(request, ct)).ToHttp()).WithName("SaveCmsSections").Produces<CmsSections>();
         cms.MapPost("/sections/publish", async (PublishCmsSections request, ICmsSections store, CancellationToken ct) => (await store.Publish(request, ct)).ToHttp()).WithName("PublishCmsSections").Produces<CmsSections>();

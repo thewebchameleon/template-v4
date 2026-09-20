@@ -46,15 +46,10 @@ export const cmsDictionary: Record<string, [string, string]> = {
   cmsUpdated: ['Last updated', 'Laas bygewerk'],
   cmsEmpty: ['No articles found.', 'Geen artikels gevind nie.'],
   cmsEditHelp: [
-    'Save a draft, preview it, then publish when ready.',
-    'Stoor ’n konsep, bekyk dit en publiseer wanneer gereed.',
+    'Save a draft, then publish when ready.',
+    'Stoor ’n konsep en publiseer wanneer gereed.',
   ],
   cmsSave: ['Save draft', 'Stoor konsep'],
-  cmsPreview: ['Preview Markdown', 'Voorskou van Markdown'],
-  cmsPreviewHelp: [
-    'Preview of the current Markdown body. This does not publish your changes.',
-    'Voorskou van die huidige Markdown-inhoud. Dit publiseer nie jou veranderings nie.',
-  ],
   cmsPublish: ['Publish saved draft', 'Publiseer gestoorde konsep'],
   cmsRepublish: ['Republish saved draft', 'Herpubliseer gestoorde konsep'],
   cmsUnpublish: ['Unpublish', 'Ontpubliseer'],
@@ -76,9 +71,5 @@ export const cmsDictionary: Record<string, [string, string]> = {
   cmsPendingHelp: [
     'Readers see the previous published version until you republish.',
     'Lesers sien die vorige gepubliseerde weergawe totdat jy herpubliseer.',
-  ],
-  cmsPreviewStale: [
-    'The Markdown has changed. Refresh the preview to see your latest edits.',
-    'Die Markdown het verander. Verfris die voorskou om jou jongste veranderings te sien.',
   ],
 };

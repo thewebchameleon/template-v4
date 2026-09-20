@@ -20,8 +20,9 @@ CMS editing. Canonical URLs use configured `Web:PublicUrl`, never request Host.
 
 Markdig parses Markdown with raw HTML disabled. Custom link rendering allowlists
 explicit destinations and suppresses images and automatic links. Metadata is HTML
-encoded. Preview uses the same renderer and Angular's normal HTML sanitization.
-All CMS responses are uncached to preserve unpublish and disable behavior.
+encoded. The authenticated editor provides WYSIWYG authoring while preserving
+Markdown as the stored source. All CMS responses are uncached to preserve unpublish
+and disable behavior.
 
 ## Consequences
 

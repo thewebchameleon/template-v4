@@ -247,8 +247,6 @@ export type { GetCmsArticle$Params as GetCmsArticle$Params } from './fn/framewor
 export { getCmsArticle as getCmsArticle } from './fn/framework/get-cms-article';
 export type { PublishCmsArticle$Params as PublishCmsArticle$Params } from './fn/framework/publish-cms-article';
 export { publishCmsArticle as publishCmsArticle } from './fn/framework/publish-cms-article';
-export type { PreviewCmsMarkdown$Params as PreviewCmsMarkdown$Params } from './fn/framework/preview-cms-markdown';
-export { previewCmsMarkdown as previewCmsMarkdown } from './fn/framework/preview-cms-markdown';
 export type { GetCmsSections$Params as GetCmsSections$Params } from './fn/framework/get-cms-sections';
 export { getCmsSections as getCmsSections } from './fn/framework/get-cms-sections';
 export type { SaveCmsSections$Params as SaveCmsSections$Params } from './fn/framework/save-cms-sections';

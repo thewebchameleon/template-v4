@@ -179,6 +179,13 @@ export const administrationDestinations = {
   },
 } as const satisfies Record<string, Destination>;
 
+export const moduleSettingsDestinations: Readonly<Record<string, Destination>> = {
+  'file-storage': administrationDestinations.storage,
+  support: administrationDestinations.supportSettings,
+  crm: administrationDestinations.crmConfiguration,
+  invoicing: administrationDestinations.invoicingSettings,
+};
+
 export const supportDestinations = {
   contact: {
     path: '/support/contact',

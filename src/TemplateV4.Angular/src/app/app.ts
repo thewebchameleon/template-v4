@@ -6,6 +6,7 @@ import {
   activeDestinationIndex,
   destinationAvailable,
   Destination,
+  moduleSettingsDestinations,
   supportDestinations,
   userManagementDestinations,
 } from './core/destinations';
@@ -67,6 +68,8 @@ import { PlatformAppearanceTheme } from './core/platform-appearance';
 type RailLink = Destination & {
   destination: string | null;
   destinationQueryParams: Record<string, string> | null;
+  moduleId?: string;
+  settingsDestination?: Pick<Destination, 'path' | 'label'>;
   runtimeConfigurable?: boolean;
 };
 const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds);
@@ -281,13 +284,43 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
               @if (
                 features.enabled('file-storage') && (sidebar.isMobile() || fileStoragePanelActive())
               ) {
-                @defer (on immediate) {
-                  <app-file-storage-tree />
-                }
+                <div class="flex min-h-0 flex-1 flex-col">
+                  @defer (on immediate) {
+                    <app-file-storage-tree class="min-h-0 flex-1 overflow-auto" />
+                  }
+                  @if (moduleSettings('file-storage'); as settings) {
+                    <nav
+                      class="sidebar-module-footer mt-auto"
+                      [attr.aria-label]="'moduleSettingsLink' | t"
+                    >
+                      <ul hlmSidebarMenu>
+                        <li hlmSidebarMenuItem>
+                          <a
+                            hlmSidebarMenuButton
+                            [routerLink]="settings.path"
+                            routerLinkActive
+                            #active="routerLinkActive"
+                            [isActive]="active.isActive"
+                            ariaCurrentWhenActive="page"
+                            closeMobileSidebarOnClick
+                          >
+                            <ng-icon name="lucideSettings" />
+                            <span>{{ 'moduleSettingsLink' | t }}</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </nav>
+                  }
+                </div>
               }
               @for (panel of navigationPanels(); track panel.label) {
-                @if (panel.links.length && (sidebar.isMobile() || panel.active)) {
-                  <nav hlmSidebarGroup class="sidebar-submenu" [attr.aria-label]="panel.label | t">
+                @if ((panel.links.length || panel.settings) && (sidebar.isMobile() || panel.active)) {
+                  <nav
+                    hlmSidebarGroup
+                    class="sidebar-submenu min-h-0"
+                    [class.flex-1]="!sidebar.isMobile()"
+                    [attr.aria-label]="panel.label | t"
+                  >
                     <div hlmSidebarGroupLabel>{{ panel.label | t }}</div>
                     <ul hlmSidebarMenu>
                       @for (item of panel.links; track item.path; let itemIndex = $index) {
@@ -309,6 +342,28 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                         </li>
                       }
                     </ul>
+                    @if (panel.settings; as settings) {
+                      <div
+                        class="sidebar-module-footer -mx-2 mt-auto"
+                      >
+                        <ul hlmSidebarMenu>
+                          <li hlmSidebarMenuItem>
+                            <a
+                              hlmSidebarMenuButton
+                              [routerLink]="settings.path"
+                              routerLinkActive
+                              #active="routerLinkActive"
+                              [isActive]="active.isActive"
+                              ariaCurrentWhenActive="page"
+                              closeMobileSidebarOnClick
+                            >
+                              <ng-icon name="lucideSettings" />
+                              <span>{{ 'moduleSettingsLink' | t }}</span>
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    }
                   </nav>
                 }
               }
@@ -610,7 +665,10 @@ export class App {
     const selectedPanel = this.selectedPanel();
     return (
       selectedPanel === '/administration' ||
-      (selectedPanel === null && this.administrationActive() && !this.supportRouteActive())
+      (selectedPanel === null &&
+        this.administrationActive() &&
+        !this.supportRouteActive() &&
+        !this.moduleSettingsRouteActive())
     );
   });
   readonly supportRouteActive = computed(() => {
@@ -620,16 +678,20 @@ export class App {
       (item) => path === item.path || path.startsWith(`${item.path}/`),
     );
   });
-  readonly supportPanelActive = computed(() => {
-    const selectedPanel = this.selectedPanel();
-    return selectedPanel === '/support' || (selectedPanel === null && this.supportRouteActive());
-  });
   readonly userManagementPanelActive = computed(() => this.railPanelActive('/user-management'));
   readonly navigationPanels = computed(() => [
-    { label: 'support', links: this.supportLinks(), active: this.supportPanelActive() },
+    ...this.moduleRailLinks()
+      .filter((item) => item.path !== '/file-storage' && item.hasPanel)
+      .map((item) => ({
+        label: item.label,
+        links: item.moduleId === 'support' ? this.supportLinks() : [item],
+        settings: item.settingsDestination,
+        active: this.railPanelActive(item.path),
+      })),
     {
       label: 'userManagement',
       links: this.userManagementLinks(),
+      settings: undefined,
       active: this.userManagementPanelActive(),
     },
   ]);
@@ -640,6 +702,7 @@ export class App {
       ...this.extensions.flatMap((feature) =>
         (feature.organisationDestinations ?? []).map((item) => ({
           ...item,
+          moduleId: feature.id,
           runtimeConfigurable: true,
         })),
       ),
@@ -663,7 +726,7 @@ export class App {
       ...this.extensions.flatMap((feature) =>
         (feature.destinations ?? [])
           .filter((item) => !item.section)
-          .map((item) => ({ ...item, runtimeConfigurable: true })),
+          .map((item) => ({ ...item, moduleId: feature.id, runtimeConfigurable: true })),
       ),
     ]
       .filter((item) => destinationAvailable(item, this.auth, this.features))
@@ -671,6 +734,7 @@ export class App {
         const railItem = item as Destination & Partial<RailLink>;
         return {
           ...item,
+          moduleId: railItem.moduleId ?? item.capability,
           destination: railItem.destination ?? item.path,
           destinationQueryParams:
             railItem.destinationQueryParams ??
@@ -678,27 +742,42 @@ export class App {
         };
       }),
   );
-  readonly moduleRailLinks = computed(() => [
-    ...this.destinationRailLinks().filter(
-      (item) =>
-        item.runtimeConfigurable ||
-        (!!item.capability && runtimeConfigurableModules.has(item.capability)),
-    ),
-    ...(this.supportModuleEnabled()
-      ? [
-          {
-            path: '/support',
-            label: 'support',
-            icon: 'lucideLifeBuoy',
-            capability: 'support',
-            hasPanel: this.supportLinks().length > 0,
-            destination: this.supportLinks()[0]?.path ?? null,
-            destinationQueryParams: null,
-            runtimeConfigurable: true,
-          },
-        ]
-      : []),
-  ]);
+  readonly moduleRailLinks = computed<RailLink[]>(() =>
+    [
+      ...this.destinationRailLinks().filter(
+        (item) =>
+          item.runtimeConfigurable ||
+          (!!item.capability && runtimeConfigurableModules.has(item.capability)),
+      ),
+      ...(this.supportModuleEnabled()
+        ? [
+            {
+              path: '/support',
+              label: 'support',
+              icon: 'lucideLifeBuoy',
+              capability: 'support',
+              moduleId: 'support',
+              hasPanel: this.supportLinks().length > 0,
+              destination: this.supportLinks()[0]?.path ?? null,
+              destinationQueryParams: null,
+              runtimeConfigurable: true,
+            },
+          ]
+        : []),
+    ].map((item) => {
+      const settingsDestination = this.moduleSettings(item.moduleId);
+      return {
+        ...item,
+        settingsDestination,
+        hasPanel: item.hasPanel || !!settingsDestination,
+      };
+    }),
+  );
+  readonly moduleSettingsRouteActive = computed(() => {
+    this.navigationEnd();
+    const path = this.router.url.split(/[?#]/)[0];
+    return this.moduleRailLinks().some((item) => item.settingsDestination?.path === path);
+  });
   readonly primaryDestinationRailLinks = computed(() =>
     this.destinationRailLinks().filter(
       (item) =>
@@ -754,7 +833,11 @@ export class App {
     if (selectedPanel) return this.railLinks().findIndex((item) => item.path === selectedPanel);
     if (this.supportRouteActive())
       return this.railLinks().findIndex((item) => item.path === '/support');
-    return activeDestinationIndex(this.railLinks(), this.router.url.split(/[?#]/)[0]);
+    const path = this.router.url.split(/[?#]/)[0];
+    const settingsOwner = this.railLinks().findIndex(
+      (item) => item.settingsDestination?.path === path,
+    );
+    return settingsOwner >= 0 ? settingsOwner : activeDestinationIndex(this.railLinks(), path);
   });
   readonly activeRailUsesModuleSeparator = computed(
     () => this.railModuleStartIndex() >= 0 && this.activeRailIndex() >= this.railModuleStartIndex(),
@@ -763,28 +846,47 @@ export class App {
   readonly fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'));
   readonly hasSecondaryNavigation = computed(
     () =>
-      this.supportPanelActive() ||
       this.userManagementPanelActive() ||
       this.administrationPanelActive() ||
-      this.fileStoragePanelActive(),
+      this.moduleRailLinks().some((item) => item.hasPanel && this.railPanelActive(item.path)),
   );
+
+  moduleSettings(moduleId?: string) {
+    if (!moduleId) return undefined;
+    const destination =
+      moduleSettingsDestinations[moduleId] ??
+      this.extensions.find((feature) => feature.id === moduleId)?.moduleSettingsDestination;
+    return destination && destinationAvailable(destination as Destination, this.auth, this.features)
+      ? destination
+      : undefined;
+  }
 
   railPanelActive(path: string): boolean {
     this.navigationEnd();
     const selectedPanel = this.selectedPanel();
+    const settingsPath = this.moduleRailLinks().find((item) => item.path === path)
+      ?.settingsDestination?.path;
     return (
       selectedPanel === path ||
       (selectedPanel === null &&
-        this.router.isActive(path, {
-          paths: 'subset',
-          queryParams: 'ignored',
-          matrixParams: 'ignored',
-          fragment: 'ignored',
-        }))
+        [path, settingsPath].some(
+          (candidate) =>
+            !!candidate &&
+            this.router.isActive(candidate, {
+              paths: 'subset',
+              queryParams: 'ignored',
+              matrixParams: 'ignored',
+              fragment: 'ignored',
+            }),
+        ))
     );
   }
 
   private routeDestination(path: string): string {
+    const settingsOwner = this.moduleRailLinks().find(
+      (item) => item.settingsDestination?.path === path,
+    );
+    if (settingsOwner) return settingsOwner.path;
     if (
       this.accountMenuLinks().some((item) => path === item.path || path.startsWith(`${item.path}/`))
     )

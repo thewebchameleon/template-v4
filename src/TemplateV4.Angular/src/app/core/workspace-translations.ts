@@ -359,6 +359,7 @@ export const workspaceDictionary: Record<string, [string, string]> = {
   viewingUserFiles: ['Files belonging to', 'Lêers wat behoort aan'],
   manageUserFiles: ['Files and storage quota', 'Lêers en bergingkwota'],
   storageSettings: ['File Storage', 'Lêerberging'],
+  moduleSettingsLink: ['Settings', 'Instellings'],
   storageSettingsHelp: [
     'Set the organisation’s storage allowance and maximum upload size.',
     'Stel die organisasie se bergingtoelaag en maksimum oplaaigrootte.',

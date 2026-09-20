@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import {
   WorkspaceUi,
   workspaceIcons,
@@ -11,11 +10,12 @@ import {
 } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Notifications } from '../../notifications/notifications';
-import { ArticleContent, CmsArticle, MarkdownPreview } from '../../../api/models';
+import { ArticleContent, CmsArticle } from '../../../api/models';
+import { CmsMarkdownEditor } from './cms-markdown-editor';
 
 @Component({
   selector: 'app-cms-editor',
-  imports: [WorkspaceUi, HlmTextareaImports],
+  imports: [WorkspaceUi, CmsMarkdownEditor],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` <app-page-header title="cms" description="cmsEditHelp"
@@ -46,7 +46,8 @@ import { ArticleContent, CmsArticle, MarkdownPreview } from '../../../api/models
                   hlmInput
                   id="cms-title"
                   name="title"
-                  [(ngModel)]="content.title"
+                  [ngModel]="content.title"
+                  (ngModelChange)="titleChanged($event)"
                   required
                   maxlength="200"
                 />
@@ -58,7 +59,8 @@ import { ArticleContent, CmsArticle, MarkdownPreview } from '../../../api/models
                     hlmInput
                     id="cms-slug"
                     name="slug"
-                    [(ngModel)]="content.slug"
+                    [ngModel]="content.slug"
+                    (ngModelChange)="slugChanged($event)"
                     required
                     maxlength="160"
                     pattern="[a-z0-9]+(-[a-z0-9]+)*"
@@ -93,31 +95,21 @@ import { ArticleContent, CmsArticle, MarkdownPreview } from '../../../api/models
               </div>
               <div hlmField>
                 <label hlmFieldLabel for="cms-body">{{ 'cmsMarkdown' | t }}</label>
-                <textarea
-                  hlmTextarea
-                  id="cms-body"
+                <app-cms-markdown-editor
+                  inputId="cms-body"
+                  describedBy="cms-markdown-help"
                   name="markdown"
                   [(ngModel)]="content.markdown"
+                  [disabled]="busy()"
                   required
                   maxlength="100000"
-                  rows="18"
-                  aria-describedby="cms-markdown-help"
-                ></textarea>
+                />
                 <p hlmFieldDescription id="cms-markdown-help">{{ 'cmsMarkdownHelp' | t }}</p>
               </div>
             </fieldset>
             <div class="flex flex-wrap gap-3">
               <button hlmBtn type="submit" [disabled]="busy() || !form.valid || conflict()">
                 {{ 'cmsSave' | t }}
-              </button>
-              <button
-                hlmBtn
-                variant="outline"
-                type="button"
-                (click)="preview()"
-                [disabled]="busy()"
-              >
-                {{ 'cmsPreview' | t }}
               </button>
               @if (article(); as current) {
                 <button
@@ -144,20 +136,6 @@ import { ArticleContent, CmsArticle, MarkdownPreview } from '../../../api/models
           </div>
         </section>
       </form>
-      @if (previewHtml() !== null) {
-        <section hlmCard class="mt-6" aria-live="polite">
-          <div hlmCardHeader>
-            <h2 hlmCardTitle>{{ 'cmsPreview' | t }}</h2>
-            <p hlmCardDescription>{{ 'cmsPreviewHelp' | t }}</p>
-          </div>
-          <div hlmCardContent>
-            @if (previewSource !== content.markdown) {
-              <p role="status">{{ 'cmsPreviewStale' | t }}</p>
-            }
-            <div class="cms-prose" [innerHTML]="previewHtml()"></div>
-          </div>
-        </section>
-      }
     </app-page-state>`,
 })
 export class CmsEditorPage {
@@ -170,12 +148,19 @@ export class CmsEditorPage {
   readonly article = signal<CmsArticle | null>(null);
   readonly busy = signal(false);
   readonly conflict = signal(false);
-  readonly previewHtml = signal<string | null>(null);
-  previewSource = '';
   content: ArticleContent = { title: '', slug: '', excerpt: '', markdown: '', author: '' };
   private saved = JSON.stringify(this.content);
+  private slugIsAutomatic = true;
   constructor() {
     void this.load();
+  }
+  titleChanged(title: string) {
+    this.content.title = title;
+    if (this.slugIsAutomatic) this.content.slug = this.toSlug(title);
+  }
+  slugChanged(slug: string) {
+    this.content.slug = slug;
+    this.slugIsAutomatic = false;
   }
   hasUnsavedChanges() {
     return JSON.stringify(this.content) !== this.saved;
@@ -193,13 +178,23 @@ export class CmsEditorPage {
   private accept(article: CmsArticle) {
     this.article.set(article);
     this.content = { ...article.draft };
+    this.slugIsAutomatic = false;
     this.saved = JSON.stringify(this.content);
     this.conflict.set(false);
+  }
+  private toSlug(title: string) {
+    return title
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 160)
+      .replace(/-+$/g, '');
   }
   async reload() {
     if (this.busy()) return;
     if (await this.confirmations.ask('cmsReload', 'cmsReloadHelp', '', true, 'cmsReload')) {
-      this.previewHtml.set(null);
       this.busy.set(true);
       try {
         await this.load();
@@ -246,20 +241,6 @@ export class CmsEditorPage {
       this.toast.success('cmsPublicationSaved');
     } catch (error) {
       this.handleError(error);
-    } finally {
-      this.busy.set(false);
-    }
-  }
-  async preview() {
-    if (this.busy()) return;
-    this.busy.set(true);
-    try {
-      const source = this.content.markdown;
-      const result = await this.api.post<MarkdownPreview>('cms/preview', { markdown: source });
-      this.previewSource = source;
-      this.previewHtml.set(result.html);
-    } catch {
-      /* Central error UI retains the draft. */
     } finally {
       this.busy.set(false);
     }

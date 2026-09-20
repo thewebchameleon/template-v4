@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import {
@@ -17,6 +17,29 @@ import { I18n } from '../../../core/i18n';
 import { CmsArticleSummary, PageOfCmsArticleSummary } from '../../../api/models';
 
 const column = createColumnHelper<DataTableFeatures, CmsArticleSummary>();
+
+@Component({
+  selector: 'app-cms-status',
+  template: `<span class="inline-flex items-center gap-2 whitespace-nowrap">
+    <span
+      class="size-2 shrink-0 rounded-full"
+      [style.background-color]="
+        state() === 'published'
+          ? 'var(--toast-success-foreground)'
+          : state() === 'pending'
+            ? 'var(--warning)'
+            : 'var(--muted-foreground)'
+      "
+      aria-hidden="true"
+    ></span>
+    {{ label() }}
+  </span>`,
+})
+class CmsStatus {
+  readonly label = input.required<string>();
+  readonly state = input.required<'draft' | 'pending' | 'published'>();
+}
+
 @Component({
   selector: 'app-cms',
   imports: [WorkspaceUi, HlmSelectImports, DataTable],
@@ -71,6 +94,7 @@ const column = createColumnHelper<DataTableFeatures, CmsArticleSummary>();
             [loading]="data.refreshing()"
             [emptyText]="'cmsEmpty' | t"
             [loadingText]="'loading' | t"
+            fillColumn="title"
             [sortColumn]="query.text('sort', 'updatedAt')"
             [sortDirection]="query.direction('desc')"
             (sortChange)="sort($event)"
@@ -100,23 +124,34 @@ export class CmsPage {
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
+      column.accessor('published', {
+        header: this.i18n.text('status'),
+        cell: ({ row }) => {
+          const state = row.original.pendingChanges
+            ? 'pending'
+            : row.original.published
+              ? 'published'
+              : 'draft';
+          return flexRenderComponent(CmsStatus, {
+            inputs: {
+              state,
+              label: this.i18n.text(
+                state === 'pending'
+                  ? 'cmsPending'
+                  : state === 'published'
+                    ? 'cmsPublished'
+                    : 'cmsDraft',
+              ),
+            },
+          });
+        },
+      }),
       column.accessor('title', {
         header: this.i18n.text('cmsTitle'),
         cell: ({ row }) =>
           flexRenderComponent(RecordIdentity, {
             inputs: { label: row.original.title, link: '/cms/' + row.original.id },
           }),
-      }),
-      column.accessor('published', {
-        header: this.i18n.text('status'),
-        cell: ({ row }) =>
-          this.i18n.text(
-            row.original.pendingChanges
-              ? 'cmsPending'
-              : row.original.published
-                ? 'cmsPublished'
-                : 'cmsDraft',
-          ),
       }),
       column.accessor('updatedAt', {
         header: this.i18n.text('cmsUpdated'),
