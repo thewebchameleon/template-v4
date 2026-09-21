@@ -1,5 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideBadgeCheck, lucideBadgeX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -11,12 +13,14 @@ import { I18n, Translate } from '../core/i18n';
   selector: 'app-profile-summary-card',
   imports: [
     RouterLink,
+    NgIcon,
     HlmBadgeImports,
     HlmButtonImports,
     HlmCardImports,
     HlmSkeletonImports,
     Translate,
   ],
+  providers: [provideIcons({ lucideBadgeCheck, lucideBadgeX })],
   template: `
     <section hlmCard aria-labelledby="profile-summary-title">
       <div hlmCardHeader>
@@ -42,24 +46,29 @@ import { I18n, Translate } from '../core/i18n';
                 }
                 <div class="min-w-0 flex-1">
                   <p class="truncate text-lg font-semibold">{{ person.displayName }}</p>
-                  <p class="break-words text-sm text-muted-foreground">{{ person.email }}</p>
+                  <p class="flex items-center gap-1.5 break-words text-sm text-muted-foreground">
+                    <span
+                      hlmBadge
+                      [variant]="person.emailConfirmed ? 'default' : 'destructive'"
+                      class="size-5 p-0 text-white data-[variant=destructive]:bg-destructive dark:data-[variant=destructive]:bg-destructive"
+                      [attr.aria-label]="
+                        (person.emailConfirmed ? 'emailVerifiedStatus' : 'emailUnverifiedStatus')
+                          | t
+                      "
+                    >
+                      <ng-icon
+                        [name]="person.emailConfirmed ? 'lucideBadgeCheck' : 'lucideBadgeX'"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span class="min-w-0 break-words">{{ person.email }}</span>
+                  </p>
                 </div>
                 <a hlmBtn variant="outline" size="sm" class="shrink-0" routerLink="/me">
                   {{ 'edit' | t }}
                 </a>
               </div>
               <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-                <div>
-                  <dt class="text-sm text-muted-foreground">{{ 'emailVerification' | t }}</dt>
-                  <dd class="mt-1">
-                    <span hlmBadge [variant]="person.emailConfirmed ? 'secondary' : 'outline'">
-                      {{
-                        (person.emailConfirmed ? 'emailVerifiedStatus' : 'emailUnverifiedStatus')
-                          | t
-                      }}
-                    </span>
-                  </dd>
-                </div>
                 <div>
                   <dt class="text-sm text-muted-foreground">{{ 'culture' | t }}</dt>
                   <dd class="mt-1 break-words font-medium">{{ languageLabel() }}</dd>
@@ -97,7 +106,23 @@ import { I18n, Translate } from '../core/i18n';
                     >{{ initials(company.name) }}</span
                   >
                 }
-                <p class="min-w-0 flex-1 break-words text-lg font-semibold">{{ company.name }}</p>
+                <div class="min-w-0 flex-1">
+                  <p class="break-words text-lg font-semibold">{{ company.name }}</p>
+                  <div class="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                    @if (country(); as country) {
+                      <span class="sr-only">{{ 'country' | t }}: {{ country.name }}</span>
+                      <img
+                        [src]="country.flagUrl"
+                        alt=""
+                        aria-hidden="true"
+                        class="h-4 w-6 shrink-0 rounded-xs object-cover"
+                      />
+                    }
+                    @if (company.websiteUrl?.trim(); as website) {
+                      <span class="min-w-0 break-words">{{ website }}</span>
+                    }
+                  </div>
+                </div>
                 <a
                   hlmBtn
                   variant="outline"
@@ -110,28 +135,8 @@ import { I18n, Translate } from '../core/i18n';
               </div>
               <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                 <div>
-                  <dt class="text-sm text-muted-foreground">{{ 'website' | t }}</dt>
-                  <dd class="mt-1 break-words font-medium">{{ value(company.websiteUrl) }}</dd>
-                </div>
-                <div>
                   <dt class="text-sm text-muted-foreground">{{ 'primaryContactEmail' | t }}</dt>
                   <dd class="mt-1 break-words font-medium">{{ value(company.contactEmail) }}</dd>
-                </div>
-                <div>
-                  <dt class="text-sm text-muted-foreground">{{ 'country' | t }}</dt>
-                  <dd class="mt-1 flex items-center gap-2 break-words font-medium">
-                    @if (country(); as country) {
-                      <img
-                        [src]="country.flagUrl"
-                        alt=""
-                        aria-hidden="true"
-                        class="h-4 w-6 shrink-0 rounded-xs object-cover"
-                      />
-                      <span>{{ country.name }}</span>
-                    } @else {
-                      —
-                    }
-                  </dd>
                 </div>
                 <div>
                   <dt class="text-sm text-muted-foreground">{{ 'primaryContactNumber' | t }}</dt>

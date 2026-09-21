@@ -12,6 +12,11 @@ only its SHA-256 hash is stored. Optional expiry, revocation, last-used time and
 aggregate authenticated-request count belong to the key. Create and revoke actions
 write security audit entries in the same database save as the key change.
 
+Rotation creates a replacement with the same scopes and expiry while leaving the old
+key active for deployment. Administrators revoke the old key after consumers have
+switched. Permanent deletion is limited to revoked or expired keys and retains a
+security audit entry for the deleted key.
+
 API scopes are an independent allowlist rather than user permissions. Each endpoint
 requires one explicit scope and its owning module capability. Module disablement
 therefore stops new external calls without deleting credentials. Keys are not users,
@@ -25,7 +30,7 @@ existing `/api/v1` boundary and CSRF controls.
 The first surface is read-only published CMS data: `cms.articles.read` allows article
 listing/detail and `cms.sections.read` allows published landing sections. Drafts and
 CMS mutations remain interactive-user operations. Per-key rate limits, IP allowlists,
-service accounts, webhooks and key rotation workflows are deferred.
+service accounts and webhooks are deferred.
 
 ## Consequences
 

@@ -66,8 +66,10 @@ interface RegistrationResult {
             </div>
             @if (!value.configured) {
               <form hlmCardContent class="grid gap-4" (ngSubmit)="register()">
-                <div class="grid items-start gap-4 sm:grid-cols-3">
-                  <div hlmField>
+                <div
+                  class="grid items-end gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
+                >
+                  <div hlmField class="min-w-0">
                     <label hlmFieldLabel for="private-module-name">{{
                       'privateModuleAppName' | t
                     }}</label>
@@ -86,7 +88,7 @@ interface RegistrationResult {
                       </p>
                     }
                   </div>
-                  <div hlmField>
+                  <div hlmField class="min-w-0">
                     <label hlmFieldLabel for="private-module-url">{{
                       'privateModuleUrl' | t
                     }}</label>
@@ -101,21 +103,22 @@ interface RegistrationResult {
                     />
                   </div>
                   <app-business-select
+                    class="min-w-0"
                     controlId="private-module-environment"
                     label="privateModuleEnvironment"
                     [options]="environments"
                     [(value)]="environment"
                     [allowEmpty]="false"
                   />
+                  <button hlmBtn type="submit" [disabled]="busy() || !name() || !url">
+                    {{ 'privateModuleRegisterAction' | t }}
+                  </button>
                 </div>
                 @if (failed()) {
                   <p class="text-destructive" role="alert">
                     {{ 'privateModuleRegistrationFailed' | t }}
                   </p>
                 }
-                <button hlmBtn type="submit" [disabled]="busy() || !name() || !url">
-                  {{ 'privateModuleRegister' | t }}
-                </button>
               </form>
             } @else {
               <div hlmCardContent class="grid gap-2 text-sm">

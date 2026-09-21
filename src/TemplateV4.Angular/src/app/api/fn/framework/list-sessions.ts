@@ -7,14 +7,24 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { SessionDto } from '../../models/session-dto';
+import { SessionPage } from '../../models/session-page';
 
 export interface ListSessions$Params {
+  Search?: string;
+  PageNumber?: number;
+  PageSize?: number;
+  Sort?: string;
+  Direction?: string;
 }
 
-export function listSessions(http: HttpClient, rootUrl: string, params?: ListSessions$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<SessionDto>>> {
+export function listSessions(http: HttpClient, rootUrl: string, params?: ListSessions$Params, context?: HttpContext): Observable<StrictHttpResponse<SessionPage>> {
   const rb = new RequestBuilder(rootUrl, listSessions.PATH, 'get');
   if (params) {
+    rb.query('Search', params.Search, {});
+    rb.query('PageNumber', params.PageNumber, {});
+    rb.query('PageSize', params.PageSize, {});
+    rb.query('Sort', params.Sort, {});
+    rb.query('Direction', params.Direction, {});
   }
 
   return http.request(
@@ -22,7 +32,7 @@ export function listSessions(http: HttpClient, rootUrl: string, params?: ListSes
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<SessionDto>>;
+      return r as StrictHttpResponse<SessionPage>;
     })
   );
 }

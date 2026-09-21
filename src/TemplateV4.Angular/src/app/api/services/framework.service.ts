@@ -20,7 +20,7 @@ import { addCrmNote } from '../fn/framework/add-crm-note';
 import { AddCrmNote$Params } from '../fn/framework/add-crm-note';
 import { AdminBootstrapStatus } from '../models/admin-bootstrap-status';
 import { ApiKeyCreated } from '../models/api-key-created';
-import { ApiKeyItem } from '../models/api-key-item';
+import { ApiKeyPage } from '../models/api-key-page';
 import { archiveCrmRecord } from '../fn/framework/archive-crm-record';
 import { ArchiveCrmRecord$Params } from '../fn/framework/archive-crm-record';
 import { attachSupportTicket } from '../fn/framework/attach-support-ticket';
@@ -88,6 +88,8 @@ import { CrmNote } from '../models/crm-note';
 import { CrmOverview } from '../models/crm-overview';
 import { CrmRecord } from '../models/crm-record';
 import { CustomerInfo } from '../models/customer-info';
+import { deleteApiKey } from '../fn/framework/delete-api-key';
+import { DeleteApiKey$Params } from '../fn/framework/delete-api-key';
 import { deleteFileStorageBatch } from '../fn/framework/delete-file-storage-batch';
 import { DeleteFileStorageBatch$Params } from '../fn/framework/delete-file-storage-batch';
 import { deleteFileStorageFile } from '../fn/framework/delete-file-storage-file';
@@ -370,6 +372,8 @@ import { RevokeFileStorageShare$Params } from '../fn/framework/revoke-file-stora
 import { revokeSession } from '../fn/framework/revoke-session';
 import { RevokeSession$Params } from '../fn/framework/revoke-session';
 import { RoleItem } from '../models/role-item';
+import { rotateApiKey } from '../fn/framework/rotate-api-key';
+import { RotateApiKey$Params } from '../fn/framework/rotate-api-key';
 import { rotateRecoveryCodes } from '../fn/framework/rotate-recovery-codes';
 import { RotateRecoveryCodes$Params } from '../fn/framework/rotate-recovery-codes';
 import { saveCmsArticle } from '../fn/framework/save-cms-article';
@@ -401,7 +405,7 @@ import { SaveWebPushPreferences$Params } from '../fn/framework/save-web-push-pre
 import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
-import { SessionDto } from '../models/session-dto';
+import { SessionPage } from '../models/session-page';
 import { setBackgroundJobSchedule } from '../fn/framework/set-background-job-schedule';
 import { SetBackgroundJobSchedule$Params } from '../fn/framework/set-background-job-schedule';
 import { setCulture } from '../fn/framework/set-culture';
@@ -655,7 +659,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listSessions$Response(params?: ListSessions$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<SessionDto>>> {
+  listSessions$Response(params?: ListSessions$Params, context?: HttpContext): Observable<StrictHttpResponse<SessionPage>> {
     const obs = listSessions(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -666,10 +670,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listSessions(params?: ListSessions$Params, context?: HttpContext): Observable<Array<SessionDto>> {
+  listSessions(params?: ListSessions$Params, context?: HttpContext): Observable<SessionPage> {
     const resp = this.listSessions$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<Array<SessionDto>>): Array<SessionDto> => r.body)
+      map((r: StrictHttpResponse<SessionPage>): SessionPage => r.body)
     );
   }
 
@@ -3922,7 +3926,7 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listApiKeys$Response(params?: ListApiKeys$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ApiKeyItem>>> {
+  listApiKeys$Response(params?: ListApiKeys$Params, context?: HttpContext): Observable<StrictHttpResponse<ApiKeyPage>> {
     const obs = listApiKeys(this.http, this.rootUrl, params, context);
     return obs;
   }
@@ -3933,10 +3937,10 @@ export class FrameworkService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  listApiKeys(params?: ListApiKeys$Params, context?: HttpContext): Observable<Array<ApiKeyItem>> {
+  listApiKeys(params?: ListApiKeys$Params, context?: HttpContext): Observable<ApiKeyPage> {
     const resp = this.listApiKeys$Response(params, context);
     return resp.pipe(
-      map((r: StrictHttpResponse<Array<ApiKeyItem>>): Array<ApiKeyItem> => r.body)
+      map((r: StrictHttpResponse<ApiKeyPage>): ApiKeyPage => r.body)
     );
   }
 
@@ -3967,6 +3971,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `rotateApiKey()` */
+  static readonly RotateApiKeyPath = '/api/v1/auth/administration/api-keys/{id}/rotate';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `rotateApiKey()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  rotateApiKey$Response(params: RotateApiKey$Params, context?: HttpContext): Observable<StrictHttpResponse<ApiKeyCreated>> {
+    const obs = rotateApiKey(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `rotateApiKey$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  rotateApiKey(params: RotateApiKey$Params, context?: HttpContext): Observable<ApiKeyCreated> {
+    const resp = this.rotateApiKey$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ApiKeyCreated>): ApiKeyCreated => r.body)
+    );
+  }
+
   /** Path part for operation `revokeApiKey()` */
   static readonly RevokeApiKeyPath = '/api/v1/auth/administration/api-keys/{id}/revoke';
 
@@ -3989,6 +4020,33 @@ export class FrameworkService extends BaseService {
    */
   revokeApiKey(params: RevokeApiKey$Params, context?: HttpContext): Observable<void> {
     const resp = this.revokeApiKey$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `deleteApiKey()` */
+  static readonly DeleteApiKeyPath = '/api/v1/auth/administration/api-keys/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `deleteApiKey()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  deleteApiKey$Response(params: DeleteApiKey$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = deleteApiKey(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `deleteApiKey$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  deleteApiKey(params: DeleteApiKey$Params, context?: HttpContext): Observable<void> {
+    const resp = this.deleteApiKey$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

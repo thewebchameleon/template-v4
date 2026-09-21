@@ -7,4 +7,6 @@ export interface SessionDto {
   device: string;
   expiresAt: string;
   id: string;
+  ipAddress: string;
+  lastActivityAt: string;
 }

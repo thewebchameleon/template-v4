@@ -3,6 +3,7 @@
 
 export interface ApiKeyItem {
   createdAt: string;
+  createdByName: string;
   expiresAt: (string | null);
   id: string;
   lastUsedAt: (string | null);

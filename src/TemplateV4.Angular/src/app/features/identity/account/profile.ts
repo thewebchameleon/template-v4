@@ -11,7 +11,6 @@ import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
-import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { Auth } from '../../../core/auth';
 import { Passkeys } from '../../passkeys/passkeys';
@@ -41,7 +40,6 @@ type MfaProfile = ProfileResponse & {
     HlmAlertImports,
     HlmEmptyImports,
     HlmBadgeImports,
-    HlmSeparatorImports,
     HlmTabsImports,
     Translate,
   ],
@@ -53,209 +51,218 @@ type MfaProfile = ProfileResponse & {
           </p>
         </div>
       }
-      <section hlmCard class="max-w-(--form-content-width)">
-        <div hlmCardHeader>
-          <h2 hlmCardTitle>{{ 'security' | t }}</h2>
-          <p hlmCardDescription>{{ 'securityHelp' | t }}</p>
-        </div>
-        <div hlmCardContent class="flex flex-col gap-5">
-          <p>
-            <span hlmBadge variant="secondary">{{
-              (user.mfaRequired || user.mfaMethods.length ? 'mfaRequired' : 'mfaOptional') | t
-            }}</span>
-            <span hlmBadge variant="outline">{{
-              (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t
-            }}</span>
-            @if (user.emailMfaEnabled) {
-              <span hlmBadge variant="outline">{{ 'emailMfaEnabled' | t }}</span>
-            }
-          </p>
-          @if (user.mfaMethods.length) {
-            <fieldset hlmFieldSet>
-              <legend hlmFieldLegend>{{ 'preferredMfaMethod' | t }}</legend>
-              <p hlmFieldDescription>{{ 'preferredMfaHelp' | t }}</p>
-              <hlm-tabs
-                orientation="vertical"
-                [tab]="preferredMethod"
-                (tabActivated)="selectPreferred($event)"
-              >
-                <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'preferredMfaMethod' | t">
-                  @for (method of user.mfaMethods; track method) {
-                    <button [hlmTabsTrigger]="method" class="w-full">
-                      {{ methodLabel(method) | t }}
-                    </button>
-                  }
-                </hlm-tabs-list>
-              </hlm-tabs>
-              <button
-                hlmBtn
-                variant="outline"
-                [disabled]="busy() || preferredMethod === user.preferredMfaMethod"
-                (click)="savePreference()"
-              >
-                {{ 'savePreference' | t }}
-              </button>
-            </fieldset>
-          }
-          <div class="flex flex-wrap gap-3">
-            @if (!user.mfaEnabled) {
-              <button hlmBtn [disabled]="busy()" (click)="chooseAction('enroll')">
-                {{ 'enrollAuthenticator' | t }}
-              </button>
-            } @else {
-              <button
-                hlmBtn
-                variant="outline"
-                [disabled]="busy()"
-                (click)="chooseAction('recovery')"
-              >
-                {{ 'rotateRecovery' | t }}
-              </button>
-              @if (!user.mfaRequired || user.passkeys.length > 0 || user.emailMfaEnabled) {
+      <div class="grid gap-6 lg:grid-cols-2">
+        <section hlmCard class="min-w-0">
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>{{ 'preferredMfaMethod' | t }}</h2>
+            <p hlmCardDescription>{{ 'preferredMfaHelp' | t }}</p>
+          </div>
+          <div hlmCardContent class="flex flex-col gap-5">
+            <p class="flex flex-wrap gap-2">
+              <span hlmBadge variant="secondary">{{
+                (user.mfaRequired || user.mfaMethods.length ? 'mfaRequired' : 'mfaOptional') | t
+              }}</span>
+              <span hlmBadge variant="outline">{{
+                (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t
+              }}</span>
+              @if (user.emailMfaEnabled) {
+                <span hlmBadge variant="outline">{{ 'emailMfaEnabled' | t }}</span>
+              }
+            </p>
+            @if (user.mfaMethods.length) {
+              <fieldset hlmFieldSet>
+                <legend hlmFieldLegend class="sr-only">{{ 'preferredMfaMethod' | t }}</legend>
+                <hlm-tabs
+                  orientation="vertical"
+                  [tab]="preferredMethod"
+                  (tabActivated)="selectPreferred($event)"
+                >
+                  <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'preferredMfaMethod' | t">
+                    @for (method of user.mfaMethods; track method) {
+                      <button [hlmTabsTrigger]="method" class="w-full">
+                        {{ methodLabel(method) | t }}
+                      </button>
+                    }
+                  </hlm-tabs-list>
+                </hlm-tabs>
                 <button
                   hlmBtn
-                  variant="destructive"
-                  [disabled]="busy()"
-                  (click)="chooseAction('disable')"
+                  variant="outline"
+                  [disabled]="busy() || preferredMethod === user.preferredMfaMethod"
+                  (click)="savePreference()"
                 >
-                  {{ 'disableMfa' | t }}
+                  {{ 'savePreference' | t }}
                 </button>
-              }
+              </fieldset>
             }
-          </div>
-          @if (enrollment(); as setup) {
-            <p>{{ 'authenticatorSetupHelp' | t }}</p>
-            <code class="break-all select-all">{{ setup.key }}</code>
-            <form
-              #confirmation="ngForm"
-              (ngSubmit)="confirmation.valid && confirm()"
-              class="flex flex-col gap-3"
-            >
-              <div hlmField>
-                <label hlmFieldLabel for="enrollment-code">{{ 'factorCode' | t }}</label
-                ><input
-                  hlmInput
-                  id="enrollment-code"
-                  name="code"
-                  [(ngModel)]="code"
-                  autocomplete="one-time-code"
-                  inputmode="numeric"
-                  pattern="[0-9]{6}"
-                  required
-                />
-              </div>
-              <button hlmBtn [disabled]="busy() || confirmation.invalid">
-                {{ 'confirmFactor' | t }}
-              </button>
-            </form>
-          }
-          @if (codes().length) {
-            <div hlmAlert role="status">
-              <h3 hlmAlertTitle>{{ 'saveRecovery' | t }}</h3>
-              <p hlmAlertDescription>{{ 'recoveryHelp' | t }}</p>
-              <ul class="grid grid-cols-2 gap-2 mt-3">
-                @for (item of codes(); track item) {
-                  <li>
-                    <code>{{ item }}</code>
-                  </li>
-                }
-              </ul>
-              <button hlmBtn variant="outline" class="mt-3 mr-2" (click)="copyCodes()">
-                {{ 'copyRecoveryCodes' | t }}</button
-              ><button hlmBtn variant="outline" class="mt-3" (click)="codes.set([])">
-                {{ 'savedRecovery' | t }}
-              </button>
-            </div>
-          }
-          <hlm-separator />
-          <h3 class="text-xl font-semibold">{{ 'passkeys' | t }}</h3>
-          <p>{{ 'passkeysHelp' | t }}</p>
-          <ul class="flex flex-col gap-3">
-            @for (key of user.passkeys; track key.id) {
-              <li class="flex flex-wrap items-center gap-3">
-                <span class="break-all">{{ key.name }}</span
-                ><button
+            <div class="flex flex-wrap gap-3">
+              @if (!user.mfaEnabled) {
+                <button hlmBtn [disabled]="busy()" (click)="chooseAction('enroll')">
+                  {{ 'enrollAuthenticator' | t }}
+                </button>
+              } @else {
+                <button
                   hlmBtn
                   variant="outline"
                   [disabled]="busy()"
-                  [attr.aria-label]="('remove' | t) + ': ' + key.name"
-                  (click)="chooseAction('remove', key.id)"
+                  (click)="chooseAction('recovery')"
                 >
-                  {{ 'remove' | t }}
+                  {{ 'rotateRecovery' | t }}
                 </button>
-              </li>
-            } @empty {
-              <li>
-                <div hlmEmpty>
-                  <div hlmEmptyHeader>
-                    <p hlmEmptyTitle>{{ 'noPasskeys' | t }}</p>
-                  </div>
-                </div>
-              </li>
-            }
-          </ul>
-          @if (passkeys.supported) {
-            <div hlmField>
-              <label hlmFieldLabel for="passkey-name">{{ 'passkeyName' | t }}</label
-              ><input hlmInput id="passkey-name" [(ngModel)]="keyName" maxlength="80" />
+                @if (!user.mfaRequired || user.passkeys.length > 0 || user.emailMfaEnabled) {
+                  <button
+                    hlmBtn
+                    variant="destructive"
+                    [disabled]="busy()"
+                    (click)="chooseAction('disable')"
+                  >
+                    {{ 'disableMfa' | t }}
+                  </button>
+                }
+              }
             </div>
-            <button
-              hlmBtn
-              variant="outline"
-              [disabled]="busy() || !keyName"
-              (click)="chooseAction('register')"
-            >
-              {{ 'addPasskey' | t }}
-            </button>
-          } @else {
-            <div hlmAlert>
-              <p hlmAlertDescription>{{ 'passkeysUnsupported' | t }}</p>
-            </div>
-          }
-          @if (action()) {
-            <section class="grid gap-4 rounded-md border p-4" aria-labelledby="proof-title">
-              <h3 id="proof-title" class="font-semibold">{{ actionLabel() | t }}</h3>
-              <p class="text-sm text-muted-foreground">{{ 'emailProofHelp' | t }}</p>
-              <div hlmField>
-                <label hlmFieldLabel for="proof-password">{{ 'password' | t }}</label
-                ><input
-                  hlmInput
-                  id="proof-password"
-                  type="password"
-                  autocomplete="current-password"
-                  [(ngModel)]="password"
-                />
-              </div>
-              @if (user.mfaEnabled) {
+            @if (enrollment(); as setup) {
+              <p>{{ 'authenticatorSetupHelp' | t }}</p>
+              <code class="break-all select-all">{{ setup.key }}</code>
+              <form
+                #confirmation="ngForm"
+                (ngSubmit)="confirmation.valid && confirm()"
+                class="flex flex-col gap-3"
+              >
                 <div hlmField>
-                  <label hlmFieldLabel for="proof-code">{{ 'factorCode' | t }}</label
+                  <label hlmFieldLabel for="enrollment-code">{{ 'factorCode' | t }}</label
                   ><input
                     hlmInput
-                    id="proof-code"
+                    id="enrollment-code"
+                    name="code"
+                    [(ngModel)]="code"
                     autocomplete="one-time-code"
-                    [(ngModel)]="proofCode"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    required
                   />
-                  <div hlmField orientation="horizontal">
-                    <hlm-checkbox inputId="proof-recovery" [(ngModel)]="recovery" />
-                    <label hlmFieldLabel for="proof-recovery">{{ 'useRecovery' | t }}</label>
-                  </div>
                 </div>
-              }
-              <div class="flex gap-2">
-                <button
-                  hlmBtn
-                  [disabled]="busy() || !password || (user.mfaEnabled && !proofCode)"
-                  (click)="executeAction()"
-                >
-                  {{ actionLabel() | t }}</button
-                ><button hlmBtn variant="outline" (click)="cancelAction()">
-                  {{ 'cancel' | t }}
+                <button hlmBtn [disabled]="busy() || confirmation.invalid">
+                  {{ 'confirmFactor' | t }}
+                </button>
+              </form>
+            }
+            @if (codes().length) {
+              <div hlmAlert role="status">
+                <h3 hlmAlertTitle>{{ 'saveRecovery' | t }}</h3>
+                <p hlmAlertDescription>{{ 'recoveryHelp' | t }}</p>
+                <ul class="mt-3 grid grid-cols-2 gap-2">
+                  @for (item of codes(); track item) {
+                    <li>
+                      <code>{{ item }}</code>
+                    </li>
+                  }
+                </ul>
+                <button hlmBtn variant="outline" class="mt-3 mr-2" (click)="copyCodes()">
+                  {{ 'copyRecoveryCodes' | t }}</button
+                ><button hlmBtn variant="outline" class="mt-3" (click)="codes.set([])">
+                  {{ 'savedRecovery' | t }}
                 </button>
               </div>
-            </section>
+            }
+          </div>
+        </section>
+        <section hlmCard class="min-w-0">
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>{{ 'passkeys' | t }}</h2>
+            <p hlmCardDescription>{{ 'passkeysHelp' | t }}</p>
+          </div>
+          <div hlmCardContent class="flex flex-col gap-5">
+            <ul class="flex flex-col gap-3">
+              @for (key of user.passkeys; track key.id) {
+                <li class="flex flex-wrap items-center gap-3">
+                  <span class="break-all">{{ key.name }}</span
+                  ><button
+                    hlmBtn
+                    variant="outline"
+                    [disabled]="busy()"
+                    [attr.aria-label]="('remove' | t) + ': ' + key.name"
+                    (click)="chooseAction('remove', key.id)"
+                  >
+                    {{ 'remove' | t }}
+                  </button>
+                </li>
+              } @empty {
+                <li>
+                  <div hlmEmpty>
+                    <div hlmEmptyHeader>
+                      <p hlmEmptyTitle>{{ 'noPasskeys' | t }}</p>
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
+            @if (passkeys.supported) {
+              <div hlmField>
+                <label hlmFieldLabel for="passkey-name">{{ 'passkeyName' | t }}</label
+                ><input hlmInput id="passkey-name" [(ngModel)]="keyName" maxlength="80" />
+              </div>
+              <button
+                hlmBtn
+                variant="outline"
+                [disabled]="busy() || !keyName"
+                (click)="chooseAction('register')"
+              >
+                {{ 'addPasskey' | t }}
+              </button>
+            } @else {
+              <div hlmAlert>
+                <p hlmAlertDescription>{{ 'passkeysUnsupported' | t }}</p>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+      @if (action()) {
+        <section
+          class="mt-6 grid max-w-(--form-content-width) gap-4 rounded-md border p-4"
+          aria-labelledby="proof-title"
+        >
+          <h3 id="proof-title" class="font-semibold">{{ actionLabel() | t }}</h3>
+          <p class="text-sm text-muted-foreground">{{ 'emailProofHelp' | t }}</p>
+          <div hlmField>
+            <label hlmFieldLabel for="proof-password">{{ 'password' | t }}</label
+            ><input
+              hlmInput
+              id="proof-password"
+              type="password"
+              autocomplete="current-password"
+              [(ngModel)]="password"
+            />
+          </div>
+          @if (user.mfaEnabled) {
+            <div hlmField>
+              <label hlmFieldLabel for="proof-code">{{ 'factorCode' | t }}</label
+              ><input
+                hlmInput
+                id="proof-code"
+                autocomplete="one-time-code"
+                [(ngModel)]="proofCode"
+              />
+              <div hlmField orientation="horizontal">
+                <hlm-checkbox inputId="proof-recovery" [(ngModel)]="recovery" />
+                <label hlmFieldLabel for="proof-recovery">{{ 'useRecovery' | t }}</label>
+              </div>
+            </div>
           }
-        </div>
-      </section>
+          <div class="flex gap-2">
+            <button
+              hlmBtn
+              [disabled]="busy() || !password || (user.mfaEnabled && !proofCode)"
+              (click)="executeAction()"
+            >
+              {{ actionLabel() | t }}</button
+            ><button hlmBtn variant="outline" (click)="cancelAction()">
+              {{ 'cancel' | t }}
+            </button>
+          </div>
+        </section>
+      }
       @if (isBootstrapAccount(user.email)) {
         <div hlmAlert class="mt-6">
           <p hlmAlertDescription>{{ 'bootstrapRecoveryHelp' | t }}</p>

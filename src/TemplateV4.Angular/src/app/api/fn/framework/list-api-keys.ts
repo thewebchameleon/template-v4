@@ -7,14 +7,24 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { ApiKeyItem } from '../../models/api-key-item';
+import { ApiKeyPage } from '../../models/api-key-page';
 
 export interface ListApiKeys$Params {
+  Search?: string;
+  PageNumber?: number;
+  PageSize?: number;
+  Sort?: string;
+  Direction?: string;
 }
 
-export function listApiKeys(http: HttpClient, rootUrl: string, params?: ListApiKeys$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ApiKeyItem>>> {
+export function listApiKeys(http: HttpClient, rootUrl: string, params?: ListApiKeys$Params, context?: HttpContext): Observable<StrictHttpResponse<ApiKeyPage>> {
   const rb = new RequestBuilder(rootUrl, listApiKeys.PATH, 'get');
   if (params) {
+    rb.query('Search', params.Search, {});
+    rb.query('PageNumber', params.PageNumber, {});
+    rb.query('PageSize', params.PageSize, {});
+    rb.query('Sort', params.Sort, {});
+    rb.query('Direction', params.Direction, {});
   }
 
   return http.request(
@@ -22,7 +32,7 @@ export function listApiKeys(http: HttpClient, rootUrl: string, params?: ListApiK
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<ApiKeyItem>>;
+      return r as StrictHttpResponse<ApiKeyPage>;
     })
   );
 }

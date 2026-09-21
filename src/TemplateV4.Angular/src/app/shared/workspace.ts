@@ -306,6 +306,17 @@ export class PageState {
     <div class="workspace-pager-pages">
       <button
         hlmBtn
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="page() <= 1 || busy()"
+        (click)="pageChange.emit(1)"
+      >
+        {{ 'firstPage' | t }}
+      </button>
+      <button
+        hlmBtn
+        type="button"
         variant="ghost"
         size="sm"
         [disabled]="page() <= 1 || busy()"
@@ -329,12 +340,23 @@ export class PageState {
       }
       <button
         hlmBtn
+        type="button"
         variant="ghost"
         size="sm"
         [disabled]="page() >= pages() || busy()"
         (click)="pageChange.emit(page() + 1)"
       >
         {{ 'next' | t }}
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="sm"
+        [disabled]="page() >= pages() || busy()"
+        (click)="pageChange.emit(pages())"
+      >
+        {{ 'lastPage' | t }}
       </button>
     </div>
   </nav>`,

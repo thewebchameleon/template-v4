@@ -25,6 +25,15 @@ export class WorkspaceApi {
   post<T = unknown>(path: string, body: unknown = {}) {
     return this.auth.action<T>(path, body);
   }
+  async delete(path: string) {
+    const headers = await this.auth.browserHeaders();
+    await firstValueFrom(
+      this.http.delete(`${this.runtime.apiUrl}/api/v1/auth/${path}`, {
+        headers,
+        withCredentials: true,
+      }),
+    );
+  }
   async upload(file: File, progress: (value: number) => void, parentId = '', signal?: AbortSignal) {
     signal?.throwIfAborted();
     const headers = await this.auth.browserHeaders();

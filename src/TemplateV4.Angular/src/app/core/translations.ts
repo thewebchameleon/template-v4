@@ -416,8 +416,10 @@ export const dictionary: Record<string, [string, string]> = {
   disable: ['Disable', 'Deaktiveer'],
   enable: ['Enable', 'Aktiveer'],
   search: ['Search users', 'Soek gebruikers'],
+  firstPage: ['First', 'Eerste'],
   previous: ['Previous', 'Vorige'],
   next: ['Next', 'Volgende'],
+  lastPage: ['Last', 'Laaste'],
   people: ['People & access', 'Mense en toegang'],
   intro: [
     'Manage your team and their access to the application.',

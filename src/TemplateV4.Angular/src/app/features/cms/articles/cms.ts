@@ -124,6 +124,13 @@ export class CmsPage {
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([
+      column.accessor('title', {
+        header: this.i18n.text('cmsTitle'),
+        cell: ({ row }) =>
+          flexRenderComponent(RecordIdentity, {
+            inputs: { label: row.original.title, link: '/cms/' + row.original.id },
+          }),
+      }),
       column.accessor('published', {
         header: this.i18n.text('status'),
         cell: ({ row }) => {
@@ -145,13 +152,6 @@ export class CmsPage {
             },
           });
         },
-      }),
-      column.accessor('title', {
-        header: this.i18n.text('cmsTitle'),
-        cell: ({ row }) =>
-          flexRenderComponent(RecordIdentity, {
-            inputs: { label: row.original.title, link: '/cms/' + row.original.id },
-          }),
       }),
       column.accessor('updatedAt', {
         header: this.i18n.text('cmsUpdated'),

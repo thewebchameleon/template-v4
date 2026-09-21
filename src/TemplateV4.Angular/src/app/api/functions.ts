@@ -261,8 +261,12 @@ export type { ListApiKeys$Params as ListApiKeys$Params } from './fn/framework/li
 export { listApiKeys as listApiKeys } from './fn/framework/list-api-keys';
 export type { CreateApiKey$Params as CreateApiKey$Params } from './fn/framework/create-api-key';
 export { createApiKey as createApiKey } from './fn/framework/create-api-key';
+export type { RotateApiKey$Params as RotateApiKey$Params } from './fn/framework/rotate-api-key';
+export { rotateApiKey as rotateApiKey } from './fn/framework/rotate-api-key';
 export type { RevokeApiKey$Params as RevokeApiKey$Params } from './fn/framework/revoke-api-key';
 export { revokeApiKey as revokeApiKey } from './fn/framework/revoke-api-key';
+export type { DeleteApiKey$Params as DeleteApiKey$Params } from './fn/framework/delete-api-key';
+export { deleteApiKey as deleteApiKey } from './fn/framework/delete-api-key';
 export type { ListContactEnquiries$Params as ListContactEnquiries$Params } from './fn/framework/list-contact-enquiries';
 export { listContactEnquiries as listContactEnquiries } from './fn/framework/list-contact-enquiries';
 export type { MarkContactEnquiryRead$Params as MarkContactEnquiryRead$Params } from './fn/framework/mark-contact-enquiry-read';

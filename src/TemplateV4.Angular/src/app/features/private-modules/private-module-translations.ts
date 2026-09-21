@@ -9,6 +9,7 @@ export const privateModuleDictionary: Record<string, [string, string]> = {
     'Ontplooi die toepassing weer om toegewysde modules en versoenbare opdaterings te installeer.',
   ],
   privateModuleRegister: ['Register application', 'Registreer toepassing'],
+  privateModuleRegisterAction: ['Register', 'Registreer'],
   privateModuleRegisterHelp: [
     'Registration creates an environment credential. It does not grant access to any module.',
     'Registrasie skep ’n omgewingsbewys. Dit verleen nie toegang tot enige module nie.',
