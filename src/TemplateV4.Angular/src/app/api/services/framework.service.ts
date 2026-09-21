@@ -254,6 +254,8 @@ import { listPublicFileStorage } from '../fn/framework/list-public-file-storage'
 import { ListPublicFileStorage$Params } from '../fn/framework/list-public-file-storage';
 import { listRegistrationRequests } from '../fn/framework/list-registration-requests';
 import { ListRegistrationRequests$Params } from '../fn/framework/list-registration-requests';
+import { listSessionAudit } from '../fn/framework/list-session-audit';
+import { ListSessionAudit$Params } from '../fn/framework/list-session-audit';
 import { listSessions } from '../fn/framework/list-sessions';
 import { ListSessions$Params } from '../fn/framework/list-sessions';
 import { listSupportTickets } from '../fn/framework/list-support-tickets';
@@ -405,6 +407,7 @@ import { SaveWebPushPreferences$Params } from '../fn/framework/save-web-push-pre
 import { SecuritySettings } from '../models/security-settings';
 import { sendEmailMfaCode } from '../fn/framework/send-email-mfa-code';
 import { SendEmailMfaCode$Params } from '../fn/framework/send-email-mfa-code';
+import { SessionAuditPage } from '../models/session-audit-page';
 import { SessionPage } from '../models/session-page';
 import { setBackgroundJobSchedule } from '../fn/framework/set-background-job-schedule';
 import { SetBackgroundJobSchedule$Params } from '../fn/framework/set-background-job-schedule';
@@ -701,6 +704,33 @@ export class FrameworkService extends BaseService {
     const resp = this.revokeSession$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listSessionAudit()` */
+  static readonly ListSessionAuditPath = '/api/v1/auth/sessions/{id}/audit';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listSessionAudit()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSessionAudit$Response(params: ListSessionAudit$Params, context?: HttpContext): Observable<StrictHttpResponse<SessionAuditPage>> {
+    const obs = listSessionAudit(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listSessionAudit$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSessionAudit(params: ListSessionAudit$Params, context?: HttpContext): Observable<SessionAuditPage> {
+    const resp = this.listSessionAudit$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<SessionAuditPage>): SessionAuditPage => r.body)
     );
   }
 

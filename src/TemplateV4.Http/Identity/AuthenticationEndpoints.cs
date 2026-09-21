@@ -47,9 +47,12 @@ public static class AuthenticationEndpoints
         }).RequireAuthorization().WithName("ListSessions").Produces<SessionPage>();
         group.MapDelete("/sessions/{id:guid}", async (Guid id, AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
         {
-            await service.Revoke(EndpointSecurity.Actor(principal), id, ct);
+            await service.Revoke(EndpointSecurity.Actor(principal), id, ct, EndpointSecurity.SessionId(principal));
             return Results.NoContent();
         }).RequireAuthorization().WithName("RevokeSession");
+        group.MapGet("/sessions/{id:guid}/audit", async (Guid id, [AsParameters] SessionAuditQuery query, AuthService service, ClaimsPrincipal principal, CancellationToken ct) =>
+                (await service.ListSessionAudit(EndpointSecurity.Actor(principal), id, query, ct)).ToHttp())
+            .RequireAuthorization().WithName("ListSessionAudit").Produces<SessionAuditPage>();
         group.MapPost("/forgot-password", async (ForgotPasswordRequest request, AccountService service, CancellationToken ct) =>
         {
             await service.Forgot(request, ct);

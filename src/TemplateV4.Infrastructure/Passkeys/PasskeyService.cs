@@ -15,6 +15,10 @@ public sealed record PasskeyOptions(string ChallengeId, JsonElement Options);
 
 public sealed record PasskeyCredential(string ChallengeId, JsonElement Credential, string Name = "Passkey");
 
+public sealed record PasskeyRegistrationRequest(SecurityProof Proof, Guid DeviceId);
+
+public sealed record PasskeyRegistrationCredential(string ChallengeId, JsonElement Credential, string Name, Guid DeviceId);
+
 public sealed record PasskeyChallengeRequest(string ChallengeId);
 
 public sealed record RemovePasskeyRequest(string Id, SecurityProof Proof);

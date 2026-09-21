@@ -27,12 +27,12 @@ public sealed partial class AuthService
         return true;
     }
 
-    public async Task Revoke(Guid userId, Guid? sessionId, CancellationToken ct)
+    public async Task Revoke(Guid userId, Guid? sessionId, CancellationToken ct, Guid? actorSessionId = null)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.Sessions.Where(x => x.UserId == userId && (sessionId == null || x.Id == sessionId) && x.RevokedAt == null)
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
-        Audit("auth.session_revoked", userId); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
+        Audit("auth.session_revoked", userId, actorSessionId); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
     }
     public async Task<Result<SessionPage>> ListSessions(Guid userId, Guid currentSessionId, SessionQuery query, CancellationToken ct)
     {
@@ -69,11 +69,39 @@ public sealed partial class AuthService
             .ToArrayAsync(ct);
         return Result<SessionPage>.Success(new(items, total, query.PageNumber, query.PageSize));
     }
+
+    public async Task<Result<SessionAuditPage>> ListSessionAudit(Guid userId, Guid sessionId, SessionAuditQuery query, CancellationToken ct)
+    {
+        if (query.PageNumber is < 1 or > 10000 || query.PageSize is not (5 or 10 or 25 or 50) ||
+            query.Sort is not ("at" or "action" or "subjectName" or "outcome") || query.Direction is not ("asc" or "desc"))
+            return Result<SessionAuditPage>.Fail("validation.failed", ErrorKind.Validation);
+        if (!await db.Sessions.AsNoTracking().AnyAsync(x => x.Id == sessionId && x.UserId == userId, ct))
+            return Result<SessionAuditPage>.Fail("auth.session_invalid", ErrorKind.NotFound);
+
+        var entries = db.Audit.AsNoTracking().Where(x => x.SessionId == sessionId);
+        var total = await entries.CountAsync(ct);
+        var descending = query.Direction == "desc";
+        var ordered = query.Sort switch
+        {
+            "action" when descending => entries.OrderByDescending(x => x.Action).ThenByDescending(x => x.Id),
+            "action" => entries.OrderBy(x => x.Action).ThenBy(x => x.Id),
+            "subjectName" when descending => entries.OrderByDescending(x => x.SubjectNameSnapshot).ThenByDescending(x => x.Id),
+            "subjectName" => entries.OrderBy(x => x.SubjectNameSnapshot).ThenBy(x => x.Id),
+            "outcome" when descending => entries.OrderByDescending(x => x.Outcome).ThenByDescending(x => x.Id),
+            "outcome" => entries.OrderBy(x => x.Outcome).ThenBy(x => x.Id),
+            _ when descending => entries.OrderByDescending(x => x.At).ThenByDescending(x => x.Id),
+            _ => entries.OrderBy(x => x.At).ThenBy(x => x.Id)
+        };
+        var items = await ordered.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize)
+            .Select(x => new SessionAuditItem(x.Id, x.Action, x.SubjectNameSnapshot, x.Outcome ?? "success", x.At))
+            .ToArrayAsync(ct);
+        return Result<SessionAuditPage>.Success(new(items, total, query.PageNumber, query.PageSize));
+    }
     public async Task Logout(string? raw, CancellationToken ct)
     {
         if (raw is null || raw.Length > 256) return;
         var hash = Hash(raw);
         var session = await (from token in db.RefreshTokens join s in db.Sessions on token.SessionId equals s.Id where token.Hash == hash select s).AsNoTracking().SingleOrDefaultAsync(ct);
-        if (session is not null) await Revoke(session.UserId, session.Id, ct);
+        if (session is not null) await Revoke(session.UserId, session.Id, ct, session.Id);
     }
 }

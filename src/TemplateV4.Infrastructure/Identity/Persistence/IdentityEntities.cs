@@ -70,3 +70,9 @@ public sealed class RefreshToken
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? ConsumedAt { get; set; }
 }
+public sealed class PasskeyDevice
+{
+    public byte[] CredentialId { get; set; } = [];
+    public Guid UserId { get; set; }
+    public Guid DeviceId { get; set; }
+}

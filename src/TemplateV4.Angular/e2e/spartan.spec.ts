@@ -175,6 +175,38 @@ test('forgot password captures the recovery email in a dialog', async ({ page })
   expect(recoveryEmail).toBe('recover@example.test');
 });
 
+test('expired security-factor verification signs out and returns through login', async ({
+  page,
+}) => {
+  await mockApp(page);
+  await page.route('**/api/v1/auth/mfa/enroll', async (route) =>
+    route.fulfill({
+      status: 401,
+      json: {
+        code: 'auth.reauthentication_required',
+        title: 'Sign out and sign in again before changing security factors.',
+      },
+    }),
+  );
+  await page.goto('/me/security');
+  await page.getByRole('button', { name: 'Set up authenticator', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Set up authenticator' });
+  await dialog.getByLabel('Password', { exact: true }).fill('Password1!');
+  await dialog.getByRole('button', { name: 'Set up authenticator', exact: true }).click();
+
+  await expect(page).toHaveURL(/\/login\?returnUrl=%2Fme%2Fsecurity$/);
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await expect(
+    page.getByText(
+      'Your verification expired. Sign in again to continue; we’ll return you to where you left off.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Sign out and sign in again before changing security factors.', { exact: true }),
+  ).toHaveCount(0);
+});
+
 test('desktop sidebar exposes permission links, collapses, and signs out from the header', async ({
   page,
 }) => {

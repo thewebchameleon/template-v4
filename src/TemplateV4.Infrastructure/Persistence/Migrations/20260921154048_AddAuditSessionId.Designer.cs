@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TemplateV4.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FrameworkDb))]
-    partial class FrameworkDbModelSnapshot : ModelSnapshot
+    [Migration("20260921154048_AddAuditSessionId")]
+    partial class AddAuditSessionId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1736,26 +1739,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.ToTable("outbox", "messaging");
                 });
 
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PasskeyDevice", b =>
-                {
-                    b.Property<byte[]>("CredentialId")
-                        .HasMaxLength(1024)
-                        .HasColumnType("bytea");
-
-                    b.Property<Guid>("DeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("CredentialId");
-
-                    b.HasIndex("UserId", "DeviceId")
-                        .IsUnique();
-
-                    b.ToTable("passkey_devices", "identity");
-                });
-
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentMethodSettingsRow", b =>
                 {
                     b.Property<int>("Id")
@@ -2884,15 +2867,6 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("SharedById")
                         .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PasskeyDevice", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUserPasskey<System.Guid>", null)
-                        .WithOne()
-                        .HasForeignKey("TemplateV4.Infrastructure.Persistence.PasskeyDevice", "CredentialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Persistence.PaymentOrderRow", b =>

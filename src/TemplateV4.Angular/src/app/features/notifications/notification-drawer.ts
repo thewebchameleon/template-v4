@@ -8,6 +8,7 @@ import { NgScrollbar } from 'ngx-scrollbar';
 import { NotificationItem, NotificationPage } from '../../api/models';
 import { Auth } from '../../core/auth';
 import { I18n } from '../../core/i18n';
+import { UiSounds } from '../../core/ui-sounds';
 import { UnreadNotifications } from './unread-notifications';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
@@ -171,6 +172,7 @@ export class NotificationDrawer {
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
   readonly i18n = inject(I18n);
+  readonly sounds = inject(UiSounds);
   readonly unread = inject(UnreadNotifications);
   readonly router = inject(Router);
   readonly data = new Resource<NotificationPage>();
@@ -220,6 +222,7 @@ export class NotificationDrawer {
       await this.api.post('notifications/read?id=' + encodeURIComponent(item.id));
       await this.animateDismiss(element);
       this.applyRead(item.id);
+      this.sounds.play('complete');
     } catch {
       /* Request errors are already reported centrally. */
     } finally {
@@ -270,6 +273,7 @@ export class NotificationDrawer {
     try {
       await this.api.post('notifications/read');
       this.applyRead();
+      this.sounds.play('complete');
     } catch {
       /* Request errors are already reported centrally. */
     } finally {

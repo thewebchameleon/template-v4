@@ -129,14 +129,26 @@ test('required setup, passkey enrollment, policy settings and passkey sign-in', 
     })),
   ).toEqual([]);
   await page.getByRole('button', { name: 'Set up authenticator', exact: true }).click();
-  await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Set up authenticator', exact: true }).last().click();
-  const setupKey = await page.locator('code').first().innerText();
-  await page.getByLabel('Authenticator or recovery code', { exact: true }).fill(totp(setupKey));
-  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
-  await expect(page.getByText('Save your recovery codes', { exact: true })).toBeVisible();
-  const recovery = await page.locator('li code').first().innerText();
-  await page.getByRole('button', { name: 'I have saved these codes', exact: true }).click();
+  const passwordDialog = page.getByRole('dialog', { name: 'Set up authenticator' });
+  await expect(passwordDialog).toBeVisible();
+  await passwordDialog.getByLabel('Password', { exact: true }).fill(password);
+  await passwordDialog.getByRole('button', { name: 'Set up authenticator', exact: true }).click();
+  const setupDialog = page.getByRole('dialog', { name: 'Scan the QR code' });
+  await expect(setupDialog).toBeVisible();
+  await expect(
+    setupDialog.getByRole('img', { name: 'QR code for setting up your authenticator app' }),
+  ).toBeVisible();
+  await expect(setupDialog.getByLabel('Six-digit code', { exact: true })).toBeFocused();
+  await setupDialog.getByRole('button', { name: 'Not working?', exact: true }).click();
+  const setupKey = await setupDialog.locator('code').first().innerText();
+  await setupDialog.getByLabel('Six-digit code', { exact: true }).fill(totp(setupKey));
+  await setupDialog.getByRole('button', { name: 'Confirm', exact: true }).click();
+  const recoveryDialog = page.getByRole('dialog', { name: 'Save your recovery codes' });
+  await expect(recoveryDialog).toBeVisible();
+  const recovery = await recoveryDialog.locator('li code').first().innerText();
+  await recoveryDialog
+    .getByRole('button', { name: 'I have saved these codes', exact: true })
+    .click();
   await page.locator('.app-header').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByLabel('Username', { exact: true }).fill(email);

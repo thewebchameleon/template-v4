@@ -53,10 +53,10 @@ public static class SecurityEndpoints
         group.MapPost("/passkeys/mfa", async (PasskeyCredential request, PasskeyService service, HttpContext http, CancellationToken ct) =>
                 EndpointSecurity.Tokens(await service.CompleteMfa(request, http, ct), http.Response))
             .WithName("CompletePasskeyMfa").Produces<AccessResponse>();
-        group.MapPost("/passkeys/register-options", async (SecurityProof request, PasskeyService service, HttpContext http, CancellationToken ct) =>
+        group.MapPost("/passkeys/register-options", async (PasskeyRegistrationRequest request, PasskeyService service, HttpContext http, CancellationToken ct) =>
                 (await service.RegistrationOptions(EndpointSecurity.Actor(http.User), request, http, ct)).ToHttp())
             .RequireAuthorization().WithName("PasskeyRegistrationOptions").Produces<PasskeyOptions>();
-        group.MapPost("/passkeys/register", async (PasskeyCredential request, PasskeyService service, HttpContext http, CancellationToken ct) =>
+        group.MapPost("/passkeys/register", async (PasskeyRegistrationCredential request, PasskeyService service, HttpContext http, CancellationToken ct) =>
                 (await service.Register(EndpointSecurity.Actor(http.User), EndpointSecurity.SessionId(http.User), request, http, ct)).ToHttp())
             .RequireAuthorization().WithName("RegisterPasskey");
         group.MapPost("/passkeys/remove", async (RemovePasskeyRequest request, PasskeyService service, ClaimsPrincipal principal, CancellationToken ct) =>

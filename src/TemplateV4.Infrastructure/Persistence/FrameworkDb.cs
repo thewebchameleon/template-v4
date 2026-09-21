@@ -10,6 +10,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
     public DbSet<UserProfile> Profiles => Set<UserProfile>();
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasskeyDevice> PasskeyDevices => Set<PasskeyDevice>();
     public DbSet<OutboxMessage> Outbox => Set<OutboxMessage>();
     public DbSet<InboxReceipt> Inbox => Set<InboxReceipt>();
     public DbSet<IdempotencyRecord> Idempotency => Set<IdempotencyRecord>();
@@ -37,6 +38,15 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.CredentialId).HasMaxLength(1024);
             entity.OwnsOne(x => x.Data).ToJson();
             entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).IsRequired();
+        });
+        model.Entity<PasskeyDevice>(entity =>
+        {
+            entity.ToTable("passkey_devices", "identity");
+            entity.HasKey(x => x.CredentialId);
+            entity.Property(x => x.CredentialId).HasMaxLength(1024);
+            entity.HasIndex(x => new { x.UserId, x.DeviceId }).IsUnique();
+            entity.HasOne<IdentityUserPasskey<Guid>>().WithOne()
+                .HasForeignKey<PasskeyDevice>(x => x.CredentialId).OnDelete(DeleteBehavior.Cascade);
         });
         foreach (var entity in model.Model.GetEntityTypes()) entity.SetSchema("identity");
         model.Entity<TemplateV4.Infrastructure.Licensing.LicenseState>(entity =>
@@ -141,6 +151,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
             entity.Property(x => x.ChangesJson).HasColumnType("jsonb");
             entity.Property(x => x.RelatedEntitiesJson).HasColumnType("jsonb");
             entity.Property(x => x.MetadataJson).HasColumnType("jsonb");
+            entity.HasIndex(x => new { x.SessionId, x.At });
             entity.HasIndex(x => new { x.SubjectId, x.At });
             entity.HasIndex(x => new { x.At, x.Id });
             entity.HasIndex(x => new { x.ActorId, x.At });

@@ -16,6 +16,7 @@ import { Translate } from '../../../core/i18n';
 import { Passkeys } from '../../passkeys/passkeys';
 import { MfaEnrollment } from '../../../api/models/mfa-enrollment';
 import { protectUnload } from '../../../shared/confirmation';
+import { Notifications } from '../../notifications/notifications';
 
 @Component({
   selector: 'app-mfa-setup',
@@ -175,11 +176,6 @@ import { protectUnload } from '../../../shared/confirmation';
           <p hlmFieldDescription>{{ 'passkeysUnsupported' | t }}</p>
         }
       }
-      @if (reauthenticationRequired()) {
-        <div hlmAlert variant="destructive" role="alert">
-          <p hlmAlertDescription>{{ 'reauthenticationRequired' | t }}</p>
-        </div>
-      }
       @if (busy() && !passkeyBusy() && !backToSignInBusy()) {
         <div role="status" class="flex items-center gap-2"><hlm-spinner />{{ 'loading' | t }}</div>
       }
@@ -204,6 +200,7 @@ export class MfaSetupPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly notifications = inject(Notifications);
   readonly enrollment = signal<MfaEnrollment | null>(null);
   readonly qrSvg = signal<SafeHtml | null>(null);
   readonly manualSetup = signal(false);
@@ -212,7 +209,6 @@ export class MfaSetupPage {
   readonly busy = signal(false);
   readonly passkeyBusy = signal(false);
   readonly backToSignInBusy = signal(false);
-  readonly reauthenticationRequired = signal(false);
   readonly otpSlots = [0, 1, 2, 3, 4, 5];
   code = '';
 
@@ -231,8 +227,9 @@ export class MfaSetupPage {
       if (
         error instanceof HttpErrorResponse &&
         error.error?.code === 'auth.reauthentication_required'
-      )
-        this.reauthenticationRequired.set(true);
+      ) {
+        await this.redirectForReauthentication();
+      }
       // HTTP and passkey failures are displayed by their existing error handlers.
     } finally {
       this.busy.set(false);
@@ -260,16 +257,12 @@ export class MfaSetupPage {
     this.passkeyBusy.set(true);
     try {
       await this.run(async () => {
-        await this.passkeys.register({ password: '' }, this.generatedPasskeyName());
+        await this.passkeys.register({ password: '' });
         this.configured.set(true);
       });
     } finally {
       this.passkeyBusy.set(false);
     }
-  }
-  private generatedPasskeyName() {
-    const platform = typeof navigator === 'undefined' ? '' : navigator.platform;
-    return platform ? `Browser (${platform})` : 'Browser';
   }
   async copyCodes() {
     await navigator.clipboard.writeText(this.codes().join('\n'));
@@ -306,5 +299,17 @@ export class MfaSetupPage {
     } finally {
       this.backToSignInBusy.set(false);
     }
+  }
+  private async redirectForReauthentication() {
+    this.enrollment.set(null);
+    this.qrSvg.set(null);
+    this.codes.set([]);
+    this.manualSetup.set(false);
+    this.code = '';
+    await this.auth.logout();
+    await this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.route.snapshot.queryParamMap.get('returnUrl') },
+    });
+    this.notifications.info('reauthenticationRedirected');
   }
 }

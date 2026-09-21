@@ -3,6 +3,7 @@ namespace TemplateV4.Infrastructure.Persistence;
 public sealed class AuditEntry
 {
     public long Id { get; set; }
+    public Guid? SessionId { get; set; }
     public Guid? ActorId { get; set; }
     public Guid? SubjectId { get; set; }
     public string Action { get; set; } = "";

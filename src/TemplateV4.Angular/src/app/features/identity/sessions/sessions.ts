@@ -1,5 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import {
   DebouncedSearch,
@@ -34,11 +37,27 @@ interface SessionPage {
   pageSize: number;
 }
 
+interface SessionAuditItem {
+  id: number;
+  action: string;
+  subjectName: string | null;
+  outcome: string;
+  at: string;
+}
+
+interface SessionAuditPage {
+  items: SessionAuditItem[];
+  total: number;
+  pageNumber: number;
+  pageSize: number;
+}
+
 const column = createColumnHelper<DataTableFeatures, Session>();
+const auditColumn = createColumnHelper<DataTableFeatures, SessionAuditItem>();
 
 @Component({
   selector: 'app-sessions',
-  imports: [WorkspaceUi, DataTable],
+  imports: [WorkspaceUi, DataTable, HlmDrawerImports, HlmScrollAreaImports, NgScrollbar],
   template: `
     <section hlmCard>
       <div hlmCardHeader>
@@ -63,6 +82,8 @@ const column = createColumnHelper<DataTableFeatures, Session>();
         <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
           ><app-data-table
             [columns]="columns()"
+            [rowActionLabel]="detailsLabel"
+            (rowAction)="select($event)"
             [data]="data.value()?.items ?? []"
             [loading]="data.state() === 'loading' || data.refreshing()"
             [loadingText]="'loading' | t"
@@ -81,6 +102,93 @@ const column = createColumnHelper<DataTableFeatures, Session>();
         /></app-page-state>
       </div>
     </section>
+    <hlm-drawer
+      direction="right"
+      [state]="selected() ? 'open' : 'closed'"
+      [closeLabel]="'close' | t"
+      (stateChanged)="$event === 'closed' && selected.set(null)"
+    >
+      <hlm-drawer-content
+        *hlmDrawerPortal
+        class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-4xl"
+      >
+        <hlm-drawer-header>
+          <h2 hlmDrawerTitle>{{ 'sessionDetails' | t }}</h2>
+          <p hlmDrawerDescription>{{ 'sessionDetailsHelp' | t }}</p>
+        </hlm-drawer-header>
+        <ng-scrollbar
+          hlm
+          hlmDrawerBody
+          orientation="vertical"
+          role="region"
+          [attr.aria-label]="'sessionDetails' | t"
+          class="min-h-0 flex-1"
+        >
+          @if (selected(); as session) {
+            <div class="grid gap-5">
+              <dl class="grid gap-4 sm:grid-cols-2">
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'device' | t }}</dt>
+                  <dd class="font-medium">{{ session.device }}</dd>
+                </div>
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'ipAddress' | t }}</dt>
+                  <dd class="font-medium">{{ session.ipAddress }}</dd>
+                </div>
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'status' | t }}</dt>
+                  <dd class="font-medium">{{ (session.current ? 'currentSession' : 'active') | t }}</dd>
+                </div>
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'lastActivity' | t }}</dt>
+                  <dd class="font-medium">{{ i18n.date(session.lastActivityAt) }}</dd>
+                </div>
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'createdAt' | t }}</dt>
+                  <dd class="font-medium">{{ i18n.date(session.createdAt) }}</dd>
+                </div>
+                <div class="grid gap-1">
+                  <dt class="text-muted-foreground">{{ 'expiresAt' | t }}</dt>
+                  <dd class="font-medium">{{ i18n.date(session.expiresAt) }}</dd>
+                </div>
+              </dl>
+
+              <section aria-labelledby="session-audit-heading">
+                <div class="mb-4 grid gap-1">
+                  <h3 id="session-audit-heading" class="font-semibold">{{ 'sessionAudit' | t }}</h3>
+                  <p class="text-muted-foreground">{{ 'sessionAuditHelp' | t }}</p>
+                </div>
+                <app-page-state
+                  [state]="auditData.state()"
+                  [refreshError]="auditData.refreshError()"
+                  (retry)="loadAudit()"
+                  ><app-data-table
+                    [columns]="auditColumns()"
+                    [data]="auditData.value()?.items ?? []"
+                    [loading]="auditData.state() === 'loading' || auditData.refreshing()"
+                    [loadingText]="'loading' | t"
+                    [emptyText]="'sessionAuditEmpty' | t"
+                    [ariaLabel]="'sessionAudit' | t"
+                    [sortColumn]="auditSort().column"
+                    [sortDirection]="auditSort().direction"
+                    (sortChange)="sortAudit($event)" /><app-list-pager
+                    [total]="auditData.value()?.total ?? 0"
+                    [page]="auditPage()"
+                    [size]="auditPageSize()"
+                    [busy]="auditData.state() === 'loading' || auditData.refreshing()"
+                    [showSizePicker]="true"
+                    (sizeChange)="setAuditPageSize($event)"
+                    (pageChange)="setAuditPage($event)"
+                /></app-page-state>
+              </section>
+            </div>
+          }
+        </ng-scrollbar>
+        <hlm-drawer-footer>
+          <button hlmBtn type="button" variant="outline" hlmDrawerClose>{{ 'close' | t }}</button>
+        </hlm-drawer-footer>
+      </hlm-drawer-content>
+    </hlm-drawer>
   `,
 })
 export class SessionsPage {
@@ -92,9 +200,16 @@ export class SessionsPage {
 
   readonly i18n = inject(I18n);
   readonly data = new Resource<SessionPage>();
+  readonly auditData = new Resource<SessionAuditPage>();
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly busy = signal(false);
+  readonly selected = signal<Session | null>(null);
+  readonly auditPage = signal(1);
+  readonly auditPageSize = signal(DEFAULT_PAGE_SIZE);
+  readonly auditSort = signal<ServerSort>({ column: 'at', direction: 'desc' });
+  readonly detailsLabel = (session: Session) =>
+    `${this.i18n.text('sessionDetails')}: ${session.device} · ${session.ipAddress}`;
   readonly columns = computed(() => {
     this.i18n.culture();
     const busy = this.busy();
@@ -140,6 +255,27 @@ export class SessionsPage {
       }),
     ]);
   });
+  readonly auditColumns = computed(() => {
+    this.i18n.culture();
+    return auditColumn.columns([
+      auditColumn.accessor('at', {
+        header: this.i18n.text('actionDate'),
+        cell: ({ getValue }) => this.i18n.date(getValue()),
+      }),
+      auditColumn.accessor('action', {
+        header: this.i18n.text('activity'),
+        cell: ({ getValue }) => this.auditSummary(getValue()),
+      }),
+      auditColumn.accessor('subjectName', {
+        header: this.i18n.text('relatedRecord'),
+        cell: ({ getValue }) => getValue() || this.i18n.text('systemRecord'),
+      }),
+      auditColumn.accessor('outcome', {
+        header: this.i18n.text('auditOutcome'),
+        cell: ({ getValue }) => this.i18n.text('auditValue.' + getValue()),
+      }),
+    ]);
+  });
 
   constructor() {
     this.search.sync(this.query.text('search'));
@@ -174,6 +310,57 @@ export class SessionsPage {
 
   sort(value: ServerSort) {
     void this.query.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+
+  select(session: Session) {
+    this.selected.set(session);
+    this.auditPage.set(1);
+    this.auditPageSize.set(DEFAULT_PAGE_SIZE);
+    this.auditSort.set({ column: 'at', direction: 'desc' });
+    this.auditData.value.set(null);
+    this.auditData.state.set('loading');
+    void this.loadAudit();
+  }
+
+  async loadAudit() {
+    const session = this.selected();
+    if (!session) return;
+    const sort = this.auditSort();
+    await this.auditData.load((abortSignal) =>
+      this.api.get<SessionAuditPage>(
+        `sessions/${session.id}/audit`,
+        {
+          pageNumber: this.auditPage(),
+          pageSize: this.auditPageSize(),
+          sort: sort.column,
+          direction: sort.direction,
+        },
+        abortSignal,
+      ),
+    );
+  }
+
+  sortAudit(value: ServerSort) {
+    this.auditSort.set(value);
+    this.auditPage.set(1);
+    void this.loadAudit();
+  }
+
+  setAuditPage(page: number) {
+    this.auditPage.set(page);
+    void this.loadAudit();
+  }
+
+  setAuditPageSize(size: number) {
+    this.auditPageSize.set(size);
+    this.auditPage.set(1);
+    void this.loadAudit();
+  }
+
+  auditSummary(action: string) {
+    const key = 'audit.' + action;
+    const translated = this.i18n.text(key);
+    return translated === key ? action.replaceAll('.', ' · ').replaceAll('_', ' ') : translated;
   }
 
   async revoke(session: Session) {

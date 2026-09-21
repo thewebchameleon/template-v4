@@ -70,7 +70,8 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
       if (
         !request.context.get(QUIET_REQUEST) &&
         !request.url.endsWith('/auth/refresh') &&
-        error.error?.code !== 'auth.mfa_setup_required'
+        error.error?.code !== 'auth.mfa_setup_required' &&
+        error.error?.code !== 'auth.reauthentication_required'
       ) {
         const problem = {
           code: error.error?.code ?? 'network.failed',

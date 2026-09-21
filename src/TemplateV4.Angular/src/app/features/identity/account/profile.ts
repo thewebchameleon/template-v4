@@ -1,16 +1,22 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import * as QRCode from 'qrcode';
+import { BrnInputOtp } from '@spartan-ng/brain/input-otp';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmInputOtpImports } from '@spartan-ng/helm/input-otp';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { Auth } from '../../../core/auth';
 import { Passkeys } from '../../passkeys/passkeys';
@@ -35,11 +41,15 @@ type MfaProfile = ProfileResponse & {
     HlmButtonImports,
     HlmFieldImports,
     HlmInputImports,
+    BrnInputOtp,
+    HlmInputOtpImports,
     HlmCardImports,
     HlmCheckboxImports,
     HlmAlertImports,
     HlmEmptyImports,
     HlmBadgeImports,
+    HlmDialogImports,
+    HlmSpinnerImports,
     HlmTabsImports,
     Translate,
   ],
@@ -121,48 +131,25 @@ type MfaProfile = ProfileResponse & {
                 }
               }
             </div>
-            @if (enrollment(); as setup) {
-              <p>{{ 'authenticatorSetupHelp' | t }}</p>
-              <code class="break-all select-all">{{ setup.key }}</code>
-              <form
-                #confirmation="ngForm"
-                (ngSubmit)="confirmation.valid && confirm()"
-                class="flex flex-col gap-3"
-              >
-                <div hlmField>
-                  <label hlmFieldLabel for="enrollment-code">{{ 'factorCode' | t }}</label
-                  ><input
-                    hlmInput
-                    id="enrollment-code"
-                    name="code"
-                    [(ngModel)]="code"
-                    autocomplete="one-time-code"
-                    inputmode="numeric"
-                    pattern="[0-9]{6}"
-                    required
-                  />
-                </div>
-                <button hlmBtn [disabled]="busy() || confirmation.invalid">
-                  {{ 'confirmFactor' | t }}
-                </button>
-              </form>
-            }
-            @if (codes().length) {
+            @if (codes().length && !setupDialogOpen()) {
               <div hlmAlert role="status">
                 <h3 hlmAlertTitle>{{ 'saveRecovery' | t }}</h3>
                 <p hlmAlertDescription>{{ 'recoveryHelp' | t }}</p>
-                <ul class="mt-3 grid grid-cols-2 gap-2">
+                <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   @for (item of codes(); track item) {
                     <li>
                       <code>{{ item }}</code>
                     </li>
                   }
                 </ul>
-                <button hlmBtn variant="outline" class="mt-3 mr-2" (click)="copyCodes()">
-                  {{ 'copyRecoveryCodes' | t }}</button
-                ><button hlmBtn variant="outline" class="mt-3" (click)="codes.set([])">
-                  {{ 'savedRecovery' | t }}
-                </button>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <button hlmBtn variant="outline" (click)="copyCodes()">
+                    {{ 'copyRecoveryCodes' | t }}
+                  </button>
+                  <button hlmBtn variant="outline" (click)="codes.set([])">
+                    {{ 'savedRecovery' | t }}
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -198,18 +185,17 @@ type MfaProfile = ProfileResponse & {
               }
             </ul>
             @if (passkeys.supported) {
-              <div hlmField>
-                <label hlmFieldLabel for="passkey-name">{{ 'passkeyName' | t }}</label
-                ><input hlmInput id="passkey-name" [(ngModel)]="keyName" maxlength="80" />
-              </div>
               <button
                 hlmBtn
                 variant="outline"
-                [disabled]="busy() || !keyName"
+                [disabled]="busy() || currentDeviceRegistered(user)"
                 (click)="chooseAction('register')"
               >
                 {{ 'addPasskey' | t }}
               </button>
+              @if (currentDeviceRegistered(user)) {
+                <p class="text-sm text-muted-foreground">{{ 'passkeyDeviceAlreadyAdded' | t }}</p>
+              }
             } @else {
               <div hlmAlert>
                 <p hlmAlertDescription>{{ 'passkeysUnsupported' | t }}</p>
@@ -218,7 +204,7 @@ type MfaProfile = ProfileResponse & {
           </div>
         </section>
       </div>
-      @if (action()) {
+      @if (action() && action() !== 'enroll' && action() !== 'register') {
         <section
           class="mt-6 grid max-w-(--form-content-width) gap-4 rounded-md border p-4"
           aria-labelledby="proof-title"
@@ -268,18 +254,255 @@ type MfaProfile = ProfileResponse & {
           <p hlmAlertDescription>{{ 'bootstrapRecoveryHelp' | t }}</p>
         </div>
       }
-      @if (reauthenticationRequired()) {
-        <div hlmAlert variant="destructive" class="mt-6" role="alert">
-          <p hlmAlertDescription>{{ 'reauthenticationRequired' | t }}</p>
-          <button hlmBtn variant="outline" (click)="signInAgain()">{{ 'signInAgain' | t }}</button>
-        </div>
-      }
     } @else if (loadState() === 'error') {
       <div hlmAlert variant="destructive" class="mt-6" role="alert">
         <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
         <button hlmBtn variant="outline" (click)="retry()">{{ 'retry' | t }}</button>
       </div>
-    }`,
+    }
+
+    <hlm-dialog
+      [state]="action() === 'enroll' ? 'open' : 'closed'"
+      [disableClose]="busy()"
+      [closeOnOutsidePointerEvents]="false"
+      (stateChanged)="$event === 'closed' && cancelAction()"
+    >
+      <hlm-dialog-content *hlmDialogPortal>
+        <hlm-dialog-header>
+          <h2 hlmDialogTitle>{{ 'enrollAuthenticator' | t }}</h2>
+          <p hlmDialogDescription>{{ 'securityHelp' | t }}</p>
+        </hlm-dialog-header>
+        <form
+          class="grid gap-5"
+          #enrollmentProof="ngForm"
+          (ngSubmit)="enrollmentProof.valid && enroll()"
+        >
+          <div hlmField>
+            <label hlmFieldLabel for="enrollment-password">{{ 'password' | t }}</label>
+            <input
+              hlmInput
+              id="enrollment-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              [(ngModel)]="password"
+            />
+          </div>
+          <hlm-dialog-footer>
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              [disabled]="busy()"
+              (click)="cancelAction()"
+            >
+              {{ 'cancel' | t }}
+            </button>
+            <button hlmBtn [disabled]="busy() || enrollmentProof.invalid">
+              @if (busy()) {
+                <hlm-spinner />
+              }
+              {{ 'enrollAuthenticator' | t }}
+            </button>
+          </hlm-dialog-footer>
+        </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
+    <hlm-dialog
+      [state]="action() === 'register' ? 'open' : 'closed'"
+      [disableClose]="busy()"
+      [closeOnOutsidePointerEvents]="false"
+      (stateChanged)="$event === 'closed' && cancelAction()"
+    >
+      <hlm-dialog-content *hlmDialogPortal>
+        <hlm-dialog-header>
+          <h2 hlmDialogTitle>{{ 'addPasskey' | t }}</h2>
+          <p hlmDialogDescription>{{ 'securityHelp' | t }}</p>
+        </hlm-dialog-header>
+        <form
+          class="grid gap-5"
+          #passkeyProof="ngForm"
+          (ngSubmit)="passkeyProof.valid && register()"
+        >
+          <div hlmField>
+            <label hlmFieldLabel for="passkey-password">{{ 'password' | t }}</label>
+            <input
+              hlmInput
+              id="passkey-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              [(ngModel)]="password"
+            />
+          </div>
+          @if (profile()?.mfaEnabled) {
+            <div hlmField>
+              <label hlmFieldLabel for="passkey-proof-code">{{ 'factorCode' | t }}</label>
+              <input
+                hlmInput
+                id="passkey-proof-code"
+                name="code"
+                autocomplete="one-time-code"
+                required
+                [(ngModel)]="proofCode"
+              />
+              <label hlmFieldLabel for="passkey-proof-recovery" hlmField orientation="horizontal">
+                <hlm-checkbox
+                  inputId="passkey-proof-recovery"
+                  name="recovery"
+                  [(ngModel)]="recovery"
+                />
+                {{ 'useRecovery' | t }}
+              </label>
+            </div>
+          }
+          <hlm-dialog-footer>
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              [disabled]="busy()"
+              (click)="cancelAction()"
+            >
+              {{ 'cancel' | t }}
+            </button>
+            <button hlmBtn [disabled]="busy() || passkeyProof.invalid">
+              @if (busy()) {
+                <hlm-spinner />
+              }
+              {{ 'addPasskey' | t }}
+            </button>
+          </hlm-dialog-footer>
+        </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
+    <hlm-dialog
+      [state]="setupDialogOpen() ? 'open' : 'closed'"
+      autoFocus="#profile-enrollment-code"
+      [disableClose]="busy() || codes().length > 0"
+      [closeOnOutsidePointerEvents]="false"
+      (stateChanged)="$event === 'closed' && closeSetupDialog()"
+    >
+      <hlm-dialog-content *hlmDialogPortal class="sm:max-w-lg" [showCloseButton]="!codes().length">
+        @if (codes().length) {
+          <hlm-dialog-header>
+            <h2 hlmDialogTitle>{{ 'saveRecovery' | t }}</h2>
+            <p hlmDialogDescription>{{ 'recoveryHelp' | t }}</p>
+          </hlm-dialog-header>
+          <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (item of codes(); track item) {
+              <li>
+                <code>{{ item }}</code>
+              </li>
+            }
+          </ul>
+          <hlm-dialog-footer>
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              [disabled]="busy()"
+              (click)="copyCodes()"
+            >
+              {{ 'copyRecoveryCodes' | t }}
+            </button>
+            <button hlmBtn type="button" [disabled]="busy()" (click)="finishEnrollment()">
+              {{ 'savedRecovery' | t }}
+            </button>
+          </hlm-dialog-footer>
+        } @else if (enrollment(); as setup) {
+          <hlm-dialog-header>
+            <h2 hlmDialogTitle>{{ 'authenticatorSetupTitle' | t }}</h2>
+            <p hlmDialogDescription>{{ 'authenticatorSetupHelp' | t }}</p>
+          </hlm-dialog-header>
+          <div class="flex flex-col items-center gap-0 text-center">
+            <div class="auth-setup-switcher w-full">
+              <div
+                id="profile-authenticator-qr-setup"
+                class="auth-setup-panel auth-setup-panel-qr flex justify-center"
+                [attr.data-active]="!manualSetup()"
+                [attr.aria-hidden]="manualSetup()"
+                [attr.inert]="manualSetup() ? '' : null"
+              >
+                <div
+                  class="size-56 overflow-hidden rounded-md bg-white p-2"
+                  role="img"
+                  [attr.aria-label]="'authenticatorQrLabel' | t"
+                  [innerHTML]="qrSvg()"
+                ></div>
+              </div>
+              <section
+                id="profile-manual-setup-panel"
+                class="auth-setup-panel auth-setup-panel-manual flex flex-col items-center gap-3 text-center"
+                aria-labelledby="profile-manual-setup-title"
+                [attr.data-active]="manualSetup()"
+                [attr.aria-hidden]="!manualSetup()"
+                [attr.inert]="manualSetup() ? null : ''"
+              >
+                <h3 id="profile-manual-setup-title" class="font-semibold">
+                  {{ 'manualSetupTitle' | t }}
+                </h3>
+                <p class="text-sm text-muted-foreground">{{ 'manualSetupHelp' | t }}</p>
+                <div hlmField class="items-center text-center [&>*]:w-auto">
+                  <span hlmFieldLabel>{{ 'setupKey' | t }}</span>
+                  <code class="max-w-full break-all select-all rounded-md border p-3">{{
+                    setup.key
+                  }}</code>
+                </div>
+              </section>
+            </div>
+            <button
+              hlmBtn
+              type="button"
+              variant="link"
+              size="sm"
+              [attr.aria-controls]="
+                manualSetup() ? 'profile-authenticator-qr-setup' : 'profile-manual-setup-panel'
+              "
+              [attr.aria-expanded]="manualSetup()"
+              (click)="manualSetup.set(!manualSetup())"
+            >
+              {{ (manualSetup() ? 'showQrCode' : 'authenticatorNotWorking') | t }}
+            </button>
+          </div>
+          <form
+            class="flex flex-col items-center gap-4 text-center"
+            (ngSubmit)="code.length === 6 && confirm()"
+          >
+            <div hlmField class="items-center text-center [&>*]:w-auto">
+              <label hlmFieldLabel for="profile-enrollment-code">{{
+                'authenticatorCode' | t
+              }}</label>
+              <brn-input-otp
+                hlmInputOtp
+                inputId="profile-enrollment-code"
+                inputAutocomplete="one-time-code"
+                inputMode="numeric"
+                [length]="6"
+                [disabled]="busy()"
+                [(value)]="code"
+              >
+                <hlm-input-otp-group>
+                  @for (slot of otpSlots; track slot) {
+                    <hlm-input-otp-slot class="size-12 text-xl font-semibold" [index]="slot" />
+                  }
+                </hlm-input-otp-group>
+              </brn-input-otp>
+            </div>
+            <button hlmBtn [disabled]="busy() || code.length !== 6">
+              @if (busy()) {
+                <hlm-spinner />
+              }
+              {{ 'confirmFactor' | t }}
+            </button>
+          </form>
+        }
+      </hlm-dialog-content>
+    </hlm-dialog>`,
 })
 export class ProfilePage {
   readonly action = signal('');
@@ -288,7 +511,17 @@ export class ProfilePage {
     this.cancelAction();
     this.action.set(action);
     this.actionId = id;
-    setTimeout(() => document.getElementById('proof-password')?.focus());
+    setTimeout(() =>
+      document
+        .getElementById(
+          action === 'enroll'
+            ? 'enrollment-password'
+            : action === 'register'
+              ? 'passkey-password'
+              : 'proof-password',
+        )
+        ?.focus(),
+    );
   }
   actionLabel() {
     return (
@@ -330,19 +563,22 @@ export class ProfilePage {
   readonly passkeys = inject(Passkeys);
   private readonly http = inject(HttpClient);
   private readonly runtime = inject(Runtime);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly profile = signal<MfaProfile | null>(null);
   readonly enrollment = signal<MfaEnrollment | null>(null);
+  readonly qrSvg = signal<SafeHtml | null>(null);
+  readonly manualSetup = signal(false);
+  readonly setupDialogOpen = signal(false);
   readonly codes = signal<string[]>([]);
   readonly busy = signal(false);
   readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
-  readonly reauthenticationRequired = signal(false);
+  readonly otpSlots = [0, 1, 2, 3, 4, 5];
   private readonly router = inject(Router);
   private readonly notifications = inject(Notifications);
   password = '';
   proofCode = '';
   recovery = false;
   code = '';
-  keyName = '';
   preferredMethod = 'Email';
   constructor() {
     void this.run(() => this.load());
@@ -373,8 +609,9 @@ export class ProfilePage {
       if (
         error instanceof HttpErrorResponse &&
         error.error?.code === 'auth.reauthentication_required'
-      )
-        this.reauthenticationRequired.set(true);
+      ) {
+        await this.redirectForReauthentication();
+      }
     } finally {
       this.busy.set(false);
     }
@@ -389,8 +626,14 @@ export class ProfilePage {
   }
   enroll() {
     return this.run(async () => {
-      this.enrollment.set(await this.auth.action<MfaEnrollment>('mfa/enroll', this.proof()));
+      const enrollment = await this.auth.action<MfaEnrollment>('mfa/enroll', this.proof());
+      const svg = await QRCode.toString(enrollment.uri, { type: 'svg', margin: 1, width: 208 });
+      this.qrSvg.set(this.sanitizer.bypassSecurityTrustHtml(svg));
+      this.manualSetup.set(false);
+      this.codes.set([]);
+      this.enrollment.set(enrollment);
       this.cancelAction();
+      this.setupDialogOpen.set(true);
     });
   }
   confirm() {
@@ -400,6 +643,18 @@ export class ProfilePage {
       this.code = '';
       await this.changed();
     });
+  }
+  closeSetupDialog() {
+    if (this.busy() || this.codes().length) return;
+    this.setupDialogOpen.set(false);
+    this.enrollment.set(null);
+    this.qrSvg.set(null);
+    this.manualSetup.set(false);
+    this.code = '';
+  }
+  finishEnrollment() {
+    this.codes.set([]);
+    this.closeSetupDialog();
   }
   manage(disable: boolean) {
     return this.run(async () => {
@@ -411,10 +666,12 @@ export class ProfilePage {
   }
   register() {
     return this.run(async () => {
-      await this.passkeys.register(this.proof(), this.keyName);
-      this.keyName = '';
+      await this.passkeys.register(this.proof());
       await this.changed();
     });
+  }
+  currentDeviceRegistered(user: MfaProfile) {
+    return user.passkeys.some((passkey) => passkey.deviceId === this.passkeys.deviceId);
   }
   remove(id: string) {
     return this.run(async () => {
@@ -442,9 +699,18 @@ export class ProfilePage {
   isBootstrapAccount(email: string) {
     return email.toLowerCase().endsWith('@example.invalid');
   }
-  async signInAgain() {
+  private async redirectForReauthentication() {
+    const returnUrl = this.router.url;
+    this.cancelAction();
+    this.enrollment.set(null);
+    this.qrSvg.set(null);
+    this.manualSetup.set(false);
+    this.setupDialogOpen.set(false);
+    this.codes.set([]);
+    this.code = '';
     await this.auth.logout();
-    await this.router.navigate(['/login'], { queryParams: { returnUrl: '/me/security' } });
+    await this.router.navigate(['/login'], { queryParams: { returnUrl } });
+    this.notifications.info('reauthenticationRedirected');
   }
   retry() {
     return this.run(() => this.load());

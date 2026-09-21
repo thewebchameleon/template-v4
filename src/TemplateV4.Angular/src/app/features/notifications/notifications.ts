@@ -17,6 +17,10 @@ export class Notifications {
     this.sounds.play('success');
   }
 
+  info(key: string) {
+    toast.info(this.i18n.text(key));
+  }
+
   error(problem: ProblemNotification) {
     toast.error(problem.title?.trim() || this.i18n.text('error'), { important: true });
     this.sounds.play('error');

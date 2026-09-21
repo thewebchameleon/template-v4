@@ -19,6 +19,8 @@ export type { ListSessions$Params as ListSessions$Params } from './fn/framework/
 export { listSessions as listSessions } from './fn/framework/list-sessions';
 export type { RevokeSession$Params as RevokeSession$Params } from './fn/framework/revoke-session';
 export { revokeSession as revokeSession } from './fn/framework/revoke-session';
+export type { ListSessionAudit$Params as ListSessionAudit$Params } from './fn/framework/list-session-audit';
+export { listSessionAudit as listSessionAudit } from './fn/framework/list-session-audit';
 export type { ForgotPassword$Params as ForgotPassword$Params } from './fn/framework/forgot-password';
 export { forgotPassword as forgotPassword } from './fn/framework/forgot-password';
 export type { ConfirmEmail$Params as ConfirmEmail$Params } from './fn/framework/confirm-email';

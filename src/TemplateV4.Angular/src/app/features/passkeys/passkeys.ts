@@ -9,6 +9,7 @@ import { I18n } from '../../core/i18n';
 
 @Injectable({ providedIn: 'root' })
 export class Passkeys {
+  private static readonly deviceStorageKey = 'templatev4-passkey-device-id';
   private readonly auth = inject(Auth);
   private readonly errors = inject(Errors);
   private readonly notifications = inject(Notifications);
@@ -16,6 +17,7 @@ export class Passkeys {
   readonly supported =
     typeof PublicKeyCredential !== 'undefined' &&
     typeof PublicKeyCredential.parseCreationOptionsFromJSON === 'function';
+  readonly deviceId = this.loadDeviceId();
   async login() {
     try {
       await this.auth.passkeyLogin(async () => {
@@ -68,12 +70,12 @@ export class Passkeys {
       throw error;
     }
   }
-  async register(proof: SecurityProof, name: string) {
+  async register(proof: SecurityProof) {
     try {
       const result = await this.auth.action<{
         challengeId: string;
         options: PublicKeyCredentialCreationOptionsJSON;
-      }>('passkeys/register-options', proof);
+      }>('passkeys/register-options', { proof, deviceId: this.deviceId });
       const credential = (await navigator.credentials.create({
         publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(result.options),
       })) as PublicKeyCredential | null;
@@ -81,9 +83,15 @@ export class Passkeys {
       await this.auth.action('passkeys/register', {
         challengeId: result.challengeId,
         credential: credential.toJSON(),
-        name,
+        name: this.generatedName(),
+        deviceId: this.deviceId,
       });
     } catch (error) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.error?.code === 'auth.reauthentication_required'
+      )
+        throw error;
       const problem = {
         code: 'auth.passkey_failed',
         title: this.i18n.text('passkeyRegistrationFailed'),
@@ -92,5 +100,16 @@ export class Passkeys {
       if (!(error instanceof HttpErrorResponse)) this.notifications.error(problem);
       throw error;
     }
+  }
+  private generatedName() {
+    const platform = typeof navigator === 'undefined' ? '' : navigator.platform;
+    return platform ? `Browser (${platform})` : 'Browser';
+  }
+  private loadDeviceId() {
+    const stored = localStorage.getItem(Passkeys.deviceStorageKey);
+    if (stored) return stored;
+    const deviceId = crypto.randomUUID();
+    localStorage.setItem(Passkeys.deviceStorageKey, deviceId);
+    return deviceId;
   }
 }

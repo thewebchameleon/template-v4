@@ -3,6 +3,7 @@
 
 export interface PasskeySummary {
   createdAt: string;
+  deviceId: (string | null);
   id: string;
   name: string;
 }

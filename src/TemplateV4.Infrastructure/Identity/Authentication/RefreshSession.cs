@@ -18,7 +18,7 @@ public sealed partial class AuthService
         var now = time.GetUtcNow();
         if (token.ConsumedAt is not null)
         {
-            session.RevokedAt = now; Audit("auth.refresh_reuse", session.UserId);
+            session.RevokedAt = now; Audit("auth.refresh_reuse", session.UserId, session.Id);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
             return Result<AuthTokens>.Fail("auth.refresh_reuse", ErrorKind.Unauthorized);
         }

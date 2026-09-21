@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public sealed class AuditCapture(IExecutionContext context, IHttpContextAccessor
         foreach (var entry in entries)
         {
             entry.SchemaVersion = 1;
+            entry.SessionId ??= Guid.TryParse(http.HttpContext?.User.FindFirstValue("sid"), out var sessionId) ? sessionId : null;
             entry.ActorType ??= entry.ActorId is null ? "system" : "user";
             if (entry.ActorId is { } actor) entry.ActorNameSnapshot ??= profiles.GetValueOrDefault(actor);
             entry.Source ??= entry.Action.StartsWith("bootstrap.", StringComparison.Ordinal) ? "bootstrap" : http.HttpContext is not null ? "api" : "background";

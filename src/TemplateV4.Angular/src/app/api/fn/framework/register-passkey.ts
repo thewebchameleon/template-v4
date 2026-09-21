@@ -7,7 +7,7 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { PasskeyCredential } from '../../models/passkey-credential';
+import { PasskeyRegistrationCredential } from '../../models/passkey-registration-credential';
 
 export interface RegisterPasskey$Params {
 
@@ -15,7 +15,7 @@ export interface RegisterPasskey$Params {
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
  */
   'X-CSRF-TOKEN': string;
-      body: PasskeyCredential
+      body: PasskeyRegistrationCredential
 }
 
 export function registerPasskey(http: HttpClient, rootUrl: string, params: RegisterPasskey$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {

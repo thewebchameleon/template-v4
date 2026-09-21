@@ -8,7 +8,7 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 import { PasskeyOptions } from '../../models/passkey-options';
-import { SecurityProof } from '../../models/security-proof';
+import { PasskeyRegistrationRequest } from '../../models/passkey-registration-request';
 
 export interface PasskeyRegistrationOptions$Params {
 
@@ -16,7 +16,7 @@ export interface PasskeyRegistrationOptions$Params {
  * Anonymous-bound antiforgery token returned by GET /api/v1/auth/csrf. The browser must also send an exact allowed Origin.
  */
   'X-CSRF-TOKEN': string;
-      body: SecurityProof
+      body: PasskeyRegistrationRequest
 }
 
 export function passkeyRegistrationOptions(http: HttpClient, rootUrl: string, params: PasskeyRegistrationOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<PasskeyOptions>> {

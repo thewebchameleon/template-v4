@@ -25,7 +25,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
         var now = time.GetUtcNow();
         var session = new Session { UserId = user.Id, SecurityStamp = user.SecurityStamp!, Device = (device ?? "Browser")[..Math.Min(device?.Length ?? 7, 200)], IpAddress = NormalizeIp(ipAddress), CreatedAt = now, LastActivityAt = now, ExpiresAt = now.AddDays(30), MfaVerified = verified, MfaVerifiedAt = verified ? now : null, PasskeyVerified = passkeyVerified, SetupOnly = !verified && await security.Required(user, ct) || await security.PasskeyRequired(user, ct) && !passkeyVerified };
-        db.Sessions.Add(session); Audit("auth.login", user.Id);
+        db.Sessions.Add(session); Audit("auth.login", user.Id, session.Id);
         return await Issue(user, session, profile.Culture);
     }
     private async Task<AuthTokens> Issue(AppUser user, Session session, string culture)
@@ -47,7 +47,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
         db.RefreshTokens.Add(new() { Hash = Hash(raw), SessionId = session.Id, ExpiresAt = session.ExpiresAt });
         return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, IsAdministrator: !setup && roles.Contains("Administrator"), TimeZone: await db.Profiles.Where(x => x.Id == user.Id).Select(x => x.TimeZone).SingleAsync()), raw);
     }
-    private void Audit(string action, Guid userId) => db.Audit.Add(new() { Action = action, ActorId = action == "auth.login_failed" ? null : userId, ActorType = action == "auth.login_failed" ? "anonymous" : "user", SubjectId = userId, SubjectType = "user", Outcome = action == "auth.login_failed" ? "failure" : action == "auth.refresh_reuse" ? "denied" : "success", FailureCode = action == "auth.login_failed" ? "auth.invalid_credentials" : action == "auth.refresh_reuse" ? "auth.refresh_reuse" : null, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
+    private void Audit(string action, Guid userId, Guid? sessionId = null) => db.Audit.Add(new() { Action = action, SessionId = sessionId, ActorId = action == "auth.login_failed" ? null : userId, ActorType = action == "auth.login_failed" ? "anonymous" : "user", SubjectId = userId, SubjectType = "user", Outcome = action == "auth.login_failed" ? "failure" : action == "auth.refresh_reuse" ? "denied" : "success", FailureCode = action == "auth.login_failed" ? "auth.invalid_credentials" : action == "auth.refresh_reuse" ? "auth.refresh_reuse" : null, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
     private static string NormalizeIp(string? ipAddress) => string.IsNullOrWhiteSpace(ipAddress) ? "unknown" : ipAddress[..Math.Min(ipAddress.Length, 45)];
 }
 
@@ -62,6 +62,12 @@ public sealed record SessionQuery(string Search = "", int PageNumber = 1, int Pa
 public sealed record SessionDto(Guid Id, string Device, string IpAddress, DateTimeOffset LastActivityAt, DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, bool Current);
 
 public sealed record SessionPage(IReadOnlyList<SessionDto> Items, int Total, int PageNumber, int PageSize);
+
+public sealed record SessionAuditQuery(int PageNumber = 1, int PageSize = 10, string Sort = "at", string Direction = "desc");
+
+public sealed record SessionAuditItem(long Id, string Action, string? SubjectName, string Outcome, DateTimeOffset At);
+
+public sealed record SessionAuditPage(IReadOnlyList<SessionAuditItem> Items, int Total, int PageNumber, int PageSize);
 
 public sealed record EmailMfaChallengeRequest(string ChallengeId);
 

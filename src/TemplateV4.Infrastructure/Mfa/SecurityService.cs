@@ -138,7 +138,7 @@ public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool 
 public sealed record ProfileResponse(Guid Id, string Email, bool EmailConfirmed, string Username, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys, bool EmailMfaEnabled, string[] MfaMethods, string PreferredMfaMethod,
     string? FirstName, string? LastName, string? PhoneNumber, string TimeZone, string? AvatarDataUrl, Guid Version, bool PasskeyRequired);
 
-public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt);
+public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt, Guid? DeviceId);
 
 public sealed record AuthenticationChallenge(AuthChallenge Row, string State);
 

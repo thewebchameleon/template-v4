@@ -140,6 +140,8 @@ export type { PageOfTicketMessage } from './models/page-of-ticket-message';
 export type { PasskeyChallengeRequest } from './models/passkey-challenge-request';
 export type { PasskeyCredential } from './models/passkey-credential';
 export type { PasskeyOptions } from './models/passkey-options';
+export type { PasskeyRegistrationCredential } from './models/passkey-registration-credential';
+export type { PasskeyRegistrationRequest } from './models/passkey-registration-request';
 export type { PasskeySummary } from './models/passkey-summary';
 export type { PaymentCheckout } from './models/payment-checkout';
 export type { PaymentMethodSettings } from './models/payment-method-settings';
@@ -184,6 +186,8 @@ export type { SaveSupportModuleSettings } from './models/save-support-module-set
 export type { SecurityPolicyRequest } from './models/security-policy-request';
 export type { SecurityProof } from './models/security-proof';
 export type { SecuritySettings } from './models/security-settings';
+export type { SessionAuditItem } from './models/session-audit-item';
+export type { SessionAuditPage } from './models/session-audit-page';
 export type { SessionDto } from './models/session-dto';
 export type { SessionPage } from './models/session-page';
 export type { StartCommercialTrial } from './models/start-commercial-trial';

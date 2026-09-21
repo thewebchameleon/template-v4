@@ -348,8 +348,11 @@ export const dictionary: Record<string, [string, string]> = {
     'Gebruik jou toestel se PIN, vingerafdruk of gesig om aan te meld. Hou ’n ander faktor of toestel vir herstel beskikbaar.',
   ],
   noPasskeys: ['No passkeys registered', 'Geen toegangsleutels geregistreer nie'],
-  passkeyName: ['Passkey name', 'Toegangsleutelnaam'],
   addPasskey: ['Add passkey', 'Voeg toegangsleutel by'],
+  passkeyDeviceAlreadyAdded: [
+    'This browser profile already has a passkey.',
+    'Hierdie blaaierprofiel het reeds ’n toegangsleutel.',
+  ],
   remove: ['Remove', 'Verwyder'],
   passkeysUnsupported: [
     'This browser does not support passkeys. Use an up-to-date browser.',
@@ -370,6 +373,10 @@ export const dictionary: Record<string, [string, string]> = {
   reauthenticationRequired: [
     'Your recent verification has expired. Sign in again, then return here to change security factors.',
     'Jou onlangse verifikasie het verval. Meld weer aan en keer dan hierheen terug om sekuriteitsfaktore te verander.',
+  ],
+  reauthenticationRedirected: [
+    'Your verification expired. Sign in again to continue; we’ll return you to where you left off.',
+    'Jou verifikasie het verval. Meld weer aan om voort te gaan; ons bring jou terug na waar jy opgehou het.',
   ],
   signInAgain: ['Sign in again', 'Meld weer aan'],
   bootstrapRecoveryHelp: [
@@ -469,6 +476,20 @@ export const dictionary: Record<string, [string, string]> = {
   sessionsIntro: [
     'Review and sign out devices that have access to your account.',
     'Hersien en meld toestelle af wat toegang tot jou rekening het.',
+  ],
+  sessionDetails: ['Session details', 'Sessiebesonderhede'],
+  sessionDetailsHelp: [
+    'Review this session and the account activity recorded from it.',
+    'Hersien hierdie sessie en die rekeningaktiwiteit wat daarvandaan aangeteken is.',
+  ],
+  sessionAudit: ['Session activity', 'Sessieaktiwiteit'],
+  sessionAuditHelp: [
+    'Audit events recorded while this session was used.',
+    'Ouditgebeurtenisse wat aangeteken is terwyl hierdie sessie gebruik is.',
+  ],
+  sessionAuditEmpty: [
+    'No audit activity has been recorded for this session.',
+    'Geen ouditaktiwiteit is vir hierdie sessie aangeteken nie.',
   ],
   searchSessions: ['Search sessions', 'Soek sessies'],
   device: ['Device', 'Toestel'],
