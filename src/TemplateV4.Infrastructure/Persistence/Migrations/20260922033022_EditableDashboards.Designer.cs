@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TemplateV4.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(FrameworkDb))]
-    partial class FrameworkDbModelSnapshot : ModelSnapshot
+    [Migration("20260922033022_EditableDashboards")]
+    partial class EditableDashboards
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -569,19 +572,19 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("d4500000-0000-0000-0000-000000000001"),
-                            Layout = "{\"name\":\"dashMyWork\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0001-000000000001\",\"definitionId\":\"core.actions\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"count\",\"filter\":\"Open\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0001-000000000002\",\"definitionId\":\"core.reviews\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0001-000000000003\",\"definitionId\":\"core.activity\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"}]}",
+                            Layout = "{\"name\":\"dashMyWork\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0001-000000000001\",\"definitionId\":\"core.actions\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0001-000000000002\",\"definitionId\":\"core.reviews\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0001-000000000003\",\"definitionId\":\"core.activity\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"}]}",
                             Version = new Guid("d4500001-0000-0000-0000-000000000001")
                         },
                         new
                         {
                             Id = new Guid("d4500000-0000-0000-0000-000000000002"),
-                            Layout = "{\"name\":\"dashBusiness\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0002-000000000001\",\"definitionId\":\"crm.pipeline\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"value\",\"filter\":\"Open\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0002-000000000002\",\"definitionId\":\"invoicing.invoices\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"value\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0002-000000000003\",\"definitionId\":\"support.tickets\",\"size\":\"large\",\"format\":\"chart\",\"metric\":\"count\",\"filter\":\"Open\",\"period\":\"inherit\"}]}",
+                            Layout = "{\"name\":\"dashBusiness\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0002-000000000001\",\"definitionId\":\"crm.pipeline\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"value\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0002-000000000002\",\"definitionId\":\"invoicing.invoices\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0002-000000000003\",\"definitionId\":\"support.tickets\",\"size\":\"large\",\"format\":\"chart\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"}]}",
                             Version = new Guid("d4500001-0000-0000-0000-000000000002")
                         },
                         new
                         {
                             Id = new Guid("d4500000-0000-0000-0000-000000000003"),
-                            Layout = "{\"name\":\"dashSales\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0003-000000000001\",\"definitionId\":\"crm.pipeline\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"value\",\"filter\":\"Open\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0003-000000000002\",\"definitionId\":\"crm.stages\",\"size\":\"large\",\"format\":\"chart\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0003-000000000003\",\"definitionId\":\"crm.recent\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"}]}",
+                            Layout = "{\"name\":\"dashSales\",\"period\":\"all\",\"cards\":[{\"id\":\"d4500002-0000-0000-0003-000000000001\",\"definitionId\":\"crm.pipeline\",\"size\":\"large\",\"format\":\"metric\",\"metric\":\"value\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0003-000000000002\",\"definitionId\":\"crm.stages\",\"size\":\"large\",\"format\":\"chart\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"},{\"id\":\"d4500002-0000-0000-0003-000000000003\",\"definitionId\":\"crm.recent\",\"size\":\"large\",\"format\":\"list\",\"metric\":\"count\",\"filter\":\"all\",\"period\":\"inherit\"}]}",
                             Version = new Guid("d4500001-0000-0000-0000-000000000003")
                         },
                         new

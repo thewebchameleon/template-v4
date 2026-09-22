@@ -49,6 +49,7 @@ public sealed class FrameworkDb(DbContextOptions<FrameworkDb> options) : Identit
                 .HasForeignKey<PasskeyDevice>(x => x.CredentialId).OnDelete(DeleteBehavior.Cascade);
         });
         foreach (var entity in model.Model.GetEntityTypes()) entity.SetSchema("identity");
+        Dashboards.DashboardModel.Configure(model);
         model.Entity<TemplateV4.Infrastructure.Licensing.LicenseState>(entity =>
         {
             entity.ToTable("deployment_license", "app"); entity.HasKey(x => x.Id);

@@ -6,6 +6,7 @@ public static partial class Registration
 {
     private static void AddCrm(IServiceCollection services)
     {
+        services.AddScoped<TemplateV4.Application.Dashboards.IDashboardCardProvider, Crm.CrmDashboardCards>();
         services.AddScoped<TemplateV4.Application.Crm.IOrganisationOperations, Crm.OrganisationOperations>();
         services.AddScoped<Crm.CrmStore>();
         services.AddScoped<TemplateV4.Application.Crm.IRecordAttachments, Crm.RecordAttachments>();

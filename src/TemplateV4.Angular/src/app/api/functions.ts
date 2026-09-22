@@ -195,6 +195,18 @@ export type { ListRegistrationRequests$Params as ListRegistrationRequests$Params
 export { listRegistrationRequests as listRegistrationRequests } from './fn/framework/list-registration-requests';
 export type { ReviewRegistration$Params as ReviewRegistration$Params } from './fn/framework/review-registration';
 export { reviewRegistration as reviewRegistration } from './fn/framework/review-registration';
+export type { GetDashboards$Params as GetDashboards$Params } from './fn/framework/get-dashboards';
+export { getDashboards as getDashboards } from './fn/framework/get-dashboards';
+export type { SaveDashboard$Params as SaveDashboard$Params } from './fn/framework/save-dashboard';
+export { saveDashboard as saveDashboard } from './fn/framework/save-dashboard';
+export type { ResetDashboard$Params as ResetDashboard$Params } from './fn/framework/reset-dashboard';
+export { resetDashboard as resetDashboard } from './fn/framework/reset-dashboard';
+export type { DeleteDashboard$Params as DeleteDashboard$Params } from './fn/framework/delete-dashboard';
+export { deleteDashboard as deleteDashboard } from './fn/framework/delete-dashboard';
+export type { SetStartingDashboard$Params as SetStartingDashboard$Params } from './fn/framework/set-starting-dashboard';
+export { setStartingDashboard as setStartingDashboard } from './fn/framework/set-starting-dashboard';
+export type { GetDashboardCard$Params as GetDashboardCard$Params } from './fn/framework/get-dashboard-card';
+export { getDashboardCard as getDashboardCard } from './fn/framework/get-dashboard-card';
 export type { GetPlatformAppearance$Params as GetPlatformAppearance$Params } from './fn/framework/get-platform-appearance';
 export { getPlatformAppearance as getPlatformAppearance } from './fn/framework/get-platform-appearance';
 export type { SavePlatformAppearance$Params as SavePlatformAppearance$Params } from './fn/framework/save-platform-appearance';

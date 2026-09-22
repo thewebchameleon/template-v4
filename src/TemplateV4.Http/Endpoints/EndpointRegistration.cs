@@ -13,6 +13,7 @@ public static class EndpointRegistration
             .MapOperationsEndpoints()
             .MapWorkspaceEndpoints()
             .MapActionItemEndpoints()
+            .MapDashboardEndpoints()
             .MapConfigurationEndpoints()
             .MapUpdateEndpoints()
             .MapPrivateModuleEndpoints()

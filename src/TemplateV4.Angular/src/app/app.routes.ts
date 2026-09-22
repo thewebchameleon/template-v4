@@ -1,4 +1,5 @@
 import { cmsTranslations } from './features/cms/cms-resolver';
+import { dashboardTranslations } from './features/dashboard/dashboard-resolver';
 import { actionItemTranslations } from './features/action-items/action-item-resolver';
 import { updateTranslations } from './features/updates/update-resolver';
 import { backgroundJobTranslations } from './features/operations/background-job-resolver';
@@ -142,10 +143,11 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [bootstrapLandingGuard], children: [] },
   {
     path: 'dashboard',
-    resolve: { actionItemTranslations },
+    resolve: { dashboardTranslations },
     data: { breadcrumb: 'dashboard' },
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.DashboardPage),
+    canDeactivate: [unsavedGuard],
   },
   {
     path: 'bootstrap',
@@ -269,8 +271,7 @@ export const routes: Routes = [
             path: '',
             pathMatch: 'full',
             data: { breadcrumb: 'inbox' },
-            loadComponent: () =>
-              import('./features/notifications/inbox').then((m) => m.InboxPage),
+            loadComponent: () => import('./features/notifications/inbox').then((m) => m.InboxPage),
           },
           {
             path: 'preferences',

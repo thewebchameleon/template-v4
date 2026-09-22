@@ -49,6 +49,8 @@ decision controls when the system has evolved.
 
 ## Platform workflows and user experience
 
+- [0053 — Editable dashboards and module-owned card providers](0053-editable-dashboards.md)
+
 - [0010 — Spartan and design tokens](0010-spartan-design-tokens.md)
 - [0015 — Platform administration, storage, and privacy](0015-platform-baseline-workflows.md)
 - [0022 — Platform configuration and appearance](0022-platform-configuration.md)

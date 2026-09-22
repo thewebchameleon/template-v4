@@ -59,6 +59,10 @@ and other accepted obligations continue when their optional UI capability is dis
 
 ## Platform invariants
 
+Modules can contribute dashboard cards through Application's `IDashboardCardProvider`,
+registered by their owning composition method. See [editable dashboards](dashboards.md)
+for the data, availability, and presentation contract.
+
 Each deployment has one organisation. Shared organisation storage and quota admission
 are core; the File Storage capability controls the library UI, not whether attachments
 consume storage. Support features are independently configurable while retained inboxes

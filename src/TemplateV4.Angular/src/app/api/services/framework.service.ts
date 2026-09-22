@@ -88,8 +88,13 @@ import { CrmNote } from '../models/crm-note';
 import { CrmOverview } from '../models/crm-overview';
 import { CrmRecord } from '../models/crm-record';
 import { CustomerInfo } from '../models/customer-info';
+import { DashboardCardData } from '../models/dashboard-card-data';
+import { DashboardDto } from '../models/dashboard-dto';
+import { DashboardState } from '../models/dashboard-state';
 import { deleteApiKey } from '../fn/framework/delete-api-key';
 import { DeleteApiKey$Params } from '../fn/framework/delete-api-key';
+import { deleteDashboard } from '../fn/framework/delete-dashboard';
+import { DeleteDashboard$Params } from '../fn/framework/delete-dashboard';
 import { deleteFileStorageBatch } from '../fn/framework/delete-file-storage-batch';
 import { DeleteFileStorageBatch$Params } from '../fn/framework/delete-file-storage-batch';
 import { deleteFileStorageFile } from '../fn/framework/delete-file-storage-file';
@@ -156,6 +161,10 @@ import { getCrmOverview } from '../fn/framework/get-crm-overview';
 import { GetCrmOverview$Params } from '../fn/framework/get-crm-overview';
 import { getCsrfToken } from '../fn/framework/get-csrf-token';
 import { GetCsrfToken$Params } from '../fn/framework/get-csrf-token';
+import { getDashboardCard } from '../fn/framework/get-dashboard-card';
+import { GetDashboardCard$Params } from '../fn/framework/get-dashboard-card';
+import { getDashboards } from '../fn/framework/get-dashboards';
+import { GetDashboards$Params } from '../fn/framework/get-dashboards';
 import { getDeliveryOperations } from '../fn/framework/get-delivery-operations';
 import { GetDeliveryOperations$Params } from '../fn/framework/get-delivery-operations';
 import { getFileStorageModuleSettings } from '../fn/framework/get-file-storage-module-settings';
@@ -357,6 +366,8 @@ import { requestAccountDeletion } from '../fn/framework/request-account-deletion
 import { RequestAccountDeletion$Params } from '../fn/framework/request-account-deletion';
 import { requestEmailChange } from '../fn/framework/request-email-change';
 import { RequestEmailChange$Params } from '../fn/framework/request-email-change';
+import { resetDashboard } from '../fn/framework/reset-dashboard';
+import { ResetDashboard$Params } from '../fn/framework/reset-dashboard';
 import { resetPassword } from '../fn/framework/reset-password';
 import { ResetPassword$Params } from '../fn/framework/reset-password';
 import { restoreFileStorageFile } from '../fn/framework/restore-file-storage-file';
@@ -386,6 +397,8 @@ import { saveCommercialBillingSettings } from '../fn/framework/save-commercial-b
 import { SaveCommercialBillingSettings$Params } from '../fn/framework/save-commercial-billing-settings';
 import { saveCrmRecord } from '../fn/framework/save-crm-record';
 import { SaveCrmRecord$Params } from '../fn/framework/save-crm-record';
+import { saveDashboard } from '../fn/framework/save-dashboard';
+import { SaveDashboard$Params } from '../fn/framework/save-dashboard';
 import { saveFileStorageModuleSettings } from '../fn/framework/save-file-storage-module-settings';
 import { SaveFileStorageModuleSettings$Params } from '../fn/framework/save-file-storage-module-settings';
 import { saveFileStorageStorageSettings } from '../fn/framework/save-file-storage-storage-settings';
@@ -417,6 +430,8 @@ import { setMfaPreference } from '../fn/framework/set-mfa-preference';
 import { SetMfaPreference$Params } from '../fn/framework/set-mfa-preference';
 import { setSecuritySettings } from '../fn/framework/set-security-settings';
 import { SetSecuritySettings$Params } from '../fn/framework/set-security-settings';
+import { setStartingDashboard } from '../fn/framework/set-starting-dashboard';
+import { SetStartingDashboard$Params } from '../fn/framework/set-starting-dashboard';
 import { shareFileStorageFile } from '../fn/framework/share-file-storage-file';
 import { ShareFileStorageFile$Params } from '../fn/framework/share-file-storage-file';
 import { startCommercialBillingTrial } from '../fn/framework/start-commercial-billing-trial';
@@ -3080,6 +3095,168 @@ export class FrameworkService extends BaseService {
     const resp = this.reviewRegistration$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getDashboards()` */
+  static readonly GetDashboardsPath = '/api/v1/auth/dashboards';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getDashboards()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getDashboards$Response(params?: GetDashboards$Params, context?: HttpContext): Observable<StrictHttpResponse<DashboardState>> {
+    const obs = getDashboards(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getDashboards$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getDashboards(params?: GetDashboards$Params, context?: HttpContext): Observable<DashboardState> {
+    const resp = this.getDashboards$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<DashboardState>): DashboardState => r.body)
+    );
+  }
+
+  /** Path part for operation `saveDashboard()` */
+  static readonly SaveDashboardPath = '/api/v1/auth/dashboards/save';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveDashboard()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveDashboard$Response(params: SaveDashboard$Params, context?: HttpContext): Observable<StrictHttpResponse<DashboardDto>> {
+    const obs = saveDashboard(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveDashboard$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveDashboard(params: SaveDashboard$Params, context?: HttpContext): Observable<DashboardDto> {
+    const resp = this.saveDashboard$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<DashboardDto>): DashboardDto => r.body)
+    );
+  }
+
+  /** Path part for operation `resetDashboard()` */
+  static readonly ResetDashboardPath = '/api/v1/auth/dashboards/reset';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `resetDashboard()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  resetDashboard$Response(params: ResetDashboard$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = resetDashboard(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `resetDashboard$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  resetDashboard(params: ResetDashboard$Params, context?: HttpContext): Observable<void> {
+    const resp = this.resetDashboard$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `deleteDashboard()` */
+  static readonly DeleteDashboardPath = '/api/v1/auth/dashboards/delete';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `deleteDashboard()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  deleteDashboard$Response(params: DeleteDashboard$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = deleteDashboard(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `deleteDashboard$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  deleteDashboard(params: DeleteDashboard$Params, context?: HttpContext): Observable<void> {
+    const resp = this.deleteDashboard$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `setStartingDashboard()` */
+  static readonly SetStartingDashboardPath = '/api/v1/auth/dashboards/starting';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `setStartingDashboard()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setStartingDashboard$Response(params: SetStartingDashboard$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = setStartingDashboard(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `setStartingDashboard$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  setStartingDashboard(params: SetStartingDashboard$Params, context?: HttpContext): Observable<void> {
+    const resp = this.setStartingDashboard$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getDashboardCard()` */
+  static readonly GetDashboardCardPath = '/api/v1/auth/dashboards/card';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getDashboardCard()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getDashboardCard$Response(params: GetDashboardCard$Params, context?: HttpContext): Observable<StrictHttpResponse<DashboardCardData>> {
+    const obs = getDashboardCard(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getDashboardCard$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getDashboardCard(params: GetDashboardCard$Params, context?: HttpContext): Observable<DashboardCardData> {
+    const resp = this.getDashboardCard$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<DashboardCardData>): DashboardCardData => r.body)
     );
   }
 

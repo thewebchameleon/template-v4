@@ -66,6 +66,9 @@ public sealed partial class PrivacyService
             user.PushEnabled = false; user.PushShowPreview = false;
             await db.Set<WebPushSubscription>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             profile.Anonymise(time.GetUtcNow());
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(4500922)", ct);
+            await db.Set<TemplateV4.Infrastructure.Dashboards.DashboardPreferenceRow>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
+            await db.Set<TemplateV4.Infrastructure.Dashboards.DashboardRow>().Where(x => x.OwnerId == user.Id).ExecuteDeleteAsync(ct);
             await db.Set<UserAvatar>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             // Erasure runs even when Support is disabled. Remove requester conversations and files,
             // and erase contributions to other requesters' tickets without retaining content in audit.

@@ -10,6 +10,7 @@ public static partial class Registration
 {
     private static void AddSupport(IServiceCollection services)
     {
+        services.AddScoped<TemplateV4.Application.Dashboards.IDashboardCardProvider, SupportDashboardCards>();
         services.AddScoped<TemplateV4.Application.Contact.IContact, Contact.ContactStore>();
         services.AddScoped<SupportTicketContext>();
         services.AddScoped<ISupportTickets, SupportTicketStore>();

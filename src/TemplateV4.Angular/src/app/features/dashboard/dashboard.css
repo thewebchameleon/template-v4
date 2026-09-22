@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+.dashboard-tile {
+  min-width: 0;
+}
+.dashboard-resize {
+  touch-action: none;
+  cursor: ew-resize;
+}
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+.cdk-drag-preview {
+  box-sizing: border-box;
+  box-shadow: var(--shadow-lg);
+}
+@media (min-width: 48rem) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-tile-large {
+    grid-column: span 2;
+  }
+}
+@media (min-width: 90rem) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
