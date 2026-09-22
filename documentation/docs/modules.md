@@ -63,6 +63,13 @@ Modules can contribute dashboard cards through Application's `IDashboardCardProv
 registered by their owning composition method. See [editable dashboards](dashboards.md)
 for the data, availability, and presentation contract.
 
+Owners of scoped grants implement `IScopedRoleDelegation` so role assignments and
+invitations cannot bypass delegation checks. `IAccessIndicators` supplies
+navigation-only hints; feature operations still evaluate authoritative grants.
+System action-item owners can implement `ISystemActionEligibility` to restrict
+inbox and dashboard reads when reviewer authority changes. CMS uses these extension
+points for [collection permissions and approval](cms.md).
+
 Each deployment has one organisation. Shared organisation storage and quota admission
 are core; the File Storage capability controls the library UI, not whether attachments
 consume storage. Support features are independently configurable while retained inboxes

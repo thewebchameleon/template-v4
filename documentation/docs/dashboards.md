@@ -6,11 +6,13 @@ Administration, replacing the previous fixed dashboard.
 
 ## Editing and ownership
 
-Use **Edit dashboard**, then **Save** or **Cancel**. Add cards repeatedly, drag or
-use move buttons to reorder, and choose supported small/large sizes and
-metric/chart/list formats. Resize handles also accept left/right arrows. Cards
-stack on phones without changing saved size. Each dashboard supports 40 cards,
-including retained unavailable cards.
+Use **Unlock dashboard** to change a layout. Add cards repeatedly, drag their move
+handles to reorder them, and open a card's settings drawer to choose supported
+compact/small/large sizes and metric/chart/list formats. Card settings apply to the
+draft immediately. Locking a changed dashboard prompts the user to save or discard
+the draft. Cards use an eight-column grid on larger screens and stack on phones
+without changing saved size. Each dashboard supports 40 cards, including retained
+unavailable cards.
 
 Administrators with `settings.manage` can create shared dashboards, edit their
 defaults, and delete them. **Edit shared default** is separate from personalizing
@@ -34,8 +36,9 @@ and recent records. Invoicing supplies invoice status, outstanding balances,
 and quotations awaiting acceptance. Support supplies status, unanswered requester
 conversations, and recent tickets. CMS supplies drafts.
 
-Metrics aggregate all matching records. Lists show five records when small and
-ten when large, linking to their source workflow. Charts show category totals.
+Metrics aggregate all matching records. Lists show five records when compact or
+small and ten when large, linking to their source workflow. Charts show category
+totals.
 Financial values use the existing ZAR convention. Outstanding invoice balances
 subtract credits and payments. Superseded quotations are excluded.
 

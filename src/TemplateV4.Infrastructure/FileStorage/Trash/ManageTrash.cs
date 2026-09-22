@@ -5,6 +5,41 @@ namespace TemplateV4.Infrastructure.Storage;
 
 public sealed partial class FileStorageService
 {
+    public async Task<Result<Unit>> EmptyTrash(Guid actor, CancellationToken ct)
+    {
+        StoredFile[] files;
+        await using (var claim = await db.Database.BeginTransactionAsync(ct))
+        {
+            await Lock(actor, ct);
+            if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+            files = await db.Files.AsNoTracking().Where(x => x.PurgedAt == null && x.DeletedAt != null).ToArrayAsync(ct);
+            var ids = files.Select(x => x.Id).ToArray();
+            await db.Files.Where(x => ids.Contains(x.Id)).ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.PurgeRequested, true)
+                .SetProperty(x => x.PurgeRetryAt, (DateTimeOffset?)null), ct);
+            await db.Set<FileStorageShare>().Where(x => ids.Contains(x.FileId)).ExecuteDeleteAsync(ct);
+            Audit(actor, actor, "purge_requested");
+            await db.SaveChangesAsync(ct);
+            await claim.CommitAsync(ct);
+        }
+
+        foreach (var file in files.Where(x => !x.IsFolder)) await storage.Delete(file.ObjectKey, ct);
+
+        await using var finish = await db.Database.BeginTransactionAsync(ct);
+        await Lock(actor, ct);
+        var purgedAt = time.GetUtcNow();
+        var fileIds = files.Select(x => x.Id).ToArray();
+        await db.Files.Where(x => fileIds.Contains(x.Id) && x.PurgedAt == null && x.PurgeRequested)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.PurgedAt, purgedAt)
+                .SetProperty(x => x.Name, "Deleted file")
+                .SetProperty(x => x.Description, "")
+                .SetProperty(x => x.Tags, "")
+                .SetProperty(x => x.PurgeRetryAt, (DateTimeOffset?)null), ct);
+        await finish.CommitAsync(ct);
+        return Result.Success();
+    }
+
     public async Task<Result<Unit>> Trash(Guid actor, Guid? id, bool restore, bool purge, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);

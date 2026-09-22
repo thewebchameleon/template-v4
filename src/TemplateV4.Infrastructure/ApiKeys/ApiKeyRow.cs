@@ -6,6 +6,7 @@ public sealed class ApiKeyRow
     public string Name { get; set; } = "";
     public byte[] SecretHash { get; set; } = [];
     public string[] Scopes { get; set; } = [];
+    public string[] Collections { get; set; } = [];
     public Guid CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }

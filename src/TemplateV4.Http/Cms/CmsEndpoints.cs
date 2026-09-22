@@ -8,6 +8,7 @@ public static class CmsEndpoints
 {
     public static RouteGroupBuilder MapCmsEndpoints(this RouteGroupBuilder group)
     {
+        group.MapContentEndpoints();
         var cms = group.MapGroup("/cms").RequireAuthorization(Permissions.CmsEdit).OwnedByModule(ModuleIds.Cms).RequireCapability(CapabilityIds.Cms);
         cms.AddEndpointFilter(async (context, next) =>
         {

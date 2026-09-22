@@ -13,7 +13,7 @@ public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, Tim
 {
     private static string Prefix(Guid id) => $"tv4_{id:N}"[..12];
     private static ApiKeyItem View(ApiKeyRow row, string createdByName) => new(row.Id, row.Name, Prefix(row.Id), row.Scopes,
-        row.CreatedAt, row.ExpiresAt, row.RevokedAt, row.LastUsedAt, row.RequestCount, createdByName);
+        row.CreatedAt, row.ExpiresAt, row.RevokedAt, row.LastUsedAt, row.RequestCount, createdByName, row.Collections);
 
     public async Task<Result<ApiKeyPage>> List(ApiKeyQuery query, CancellationToken ct)
     {
@@ -72,8 +72,12 @@ public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, Tim
             request.ExpiresInDays is < 1 or > 730)
             return Result<ApiKeyCreated>.Fail("api_key.invalid", ErrorKind.Validation);
 
+        var collections = request.Collections?.Distinct().ToArray() ?? [];
+        if (collections.Length > 100 || scopes.Contains(ApiScopes.CmsContentRead) && collections.Length == 0 ||
+            await db.Set<Cms.ContentCollectionRow>().CountAsync(x => collections.Contains(x.Key), ct) != collections.Length)
+            return Result<ApiKeyCreated>.Fail("api_key.invalid", ErrorKind.Validation);
         var now = time.GetUtcNow();
-        var created = Add(name, scopes, actor, request.ExpiresInDays is { } days ? now.AddDays(days) : null, now);
+        var created = Add(name, scopes, actor, request.ExpiresInDays is { } days ? now.AddDays(days) : null, now, collections: collections);
         await db.SaveChangesAsync(ct);
         return Result<ApiKeyCreated>.Success(created);
     }
@@ -88,7 +92,7 @@ public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, Tim
         if (row.RevokedAt is not null || row.ExpiresAt <= now)
             return Result<ApiKeyCreated>.Fail("api_key.inactive", ErrorKind.Validation);
 
-        var created = Add(row.Name, row.Scopes, actor, row.ExpiresAt, now, row.Id);
+        var created = Add(row.Name, row.Scopes, actor, row.ExpiresAt, now, row.Id, row.Collections);
         await db.SaveChangesAsync(ct);
         return Result<ApiKeyCreated>.Success(created);
     }
@@ -148,16 +152,17 @@ public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, Tim
         var updated = await db.Set<ApiKeyRow>().Where(x => x.Id == id && x.RevokedAt == null && (x.ExpiresAt == null || x.ExpiresAt > now))
             .ExecuteUpdateAsync(update => update.SetProperty(x => x.LastUsedAt, now).SetProperty(x => x.RequestCount, x => x.RequestCount + 1), ct);
         if (updated != 1) return null;
-        return new(row.Id, row.Name, row.Scopes);
+        return new(row.Id, row.Name, row.Scopes, row.Collections);
     }
 
-    private ApiKeyCreated Add(string name, string[] scopes, Guid actor, DateTimeOffset? expiresAt, DateTimeOffset now, Guid? rotatedFrom = null)
+    private ApiKeyCreated Add(string name, string[] scopes, Guid actor, DateTimeOffset? expiresAt, DateTimeOffset now, Guid? rotatedFrom = null, string[]? collections = null)
     {
         var row = new ApiKeyRow
         {
             Id = Guid.NewGuid(),
             Name = name,
             Scopes = scopes,
+            Collections = collections ?? [],
             CreatedBy = actor,
             CreatedAt = now,
             ExpiresAt = expiresAt

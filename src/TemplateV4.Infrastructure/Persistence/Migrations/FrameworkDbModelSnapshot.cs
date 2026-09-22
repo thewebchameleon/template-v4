@@ -221,6 +221,10 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.PrimitiveCollection<string[]>("Collections")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -345,6 +349,203 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                             Published = "[]",
                             Version = new Guid("06416342-7225-40b5-95d3-216c4a5971d2")
                         });
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentCollectionRow", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Fields")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PublicRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Workflow")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("collections", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentGrantRow", b =>
+                {
+                    b.Property<string>("Collection")
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Permission")
+                        .HasColumnType("text");
+
+                    b.HasKey("Collection", "RoleId", "Permission");
+
+                    b.ToTable("grants", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentItemRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Collection")
+                        .IsRequired()
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("DraftRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PublishedRevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PublishedUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Collection", "UpdatedAt", "Id");
+
+                    b.ToTable("items", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentRelationRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RevisionId");
+
+                    b.HasIndex("TargetId");
+
+                    b.ToTable("relationships", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentReviewRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RevisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RevisionId", "ReviewerId")
+                        .IsUnique();
+
+                    b.ToTable("reviews", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentRevisionRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SchemaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Values")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Workflow")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("SchemaId");
+
+                    b.ToTable("revisions", "cms");
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentSchemaRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Collection")
+                        .IsRequired()
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Fields")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Collection");
+
+                    b.ToTable("schemas", "cms");
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Contact.ContactRow", b =>
@@ -2888,6 +3089,72 @@ namespace TemplateV4.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithMany()
                         .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentGrantRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentCollectionRow", null)
+                        .WithMany()
+                        .HasForeignKey("Collection")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentItemRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentCollectionRow", null)
+                        .WithMany()
+                        .HasForeignKey("Collection")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentRelationRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentRevisionRow", null)
+                        .WithMany()
+                        .HasForeignKey("RevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentItemRow", null)
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentReviewRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentRevisionRow", null)
+                        .WithMany()
+                        .HasForeignKey("RevisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentRevisionRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentItemRow", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentSchemaRow", null)
+                        .WithMany()
+                        .HasForeignKey("SchemaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Cms.ContentSchemaRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Cms.ContentCollectionRow", null)
+                        .WithMany()
+                        .HasForeignKey("Collection")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

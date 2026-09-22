@@ -1,4 +1,14 @@
 export const apiKeyDictionary: Record<string, [string, string]> = {
+  'apiScope.cms.content.read': ['Read published collections', 'Lees gepubliseerde versamelings'],
+  apiKeyCollections: [
+    'Collection API keys, separated by commas',
+    'Versameling-API-sleutels, geskei deur kommas',
+  ],
+  apiKeyCollectionsHelp: [
+    'For example: recipes, ingredients, equipment. Grants published-content access only to these collections.',
+    'Byvoorbeeld: recipes, ingredients, equipment. Verleen gepubliseerde-inhoudtoegang slegs tot hierdie versamelings.',
+  ],
+
   apiKeysIntro: [
     'Create scoped credentials for trusted external applications and review their usage.',
     'Skep beperkte aanmeldbewyse vir vertroude eksterne toepassings en hersien hul gebruik.',

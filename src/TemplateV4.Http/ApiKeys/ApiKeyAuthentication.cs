@@ -38,6 +38,7 @@ public sealed class ApiKeyAuthenticationHandler(
             new(ClaimTypes.Name, key.Name)
         };
         claims.AddRange(key.Scopes.Select(scope => new Claim("scope", scope)));
+        claims.AddRange((key.Collections ?? []).Select(collection => new Claim("cms_collection", collection)));
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, ApiKeyAuthentication.Scheme, ClaimTypes.Name, ClaimTypes.Role));
         return AuthenticateResult.Success(new AuthenticationTicket(principal, ApiKeyAuthentication.Scheme));
     }

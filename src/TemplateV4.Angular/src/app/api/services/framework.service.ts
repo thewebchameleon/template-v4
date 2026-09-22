@@ -62,6 +62,9 @@ import { confirmEmailChange } from '../fn/framework/confirm-email-change';
 import { ConfirmEmailChange$Params } from '../fn/framework/confirm-email-change';
 import { confirmMfaEnrollment } from '../fn/framework/confirm-mfa-enrollment';
 import { ConfirmMfaEnrollment$Params } from '../fn/framework/confirm-mfa-enrollment';
+import { ContentAccessOptions } from '../models/content-access-options';
+import { ContentCollection } from '../models/content-collection';
+import { ContentItem } from '../models/content-item';
 import { copyFileStorageBatch } from '../fn/framework/copy-file-storage-batch';
 import { CopyFileStorageBatch$Params } from '../fn/framework/copy-file-storage-batch';
 import { createActionItem } from '../fn/framework/create-action-item';
@@ -153,6 +156,12 @@ import { getCommercialBillingSettings } from '../fn/framework/get-commercial-bil
 import { GetCommercialBillingSettings$Params } from '../fn/framework/get-commercial-billing-settings';
 import { getCommercialDocument } from '../fn/framework/get-commercial-document';
 import { GetCommercialDocument$Params } from '../fn/framework/get-commercial-document';
+import { getContentAccessOptions } from '../fn/framework/get-content-access-options';
+import { GetContentAccessOptions$Params } from '../fn/framework/get-content-access-options';
+import { getContentCollection } from '../fn/framework/get-content-collection';
+import { GetContentCollection$Params } from '../fn/framework/get-content-collection';
+import { getContentItem } from '../fn/framework/get-content-item';
+import { GetContentItem$Params } from '../fn/framework/get-content-item';
 import { getCrmConfiguration } from '../fn/framework/get-crm-configuration';
 import { GetCrmConfiguration$Params } from '../fn/framework/get-crm-configuration';
 import { getCrmDetail } from '../fn/framework/get-crm-detail';
@@ -239,6 +248,10 @@ import { listCommercialDocuments } from '../fn/framework/list-commercial-documen
 import { ListCommercialDocuments$Params } from '../fn/framework/list-commercial-documents';
 import { listContactEnquiries } from '../fn/framework/list-contact-enquiries';
 import { ListContactEnquiries$Params } from '../fn/framework/list-contact-enquiries';
+import { listContentCollections } from '../fn/framework/list-content-collections';
+import { ListContentCollections$Params } from '../fn/framework/list-content-collections';
+import { listContentItems } from '../fn/framework/list-content-items';
+import { ListContentItems$Params } from '../fn/framework/list-content-items';
 import { listCrmAttachments } from '../fn/framework/list-crm-attachments';
 import { ListCrmAttachments$Params } from '../fn/framework/list-crm-attachments';
 import { listCrmRecords } from '../fn/framework/list-crm-records';
@@ -295,6 +308,7 @@ import { PageOfAuditItem } from '../models/page-of-audit-item';
 import { PageOfCmsArticleSummary } from '../models/page-of-cms-article-summary';
 import { PageOfCommercialDocument } from '../models/page-of-commercial-document';
 import { PageOfContactEnquiry } from '../models/page-of-contact-enquiry';
+import { PageOfContentItemSummary } from '../models/page-of-content-item-summary';
 import { PageOfCrmRecord } from '../models/page-of-crm-record';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
 import { PageOfOrganisationAttachment } from '../models/page-of-organisation-attachment';
@@ -395,6 +409,12 @@ import { saveCmsSections } from '../fn/framework/save-cms-sections';
 import { SaveCmsSections$Params } from '../fn/framework/save-cms-sections';
 import { saveCommercialBillingSettings } from '../fn/framework/save-commercial-billing-settings';
 import { SaveCommercialBillingSettings$Params } from '../fn/framework/save-commercial-billing-settings';
+import { saveContentCollection } from '../fn/framework/save-content-collection';
+import { SaveContentCollection$Params } from '../fn/framework/save-content-collection';
+import { saveContentGrants } from '../fn/framework/save-content-grants';
+import { SaveContentGrants$Params } from '../fn/framework/save-content-grants';
+import { saveContentItem } from '../fn/framework/save-content-item';
+import { SaveContentItem$Params } from '../fn/framework/save-content-item';
 import { saveCrmRecord } from '../fn/framework/save-crm-record';
 import { SaveCrmRecord$Params } from '../fn/framework/save-crm-record';
 import { saveDashboard } from '../fn/framework/save-dashboard';
@@ -441,6 +461,8 @@ import { StoreCommercialPdf$Params } from '../fn/framework/store-commercial-pdf'
 import { SupportModuleSettings } from '../models/support-module-settings';
 import { SupportOptions } from '../models/support-options';
 import { TicketDetail } from '../models/ticket-detail';
+import { transitionContentItem } from '../fn/framework/transition-content-item';
+import { TransitionContentItem$Params } from '../fn/framework/transition-content-item';
 import { triggerBackgroundJob } from '../fn/framework/trigger-background-job';
 import { TriggerBackgroundJob$Params } from '../fn/framework/trigger-background-job';
 import { triggerMaintenance } from '../fn/framework/trigger-maintenance';
@@ -3932,6 +3954,249 @@ export class FrameworkService extends BaseService {
     const resp = this.addCrmNote$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
+    );
+  }
+
+  /** Path part for operation `listContentCollections()` */
+  static readonly ListContentCollectionsPath = '/api/v1/auth/cms/collections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listContentCollections()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentCollections$Response(params?: ListContentCollections$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ContentCollection>>> {
+    const obs = listContentCollections(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listContentCollections$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentCollections(params?: ListContentCollections$Params, context?: HttpContext): Observable<Array<ContentCollection>> {
+    const resp = this.listContentCollections$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<ContentCollection>>): Array<ContentCollection> => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentCollection()` */
+  static readonly SaveContentCollectionPath = '/api/v1/auth/cms/collections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentCollection()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentCollection$Response(params: SaveContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = saveContentCollection(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentCollection$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentCollection(params: SaveContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.saveContentCollection$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentAccessOptions()` */
+  static readonly GetContentAccessOptionsPath = '/api/v1/auth/cms/collections/access-options';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentAccessOptions()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentAccessOptions$Response(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentAccessOptions>> {
+    const obs = getContentAccessOptions(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentAccessOptions$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentAccessOptions(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<ContentAccessOptions> {
+    const resp = this.getContentAccessOptions$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentAccessOptions>): ContentAccessOptions => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentCollection()` */
+  static readonly GetContentCollectionPath = '/api/v1/auth/cms/collections/{key}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentCollection()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentCollection$Response(params: GetContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = getContentCollection(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentCollection$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentCollection(params: GetContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.getContentCollection$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentGrants()` */
+  static readonly SaveContentGrantsPath = '/api/v1/auth/cms/collections/{key}/grants';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentGrants()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentGrants$Response(params: SaveContentGrants$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = saveContentGrants(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentGrants$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentGrants(params: SaveContentGrants$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.saveContentGrants$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `listContentItems()` */
+  static readonly ListContentItemsPath = '/api/v1/auth/cms/collections/{key}/items';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listContentItems()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentItems$Response(params: ListContentItems$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfContentItemSummary>> {
+    const obs = listContentItems(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listContentItems$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentItems(params: ListContentItems$Params, context?: HttpContext): Observable<PageOfContentItemSummary> {
+    const resp = this.listContentItems$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfContentItemSummary>): PageOfContentItemSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentItem()` */
+  static readonly SaveContentItemPath = '/api/v1/auth/cms/collections/{key}/items';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentItem()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentItem$Response(params: SaveContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = saveContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentItem$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentItem(params: SaveContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.saveContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentItem()` */
+  static readonly GetContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentItem()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentItem$Response(params: GetContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = getContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentItem$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentItem(params: GetContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.getContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
+    );
+  }
+
+  /** Path part for operation `transitionContentItem()` */
+  static readonly TransitionContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}/transition';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `transitionContentItem()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  transitionContentItem$Response(params: TransitionContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = transitionContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `transitionContentItem$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  transitionContentItem(params: TransitionContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.transitionContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
     );
   }
 

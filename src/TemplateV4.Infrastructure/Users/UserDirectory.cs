@@ -112,6 +112,7 @@ public sealed class UserDirectory(FrameworkDb db, UserManager<AppUser> users, IE
         if (!allowed.Contains(Permissions.Manage)) return false;
         var roles = await db.Roles.Where(r => names.Contains(r.Name!)).Select(r => r.Id).ToArrayAsync(ct);
         if (roles.Length != names.Length) return false;
+        if (!await access.CanDelegateRoles(roles, ct)) return false;
         return !await db.RoleClaims.AnyAsync(c => roles.Contains(c.RoleId) && c.ClaimType == "permission" && !allowed.Contains(c.ClaimValue!), ct);
     }
     private void Audit(string action, Guid subject, params AuditChange[] changes) => db.Audit.Add(new() { Action = action, SubjectId = subject, SubjectType = "user", ChangesJson = AuditCapture.Changes(changes), ActorId = context.ActorId, At = time.GetUtcNow(), TraceParent = context.TraceParent });

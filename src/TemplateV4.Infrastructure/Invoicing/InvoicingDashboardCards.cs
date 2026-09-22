@@ -9,9 +9,9 @@ namespace TemplateV4.Infrastructure.Invoicing;
 public sealed class InvoicingDashboardCards(FrameworkDb db, IOrganisationOperations access, ICapabilities capabilities) : IDashboardCardProvider
 {
     public IReadOnlyList<DashboardCardDefinition> Definitions { get; } = [
-        new("invoicing.invoices", "dashInvoices", "invoicing", ["small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all", "outstanding", "paid"], true),
-        new("invoicing.outstanding", "dashOutstanding", "invoicing", ["small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all"], true),
-        new("invoicing.quotations", "dashQuotations", "invoicing", ["small", "large"], ["metric", "list"], ["count", "value"], ["all"], true)];
+        new("invoicing.invoices", "dashInvoices", "invoicing", ["compact", "small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all", "outstanding", "paid"], true),
+        new("invoicing.outstanding", "dashOutstanding", "invoicing", ["compact", "small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all"], true),
+        new("invoicing.quotations", "dashQuotations", "invoicing", ["compact", "small", "large"], ["metric", "list"], ["count", "value"], ["all"], true)];
     public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await capabilities.Enabled(CapabilityIds.Invoicing, ct) && await access.Allowed(actor, OrganisationOperation.Read, ct);
     public async Task<DashboardCardData> Read(Guid actor, DashboardCardQuery q, DateTimeOffset? since, CancellationToken ct)
     {

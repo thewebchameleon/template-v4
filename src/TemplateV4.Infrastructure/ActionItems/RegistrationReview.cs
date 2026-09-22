@@ -6,6 +6,11 @@ namespace TemplateV4.Infrastructure;
 
 public sealed partial class ActionItemsService
 {
+    public async Task AddAssignedReview(string source, Guid sourceId, Guid assigneeId, string title, string link, CancellationToken ct)
+    {
+        var row = new ActionItemRow { Source = source, SourceId = sourceId, AssigneeId = assigneeId, Title = title, Link = link, CreatedAt = time.GetUtcNow() };
+        db.Add(row); await Notify(row, ct);
+    }
 
     // Called inside the owning workflow transaction, so item, notification and source commit together.
     public async Task AddReview(string source, Guid sourceId, Guid subjectId, string title, string link, CancellationToken ct)

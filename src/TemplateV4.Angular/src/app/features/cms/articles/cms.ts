@@ -1,6 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
-import { HlmSelectImports } from '@spartan-ng/helm/select';
 import {
   WorkspaceUi,
   workspaceIcons,
@@ -42,45 +41,42 @@ class CmsStatus {
 
 @Component({
   selector: 'app-cms',
-  imports: [WorkspaceUi, HlmSelectImports, DataTable],
+  imports: [WorkspaceUi, DataTable],
   providers: [workspaceIcons],
   template: ` <app-page-header title="cms" description="cmsIntro">
       <a hlmBtn routerLink="/cms/new">{{ 'cmsNew' | t }}</a>
       <a hlmBtn variant="outline" routerLink="/cms/sections">{{ 'cmsSections' | t }}</a>
     </app-page-header>
-    <section hlmCard>
+    <section hlmCard class="workspace-directory-panel">
       <div hlmCardHeader>
         <h2 hlmCardTitle>{{ 'cmsArticles' | t }}</h2>
         <p hlmCardDescription>{{ 'cmsEditHelp' | t }}</p>
       </div>
       <div hlmCardContent>
-        <div class="mb-4 grid gap-4 sm:grid-cols-2">
-          <div hlmField>
-            <label hlmFieldLabel for="cms-search">{{ 'search' | t }}</label>
-            <input
-              hlmInput
-              id="cms-search"
-              [ngModel]="search.value()"
-              (ngModelChange)="search.update($event)"
-              maxlength="200"
-            />
-          </div>
-          <div hlmField>
-            <label hlmFieldLabel for="cms-status">{{ 'status' | t }}</label>
-            <hlm-select
-              [value]="query.text('status', 'all')"
-              [itemToString]="statusLabel"
-              (valueChange)="query.set({ status: $event ?? 'all', page: 1 })"
-            >
-              <hlm-select-trigger buttonId="cms-status" class="w-full"
-                ><hlm-select-value
-              /></hlm-select-trigger>
-              <hlm-select-content *hlmSelectPortal [ariaLabel]="'status' | t">
-                <hlm-select-item value="all">{{ 'cmsAll' | t }}</hlm-select-item>
-                <hlm-select-item value="draft">{{ 'cmsDraft' | t }}</hlm-select-item>
-                <hlm-select-item value="published">{{ 'cmsPublished' | t }}</hlm-select-item>
-              </hlm-select-content>
-            </hlm-select>
+        <div class="workspace-directory-controls">
+          <hlm-tabs
+            [tab]="query.text('status', 'all')"
+            (tabActivated)="query.set({ status: $event, page: 1 })"
+            class="workspace-directory-tabs"
+          >
+            <hlm-tabs-list [attr.aria-label]="'status' | t" class="flex-wrap">
+              <button hlmTabsTrigger="all">{{ 'cmsAll' | t }}</button>
+              <button hlmTabsTrigger="draft">{{ 'cmsDraft' | t }}</button>
+              <button hlmTabsTrigger="published">{{ 'cmsPublished' | t }}</button>
+            </hlm-tabs-list>
+          </hlm-tabs>
+          <div class="workspace-directory-toolbar">
+            <div hlmField class="min-w-0 flex-1 sm:max-w-sm">
+              <label hlmFieldLabel class="sr-only" for="cms-search">{{ 'search' | t }}</label>
+              <input
+                hlmInput
+                id="cms-search"
+                [ngModel]="search.value()"
+                (ngModelChange)="search.update($event)"
+                maxlength="200"
+                [placeholder]="'search' | t"
+              />
+            </div>
           </div>
         </div>
         <app-page-state
@@ -117,10 +113,6 @@ export class CmsPage {
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly data = new Resource<PageOfCmsArticleSummary>();
-  readonly statusLabel = (value: string) =>
-    this.i18n.text(
-      value === 'draft' ? 'cmsDraft' : value === 'published' ? 'cmsPublished' : 'cmsAll',
-    );
   readonly columns = computed(() => {
     this.i18n.culture();
     return column.columns([

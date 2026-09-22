@@ -4,7 +4,8 @@ public static class ApiScopes
 {
     public const string CmsArticlesRead = "cms.articles.read";
     public const string CmsSectionsRead = "cms.sections.read";
-    public static readonly string[] All = [CmsArticlesRead, CmsSectionsRead];
+    public const string CmsContentRead = "cms.content.read";
+    public static readonly string[] All = [CmsArticlesRead, CmsSectionsRead, CmsContentRead];
 }
 
 public sealed record ApiKeyItem(
@@ -17,13 +18,13 @@ public sealed record ApiKeyItem(
     DateTimeOffset? RevokedAt,
     DateTimeOffset? LastUsedAt,
     long RequestCount,
-    string CreatedByName);
+    string CreatedByName, string[]? Collections = null);
 
 public sealed record ApiKeyQuery(string Search = "", int PageNumber = 1, int PageSize = 10, string Sort = "createdAt", string Direction = "desc");
 public sealed record ApiKeyPage(IReadOnlyList<ApiKeyItem> Items, int Total, int PageNumber, int PageSize);
-public sealed record CreateApiKey(string Name, string[] Scopes, int? ExpiresInDays);
+public sealed record CreateApiKey(string Name, string[] Scopes, int? ExpiresInDays, string[]? Collections = null);
 public sealed record ApiKeyCreated(ApiKeyItem Key, string Secret);
-public sealed record ApiKeyIdentity(Guid Id, string Name, string[] Scopes);
+public sealed record ApiKeyIdentity(Guid Id, string Name, string[] Scopes, string[]? Collections = null);
 
 public interface IApiKeys
 {

@@ -31,6 +31,10 @@ public static class FoundationHost
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, modules);
         configure?.Invoke(builder);
+        // Export describes routes without contacting a retained deployment database.
+        if (exportPath is not null)
+            foreach (var service in builder.Services.Where(x => x.ImplementationType == typeof(TemplateV4.Infrastructure.Updates.DeploymentManifestGuard)).ToArray())
+                builder.Services.Remove(service);
         builder.Services.AddSignalR();
         if (exportPath is null) builder.Services.AddHostedService<NotificationChangeRelay>();
         builder.Services.AddHttpContextAccessor();
@@ -47,6 +51,7 @@ public static class FoundationHost
         {
             options.AddDocumentTransformer<JwtOpenApi>();
             options.AddOperationTransformer<JwtOperationOpenApi>();
+            options.AddSchemaTransformer<ContentSchemaOpenApi>();
         });
         builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict);
         builder.Services.AddOutputCache();

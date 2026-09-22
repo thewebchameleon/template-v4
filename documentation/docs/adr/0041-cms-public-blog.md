@@ -2,6 +2,10 @@
 
 Status: Accepted
 
+Schema storage, authoring and approval are extended by [ADR 0054](0054-schema-driven-cms.md).
+Its generic revisions and approval policy supersede the article-only storage and
+no-workflow limitations below; retained blog rendering and URL guarantees remain.
+
 ## Decision
 
 CMS is an optional foundation module owning `cms.articles` in the existing EF

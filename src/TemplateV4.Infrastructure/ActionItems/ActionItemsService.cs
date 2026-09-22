@@ -5,8 +5,9 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure;
 
-public sealed partial class ActionItemsService(FrameworkDb db, TimeProvider time) : IActionItems
+public sealed partial class ActionItemsService(FrameworkDb db, TimeProvider time, IEnumerable<ISystemActionEligibility> eligibility) : IActionItems
 {
+    public ActionItemsService(FrameworkDb db, TimeProvider time) : this(db, time, []) { }
     private IQueryable<Guid> Administrators => from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id where role.Name == "Administrator" select membership.UserId;
     private IQueryable<Guid> Holders(string permission) => from membership in db.UserRoles join claim in db.RoleClaims on membership.RoleId equals claim.RoleId where claim.ClaimType == "permission" && claim.ClaimValue == permission select membership.UserId;
     private IQueryable<Guid> ActiveUsers => from user in db.Users join profile in db.Profiles on user.Id equals profile.Id where !profile.Disabled && user.EmailConfirmed && user.PasswordHash != null && user.RegistrationState != "Pending" && user.RegistrationState != "Rejected" select user.Id;

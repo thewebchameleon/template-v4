@@ -7,9 +7,9 @@ namespace TemplateV4.Infrastructure.Support;
 public sealed class SupportDashboardCards(FrameworkDb db, SupportTicketContext tickets) : IDashboardCardProvider
 {
     public IReadOnlyList<DashboardCardDefinition> Definitions { get; } = [
-        new("support.tickets", "dashTickets", "support", ["small", "large"], ["metric", "chart", "list"], ["count"], ["all", "Open", "InProgress", "WaitingOnRequester", "Resolved", "Closed"], true),
-        new("support.awaiting", "dashAwaitingReply", "support", ["small", "large"], ["metric", "list"], ["count"], ["all"], true),
-        new("support.recent", "dashRecentTickets", "support", ["small", "large"], ["list", "metric"], ["count"], ["all", "Open", "InProgress", "WaitingOnRequester", "Resolved", "Closed"], true)];
+        new("support.tickets", "dashTickets", "support", ["compact", "small", "large"], ["metric", "chart", "list"], ["count"], ["all", "Open", "InProgress", "WaitingOnRequester", "Resolved", "Closed"], true),
+        new("support.awaiting", "dashAwaitingReply", "support", ["compact", "small", "large"], ["metric", "list"], ["count"], ["all"], true),
+        new("support.recent", "dashRecentTickets", "support", ["compact", "small", "large"], ["list", "metric"], ["count"], ["all", "Open", "InProgress", "WaitingOnRequester", "Resolved", "Closed"], true)];
     public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await tickets.Available(ct) && await tickets.Agent(ct);
     public async Task<DashboardCardData> Read(Guid actor, DashboardCardQuery q, DateTimeOffset? since, CancellationToken ct)
     {

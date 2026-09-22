@@ -64,6 +64,7 @@ import { Features } from './core/features';
 import { UnreadNotifications } from './features/notifications/unread-notifications';
 import { NotificationDrawer } from './features/notifications/notification-drawer';
 import { PlatformAppearanceTheme } from './core/platform-appearance';
+import { SidebarSelectionIndicator } from './shared/sidebar-selection-indicator';
 
 type RailLink = Destination & {
   destination: string | null;
@@ -95,6 +96,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     Translate,
     Confirmation,
     NotificationDrawer,
+    SidebarSelectionIndicator,
   ],
   providers: [
     provideIcons({
@@ -314,9 +316,12 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 </div>
               }
               @for (panel of navigationPanels(); track panel.label) {
-                @if ((panel.links.length || panel.settings) && (sidebar.isMobile() || panel.active)) {
+                @if (
+                  (panel.links.length || panel.settings) && (sidebar.isMobile() || panel.active)
+                ) {
                   <nav
                     hlmSidebarGroup
+                    appSidebarSelectionIndicator
                     class="sidebar-submenu min-h-0"
                     [class.flex-1]="!sidebar.isMobile()"
                     [attr.aria-label]="panel.label | t"
@@ -343,9 +348,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                       }
                     </ul>
                     @if (panel.settings; as settings) {
-                      <div
-                        class="sidebar-module-footer -mx-2 mt-auto"
-                      >
+                      <div class="sidebar-module-footer -mx-2 mt-auto">
                         <ul hlmSidebarMenu>
                           <li hlmSidebarMenuItem>
                             <a
@@ -370,6 +373,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
               @if (sidebar.isMobile() || administrationPanelActive()) {
                 <nav
                   hlmSidebarGroup
+                  appSidebarSelectionIndicator
                   class="sidebar-submenu gap-4"
                   [attr.aria-label]="'administration' | t"
                 >
@@ -529,7 +533,11 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 <ng-icon name="lucideLogOut" aria-hidden="true" />{{ 'signOut' | t }}
               </button>
             </header>
-            <div class="app-content" [class.app-content-enter-alternate]="alternatePageEntrance()">
+            <div
+              class="app-content"
+              [class.app-content-enter-alternate]="alternatePageEntrance()"
+              [class.app-content-full-width]="dashboardActive()"
+            >
               <ng-container *ngTemplateOutlet="page" />
             </div>
           </ng-scrollbar>
@@ -646,6 +654,7 @@ export class App {
   readonly administrationDestination = computed(() => this.accountMenuLinks()[0].path);
   private previousPath = '';
   readonly alternatePageEntrance = signal(false);
+  readonly dashboardActive = signal(false);
   readonly fileStorageSettingsActive = computed(() => {
     this.navigationEnd();
     return this.router.url.split(/[?#]/)[0] === moduleSettingsDestinations['file-storage'].path;
@@ -935,6 +944,7 @@ export class App {
       if (event instanceof NavigationEnd) {
         if (actor()) void this.features.load();
         const path = event.urlAfterRedirects.split(/[?#]/)[0];
+        this.dashboardActive.set(path === '/dashboard');
         if (path !== this.previousPath) {
           this.selectedPanel.set(null);
           if (this.previousPath === '/dashboard' && path !== '/dashboard') this.sidebar.openPanel();

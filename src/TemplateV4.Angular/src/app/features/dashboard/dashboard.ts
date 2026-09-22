@@ -1,6 +1,18 @@
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { provideIcons } from '@ng-icons/core';
+import {
+  lucideGripHorizontal,
+  lucideLock,
+  lucidePencil,
+  lucideRefreshCw,
+  lucideTrash2,
+  lucideUnlock,
+} from '@ng-icons/lucide';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { WorkspaceUi, Confirmations, protectUnload } from '../../shared/workspace';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { I18n } from '../../core/i18n';
@@ -13,10 +25,30 @@ import {
 } from '../../api/models';
 import { DashboardChoice } from './dashboard-choice';
 import { DashboardCardView } from './dashboard-card';
+import { DashboardMasonryItem } from './dashboard-masonry-item';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [WorkspaceUi, DragDropModule, DashboardChoice, DashboardCardView],
+  imports: [
+    WorkspaceUi,
+    DragDropModule,
+    HlmAlertDialogImports,
+    HlmDialogImports,
+    HlmDrawerImports,
+    DashboardChoice,
+    DashboardCardView,
+    DashboardMasonryItem,
+  ],
+  providers: [
+    provideIcons({
+      lucideGripHorizontal,
+      lucideLock,
+      lucidePencil,
+      lucideRefreshCw,
+      lucideTrash2,
+      lucideUnlock,
+    }),
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -36,8 +68,11 @@ export class DashboardPage {
   readonly search = signal('');
   readonly hidden = signal<string[]>([]);
   readonly sharedEdit = signal(false);
+  readonly renameOpen = signal(false);
+  readonly renameValue = signal('');
+  readonly lockPrompt = signal(false);
+  readonly editingCardId = signal('');
   private base: DashboardDto | null = null;
-  private resizing: { id: string; x: number; size: string } | null = null;
   readonly periods = [
     { value: 'all', label: 'dashAllTime' },
     { value: '7', label: 'dash7Days' },
@@ -69,6 +104,19 @@ export class DashboardPage {
   readonly unavailableCount = computed(
     () => (this.layout()?.cards.length ?? 0) - this.visible().length,
   );
+  readonly editingCard = computed(
+    () => this.draft()?.cards.find((x) => x.id === this.editingCardId()) ?? null,
+  );
+  readonly editingDefinition = computed(() => {
+    const card = this.editingCard();
+    return card ? (this.definitions().get(card.definitionId) ?? null) : null;
+  });
+  readonly dirty = computed(() => {
+    const draft = this.draft();
+    return (
+      draft !== null && (!this.base || JSON.stringify(draft) !== JSON.stringify(this.base.layout))
+    );
+  });
   constructor() {
     void this.load();
   }
@@ -76,7 +124,7 @@ export class DashboardPage {
     protectUnload(event, this.hasUnsavedChanges());
   }
   hasUnsavedChanges() {
-    return this.draft() !== null;
+    return this.dirty();
   }
   private async run(work: () => Promise<void>) {
     this.busy.set(true);
@@ -134,6 +182,9 @@ export class DashboardPage {
   cancel() {
     this.draft.set(null);
     this.picker.set(false);
+    this.renameOpen.set(false);
+    this.lockPrompt.set(false);
+    this.editingCardId.set('');
     this.period.set(this.current()?.layout.period ?? 'all');
     this.error.set('');
   }
@@ -158,11 +209,44 @@ export class DashboardPage {
       savedId = saved.id;
       this.draft.set(null);
       this.picker.set(false);
+      this.renameOpen.set(false);
+      this.editingCardId.set('');
     });
     if (savedId) {
       await this.load(savedId);
       this.notice.set('dashSaved');
     }
+  }
+  requestLock() {
+    if (!this.draft()) return;
+    if (!this.dirty()) {
+      this.cancel();
+      return;
+    }
+    this.lockPrompt.set(true);
+  }
+  saveAndLock() {
+    this.lockPrompt.set(false);
+    void this.save();
+  }
+  discardAndLock() {
+    this.lockPrompt.set(false);
+    this.cancel();
+  }
+  openRename() {
+    const layout = this.draft();
+    if (!layout) return;
+    this.renameValue.set(this.i18n.text(layout.name));
+    this.renameOpen.set(true);
+  }
+  applyRename() {
+    const value = this.renameValue().trim();
+    if (!value) return;
+    this.name(value);
+    this.renameOpen.set(false);
+  }
+  openCardEditor(id: string) {
+    this.editingCardId.set(id);
   }
   async starting() {
     await this.run(async () => {
@@ -219,7 +303,7 @@ export class DashboardPage {
               {
                 id: crypto.randomUUID(),
                 definitionId: definition.id,
-                size: definition.sizes[0],
+                size: definition.sizes.includes('small') ? 'small' : definition.sizes[0],
                 format: definition.formats[0],
                 metric: definition.metrics[0],
                 filter: definition.filters[0],
@@ -238,6 +322,7 @@ export class DashboardPage {
   }
   remove(id: string) {
     this.draft.update((x) => (x ? { ...x, cards: x.cards.filter((c) => c.id !== id) } : x));
+    if (this.editingCardId() === id) this.editingCardId.set('');
   }
   move(id: string, delta: number) {
     const visible = this.visible();
@@ -261,27 +346,6 @@ export class DashboardPage {
       return { ...x, cards };
     });
     this.notice.set('dashMoved');
-  }
-  resizeStart(event: PointerEvent, card: DashboardCard) {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-    this.resizing = { id: card.id, x: event.clientX, size: card.size };
-  }
-  resizeMove(event: PointerEvent) {
-    if (!this.resizing) return;
-    const delta = event.clientX - this.resizing.x;
-    const size = delta > 40 ? 'large' : delta < -40 ? 'small' : this.resizing.size;
-    const card = this.draft()?.cards.find((x) => x.id === this.resizing?.id);
-    if (
-      card &&
-      this.definitions().get(card.definitionId)?.sizes.includes(size) &&
-      card.size !== size
-    )
-      this.update(card.id, { size });
-  }
-  resizeEnd() {
-    this.resizing = null;
   }
   hide(id: string) {
     this.hidden.update((x) => [...x, id]);

@@ -43,6 +43,8 @@ public sealed partial class AccountService
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         var allowed = await access.ActorPermissions(ct);
         if (!allowed.Contains(Permissions.Manage)) return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);
+        if (!await access.CanDelegateRoles(await db.UserRoles.Where(x => x.UserId == request.UserId).Select(x => x.RoleId).ToArrayAsync(ct), ct))
+            return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);
         if (await (from m in db.UserRoles join c in db.RoleClaims on m.RoleId equals c.RoleId where m.UserId == request.UserId && c.ClaimType == "permission" && !allowed.Contains(c.ClaimValue!) select c.Id).AnyAsync(ct))
             return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({request.UserId.ToString()}, 0))", ct);

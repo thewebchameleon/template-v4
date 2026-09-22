@@ -11,7 +11,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
 
-public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> users, SigningKeys keys, IConfiguration configuration, TimeProvider time, SecurityService security, IDataProtectionProvider protection, IEventOutbox outbox)
+public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> users, SigningKeys keys, IConfiguration configuration, TimeProvider time, SecurityService security, IDataProtectionProvider protection, IEventOutbox outbox, IEnumerable<TemplateV4.Application.Users.IAccessIndicators>? accessIndicators = null)
 {
     private static readonly TimeSpan EmailCodeLifetime = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan EmailSendCooldown = TimeSpan.FromSeconds(30);
@@ -38,6 +38,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
                                  where membership.UserId == user.Id && claim.ClaimType == "permission"
                                  select claim.ClaimValue!).Distinct().ToArrayAsync();
         var claims = new List<Claim> { new("sub", user.Id.ToString()), new("sid", session.Id.ToString()), new("culture", culture), new("jti", Guid.NewGuid().ToString()) };
+        foreach (var indicator in accessIndicators ?? []) permissions = permissions.Concat(await indicator.Read(user.Id, default)).Distinct().ToArray();
         if (setup) permissions = [];
         claims.AddRange(roles.Select(x => new Claim("role", x))); claims.AddRange(permissions.Select(x => new Claim("permission", x)));
         var now = time.GetUtcNow(); var expires = now.AddMinutes(5);

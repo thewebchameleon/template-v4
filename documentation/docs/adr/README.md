@@ -49,6 +49,8 @@ decision controls when the system has evolved.
 
 ## Platform workflows and user experience
 
+- [0054 — Schema-driven CMS and revision approval](0054-schema-driven-cms.md)
+
 - [0053 — Editable dashboards and module-owned card providers](0053-editable-dashboards.md)
 
 - [0010 — Spartan and design tokens](0010-spartan-design-tokens.md)

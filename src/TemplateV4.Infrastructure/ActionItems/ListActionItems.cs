@@ -17,6 +17,12 @@ public sealed partial class ActionItemsService
         var source = db.Set<ActionItemRow>().AsNoTracking().Where(x =>
             query.Scope == "overview" && admin ||
             (x.AssigneeId == actor || x.QueueId != null && queues.Contains(x.QueueId) || query.Scope == "overview" && x.CreatorId == actor));
+        foreach (var provider in eligibility)
+        {
+            var sourceName = provider.Source;
+            var allowed = await provider.EligibleSources(actor, ct);
+            source = source.Where(x => x.Source != sourceName || x.SourceId != null && allowed.Contains(x.SourceId.Value));
+        }
         if (query.State != "all") source = source.Where(x => x.State == query.State);
         if (!string.IsNullOrWhiteSpace(query.Search)) source = source.Where(x => x.Title.Contains(query.Search));
         var total = await source.CountAsync(ct);

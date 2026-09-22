@@ -2,6 +2,7 @@ import { fileIconName, canMoveFolder, filterVisibleFileGroups } from './file-sto
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { workspaceIcons } from '../../../shared/workspace';
 import { RowAction } from '../../../shared/workspace-cells';
+import { SidebarSelectionIndicator } from '../../../shared/sidebar-selection-indicator';
 import {
   phosphorFileArchiveDuotone,
   phosphorFileAudioDuotone,
@@ -66,6 +67,7 @@ import {
   lucideClock,
   lucideTrash2,
   lucideArrowLeft,
+  lucidePlus,
 } from '@ng-icons/lucide';
 import { WorkspaceUi, Resource, Confirmations } from '../../../shared/workspace';
 import { FileItem, FilePage } from '../../../api/models';
@@ -86,14 +88,15 @@ export const fileStorageFileIcons = provideIcons({
   lucideUserPlus,
   lucideClock,
   lucideTrash2,
+  lucidePlus,
 });
 export const fileGroups = [
+  { id: 'recent', label: 'recentFiles', icon: 'lucideClock' },
   { id: 'file-storage', label: 'files', icon: 'lucideFolder' },
   { id: 'important', label: 'important', icon: 'lucideFlag' },
+  { id: 'starred', label: 'starred', icon: 'lucideStar' },
   { id: 'shared', label: 'sharedWithMe', icon: 'lucideUsers' },
   { id: 'shared-with-someone', label: 'sharedWithSomeone', icon: 'lucideUserPlus' },
-  { id: 'recent', label: 'recentFiles', icon: 'lucideClock' },
-  { id: 'starred', label: 'starred', icon: 'lucideStar' },
   { id: 'trash', label: 'trash', icon: 'lucideTrash2' },
 ];
 @Component({
@@ -403,9 +406,15 @@ export class FileStorageNavigation {
     FileStorageActionDialog,
     HlmContextMenuImports,
     HlmDropdownMenuImports,
+    SidebarSelectionIndicator,
   ],
   providers: [fileStorageFileIcons],
-  template: `<nav hlmSidebarGroup class="sidebar-submenu" [attr.aria-label]="'files' | t">
+  template: `<nav
+      hlmSidebarGroup
+      appSidebarSelectionIndicator
+      class="sidebar-submenu"
+      [attr.aria-label]="'files' | t"
+    >
       <div hlmSidebarGroupLabel>{{ 'files' | t }}</div>
       @if (data.state() === 'error' || data.refreshError()) {
         <button hlmBtn variant="ghost" (click)="load()">{{ 'retry' | t }}</button>
@@ -434,8 +443,25 @@ export class FileStorageNavigation {
                   selectedGroup() === group.id && !selectedFolder() ? 'page' : null
                 "
                 ><ng-icon [name]="group.icon" /><span>{{ group.label | t }}</span
-                ><span class="file-storage-nav-count">{{ count(group.id) }}</span></a
+                ><span
+                  class="file-storage-nav-count"
+                  [class.file-storage-nav-count-important]="group.id === 'important'"
+                  >{{ count(group.id) }}</span
+                ></a
               >
+              @if (group.id === 'file-storage') {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  [disabled]="busy()"
+                  [attr.aria-label]="'createFolder' | t"
+                  (click)="rememberContextTrigger($event); beginRootFolderCreation()"
+                >
+                  <ng-icon name="lucidePlus" aria-hidden="true" />
+                </button>
+              }
               <ng-template #fileStorageGroupMenu>
                 <hlm-dropdown-menu>
                   <button

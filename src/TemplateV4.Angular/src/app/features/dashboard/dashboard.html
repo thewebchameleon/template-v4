@@ -1,4 +1,74 @@
-<app-page-header eyebrow="workspace" title="dashboard" description="dashHelp" />
+<header class="workspace-heading">
+  <div class="min-w-0">
+    <p class="workspace-eyebrow">{{ 'workspace' | t }}</p>
+    @if (layout(); as layout) {
+      <div class="dashboard-title-line">
+        <h1 class="page-title">
+          {{ 'dashboard' | t }} <span aria-hidden="true">·</span> {{ layout.name | t }}
+        </h1>
+        @if (draft()) {
+          <button
+            hlmBtn
+            type="button"
+            variant="ghost"
+            size="icon"
+            (click)="openRename()"
+            [attr.aria-label]="'dashRename' | t"
+          >
+            <ng-icon name="lucidePencil" aria-hidden="true" />
+          </button>
+        }
+      </div>
+    } @else {
+      <h1 class="page-title">{{ 'dashboard' | t }}</h1>
+    }
+  </div>
+  <div class="workspace-heading-actions dashboard-heading-actions">
+    @if (state()) {
+      <app-dashboard-choice
+        class="dashboard-selector"
+        id="dashboard-selector"
+        label="dashboard"
+        [value]="selected()"
+        [options]="dashboardOptions()"
+        [disabled]="busy() || !!draft()"
+        (valueChange)="select($event)"
+      />
+    }
+    @if (layout()) {
+      <app-dashboard-choice
+        class="dashboard-period"
+        id="dashboard-period"
+        label="dashDateRange"
+        [value]="period()"
+        [options]="periods"
+        [disabled]="busy()"
+        (valueChange)="setPeriod($event)"
+      />
+      <button
+        hlmBtn
+        type="button"
+        variant="outline"
+        size="icon"
+        [disabled]="busy() || !!draft()"
+        (click)="load()"
+        [attr.aria-label]="'refresh' | t"
+      >
+        <ng-icon name="lucideRefreshCw" aria-hidden="true" />
+      </button>
+      @if (draft()) {
+        <button hlmBtn type="button" variant="outline" (click)="requestLock()">
+          <ng-icon name="lucideLock" aria-hidden="true" />{{ 'dashLock' | t }}
+        </button>
+      } @else if (current()) {
+        <button hlmBtn type="button" (click)="edit()">
+          <ng-icon name="lucideUnlock" aria-hidden="true" />{{ 'dashUnlock' | t }}
+        </button>
+      }
+    }
+  </div>
+</header>
+
 @if (error()) {
   <div hlmAlert variant="destructive" class="mb-4" role="alert">
     <p hlmAlertDescription>{{ error() | t }}</p>
@@ -8,102 +78,72 @@
 @if (!state() && busy()) {
   <hlm-spinner [attr.aria-label]="'loading' | t" />
 }
+
 <fieldset [disabled]="busy()" class="min-w-0 border-0 p-0">
   <legend class="sr-only">{{ 'dashboard' | t }}</legend>
-  <div class="mb-6 flex flex-wrap items-end gap-3">
-    @if (!draft()) {
-      <app-dashboard-choice
-        class="min-w-0 w-72"
-        id="dashboard-selector"
-        label="dashboard"
-        [value]="selected()"
-        [options]="dashboardOptions()"
-        [disabled]="busy()"
-        (valueChange)="select($event)"
-      />
-      <button hlmBtn variant="outline" (click)="create(false)">{{ 'dashNewPrivate' | t }}</button>
-      @if (state()?.canManage) {
-        <button hlmBtn variant="outline" (click)="create(true)">{{ 'dashNewShared' | t }}</button>
-      }
-      <button hlmBtn variant="ghost" (click)="load()">{{ 'refresh' | t }}</button>
-    } @else {
-      <div hlmField class="min-w-0 flex-1">
-        <label hlmFieldLabel for="dashboard-name">{{ 'dashName' | t }}</label
-        ><input
-          hlmInput
-          id="dashboard-name"
-          maxlength="120"
-          [ngModel]="i18n.text(draft()!.name)"
-          (ngModelChange)="name($event)"
-        />
-      </div>
-      <button hlmBtn [disabled]="!draft()!.name.trim()" (click)="save()">{{ 'save' | t }}</button>
-      <button hlmBtn variant="outline" (click)="cancel()">{{ 'cancel' | t }}</button>
-    }
-  </div>
   @if (layout(); as layout) {
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-2">
-        <h2 class="text-xl font-semibold">{{ layout.name | t }}</h2>
-        <span hlmBadge variant="secondary">{{
-          (draft()
-            ? sharedEdit()
-              ? 'dashEditingShared'
-              : 'dashEditingPersonal'
-            : current()?.personalized
-              ? 'dashPersonalized'
-              : current()?.shared
-                ? 'dashShared'
-                : 'dashPrivate'
-          ) | t
-        }}</span>
-        @if (draft()) {
-          <button
-            hlmBtn
-            variant="outline"
-            (click)="picker.set(!picker())"
-            [attr.aria-expanded]="picker()"
-            aria-controls="dashboard-card-picker"
-          >
-            {{ 'dashAddCard' | t }}
+    <div class="mb-6 flex flex-wrap items-center gap-2">
+      <span hlmBadge variant="secondary">{{
+        (draft()
+          ? sharedEdit()
+            ? 'dashEditingShared'
+            : 'dashEditingPersonal'
+          : current()?.personalized
+            ? 'dashPersonalized'
+            : current()?.shared
+              ? 'dashShared'
+              : 'dashPrivate'
+        ) | t
+      }}</span>
+      @if (draft()) {
+        <button
+          hlmBtn
+          type="button"
+          variant="outline"
+          (click)="picker.set(!picker())"
+          [attr.aria-expanded]="picker()"
+          aria-controls="dashboard-card-picker"
+        >
+          {{ 'dashAddCard' | t }}
+        </button>
+      } @else {
+        <button hlmBtn type="button" variant="outline" (click)="create(false)">
+          {{ 'dashNewPrivate' | t }}
+        </button>
+        @if (state()?.canManage) {
+          <button hlmBtn type="button" variant="outline" (click)="create(true)">
+            {{ 'dashNewShared' | t }}
           </button>
-        } @else {
-          <button hlmBtn (click)="edit()">{{ 'dashEdit' | t }}</button>
-          @if (current()?.shared && state()?.canManage) {
-            <button hlmBtn variant="outline" (click)="edit(true)">
-              {{ 'dashEditShared' | t }}
-            </button>
-          }
-          @if (current()?.personalized) {
-            <button hlmBtn variant="ghost" (click)="reset()">{{ 'dashReset' | t }}</button>
-          }
-          <button
-            hlmBtn
-            variant="ghost"
-            [disabled]="state()?.startingDashboardId === selected()"
-            (click)="starting()"
-          >
-            {{
-              (state()?.startingDashboardId === selected() ? 'dashStarting' : 'dashSetStarting') | t
-            }}
-          </button>
-          @if (!current()?.shared || state()?.canManage) {
-            <button hlmBtn variant="destructive" (click)="removeDashboard()">
-              {{ 'dashDelete' | t }}
-            </button>
-          }
         }
-      </div>
-      <app-dashboard-choice
-        class="w-52"
-        id="dashboard-period"
-        label="dashDateRange"
-        [value]="period()"
-        [options]="periods"
-        [disabled]="busy()"
-        (valueChange)="setPeriod($event)"
-      />
+        @if (current()?.shared && state()?.canManage) {
+          <button hlmBtn type="button" variant="outline" (click)="edit(true)">
+            {{ 'dashEditShared' | t }}
+          </button>
+        }
+        @if (current()?.personalized) {
+          <button hlmBtn type="button" variant="ghost" (click)="reset()">
+            {{ 'dashReset' | t }}
+          </button>
+        }
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          [disabled]="state()?.startingDashboardId === selected()"
+          (click)="starting()"
+        >
+          {{
+            (state()?.startingDashboardId === selected() ? 'dashStarting' : 'dashSetStarting') | t
+          }}
+        </button>
+        @if (!current()?.shared || state()?.canManage) {
+          <button hlmBtn type="button" variant="destructive" (click)="removeDashboard()">
+            {{ 'dashDelete' | t }}
+          </button>
+        }
+      }
     </div>
+
     @if (draft()) {
       <p class="text-muted-foreground mb-4 text-sm">
         {{ (sharedEdit() ? 'dashSharedHelp' : 'dashPersonalHelp') | t }}
@@ -114,10 +154,11 @@
         </p>
       }
     }
+
     @if (picker() && draft()) {
       <section hlmCard id="dashboard-card-picker" class="mb-6">
         <div hlmCardHeader>
-          <h3 hlmCardTitle>{{ 'dashAddCard' | t }}</h3>
+          <h2 hlmCardTitle>{{ 'dashAddCard' | t }}</h2>
           <p hlmCardDescription>{{ 'dashCatalogHelp' | t }}</p>
         </div>
         <div hlmCardContent>
@@ -134,6 +175,7 @@
             @for (definition of results(); track definition.id) {
               <button
                 hlmBtn
+                type="button"
                 variant="outline"
                 [disabled]="draft()!.cards.length >= 40"
                 (click)="add(definition)"
@@ -145,6 +187,7 @@
         </div>
       </section>
     }
+
     <div
       class="dashboard-grid"
       cdkDropList
@@ -153,64 +196,60 @@
       [cdkDropListDisabled]="!draft() || busy()"
       (cdkDropListDropped)="drop($event)"
     >
-      @for (card of visible(); track card.id; let index = $index) {
+      @for (card of visible(); track card.id) {
         @if (definitions().get(card.definitionId); as definition) {
           <section
             hlmCard
+            appDashboardMasonryItem
             cdkDrag
             [cdkDragDisabled]="!draft() || busy()"
             class="dashboard-tile"
+            [class.dashboard-tile-compact]="card.size === 'compact'"
+            [class.dashboard-tile-small]="card.size === 'small'"
             [class.dashboard-tile-large]="card.size === 'large'"
             [attr.aria-labelledby]="'card-title-' + card.id"
           >
-            <div hlmCardHeader>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <h3 hlmCardTitle [id]="'card-title-' + card.id">{{ definition.title | t }}</h3>
-                @if (draft()) {
-                  <div class="flex flex-wrap gap-1">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="sm"
-                      cdkDragHandle
-                      [attr.aria-label]="('dashMove' | t) + ': ' + (definition.title | t)"
-                      (keydown.arrowup)="move(card.id, -1); $event.preventDefault()"
-                      (keydown.arrowdown)="move(card.id, 1); $event.preventDefault()"
-                    >
-                      {{ 'dashMove' | t }}
-                    </button>
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="sm"
-                      [disabled]="index === 0"
-                      (click)="move(card.id, -1)"
-                      [attr.aria-label]="('dashEarlier' | t) + ': ' + (definition.title | t)"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="sm"
-                      [disabled]="index === visible().length - 1"
-                      (click)="move(card.id, 1)"
-                      [attr.aria-label]="('dashLater' | t) + ': ' + (definition.title | t)"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="sm"
-                      (click)="remove(card.id)"
-                      [attr.aria-label]="('dashRemove' | t) + ': ' + (definition.title | t)"
-                    >
-                      {{ 'dashRemove' | t }}
-                    </button>
-                  </div>
-                }
+            @if (draft()) {
+              <div class="dashboard-card-controls">
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="dashboard-move"
+                  cdkDragHandle
+                  [attr.aria-label]="('dashMove' | t) + ': ' + (definition.title | t)"
+                  (keydown.arrowup)="move(card.id, -1); $event.preventDefault()"
+                  (keydown.arrowdown)="move(card.id, 1); $event.preventDefault()"
+                >
+                  <ng-icon name="lucideGripHorizontal" size="1.75rem" aria-hidden="true" />
+                </button>
+                <div class="dashboard-card-actions">
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    (click)="openCardEditor(card.id)"
+                    [attr.aria-label]="('dashConfigure' | t) + ': ' + (definition.title | t)"
+                  >
+                    <ng-icon name="lucidePencil" aria-hidden="true" />
+                  </button>
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    (click)="remove(card.id)"
+                    [attr.aria-label]="('dashRemove' | t) + ': ' + (definition.title | t)"
+                  >
+                    <ng-icon name="lucideTrash2" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
+            }
+            <div hlmCardHeader>
+              <h3 hlmCardTitle [id]="'card-title-' + card.id">{{ definition.title | t }}</h3>
               <p hlmCardDescription>
                 {{
                   (!definition.dateFilter
@@ -226,57 +265,6 @@
               </p>
             </div>
             <div hlmCardContent>
-              @if (draft()) {
-                <details class="mb-4">
-                  <summary class="cursor-pointer text-sm font-medium">
-                    {{ 'dashConfigure' | t }}
-                  </summary>
-                  <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                    <app-dashboard-choice
-                      [id]="card.id + '-size'"
-                      label="dashSize"
-                      [value]="card.size"
-                      [options]="options(definition.sizes)"
-                      [disabled]="busy()"
-                      (valueChange)="update(card.id, { size: $event })"
-                    />
-                    <app-dashboard-choice
-                      [id]="card.id + '-format'"
-                      label="dashFormat"
-                      [value]="card.format"
-                      [options]="options(definition.formats)"
-                      [disabled]="busy()"
-                      (valueChange)="update(card.id, { format: $event })"
-                    />
-                    <app-dashboard-choice
-                      [id]="card.id + '-metric'"
-                      label="dashMetric"
-                      [value]="card.metric"
-                      [options]="options(definition.metrics)"
-                      [disabled]="busy()"
-                      (valueChange)="update(card.id, { metric: $event })"
-                    />
-                    <app-dashboard-choice
-                      [id]="card.id + '-filter'"
-                      label="dashFilter"
-                      [value]="card.filter"
-                      [options]="options(definition.filters)"
-                      [disabled]="busy()"
-                      (valueChange)="update(card.id, { filter: $event })"
-                    />
-                    @if (definition.dateFilter) {
-                      <app-dashboard-choice
-                        [id]="card.id + '-period'"
-                        label="dashDateRange"
-                        [value]="card.period"
-                        [options]="cardPeriods"
-                        [disabled]="busy()"
-                        (valueChange)="update(card.id, { period: $event })"
-                      />
-                    }
-                  </div>
-                </details>
-              }
               <app-dashboard-card
                 [card]="card"
                 [period]="period()"
@@ -284,35 +272,140 @@
                 (unavailable)="hide(card.definitionId)"
               />
             </div>
-            @if (draft() && definition.sizes.length > 1) {
-              <div hlmCardFooter class="justify-end">
-                <button
-                  hlmBtn
-                  variant="ghost"
-                  size="sm"
-                  class="dashboard-resize"
-                  [attr.aria-label]="('dashResize' | t) + ': ' + (definition.title | t)"
-                  (pointerdown)="resizeStart($event, card)"
-                  (pointermove)="resizeMove($event)"
-                  (pointerup)="resizeEnd()"
-                  (pointercancel)="resizeEnd()"
-                  (lostpointercapture)="resizeEnd()"
-                  (keydown.arrowleft)="update(card.id, { size: 'small' }); $event.preventDefault()"
-                  (keydown.arrowright)="update(card.id, { size: 'large' }); $event.preventDefault()"
-                >
-                  {{ 'dashResize' | t }} ↔
-                </button>
-              </div>
-            }
           </section>
         }
       }
     </div>
+
     @if (!visible().length) {
       <div hlmEmpty>
-        <h3 hlmEmptyTitle>{{ 'dashEmpty' | t }}</h3>
+        <h2 hlmEmptyTitle>{{ 'dashEmpty' | t }}</h2>
         <p hlmEmptyDescription>{{ 'dashEmptyHelp' | t }}</p>
       </div>
     }
   }
 </fieldset>
+
+<hlm-dialog
+  [state]="renameOpen() ? 'open' : 'closed'"
+  [closeOnOutsidePointerEvents]="false"
+  (stateChanged)="$event === 'closed' && renameOpen.set(false)"
+>
+  <hlm-dialog-content *hlmDialogPortal>
+    <hlm-dialog-header
+      ><h2 hlmDialogTitle>{{ 'dashRename' | t }}</h2>
+      <p hlmDialogDescription>{{ 'dashRenameHelp' | t }}</p></hlm-dialog-header
+    >
+    <form class="grid gap-5" #renameForm="ngForm" (ngSubmit)="renameForm.valid && applyRename()">
+      <div hlmField>
+        <label hlmFieldLabel for="dashboard-name">{{ 'dashName' | t }}</label
+        ><input
+          hlmInput
+          id="dashboard-name"
+          name="dashboardName"
+          required
+          maxlength="120"
+          [ngModel]="renameValue()"
+          (ngModelChange)="renameValue.set($event)"
+        />
+      </div>
+      <hlm-dialog-footer>
+        <button hlmBtn type="button" variant="outline" (click)="renameOpen.set(false)">
+          {{ 'cancel' | t }}
+        </button>
+        <button hlmBtn type="submit" [disabled]="!renameValue().trim()">
+          {{ 'dashRenameAction' | t }}
+        </button>
+      </hlm-dialog-footer>
+    </form>
+  </hlm-dialog-content>
+</hlm-dialog>
+
+<hlm-drawer
+  direction="right"
+  [state]="editingCard() ? 'open' : 'closed'"
+  [closeLabel]="'close' | t"
+  (stateChanged)="$event === 'closed' && editingCardId.set('')"
+>
+  <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-md">
+    <hlm-drawer-header
+      ><h2 hlmDrawerTitle>{{ 'dashConfigure' | t }}</h2>
+      <p hlmDrawerDescription>{{ 'dashConfigureHelp' | t }}</p></hlm-drawer-header
+    >
+    @if (editingCard(); as card) {
+      @if (editingDefinition(); as definition) {
+        <div hlmDrawerBody class="min-h-0 flex-1 overflow-y-auto">
+          <div class="grid gap-5">
+            <app-dashboard-choice
+              [id]="card.id + '-size'"
+              label="dashSize"
+              [value]="card.size"
+              [options]="options(definition.sizes)"
+              [disabled]="busy()"
+              (valueChange)="update(card.id, { size: $event })"
+            />
+            <app-dashboard-choice
+              [id]="card.id + '-format'"
+              label="dashFormat"
+              [value]="card.format"
+              [options]="options(definition.formats)"
+              [disabled]="busy()"
+              (valueChange)="update(card.id, { format: $event })"
+            />
+            <app-dashboard-choice
+              [id]="card.id + '-metric'"
+              label="dashMetric"
+              [value]="card.metric"
+              [options]="options(definition.metrics)"
+              [disabled]="busy()"
+              (valueChange)="update(card.id, { metric: $event })"
+            />
+            <app-dashboard-choice
+              [id]="card.id + '-filter'"
+              label="dashFilter"
+              [value]="card.filter"
+              [options]="options(definition.filters)"
+              [disabled]="busy()"
+              (valueChange)="update(card.id, { filter: $event })"
+            />
+            @if (definition.dateFilter) {
+              <app-dashboard-choice
+                [id]="card.id + '-period'"
+                label="dashDateRange"
+                [value]="card.period"
+                [options]="cardPeriods"
+                [disabled]="busy()"
+                (valueChange)="update(card.id, { period: $event })"
+              />
+            }
+          </div>
+        </div>
+        <hlm-drawer-footer
+          ><button hlmBtn type="button" variant="outline" (click)="editingCardId.set('')">
+            {{ 'close' | t }}
+          </button></hlm-drawer-footer
+        >
+      }
+    }
+  </hlm-drawer-content>
+</hlm-drawer>
+
+<hlm-alert-dialog [state]="lockPrompt() ? 'open' : 'closed'" (closed)="lockPrompt.set(false)">
+  <hlm-alert-dialog-content *hlmAlertDialogPortal>
+    <hlm-alert-dialog-header
+      ><h2 hlmAlertDialogTitle>{{ 'dashLockPromptTitle' | t }}</h2>
+      <p hlmAlertDialogDescription>{{ 'dashLockPromptHelp' | t }}</p></hlm-alert-dialog-header
+    >
+    <hlm-alert-dialog-footer>
+      <button hlmAlertDialogCancel type="button" (click)="lockPrompt.set(false)">
+        {{ 'dashContinueEditing' | t }}
+      </button>
+      <button hlmBtn type="button" variant="outline" (click)="discardAndLock()">
+        {{ 'dashDiscardAndLock' | t }}
+      </button>
+      <button hlmAlertDialogAction type="button" (click)="saveAndLock()">
+        {{ 'dashSaveAndLock' | t }}
+      </button>
+    </hlm-alert-dialog-footer>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

@@ -24,6 +24,7 @@ Development keys, Mailpit, and `compose.yaml` are not production configuration.
 - [Architecture](architecture.md): layer boundaries, request flow, persistence, and
   compatibility contracts.
 - [Modules](modules.md): ownership, layout, capabilities, and composition.
+- [CMS](cms.md): schema-driven collections, relationships, approval and delivery APIs.
 - [Editable dashboards](dashboards.md): shared defaults, personal layouts, and module-owned cards.
 - [Security](security.md): authentication, authorization, secrets, recovery, and data
   handling.

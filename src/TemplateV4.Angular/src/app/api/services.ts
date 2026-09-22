@@ -3,3 +3,4 @@
 
 export { FrameworkService } from './services/framework.service';
 export { ExternalCmsService } from './services/external-cms.service';
+export { PublicCmsService } from './services/public-cms.service';

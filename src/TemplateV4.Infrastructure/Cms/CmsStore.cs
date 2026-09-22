@@ -10,8 +10,11 @@ using IExecutionContext = TemplateV4.SharedKernel.IExecutionContext;
 
 namespace TemplateV4.Infrastructure.Cms;
 
-public sealed partial class CmsStore(FrameworkDb db, IExecutionContext context, ICapabilities capabilities, TimeProvider time) : ICms
+public sealed partial class CmsStore(FrameworkDb db, IExecutionContext context, ICapabilities capabilities, TimeProvider time, IContentCms contentCms) : ICms
 {
+    public CmsStore(FrameworkDb db, IExecutionContext context, ICapabilities capabilities, TimeProvider time)
+        : this(db, context, capabilities, time, new ContentStore(db, context, capabilities, new ActionItemsService(db, time), time,
+            new Security.AccessManagementService(db, context, time, [new CmsRoleDelegation(db)]), new Storage.FileReferences(db, time))) { }
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private IQueryable<ArticleRow> Rows => db.Set<ArticleRow>();
     private static ArticleContent Content(string value) => JsonSerializer.Deserialize<ArticleContent>(value, Json)!;

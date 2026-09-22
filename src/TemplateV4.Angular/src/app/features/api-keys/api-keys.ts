@@ -181,6 +181,18 @@ const column = createColumnHelper<DataTableFeatures, ApiKeyItem>();
             </fieldset>
 
             <div hlmField>
+              <label hlmFieldLabel for="api-content-collections">{{
+                'apiKeyCollections' | t
+              }}</label
+              ><input
+                hlmInput
+                id="api-content-collections"
+                name="collections"
+                [(ngModel)]="collections"
+              />
+              <p hlmFieldDescription>{{ 'apiKeyCollectionsHelp' | t }}</p>
+            </div>
+            <div hlmField>
               <label hlmFieldLabel for="api-key-expiry">{{ 'expires' | t }}</label>
               <hlm-select [(value)]="expiry" [itemToString]="expiryLabel">
                 <hlm-select-trigger buttonId="api-key-expiry" class="w-full">
@@ -200,7 +212,7 @@ const column = createColumnHelper<DataTableFeatures, ApiKeyItem>();
             <button
               hlmBtn
               type="submit"
-              [disabled]="busy() || !name.trim() || (!articles && !sections)"
+              [disabled]="busy() || !name.trim() || (!articles && !sections && !collections.trim())"
             >
               {{ 'createApiKey' | t }}
             </button>
@@ -319,6 +331,7 @@ export class ApiKeysPage {
     ]);
   });
   name = '';
+  collections = '';
   articles = true;
   sections = false;
   expiry = '90';
@@ -373,7 +386,11 @@ export class ApiKeysPage {
   hasCreateChanges() {
     return (
       this.createOpen() &&
-      (this.name !== '' || !this.articles || this.sections || this.expiry !== '90')
+      (this.name !== '' ||
+        this.collections !== '' ||
+        !this.articles ||
+        this.sections ||
+        this.expiry !== '90')
     );
   }
 
@@ -395,7 +412,12 @@ export class ApiKeysPage {
   }
 
   async create() {
-    if (this.busy() || !this.name.trim() || (!this.articles && !this.sections)) return;
+    if (
+      this.busy() ||
+      !this.name.trim() ||
+      (!this.articles && !this.sections && !this.collections.trim())
+    )
+      return;
     this.busy.set(true);
     try {
       const created = await this.api.post<ApiKeyCreated>('administration/api-keys', {
@@ -403,7 +425,12 @@ export class ApiKeysPage {
         scopes: [
           ...(this.articles ? ['cms.articles.read'] : []),
           ...(this.sections ? ['cms.sections.read'] : []),
+          ...(this.collections.trim() ? ['cms.content.read'] : []),
         ],
+        collections: this.collections
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean),
         expiresInDays: this.expiry === 'never' ? null : Number(this.expiry),
       });
       this.created.set(created);
@@ -464,6 +491,7 @@ export class ApiKeysPage {
 
   private resetCreate() {
     this.name = '';
+    this.collections = '';
     this.articles = true;
     this.sections = false;
     this.expiry = '90';

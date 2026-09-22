@@ -10,9 +10,9 @@ namespace TemplateV4.Infrastructure.Crm;
 public sealed class CrmDashboardCards(FrameworkDb db, IOrganisationOperations access, ICapabilities capabilities) : IDashboardCardProvider
 {
     public IReadOnlyList<DashboardCardDefinition> Definitions { get; } = [
-        new("crm.pipeline", "dashPipeline", "crm", ["small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all", "Open", "Won", "Lost"], true),
-        new("crm.stages", "dashStages", "crm", ["small", "large"], ["chart", "list", "metric"], ["count", "value"], ["all", "Open", "Won", "Lost"], true),
-        new("crm.recent", "dashCrmRecent", "crm", ["small", "large"], ["list", "metric"], ["count"], ["all", "Contact", "Company", "Deal"], true)];
+        new("crm.pipeline", "dashPipeline", "crm", ["compact", "small", "large"], ["metric", "chart", "list"], ["count", "value"], ["all", "Open", "Won", "Lost"], true),
+        new("crm.stages", "dashStages", "crm", ["compact", "small", "large"], ["chart", "list", "metric"], ["count", "value"], ["all", "Open", "Won", "Lost"], true),
+        new("crm.recent", "dashCrmRecent", "crm", ["compact", "small", "large"], ["list", "metric"], ["count"], ["all", "Contact", "Company", "Deal"], true)];
     public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await capabilities.Enabled(CapabilityIds.Crm, ct) && await access.Allowed(actor, OrganisationOperation.Read, ct);
     public async Task<DashboardCardData> Read(Guid actor, DashboardCardQuery q, DateTimeOffset? since, CancellationToken ct)
     {

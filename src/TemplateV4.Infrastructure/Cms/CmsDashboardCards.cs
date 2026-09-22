@@ -7,13 +7,15 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Cms;
 
-public sealed class CmsDashboardCards(FrameworkDb db, DashboardAccess access, ICapabilities capabilities) : IDashboardCardProvider
+public sealed class CmsDashboardCards(FrameworkDb db, ICapabilities capabilities, TemplateV4.Application.Cms.IContentCms content) : IDashboardCardProvider
 {
-    public IReadOnlyList<DashboardCardDefinition> Definitions { get; } = [new("cms.drafts", "dashCmsDrafts", "cms", ["small", "large"], ["metric", "list"], ["count"], ["all"], true)];
-    public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await capabilities.Enabled(CapabilityIds.Cms, ct) && await access.Has(actor, Permissions.CmsEdit, ct);
+    public IReadOnlyList<DashboardCardDefinition> Definitions { get; } = [new("cms.drafts", "dashCmsDrafts", "cms", ["compact", "small", "large"], ["metric", "list"], ["count"], ["all"], true)];
+    public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await capabilities.Enabled(CapabilityIds.Cms, ct) && (await content.Collections(ct)).Value?.Length > 0;
     public async Task<DashboardCardData> Read(Guid actor, DashboardCardQuery q, DateTimeOffset? since, CancellationToken ct)
     {
-        var source = db.Set<ArticleRow>().AsNoTracking().Where(x => !x.Published || x.Draft != x.PublishedContent).Where(x => since == null || x.UpdatedAt >= since);
-        return new(await source.CountAsync(ct), "count", [], await source.OrderByDescending(x => x.UpdatedAt).ThenBy(x => x.Id).Take(q.Limit).Select(x => new DashboardItem(x.Title, "dashDraft", "/cms/" + x.Id)).ToArrayAsync(ct));
+        var collections = (await content.Collections(ct)).Value ?? [];
+        var keys = collections.Where(x => x.Actions.Any(p => p != Permissions.CmsSchema)).Select(x => x.Key).ToArray();
+        var source = db.Set<ContentItemRow>().AsNoTracking().Where(x => keys.Contains(x.Collection) && (x.PublishedRevisionId == null || x.PublishedRevisionId != x.DraftRevisionId)).Where(x => since == null || x.UpdatedAt >= since);
+        return new(await source.CountAsync(ct), "count", [], await source.OrderByDescending(x => x.UpdatedAt).ThenBy(x => x.Id).Take(q.Limit).Select(x => new DashboardItem(x.Title, "dashDraft", "/cms/collections/" + x.Collection + "/items/" + x.Id)).ToArrayAsync(ct));
     }
 }

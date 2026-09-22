@@ -20,6 +20,7 @@ public static class CmsMappings
 {
     public static void Configure(ModelBuilder model)
     {
+        ContentMappings.Configure(model);
         var sections = model.Entity<CmsSectionsRow>();
         sections.ToTable("sections", "cms"); sections.HasKey(x => x.Id);
         sections.Property(x => x.Version).IsConcurrencyToken();

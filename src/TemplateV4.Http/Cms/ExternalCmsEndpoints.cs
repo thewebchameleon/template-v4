@@ -10,6 +10,7 @@ public static class ExternalCmsEndpoints
 {
     public static void MapExternalCmsEndpoints(this WebApplication app)
     {
+        app.MapPublishedContentEndpoints();
         var cms = app.MapGroup("/api/external/cms")
             .WithTags("External CMS")
             .OwnedByModule(ModuleIds.Cms)

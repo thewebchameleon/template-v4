@@ -79,6 +79,7 @@
   "documentation": "documentation/docs",
   "adrs": "documentation/docs/adr",
   "extensions": {
+    "cms": "Versioned collection schemas, JSON content revisions, reusable relationships, scoped role grants and action-item approval; generic published APIs with per-key collection access and retained article compatibility",
     "dashboards": "Account-persisted shared defaults, personalizations and private dashboards; module-owned card providers with explicit sizes, formats and authorized data",
     "privateModuleDistribution": "Provider-assigned compiled module bundles; self-registered app environments, immutable admitted releases, absolute update freezes and Compose maintenance deployment",
     "releaseUpdates": "Authenticated environment-scoped resolution of the latest complete compatible admitted release set; installed modules have no runtime licensing dependency",

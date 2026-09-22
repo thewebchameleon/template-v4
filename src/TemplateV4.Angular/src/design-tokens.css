@@ -23,6 +23,7 @@
   --sidebar-item-enter-duration: 220ms;
   --sidebar-item-enter-distance: 0.375rem;
   --sidebar-item-enter-stagger: 35ms;
+  --sidebar-selection-duration: 200ms;
   --app-section-gap: calc(var(--spacing) * 6);
   --panel-radius: 1.25rem;
   --panel-content-radius: 0.875rem;
@@ -60,6 +61,9 @@
     max-width: var(--app-content-width);
     margin-inline: auto;
     padding: var(--app-content-padding);
+  }
+  .app-content-full-width {
+    max-width: none;
   }
   @media (prefers-reduced-motion: no-preference) {
     :root:not([data-motion='reduced']) .app-content,
@@ -180,6 +184,37 @@
     background: var(--sidebar-accent);
     color: var(--sidebar-accent-foreground);
   }
+  [appSidebarSelectionIndicator]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-selection-width, 0);
+    height: var(--sidebar-selection-height, 0);
+    border-radius: calc(var(--radius) - 2px);
+    background: var(--sidebar-primary);
+    box-shadow: var(--shadow-sm);
+    opacity: var(--sidebar-selection-opacity, 0);
+    pointer-events: none;
+    transform: translate(
+      var(--sidebar-selection-x, 0),
+      var(--sidebar-selection-y, 0)
+    );
+  }
+  [appSidebarSelectionIndicator] [data-sidebar='menu-button'] {
+    position: relative;
+    z-index: 1;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion='reduced'])
+      [appSidebarSelectionIndicator][data-selection-indicator-ready='true']::before {
+      transition:
+        transform var(--sidebar-selection-duration) ease-out,
+        width var(--sidebar-selection-duration) ease-out,
+        height var(--sidebar-selection-duration) ease-out,
+        opacity var(--sidebar-selection-duration) ease-out;
+    }
+  }
   .sidebar-rail-indicator {
     position: absolute;
     inset-inline-start: 0;
@@ -209,9 +244,7 @@
   .sidebar-module-footer {
     display: flex;
     flex: 0 0 auto;
-    min-height: calc(
-      var(--app-sidebar-rail-target-size) + var(--app-sidebar-rail-bottom-spacing)
-    );
+    min-height: calc(var(--app-sidebar-rail-target-size) + var(--app-sidebar-rail-bottom-spacing));
     flex-direction: column;
     padding: var(--app-sidebar-panel-inset) 0.5rem
       calc(var(--app-sidebar-rail-bottom-spacing) - var(--app-sidebar-panel-inset));
@@ -572,5 +605,12 @@
       transition-duration: 0s !important;
       animation-duration: 0s !important;
     }
+  }
+}
+
+@layer utilities {
+  [appSidebarSelectionIndicator][data-selection-indicator-ready='true']
+    [data-sidebar='menu-button'][data-active='true'] {
+    background: transparent;
   }
 }

@@ -97,7 +97,7 @@ export class DashboardCardView {
             metric: card.metric,
             filter: card.filter,
             period,
-            limit: card.size === 'small' ? 5 : 10,
+            limit: card.size === 'large' ? 10 : 5,
           },
           controller.signal,
         )

@@ -1,4 +1,6 @@
 export const actionItemDictionary: Record<string, [string, string]> = {
+  actionSourceCms: ['CMS review', 'CMS-hersiening'],
+
   actionQueueRegistration: ['Registration approvals', 'Registrasiegoedkeurings'],
   actionQueuePrivacy: ['Privacy reviews', 'Privaatheidshersienings'],
   signupApprovalHelp: [

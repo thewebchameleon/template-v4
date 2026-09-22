@@ -28,4 +28,11 @@ public interface IActionItems
     Task<ActionAssignee[]> Assignees(string search, CancellationToken ct);
     Task AddReview(string source, Guid sourceId, Guid subjectId, string title, string link, CancellationToken ct);
     Task ResolveReview(string source, Guid sourceId, Guid actor, CancellationToken ct);
+    Task AddAssignedReview(string source, Guid sourceId, Guid assigneeId, string title, string link, CancellationToken ct);
+}
+
+public interface ISystemActionEligibility
+{
+    string Source { get; }
+    Task<Guid[]> EligibleSources(Guid actor, CancellationToken ct);
 }

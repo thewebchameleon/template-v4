@@ -28,7 +28,8 @@ export const routes: Routes = [
     resolve: { cmsTranslations },
     data: { breadcrumb: 'cms' },
     canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    loadComponent: () => import('./features/cms/articles/cms').then((m) => m.CmsPage),
+    loadComponent: () =>
+      import('./features/cms/collections/collections').then((m) => m.ContentCollectionsPage),
   },
   {
     path: 'cms/new',
@@ -36,7 +37,8 @@ export const routes: Routes = [
     data: { breadcrumb: 'cmsNew' },
     canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
     canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/cms/articles/cms-editor').then((m) => m.CmsEditorPage),
+    loadComponent: () =>
+      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
   },
   {
     path: 'cms/sections',
@@ -44,12 +46,61 @@ export const routes: Routes = [
       import('./features/cms/sections/sections-routes').then((m) => m.sectionsRoutes),
   },
   {
+    path: 'cms/collections/new',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () =>
+      import('./features/cms/collections/collection-settings').then(
+        (m) => m.ContentCollectionSettingsPage,
+      ),
+  },
+  {
+    path: 'cms/collections/:key/settings',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () =>
+      import('./features/cms/collections/collection-settings').then(
+        (m) => m.ContentCollectionSettingsPage,
+      ),
+  },
+  {
+    path: 'cms/collections/:key/items/new',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () =>
+      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
+  },
+  {
+    path: 'cms/collections/:key/items/:id',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    canDeactivate: [unsavedGuard],
+    loadComponent: () =>
+      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
+  },
+  {
+    path: 'cms/collections/:key',
+    resolve: { cmsTranslations },
+    data: { breadcrumb: 'cms' },
+    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
+    loadComponent: () =>
+      import('./features/cms/items/content-items').then((m) => m.ContentItemsPage),
+  },
+  {
     path: 'cms/:id',
     resolve: { cmsTranslations },
     data: { breadcrumb: 'cms' },
     canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
     canDeactivate: [unsavedGuard],
-    loadComponent: () => import('./features/cms/articles/cms-editor').then((m) => m.CmsEditorPage),
+    loadComponent: () =>
+      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
   },
   {
     path: 'organisation/invoicing',

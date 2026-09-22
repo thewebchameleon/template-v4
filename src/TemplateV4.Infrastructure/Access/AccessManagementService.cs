@@ -13,7 +13,7 @@ public sealed record SaveRoleRequest(string Name, string Description, string[] P
 public sealed record UserAccessDetail(UserDto User, string[] EffectivePermissions, RoleItem[] Roles);
 
 /// <summary>Identity role definitions and delegation policy. Mutations share the administrator lock.</summary>
-public sealed class AccessManagementService(FrameworkDb db, IExecutionContext context, TimeProvider time)
+public sealed class AccessManagementService(FrameworkDb db, IExecutionContext context, TimeProvider time, IEnumerable<IScopedRoleDelegation>? scopedDelegation = null)
 {
     public static bool BuiltIn(string name) => name is "Administrator" or "Reader";
     public async Task<Result<AccessCatalog>> Catalog(int pageNumber, int pageSize, string? search, string sort, string direction, CancellationToken ct)
@@ -91,6 +91,28 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
     }
 
     public async Task<string[]> ActorPermissions(CancellationToken ct) => await (from m in db.UserRoles join c in db.RoleClaims on m.RoleId equals c.RoleId where m.UserId == context.ActorId && c.ClaimType == "permission" select c.ClaimValue!).Distinct().ToArrayAsync(ct);
+
+    public async Task<bool> CanDelegateRoles(Guid[] roles, CancellationToken ct)
+    {
+        if (context.ActorId is not { } actor) return false;
+        foreach (var policy in scopedDelegation ?? []) if (!await policy.CanDelegate(actor, roles, ct)) return false;
+        return true;
+    }
+
+    public async Task<bool> CanChangeScopedGrants(Guid[] roles, CancellationToken ct)
+    {
+        if (!(await ActorPermissions(ct)).Contains(Permissions.Roles)) return false;
+        if (await db.Roles.AnyAsync(x => roles.Contains(x.Id) && (x.Name == "Administrator" || x.Name == "Reader"), ct) ||
+            await db.UserRoles.AnyAsync(x => roles.Contains(x.RoleId) && x.UserId == context.ActorId, ct)) return false;
+        return await CanDelegateRoles(roles, ct);
+    }
+
+    public Task RevokeRoleSessions(Guid[] roles, CancellationToken ct)
+    {
+        var members = db.UserRoles.Where(x => roles.Contains(x.RoleId)).Select(x => x.UserId);
+        return db.Sessions.Where(x => members.Contains(x.UserId) && x.RevokedAt == null)
+            .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
+    }
 
     private async Task<RoleItem[]> RoleItems(IdentityRole<Guid>[] roles, CancellationToken ct)
     {

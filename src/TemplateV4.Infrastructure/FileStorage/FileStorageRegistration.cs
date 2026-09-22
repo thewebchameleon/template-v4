@@ -10,6 +10,7 @@ public static partial class Registration
     private static void AddFileStorage(IServiceCollection services)
     {
         services.AddScoped<FileStorageService>();
+        services.AddScoped<IFileReferences, FileReferences>();
         services.AddScoped<IFileShareNotifier, FileShareNotifier>();
         services.AddScoped<IStorageCapacity, StorageCapacity>();
         services.AddScoped<IStorageUsage, StorageUsage>();

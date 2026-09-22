@@ -15,15 +15,75 @@ import { getExternalCmsArticle } from '../fn/external-cms/get-external-cms-artic
 import { GetExternalCmsArticle$Params } from '../fn/external-cms/get-external-cms-article';
 import { getExternalCmsSections } from '../fn/external-cms/get-external-cms-sections';
 import { GetExternalCmsSections$Params } from '../fn/external-cms/get-external-cms-sections';
+import { getPublishedContent } from '../fn/external-cms/get-published-content';
+import { GetPublishedContent$Params } from '../fn/external-cms/get-published-content';
 import { LandingSection } from '../models/landing-section';
 import { listExternalCmsArticles } from '../fn/external-cms/list-external-cms-articles';
 import { ListExternalCmsArticles$Params } from '../fn/external-cms/list-external-cms-articles';
+import { listPublishedContent } from '../fn/external-cms/list-published-content';
+import { ListPublishedContent$Params } from '../fn/external-cms/list-published-content';
 import { PageOfBlogSummary } from '../models/page-of-blog-summary';
+import { PageOfPublishedContent } from '../models/page-of-published-content';
+import { PublishedContent } from '../models/published-content';
 
 @Injectable({ providedIn: 'root' })
 export class ExternalCmsService extends BaseService {
   constructor(config: ApiConfiguration, http: HttpClient) {
     super(config, http);
+  }
+
+  /** Path part for operation `listPublishedContent()` */
+  static readonly ListPublishedContentPath = '/api/external/cms/collections/{key}/items';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listPublishedContent()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listPublishedContent$Response(params: ListPublishedContent$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfPublishedContent>> {
+    const obs = listPublishedContent(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listPublishedContent$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listPublishedContent(params: ListPublishedContent$Params, context?: HttpContext): Observable<PageOfPublishedContent> {
+    const resp = this.listPublishedContent$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfPublishedContent>): PageOfPublishedContent => r.body)
+    );
+  }
+
+  /** Path part for operation `getPublishedContent()` */
+  static readonly GetPublishedContentPath = '/api/external/cms/collections/{key}/items/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPublishedContent()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPublishedContent$Response(params: GetPublishedContent$Params, context?: HttpContext): Observable<StrictHttpResponse<PublishedContent>> {
+    const obs = getPublishedContent(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPublishedContent$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPublishedContent(params: GetPublishedContent$Params, context?: HttpContext): Observable<PublishedContent> {
+    const resp = this.getPublishedContent$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PublishedContent>): PublishedContent => r.body)
+    );
   }
 
   /** Path part for operation `listExternalCmsArticles()` */

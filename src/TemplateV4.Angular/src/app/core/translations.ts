@@ -6,12 +6,18 @@ import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
 import { workspaceDictionary } from './workspace-translations';
 export const dictionary: Record<string, [string, string]> = {
+  'permission.cms.schema.manage': ['Manage CMS schemas', 'Bestuur CMS-skemas'],
+  'permission.cms.content.read': ['Read CMS drafts', 'Lees CMS-konsepte'],
+  'permission.cms.content.edit': ['Edit CMS content', 'Redigeer CMS-inhoud'],
+  'permission.cms.content.review': ['Review CMS content', 'Hersien CMS-inhoud'],
+  'permission.cms.content.publish': ['Publish CMS content', 'Publiseer CMS-inhoud'],
+
   ...navigationDictionary,
   contactInbox: ['Retained enquiries', 'Behoue navrae'],
   'permission.contact.manage': ['Manage contact enquiries', 'Bestuur kontaknavrae'],
   cmsModuleHelp: [
-    'Site-wide public blog with Markdown publishing.',
-    'Webwerfwye openbare blog met Markdown-publikasie.',
+    'Schema-driven collections, content and approval workflows.',
+    'Skemagedrewe versamelings, inhoud en goedkeuringswerkvloeie.',
   ],
   cmsModuleDisableHelp: [
     'Blocks CMS editing and published-data access while retaining stored snapshots.',

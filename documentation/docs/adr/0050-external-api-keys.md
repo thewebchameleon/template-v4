@@ -2,6 +2,10 @@
 
 Status: Accepted
 
+[ADR 0054](0054-schema-driven-cms.md) adds generic published collection delivery
+with the `cms.content.read` scope and an explicit per-key collection allowlist.
+The original article and section scopes retain their existing boundaries.
+
 ## Decision
 
 External integrations authenticate with a dedicated credential for each named
