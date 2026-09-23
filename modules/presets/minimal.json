@@ -4,7 +4,6 @@
     "file-storage": false,
     "support": false,
     "commercial-billing": false,
-    "crm": false,
-    "invoicing": false
+    "crm": false
   }
 }

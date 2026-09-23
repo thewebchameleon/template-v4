@@ -15,7 +15,7 @@ import { ContentCollection } from '../../../../../src/TemplateV4.Angular/src/app
         <a hlmBtn variant="outline" routerLink="/cms/sections">{{ 'cmsSections' | t }}</a>
       }
     </app-page-header>
-    <app-page-state [state]="data.state()" (retry)="load()">
+    <app-page-state [state]="data.state()" (retry)="load()" skeleton="empty">
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         @for (collection of data.value(); track collection.key) {
           <section hlmCard>

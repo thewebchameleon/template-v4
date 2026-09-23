@@ -79,10 +79,23 @@ import { I18n, Translate } from '../core/i18n';
                 </div>
               </dl>
             } @else {
-              <div class="grid gap-4" role="status">
+              <div class="grid gap-5" role="status">
                 <span class="sr-only">{{ 'loading' | t }}</span>
-                <div hlmSkeleton class="h-16 w-full"></div>
-                <div hlmSkeleton class="h-16 w-full"></div>
+                <div class="flex items-center gap-4">
+                  <div hlmSkeleton class="size-16 shrink-0 rounded-full motion-reduce:animate-none"></div>
+                  <div class="grid min-w-0 flex-1 gap-2">
+                    <div hlmSkeleton class="h-5 w-40 max-w-full motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>
+                  </div>
+                </div>
+                <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                  @for (field of [1, 2]; track field) {
+                    <div class="grid gap-2">
+                      <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                      <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </section>
@@ -146,10 +159,23 @@ import { I18n, Translate } from '../core/i18n';
                 </div>
               </dl>
             } @else {
-              <div class="grid gap-4" role="status">
+              <div class="grid gap-5" role="status">
                 <span class="sr-only">{{ 'loading' | t }}</span>
-                <div hlmSkeleton class="h-16 w-full"></div>
-                <div hlmSkeleton class="h-16 w-full"></div>
+                <div class="flex items-center gap-4">
+                  <div hlmSkeleton class="size-16 shrink-0 rounded-lg motion-reduce:animate-none"></div>
+                  <div class="grid min-w-0 flex-1 gap-2">
+                    <div hlmSkeleton class="h-5 w-40 max-w-full motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>
+                  </div>
+                </div>
+                <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                  @for (field of [1, 2]; track field) {
+                    <div class="grid gap-2">
+                      <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                      <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </section>

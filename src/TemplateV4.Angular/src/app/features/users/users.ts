@@ -184,6 +184,8 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
           </div>
           <app-page-state
             [state]="data.state()"
+            skeleton="table"
+            [skeletonColumns]="columns().length"
             [refreshError]="data.refreshError()"
             (retry)="load()"
             ><app-data-table

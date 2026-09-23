@@ -34,7 +34,7 @@ import { AccessCatalog } from '../../api/models';
   template: `
     <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && invite()">
       <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
-        <app-page-state [state]="catalog.state()" (retry)="load()">
+        <app-page-state [state]="catalog.state()" skeleton="form" (retry)="load()">
           <div class="grid gap-5">
             <div hlmField>
               <label hlmFieldLabel for="invite-name">{{ 'name' | t }}</label

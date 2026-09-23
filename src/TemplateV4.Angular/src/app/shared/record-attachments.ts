@@ -16,7 +16,7 @@ interface Attachment {
       <h2 hlmCardTitle>{{ 'attachments' | t }}</h2>
     </div>
     <div hlmCardContent class="grid gap-4">
-      <app-page-state [state]="data.state()" (retry)="load()">
+      <app-page-state [state]="data.state()" (retry)="load()" skeleton="inline">
         @for (file of data.value(); track file.fileId) {
           <div class="flex flex-wrap items-center gap-3">
             @if (file.available) {

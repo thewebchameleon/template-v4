@@ -21,7 +21,7 @@ import { CmsCollectionNavigationState } from './collection-navigation';
   template: `<app-page-header title="cmsSchema" description="cmsSchemaHelp"
       ><a hlmBtn variant="outline" routerLink="/cms">{{ 'cmsCollections' | t }}</a></app-page-header
     >
-    <app-page-state [state]="data.state()" (retry)="load()">
+    <app-page-state [state]="data.state()" (retry)="load()" skeleton="form-card">
       @if (error()) {
         <div hlmAlert variant="destructive" role="alert" class="mb-4">
           <p hlmAlertDescription>{{ error() | t }}</p>

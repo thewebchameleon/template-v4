@@ -33,7 +33,6 @@
     <InternalsVisibleTo Include="TemplateV4.CommercialBilling.Infrastructure" />
     <InternalsVisibleTo Include="TemplateV4.Crm.Infrastructure" />
     <InternalsVisibleTo Include="TemplateV4.FileStorage.Infrastructure" />
-    <InternalsVisibleTo Include="TemplateV4.Invoicing.Infrastructure" />
     <InternalsVisibleTo Include="TemplateV4.Support.Infrastructure" />
     <InternalsVisibleTo Include="TemplateV4.Application.Tests" />
       <InternalsVisibleTo Include="TemplateV4.Infrastructure" />

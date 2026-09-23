@@ -6,6 +6,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Using Include="TemplateV4.SharedKernel" />
     <InternalsVisibleTo Include="TemplateV4.Application.Tests" />
+    <PackageReference Include="PDFsharp" />
+    <EmbeddedResource Include="Invoicing/Fonts/*.ttf" LogicalName="TemplateV4.Infrastructure.Invoicing.Fonts.%(Filename)%(Extension)" />
+    <None Include="Invoicing/Fonts/LICENSE.txt" Pack="true" PackagePath="licenses/NotoSans.txt" />
   </ItemGroup>
 
 </Project>

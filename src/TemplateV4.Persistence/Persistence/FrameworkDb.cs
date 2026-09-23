@@ -247,7 +247,6 @@ public class FrameworkDb : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
             entity.HasData(new RuntimeModuleSettings { Id = "cms", Enabled = true, Version = new Guid("a274bd77-60b9-4128-af9d-1084b2d8a34e") });
             entity.HasData(new RuntimeModuleSettings { Id = "support", Enabled = true, Version = new Guid("b6c2b6df-1f86-46ea-90f1-c7bc3b61ba49") });
             entity.HasData(new RuntimeModuleSettings { Id = "crm", Enabled = true, Version = new Guid("34c03708-6e53-4c4b-8bfa-d79ed6744c9c") });
-            entity.HasData(new RuntimeModuleSettings { Id = "invoicing", Enabled = true, Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383") });
             entity.HasData(new RuntimeModuleSettings { Id = "file-storage", Enabled = true, Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2") });
         });
         model.Entity<TemplateV4.Infrastructure.ApiKeys.ApiKeyRow>(entity =>

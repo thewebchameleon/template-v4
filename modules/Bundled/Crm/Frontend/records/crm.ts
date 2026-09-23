@@ -93,6 +93,8 @@ const column = createColumnHelper<DataTableFeatures, CrmRecord>();
           [state]="data.state()"
           [refreshError]="data.refreshError()"
           (retry)="load()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
         >
           <app-data-table
             [columns]="columns()"

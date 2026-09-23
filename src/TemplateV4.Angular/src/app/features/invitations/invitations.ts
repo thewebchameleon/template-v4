@@ -82,6 +82,7 @@ const column = createColumnHelper<DataTableFeatures, InvitationItem>();
 
       <app-page-state
         [state]="data.state()"
+        skeleton="table"
         [refreshError]="data.refreshError()"
         [showInitialSkeleton]="false"
         (retry)="load()"

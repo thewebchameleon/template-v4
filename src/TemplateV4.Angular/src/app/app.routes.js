@@ -48,7 +48,7 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'invoicing' },
         canActivate: [authGuard],
-        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/invoicing').then((m) => m.InvoicingPage),
+        loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/invoicing/documents/invoicing').then((m) => m.InvoicingPage),
     },
     {
         path: 'organisation/invoicing/new',
@@ -56,7 +56,7 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'issueDocument', permission: 'invoicing.issue' },
         canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
-        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/commercial-editor').then((m) => m.CommercialEditorPage),
+        loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/invoicing/documents/commercial-editor').then((m) => m.CommercialEditorPage),
     },
     {
         path: 'organisation/invoicing/settings',
@@ -70,7 +70,7 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'invoicing' },
         canActivate: [authGuard],
-        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/commercial-detail').then((m) => m.CommercialDetailPage),
+        loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/invoicing/documents/commercial-detail').then((m) => m.CommercialDetailPage),
     },
     {
         path: 'organisation/crm',
@@ -437,7 +437,7 @@ export const routes = [
                 resolve: { businessTranslations },
                 data: { breadcrumb: 'issuerSettings' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.invoicingSettings)],
-                loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/configuration/issuer-settings').then((m) => m.IssuerSettingsPage),
+                loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/invoicing/configuration/issuer-settings').then((m) => m.IssuerSettingsPage),
             },
             {
                 path: 'audit-history',

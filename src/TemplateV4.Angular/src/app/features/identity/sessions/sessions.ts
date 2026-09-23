@@ -79,7 +79,7 @@ const auditColumn = createColumnHelper<DataTableFeatures, SessionAuditItem>();
             [placeholder]="'searchSessions' | t"
           />
         </div>
-        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
+        <app-page-state [state]="data.state()" skeleton="table" [skeletonColumns]="columns().length" [refreshError]="data.refreshError()" (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [rowActionLabel]="detailsLabel"
@@ -160,6 +160,8 @@ const auditColumn = createColumnHelper<DataTableFeatures, SessionAuditItem>();
                 </div>
                 <app-page-state
                   [state]="auditData.state()"
+                  skeleton="table"
+                  [skeletonColumns]="auditColumns().length"
                   [refreshError]="auditData.refreshError()"
                   (retry)="loadAudit()"
                   ><app-data-table

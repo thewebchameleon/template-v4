@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -68,6 +68,20 @@ export const workspaceIcons = provideIcons({
   lucideTriangleAlert,
 });
 export type LoadState = 'loading' | 'ready' | 'error' | 'forbidden';
+export type PageSkeleton =
+  | 'table'
+  | 'form'
+  | 'form-card'
+  | 'detail'
+  | 'card'
+  | 'cards'
+  | 'summary-cards'
+  | 'stack'
+  | 'columns'
+  | 'split'
+  | 'picker'
+  | 'empty'
+  | 'inline';
 export class Resource<T> {
   readonly value = signal<T | null>(null);
   readonly state = signal<LoadState>('loading');
@@ -227,15 +241,188 @@ export class PageHeader {
     RouterLink,
     HlmSkeletonImports,
     HlmButtonImports,
+    HlmCardImports,
     HlmEmptyImports,
     HlmAlertImports,
   ],
   template: ` @if (state() === 'loading' && showInitialSkeleton()) {
-      <div class="workspace-skeleton" role="status" aria-live="polite">
+      <div class="workspace-skeleton" [class.workspace-skeleton-table]="skeleton() === 'table'" role="status" aria-live="polite">
         <span class="sr-only">{{ 'loading' | t }}</span>
-        <div hlmSkeleton class="h-12 w-2/3"></div>
-        <div hlmSkeleton class="h-48 w-full"></div>
-        <div hlmSkeleton class="h-20 w-full"></div>
+        @switch (skeleton()) {
+          @case ('table') {
+            <div class="-mx-(--card-spacing) border-y">
+              <div class="grid items-center gap-4 border-b px-(--card-spacing) py-3" [style.grid-template-columns]="'repeat(' + tableSkeletonColumns().length + ', minmax(0, 1fr))'">
+                @for (column of tableSkeletonColumns(); track column) {
+                  <div hlmSkeleton class="h-5 w-2/3 motion-reduce:animate-none"></div>
+                }
+              </div>
+              <div class="flex h-14 items-center justify-center">
+                <div hlmSkeleton class="h-5 w-40 max-w-[66%] motion-reduce:animate-none"></div>
+              </div>
+            </div>
+            <div class="workspace-pager flex-wrap">
+              <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+              <div hlmSkeleton class="h-8 w-48 motion-reduce:animate-none"></div>
+            </div>
+          }
+          @case ('form') {
+            <div class="grid gap-5 sm:max-w-2xl">
+              @for (field of [1, 2, 3]; track field) {
+                <div class="grid gap-2">
+                  <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                  <div hlmSkeleton class="h-10 w-full motion-reduce:animate-none"></div>
+                </div>
+              }
+              <div hlmSkeleton class="h-9 w-28 motion-reduce:animate-none"></div>
+            </div>
+          }
+          @case ('form-card') {
+            <section hlmCard>
+              <div hlmCardHeader>
+                <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                <div hlmSkeleton class="h-4 w-64 max-w-full motion-reduce:animate-none"></div>
+              </div>
+              <div hlmCardContent class="grid gap-5">
+                @for (field of [1, 2, 3]; track field) {
+                  <div class="grid gap-2">
+                    <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-10 w-full motion-reduce:animate-none"></div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+          @case ('detail') {
+            <div class="grid gap-5">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div hlmSkeleton class="h-7 w-48 max-w-[66%] motion-reduce:animate-none"></div>
+                <div hlmSkeleton class="h-8 w-24 motion-reduce:animate-none"></div>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                @for (section of [1, 2]; track section) {
+                  <div class="grid gap-3 rounded-lg border p-4">
+                    <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-4 w-full motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @case ('cards') {
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              @for (card of cardSkeletonSlots(); track card) {
+                <section hlmCard>
+                  <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
+                  <div hlmCardContent class="grid gap-3">
+                    <div hlmSkeleton class="h-9 w-20 motion-reduce:animate-none"></div>
+                    <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
+                  </div>
+                </section>
+              }
+            </div>
+          }
+          @case ('summary-cards') {
+            <div class="grid gap-6">
+              <section hlmCard>
+                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardContent class="grid gap-3">
+                  <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
+                  <div hlmSkeleton class="h-4 w-1/2 motion-reduce:animate-none"></div>
+                </div>
+              </section>
+              <div class="grid gap-6 md:grid-cols-3">
+                @for (card of cardSkeletonSlots(); track card) {
+                  <section hlmCard>
+                    <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
+                    <div hlmCardContent><div hlmSkeleton class="h-8 w-24 motion-reduce:animate-none"></div></div>
+                  </section>
+                }
+              </div>
+            </div>
+          }
+          @case ('card') {
+            <section hlmCard>
+              <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+              <div hlmCardContent class="grid gap-3">
+                <div hlmSkeleton class="h-5 w-2/3 motion-reduce:animate-none"></div>
+                <div hlmSkeleton class="h-5 w-1/2 motion-reduce:animate-none"></div>
+              </div>
+            </section>
+          }
+          @case ('stack') {
+            <div class="grid gap-6">
+              @for (card of [1, 2]; track card) {
+                <section hlmCard>
+                  <div hlmCardHeader class="flex items-center gap-4">
+                    <div hlmSkeleton class="size-12 shrink-0 motion-reduce:animate-none"></div>
+                    <div class="grid flex-1 gap-2">
+                      <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                      <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
+                    </div>
+                  </div>
+                </section>
+              }
+            </div>
+          }
+          @case ('columns') {
+            <div class="workspace-columns">
+              <div class="workspace-stack">
+                @for (card of [1, 2]; track card) {
+                  <section hlmCard>
+                    <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                    <div hlmCardContent><div hlmSkeleton class="h-16 w-full motion-reduce:animate-none"></div></div>
+                  </section>
+                }
+              </div>
+              <section hlmCard>
+                <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
+                <div hlmCardContent><div hlmSkeleton class="h-32 w-full motion-reduce:animate-none"></div></div>
+              </section>
+            </div>
+          }
+          @case ('split') {
+            <div class="grid gap-6 lg:grid-cols-2">
+              <section hlmCard>
+                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardContent class="grid gap-3">
+                  @for (row of [1, 2]; track row) {
+                    <div hlmSkeleton class="h-9 w-full motion-reduce:animate-none"></div>
+                  }
+                </div>
+              </section>
+              <section hlmCard>
+                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardContent class="grid gap-4">
+                  <div hlmSkeleton class="h-10 w-full motion-reduce:animate-none"></div>
+                  <div hlmSkeleton class="h-12 w-full motion-reduce:animate-none"></div>
+                </div>
+              </section>
+            </div>
+          }
+          @case ('picker') {
+            <div class="grid gap-3">
+              <div class="grid gap-2">
+                <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                <div hlmSkeleton class="h-10 w-full motion-reduce:animate-none"></div>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-3 py-2">
+                <div hlmSkeleton class="h-4 w-24 motion-reduce:animate-none"></div>
+                <div hlmSkeleton class="h-8 w-44 motion-reduce:animate-none"></div>
+              </div>
+            </div>
+          }
+          @case ('empty') {
+            <div class="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border px-4 py-8">
+              <div hlmSkeleton class="h-10 w-10 rounded-full motion-reduce:animate-none"></div>
+              <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+              <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>
+            </div>
+          }
+          @default {
+            <div hlmSkeleton class="h-5 w-40 max-w-full motion-reduce:animate-none"></div>
+          }
+        }
       </div>
     } @else if (state() === 'forbidden') {
       <div hlmEmpty>
@@ -270,6 +457,15 @@ export class PageState {
   readonly refreshing = input(false);
   readonly refreshError = input(false);
   readonly showInitialSkeleton = input(true);
+  readonly skeleton = input<PageSkeleton>('inline');
+  readonly skeletonColumns = input(3);
+  readonly skeletonCards = input(3);
+  readonly cardSkeletonSlots = computed(() =>
+    Array.from({ length: Math.max(1, this.skeletonCards()) }, (_, index) => index),
+  );
+  readonly tableSkeletonColumns = computed(() =>
+    Array.from({ length: Math.max(1, this.skeletonColumns()) }, (_, index) => index),
+  );
   readonly state = input.required<LoadState>();
   readonly retry = output<void>();
 }

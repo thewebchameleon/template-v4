@@ -26,6 +26,7 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
     <section hlmCard size="sm" class="w-full max-w-lg">
       <app-page-state
         [state]="share.state()"
+        skeleton="detail"
         [refreshError]="share.refreshError()"
         (retry)="load()"
       >
@@ -77,6 +78,8 @@ const column = createColumnHelper<DataTableFeatures, FileItem>();
             </div>
             <app-page-state
               [state]="data.state()"
+              skeleton="table"
+              [skeletonColumns]="columns().length"
               [refreshError]="data.refreshError()"
               (retry)="load()"
               ><app-data-table

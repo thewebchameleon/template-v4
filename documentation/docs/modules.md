@@ -11,8 +11,8 @@ Start from `modules/client/client-modules.example.json`, then run
 
 ## Ownership
 
-A bundled module is a runtime switch on Administration → Modules. The six bundled
-modules are CMS, CRM, Support, Invoicing, File Storage, and Commercial Billing. Their
+A bundled module is a runtime switch on Administration → Modules. The five bundled
+modules are CMS, CRM, Support, File Storage, and Commercial Billing. Their
 source lives under `modules/Bundled/<Module>`; client modules live under
 `modules/Private/<Module>`. Identity, delivery, payments, organisation storage,
 notifications, operations and the other always-on facilities belong to the platform
@@ -24,17 +24,22 @@ arbitrary platform folders. Cross-module calls use public Application contracts.
 The shared PostgreSQL database and `DatabaseSession` keep module changes, core audit
 and outgoing messages in one transaction.
 
-CMS, CRM, Support, Invoicing, and Commercial Billing own EF contexts and migrations in
-their `Infrastructure/Persistence` folders. The permanent core migration history remains
+CMS, CRM, Support, and Commercial Billing own EF contexts and migrations under
+their `Infrastructure` folders. The permanent core migration history remains
 in `src/TemplateV4.Persistence/Persistence/Migrations`. It creates the historical tables;
 the module baseline migrations adopt those existing schemas without recreating tables or
 discarding data. Always run `TemplateV4.DatabaseMigrator` before starting hosts; it applies
 core migrations first, then module contributors. Future module schema changes use the
-module's context and forward-only migrations. File Storage owns only the optional library
+module's context and forward-only migrations. Commercial Billing retains separate
+`commercial_billing` and `invoicing` EF histories for existing data; the invoicing
+migrations live under `Infrastructure/Invoicing/Persistence/Migrations`. Invoicing
+source uses the corresponding Commercial Billing layer projects, with no nested
+module descriptor or layer projects. File Storage owns only the optional library
 routes and pages because its files, sharing, quota and retention data are core storage.
 
-Use Support, CMS, CRM, and Invoicing as reference implementations. Do not create a new
-service, assembly, or abstraction merely to satisfy folder shape.
+Use Support, CMS, CRM, and Commercial Billing's invoicing slice as reference
+implementations. Do not create a new service, assembly, or abstraction merely to
+satisfy folder shape.
 
 ## Layout
 
@@ -82,6 +87,13 @@ enforce the same capability independently of navigation visibility.
 Runtime capability checks complement permissions and feature flags; none replaces the
 others. Dependency-safe activation is application-wide. Financial settlement, cleanup,
 and other accepted obligations continue when their optional UI capability is disabled.
+The Commercial Billing switch admits new subscription and invoicing work together.
+The `invoicing` capability also requires CRM; disabling CRM does not disable subscription
+billing. An upgrade combines the old switches with AND, so either previously disabled
+switch leaves the combined module disabled until an administrator enables it.
+For deployment overrides in `modules/client/client-modules.json`, replace any old
+`invoicing` key with `commercial-billing` set to the AND of the two previous values;
+remove the old key before upgrading. The bundled presets already use the combined ID.
 
 ## Platform invariants
 

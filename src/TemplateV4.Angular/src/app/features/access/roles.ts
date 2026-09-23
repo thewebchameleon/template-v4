@@ -72,6 +72,7 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
         </div>
         <app-page-state
           [state]="data.state()"
+          skeleton="table"
           [refreshError]="data.refreshError()"
           [showInitialSkeleton]="false"
           (retry)="load()"

@@ -3,7 +3,6 @@
     "file-storage": true,
     "support": true,
     "commercial-billing": true,
-    "crm": true,
-    "invoicing": true
+    "crm": true
   }
 }

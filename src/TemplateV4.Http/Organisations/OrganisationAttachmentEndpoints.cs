@@ -11,7 +11,7 @@ public static class OrganisationAttachmentEndpoints
     public static RouteGroupBuilder MapOrganisationAttachmentEndpoints(this RouteGroupBuilder group)
     {
         MapRecords(group, "crm", ModuleIds.Crm, CapabilityIds.CrmFiles, AttachmentRecordKind.Crm);
-        MapRecords(group, "invoicing", ModuleIds.Invoicing, CapabilityIds.InvoicingFiles, AttachmentRecordKind.Invoicing);
+        MapRecords(group, "invoicing", ModuleIds.CommercialBilling, CapabilityIds.InvoicingFiles, AttachmentRecordKind.Invoicing);
         var files = group.MapGroup("/organisation/attachments").RequireAuthorization();
         files.MapGet("", async (ClaimsPrincipal user, IOrganisationAttachments library, CancellationToken ct, int pageNumber = 1, int pageSize = 10) =>
             (await library.List(Guid.Parse(user.FindFirstValue("sub")!), pageNumber, pageSize, ct)).ToHttp()).WithName("ListOrganisationAttachments").Produces<Page<OrganisationAttachment>>();

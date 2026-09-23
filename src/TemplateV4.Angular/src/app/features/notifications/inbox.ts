@@ -93,6 +93,8 @@ export class NotificationRow {
       </hlm-tabs>
       <app-page-state
         [state]="data.state() === 'loading' ? 'ready' : data.state()"
+        skeleton="table"
+        [skeletonColumns]="columns().length"
         [refreshError]="data.refreshError()"
         (retry)="load()"
       >

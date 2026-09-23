@@ -11,6 +11,7 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
   imports: [WorkspaceUi, HlmDialogImports],
   template: `<app-page-state
       [state]="data.state()"
+      skeleton="form"
       [refreshError]="data.refreshError()"
       (retry)="load()"
     >

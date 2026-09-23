@@ -21,7 +21,7 @@ import { CmsMarkdownEditor } from './cms-markdown-editor';
   template: ` <app-page-header title="cms" description="cmsEditHelp"
       ><a hlmBtn variant="outline" routerLink="/cms">{{ 'cmsArticles' | t }}</a></app-page-header
     >
-    <app-page-state [state]="data.state()" (retry)="load()">
+    <app-page-state [state]="data.state()" (retry)="load()" skeleton="form-card">
       @if (conflict()) {
         <div hlmAlert variant="destructive" class="mb-4" role="alert">
           <p hlmAlertDescription>{{ 'cmsConflict' | t }}</p>

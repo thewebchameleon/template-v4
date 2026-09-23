@@ -745,7 +745,7 @@ export class App {
       .map((item) => {
         const links: readonly PanelLink[] = item.moduleId === 'support'
           ? this.supportLinks()
-          : item.moduleId === 'invoicing'
+          : item.capability === 'invoicing'
             ? this.invoicingLinks
             : this.organisationPanelLinks(item);
         const sections = [...new Set(links.map((link) => link.section ?? item.label))].map(
@@ -783,7 +783,9 @@ export class App {
   readonly organisationRailLinks = computed<RailLink[]>(() => {
     this.navigationEnd();
     return [
-      ...organisationDestinations,
+      ...organisationDestinations.map((item) => item.capability === 'invoicing'
+        ? { ...item, moduleId: 'commercial-billing', runtimeConfigurable: true }
+        : item),
       ...this.extensions.flatMap((feature) =>
         (feature.organisationDestinations ?? []).map((item) => ({
           ...item,

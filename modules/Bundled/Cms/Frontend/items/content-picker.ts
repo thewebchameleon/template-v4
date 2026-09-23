@@ -49,7 +49,7 @@ import {
             {{ 'cmsFileRoot' | t }}
           </button>
         }
-        <app-page-state [state]="data.state()" (retry)="load()">
+        <app-page-state [state]="data.state()" (retry)="load()" skeleton="empty">
           @for (item of data.value()?.items; track item.id) {
             <button
               hlmBtn

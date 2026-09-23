@@ -16,7 +16,7 @@ import { ContentFields, ContentValues } from './content-fields';
         collection.value()?.label
       }}</a></app-page-header
     >
-    <app-page-state [state]="collection.state()" (retry)="load()">
+    <app-page-state [state]="collection.state()" (retry)="load()" skeleton="form-card">
       @if (error()) {
         <div hlmAlert variant="destructive" role="alert" class="mb-4">
           <p hlmAlertDescription>{{ error() | t }}</p>

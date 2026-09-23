@@ -26,7 +26,7 @@ import { SupportOptions } from '../../../../../../src/TemplateV4.Angular/src/app
     }
     <form class="flex min-h-0 flex-1 flex-col" #form="ngForm" (ngSubmit)="form.valid && save()">
       <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
-        <app-page-state [state]="options.state()" (retry)="load()">
+        <app-page-state [state]="options.state()" (retry)="load()" skeleton="form">
           <div class="grid gap-4">
             <div hlmField>
               <label hlmFieldLabel for="subject">{{ 'supportSubject' | t }}</label

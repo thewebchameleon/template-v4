@@ -25,6 +25,7 @@ const defaultQuotaOptionsMb = [
   imports: [WorkspaceUi, HlmSliderImports],
   template: `<app-page-state
     [state]="data.state()"
+    skeleton="form"
     [refreshError]="data.refreshError()"
     (retry)="load()"
   >

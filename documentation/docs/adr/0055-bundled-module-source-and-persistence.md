@@ -2,21 +2,25 @@
 
 Status: Accepted
 
+The Invoicing and Commercial Billing module identity was combined by
+[ADR 0056](0056-combined-commercial-billing-module.md).
+
 ## Context
 
 The source extraction initially treated many platform facilities as bundled modules.
-Administrators can switch only six features. Their development layout should match
+Administrators could switch six features at that point. Their development layout should match
 private modules without making identity, payment providers or storage retention optional.
 
 ## Decision
 
-Keep CMS, CRM, Support, Invoicing, File Storage and Commercial Billing under
+Keep CMS, CRM, Support, File Storage and Commercial Billing under
 `modules/Bundled/<Module>`. Keep all other facilities in the platform projects under
 `src`. Descriptors contribute services, API endpoints and Angular routes. Commercial
-Billing is runtime configurable; disabling it stops new trials and checkouts while
-existing subscriptions, cancellation, callbacks and reconciliation continue.
+Billing includes invoicing as an internal slice and is runtime configurable; disabling
+it stops new trials, checkouts, quotes, and invoices while existing financial obligations
+remain available for cancellation, settlement, correction, and reconciliation.
 
-Use module-owned EF contexts and migration histories for the five modules with owned
+Use module-owned EF contexts and migration histories for the modules with owned
 tables. Keep one PostgreSQL database and share a connection and transaction through
 `DatabaseSession` for writes crossing core audit, outbox and module data. Preserve the
 permanent core migrations. A forward core migration transfers ownership without

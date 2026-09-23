@@ -11,7 +11,6 @@ public static class ModuleIds
     public const string Delivery = "delivery";
     public const string FileStorage = "file-storage";
     public const string Identity = "identity";
-    public const string Invoicing = "invoicing";
     public const string Maintenance = "maintenance";
     public const string Organisations = "organisations";
     public const string Payments = "payments";

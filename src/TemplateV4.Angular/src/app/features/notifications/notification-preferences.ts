@@ -17,6 +17,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
       <div hlmCardContent>
         <app-page-state
           [state]="data.state() === 'loading' ? 'ready' : data.state()"
+          skeleton="form"
           [refreshError]="data.refreshError()"
           (retry)="load()"
         >
@@ -46,6 +47,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
       <div hlmCardContent>
         <app-page-state
           [state]="pushData.state()"
+          skeleton="form"
           [refreshError]="pushData.refreshError()"
           (retry)="loadPush()"
         >

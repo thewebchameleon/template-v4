@@ -29,7 +29,7 @@ import { BusinessSelect } from './business-select';
         [allowEmpty]="false"
       />
     }
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
+    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()" skeleton="picker">
       <app-business-select
         [controlId]="controlId() + '-value'"
         [label]="label()"

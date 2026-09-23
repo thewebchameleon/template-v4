@@ -22,6 +22,7 @@ import { Notifications } from '../../../../src/TemplateV4.Angular/src/app/featur
       [refreshError]="data.refreshError()"
       [refreshing]="data.refreshing()"
       (retry)="load()"
+      skeleton="summary-cards"
     >
       @if (data.value(); as billing) {
         <section hlmCard class="mb-6">

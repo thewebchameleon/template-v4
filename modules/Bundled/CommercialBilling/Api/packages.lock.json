@@ -125,12 +125,17 @@
       "templatev4.commercialbilling.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Application": "[0.2.0, )"
+          "TemplateV4.Application": "[0.2.0, )",
+          "TemplateV4.Crm.Application": "[0.2.0, )"
         }
+      },
+      "templatev4.commercialbilling.domain": {
+        "type": "Project"
       },
       "templatev4.commercialbilling.infrastructure": {
         "type": "Project",
         "dependencies": {
+          "PDFsharp": "[6.2.4, )",
           "TemplateV4.Infrastructure": "[0.2.0, )"
         }
       },
@@ -143,7 +148,7 @@
       "templatev4.domain": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Invoicing.Domain": "[0.2.0, )",
+          "TemplateV4.CommercialBilling.Domain": "[0.2.0, )",
           "TemplateV4.Support.Domain": "[0.2.0, )"
         }
       },
@@ -167,20 +172,9 @@
           "TemplateV4.Cms.Application": "[0.2.0, )",
           "TemplateV4.CommercialBilling.Application": "[0.2.0, )",
           "TemplateV4.Crm.Application": "[0.2.0, )",
-          "TemplateV4.Invoicing.Application": "[0.2.0, )",
           "TemplateV4.Persistence": "[0.2.0, )",
           "TemplateV4.Support.Application": "[0.2.0, )"
         }
-      },
-      "templatev4.invoicing.application": {
-        "type": "Project",
-        "dependencies": {
-          "TemplateV4.Application": "[0.2.0, )",
-          "TemplateV4.Crm.Application": "[0.2.0, )"
-        }
-      },
-      "templatev4.invoicing.domain": {
-        "type": "Project"
       },
       "templatev4.modulecontracts": {
         "type": "Project",

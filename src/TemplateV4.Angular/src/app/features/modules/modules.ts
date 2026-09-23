@@ -47,7 +47,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
         <p hlmAlertDescription>{{ 'moduleConflict' | t }}</p>
       </div>
     }
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="reload()">
+    <app-page-state [state]="data.state()" skeleton="stack" [refreshError]="data.refreshError()" (retry)="reload()">
       @for (module of data.value(); track module.id) {
         <section hlmCard class="mb-6 p-0" [id]="'module-' + module.id">
           <div hlmCardHeader>
@@ -89,7 +89,10 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
                   settingsDestination(module.id);
                 as destination
               ) {
-                <a hlmBtn variant="outline" [routerLink]="destination.path">{{ 'settings' | t }}</a>
+                <a hlmBtn variant="outline" [routerLink]="destination.path">{{ (module.id === 'commercial-billing' ? 'commercialBillingSettings' : 'settings') | t }}</a>
+              }
+              @if (module.id === 'commercial-billing' && features.enabled('invoicing')) {
+                <a hlmBtn variant="outline" [routerLink]="moduleSettingsDestinations['invoicing'].path">{{ 'invoicingSettings' | t }}</a>
               }
               <hlm-switch
                 [inputId]="module.id + '-enabled'"
@@ -120,7 +123,8 @@ export class ModulesPage implements OnInit {
   readonly busy = signal(false);
   readonly conflict = signal(false);
   private readonly api = inject(WorkspaceApi);
-  private readonly features = inject(Features);
+  readonly features = inject(Features);
+  readonly moduleSettingsDestinations = moduleSettingsDestinations;
   private readonly i18n = inject(I18n);
   private readonly toast = inject(Notifications);
   enabled: Record<string, boolean> = {};

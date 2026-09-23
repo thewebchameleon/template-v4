@@ -10,6 +10,16 @@
     "delivery",
     "payments"
   ],
+  "capabilities": [
+    {
+      "id": "invoicing",
+      "requires": ["crm"]
+    },
+    {
+      "id": "invoicing-files",
+      "requires": ["invoicing", "organisation-files"]
+    }
+  ],
   "host": {
     "services": "TemplateV4.Bundled.CommercialBilling.ModuleServices.Register",
     "feature": "commercialBillingFeature",
@@ -18,6 +28,7 @@
   },
   "projects": {
     "Application": "Application/TemplateV4.CommercialBilling.Application.csproj",
+    "Domain": "Domain/TemplateV4.CommercialBilling.Domain.csproj",
     "Infrastructure": "Infrastructure/TemplateV4.CommercialBilling.Infrastructure.csproj",
     "Worker": "Worker/TemplateV4.CommercialBilling.Worker.csproj",
     "Api": "Api/TemplateV4.CommercialBilling.Api.csproj"

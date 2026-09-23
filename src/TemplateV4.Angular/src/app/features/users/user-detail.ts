@@ -31,6 +31,7 @@ import { AccessCatalog, UserAccessDetail } from '../../api/models';
     }
     <app-page-state
       [state]="data.state()"
+      skeleton="detail"
       [refreshing]="data.refreshing()"
       [refreshError]="data.refreshError()"
       (retry)="load()"

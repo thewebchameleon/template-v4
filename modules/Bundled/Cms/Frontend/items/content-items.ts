@@ -68,6 +68,8 @@ const column = createColumnHelper<DataTableFeatures, ContentItemSummary>();
           [state]="data.state()"
           [refreshError]="data.refreshError()"
           (retry)="load()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
         >
           <app-data-table
             [columns]="columns()"

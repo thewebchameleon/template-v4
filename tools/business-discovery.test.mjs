@@ -27,7 +27,7 @@ test("client settings reject core overrides, unavailable prerequisites and stale
     );
   save({ identity: false });
   assert.throws(() => readClientModules(root), /optional foundation/);
-  save({ crm: false, invoicing: false });
+  save({ crm: false, 'commercial-billing': false });
   assert.throws(() => discover(root), /requires crm/);
   save({ support: false });
   const modules = discover(root);

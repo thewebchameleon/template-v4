@@ -56,7 +56,7 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
         <h2 hlmCardTitle>{{ 'profileDetails' | t }}</h2>
         <p hlmCardDescription>{{ 'profileDetailsHelp' | t }}</p>
       </div>
-      <app-page-state [state]="options.state()" (retry)="loadOptions()">
+      <app-page-state [state]="options.state()" skeleton="form" (retry)="loadOptions()">
         <form #form="ngForm" (ngSubmit)="form.valid && save()">
           <div hlmCardContent>
             <fieldset

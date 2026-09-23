@@ -74,7 +74,7 @@ class TicketBadgeCell {
         }}</a>
       }
     </app-page-header>
-    <app-page-state [state]="options.state()" (retry)="loadOptions()">
+    <app-page-state [state]="options.state()" (retry)="loadOptions()" skeleton="inline">
       @if (options.value()?.agent) {
         <hlm-tabs
           class="mb-6"
@@ -213,6 +213,8 @@ class TicketBadgeCell {
           [state]="data.state()"
           [refreshError]="data.refreshError()"
           (retry)="load()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
         >
           <app-data-table
             [columns]="columns()"

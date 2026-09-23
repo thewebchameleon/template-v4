@@ -12,7 +12,7 @@ import { Resource, WorkspaceUi } from '../../../../../src/TemplateV4.Angular/src
         'crm' | t
       }}</a></app-page-header
     >
-    <app-page-state [state]="state.state()" [refreshError]="state.refreshError()" (retry)="load()">
+    <app-page-state [state]="state.state()" [refreshError]="state.refreshError()" (retry)="load()" skeleton="form-card">
       @if (draft; as config) {
         <form class="grid gap-6" (ngSubmit)="save()">
           <fieldset [disabled]="busy() || !canConfigure()" class="grid gap-6">

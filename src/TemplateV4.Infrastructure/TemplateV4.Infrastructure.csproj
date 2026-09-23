@@ -30,7 +30,6 @@
 <ProjectReference Include="../../modules/Bundled/Cms/Application/TemplateV4.Cms.Application.csproj" />
 <ProjectReference Include="../../modules/Bundled/Crm/Application/TemplateV4.Crm.Application.csproj" />
 <ProjectReference Include="../../modules/Bundled/Support/Application/TemplateV4.Support.Application.csproj" />
-<ProjectReference Include="../../modules/Bundled/Invoicing/Application/TemplateV4.Invoicing.Application.csproj" />
 <ProjectReference Include="../../modules/Bundled/CommercialBilling/Application/TemplateV4.CommercialBilling.Application.csproj" />
 </ItemGroup>
 </Project>

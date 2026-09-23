@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { WorkspaceUi, protectUnload } from '../../../../../src/TemplateV4.Angular/src/app/shared/workspace';
 import { WorkspaceApi } from '../../../../../src/TemplateV4.Angular/src/app/core/workspace-api';
 import { CmsSections, LandingSection } from '../../../../../src/TemplateV4.Angular/src/app/api/models';
 @Component({
   selector: 'app-cms-sections',
-  imports: [WorkspaceUi, HlmTextareaImports],
+  imports: [WorkspaceUi, HlmTextareaImports, HlmSkeletonImports],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `<app-page-header title="cmsSections" description="cmsSectionsHelp"
       ><a hlmBtn variant="outline" routerLink="/cms">{{ 'cmsArticles' | t }}</a></app-page-header
@@ -120,7 +121,24 @@ import { CmsSections, LandingSection } from '../../../../../src/TemplateV4.Angul
         </div>
       </form>
     } @else if (!failed()) {
-      <p role="status">{{ 'loading' | t }}</p>
+      <div class="grid gap-6" role="status">
+        <span class="sr-only">{{ 'loading' | t }}</span>
+        @for (section of [1, 2, 3, 4, 5]; track section) {
+          <section hlmCard>
+            <div hlmCardHeader>
+              <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+            </div>
+            <div hlmCardContent class="grid gap-4">
+              @for (field of [1, 2, 3, 4]; track field) {
+                <div class="grid gap-2">
+                  <div hlmSkeleton class="h-4 w-28 motion-reduce:animate-none"></div>
+                  <div hlmSkeleton class="w-full motion-reduce:animate-none" [class.h-24]="field === 2" [class.h-10]="field !== 2"></div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      </div>
     }
     @if (saved()) {
       <p role="status">{{ 'cmsSectionsChanged' | t }}</p>

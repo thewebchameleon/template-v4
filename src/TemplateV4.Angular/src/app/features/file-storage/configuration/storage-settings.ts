@@ -45,6 +45,7 @@ import { Notifications } from '../../notifications/notifications';
       <aside class="workspace-stack min-w-0">
         <app-page-state
           [state]="usage.state()"
+          skeleton="card"
           [refreshError]="usage.refreshError()"
           (retry)="loadUsage()"
         >

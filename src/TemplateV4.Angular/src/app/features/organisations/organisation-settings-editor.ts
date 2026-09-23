@@ -50,6 +50,7 @@ type OrganisationDraft = Pick<
   `,
   template: `<app-page-state
     [state]="state.state()"
+    skeleton="form-card"
     [refreshing]="state.refreshing()"
     [refreshError]="state.refreshError()"
     (retry)="reload()"

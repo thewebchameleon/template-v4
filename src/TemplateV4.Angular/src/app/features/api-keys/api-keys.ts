@@ -91,6 +91,8 @@ const column = createColumnHelper<DataTableFeatures, ApiKeyItem>();
         </div>
         <app-page-state
           [state]="keys.state()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
           [refreshError]="keys.refreshError()"
           (retry)="load()"
         >

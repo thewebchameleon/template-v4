@@ -56,7 +56,7 @@ const column = createColumnHelper<DataTableFeatures, ContactEnquiry>();
             maxlength="200"
           />
         </div>
-        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
+        <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()" skeleton="table" [skeletonColumns]="columns().length"
           ><app-data-table
             [columns]="columns()"
             [data]="data.value()?.items ?? []"

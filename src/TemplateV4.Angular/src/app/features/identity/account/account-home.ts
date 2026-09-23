@@ -8,7 +8,7 @@ import { ProfileResponse } from '../../../api/models';
   imports: [WorkspaceUi, ProfileEditor],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
-  template: ` <app-page-state [state]="data.state()" (retry)="load()"
+  template: ` <app-page-state [state]="data.state()" skeleton="form-card" (retry)="load()"
     ><div class="grid gap-6">
       <app-profile-editor [profile]="data.value()" (saved)="data.value.set($event)" /></div
   ></app-page-state>`,

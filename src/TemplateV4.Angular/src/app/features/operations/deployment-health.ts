@@ -18,6 +18,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
       <div hlmCardContent>
         <app-page-state
           [state]="data.state()"
+          skeleton="cards"
           [refreshing]="data.refreshing()"
           [refreshError]="data.refreshError()"
           (retry)="reload()"

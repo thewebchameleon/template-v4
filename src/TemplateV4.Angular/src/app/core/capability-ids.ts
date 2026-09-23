@@ -8,7 +8,6 @@ export type ModuleId =
   | 'delivery'
   | 'file-storage'
   | 'identity'
-  | 'invoicing'
   | 'maintenance'
   | 'organisations'
   | 'payments'
@@ -36,6 +35,5 @@ export const runtimeConfigurableModuleIds = [
   'commercial-billing',
   'crm',
   'file-storage',
-  'invoicing',
   'support',
 ] as const satisfies readonly ModuleId[];

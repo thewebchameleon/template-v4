@@ -40,6 +40,7 @@ import { OrganisationSettingsEditor } from '../organisations/organisation-settin
       <app-organisation-settings-editor />
       <app-page-state
         [state]="data.state()"
+        skeleton="form-card"
         [refreshing]="data.refreshing()"
         [refreshError]="data.refreshError()"
         (retry)="reload()"

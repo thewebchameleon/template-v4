@@ -14,6 +14,7 @@ import { SupportOptions, SupportCategory } from '../../../../../src/TemplateV4.A
       }}</a></app-page-header
     >
     <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()"
+      skeleton="split"
       ><div class="grid gap-6 lg:grid-cols-2">
         <section hlmCard>
           <div hlmCardHeader>

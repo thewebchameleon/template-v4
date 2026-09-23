@@ -15,7 +15,7 @@ interface FileInfo {
   selector: 'app-attachment-picker',
   imports: [WorkspaceUi, BusinessSelect],
   template: ` <div class="grid gap-3">
-    <app-page-state [state]="files.state()" (retry)="load()">
+    <app-page-state [state]="files.state()" (retry)="load()" skeleton="picker">
       <app-business-select
         [controlId]="controlId()"
         label="existingAttachment"

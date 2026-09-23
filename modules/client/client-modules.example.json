@@ -4,8 +4,7 @@
     "file-storage": true,
     "support": true,
     "crm": true,
-    "invoicing": true,
-    "billing": false
+    "commercial-billing": false
   },
   "privateModules": []
 }

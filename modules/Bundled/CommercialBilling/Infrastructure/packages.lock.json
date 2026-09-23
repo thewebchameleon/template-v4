@@ -19,6 +19,15 @@
           "Newtonsoft.Json": "13.0.4"
         }
       },
+      "PDFsharp": {
+        "type": "Direct",
+        "requested": "[6.2.4, )",
+        "resolved": "6.2.4",
+        "contentHash": "GhTr9F1uOYXHCIEOB5PXIgqn5a8WLsJL2m0eewTA0IvY1j6N4HGXHKKmEyB90/N6vrjmYamf41V9zbmdW2HY3g==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
       "AWSSDK.Core": {
         "type": "Transitive",
         "resolved": "4.0.102.4",
@@ -288,8 +297,12 @@
       "templatev4.commercialbilling.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Application": "[0.2.0, )"
+          "TemplateV4.Application": "[0.2.0, )",
+          "TemplateV4.Crm.Application": "[0.2.0, )"
         }
+      },
+      "templatev4.commercialbilling.domain": {
+        "type": "Project"
       },
       "templatev4.crm.application": {
         "type": "Project",
@@ -300,7 +313,7 @@
       "templatev4.domain": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Invoicing.Domain": "[0.2.0, )",
+          "TemplateV4.CommercialBilling.Domain": "[0.2.0, )",
           "TemplateV4.Support.Domain": "[0.2.0, )"
         }
       },
@@ -318,20 +331,9 @@
           "TemplateV4.Cms.Application": "[0.2.0, )",
           "TemplateV4.CommercialBilling.Application": "[0.2.0, )",
           "TemplateV4.Crm.Application": "[0.2.0, )",
-          "TemplateV4.Invoicing.Application": "[0.2.0, )",
           "TemplateV4.Persistence": "[0.2.0, )",
           "TemplateV4.Support.Application": "[0.2.0, )"
         }
-      },
-      "templatev4.invoicing.application": {
-        "type": "Project",
-        "dependencies": {
-          "TemplateV4.Application": "[0.2.0, )",
-          "TemplateV4.Crm.Application": "[0.2.0, )"
-        }
-      },
-      "templatev4.invoicing.domain": {
-        "type": "Project"
       },
       "templatev4.modulecontracts": {
         "type": "Project",
@@ -421,15 +423,6 @@
           "Microsoft.EntityFrameworkCore": "[10.0.4, 11.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
           "Npgsql": "10.0.3"
-        }
-      },
-      "PDFsharp": {
-        "type": "CentralTransitive",
-        "requested": "[6.2.4, )",
-        "resolved": "6.2.4",
-        "contentHash": "GhTr9F1uOYXHCIEOB5PXIgqn5a8WLsJL2m0eewTA0IvY1j6N4HGXHKKmEyB90/N6vrjmYamf41V9zbmdW2HY3g==",
-        "dependencies": {
-          "System.Security.Cryptography.Pkcs": "8.0.1"
         }
       }
     }

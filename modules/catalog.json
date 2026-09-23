@@ -126,24 +126,6 @@
     "category": "foundation"
   },
   {
-    "id": "invoicing",
-    "required": false,
-    "enabledByDefault": true,
-    "dependencies": [
-      "crm"
-    ],
-    "runtimeConfigurable": true,
-    "capabilities": [
-      {
-        "id": "invoicing-files",
-        "requires": [
-          "organisation-files"
-        ]
-      }
-    ],
-    "category": "foundation"
-  },
-  {
     "id": "payments",
     "required": true,
     "enabledByDefault": true,
@@ -164,6 +146,16 @@
       "payments"
     ],
     "runtimeConfigurable": true,
+    "capabilities": [
+      {
+        "id": "invoicing",
+        "requires": ["crm"]
+      },
+      {
+        "id": "invoicing-files",
+        "requires": ["invoicing", "organisation-files"]
+      }
+    ],
     "category": "foundation"
   }
 ]

@@ -22,7 +22,7 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
         {{ 'refresh' | t }}
       </button></app-page-header
     > }
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="reload()">
+    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="reload()" skeleton="detail">
       @if (data.value(); as detail) {
         <div class="grid gap-6 lg:grid-cols-3">
           <div class="min-w-0 lg:col-span-2">
@@ -111,7 +111,7 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
                                 <input hlmInput id="agent-search" name="agent-search" [(ngModel)]="agentSearch" maxlength="120" />
                                 <button hlmBtn variant="outline" type="button" (click)="loadOptions()">{{ 'search' | t }}</button>
                               </div>
-                              <app-page-state [state]="options.state()" [refreshError]="options.refreshError()" (retry)="loadOptions()">
+                              <app-page-state [state]="options.state()" [refreshError]="options.refreshError()" (retry)="loadOptions()" skeleton="inline">
                                 <div hlmField>
                                   <label hlmFieldLabel for="assignee">{{ 'supportAssignee' | t }}</label>
                                   <hlm-select

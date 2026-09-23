@@ -100,6 +100,8 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
         </div>
         <app-page-state
           [state]="data.state()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
           [refreshError]="data.refreshError()"
           (retry)="load()"
         >
@@ -144,7 +146,7 @@ const runColumn = createColumnHelper<DataTableFeatures, BackgroundJobRun>();
           <p hlmDrawerDescription>{{ 'backgroundJobDetailsHelp' | t }}</p>
         </hlm-drawer-header>
         <ng-scrollbar hlm hlmDrawerBody orientation="vertical" class="min-h-0 flex-1">
-          <app-page-state [state]="detail.state()" (retry)="loadDetail()">
+          <app-page-state [state]="detail.state()" skeleton="detail" (retry)="loadDetail()">
             @if (detail.value(); as value) {
               <div class="grid gap-6">
                 <section>

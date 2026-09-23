@@ -12,7 +12,7 @@ import { Notifications } from '../../../../src/TemplateV4.Angular/src/app/featur
       title="commercialBillingSettings"
       description="commercialBillingSettingsHelp"
     />
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
+    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()" skeleton="form-card">
       @if (settings; as value) {
         <section hlmCard>
           <div hlmCardHeader>

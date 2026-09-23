@@ -107,6 +107,7 @@ import { Resource, WorkspaceUi, workspaceIcons } from '../../shared/workspace';
         >
           <app-page-state
             [state]="data.state()"
+            skeleton="empty"
             [refreshing]="data.refreshing()"
             [refreshError]="data.refreshError()"
             (retry)="load()"

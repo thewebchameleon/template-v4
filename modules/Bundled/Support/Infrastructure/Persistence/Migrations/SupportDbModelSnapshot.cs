@@ -1435,12 +1435,6 @@ namespace TemplateV4.Support.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = "invoicing",
-                            Enabled = true,
-                            Version = new Guid("9b06f2a7-1f29-4f29-887f-c0836dc6f383")
-                        },
-                        new
-                        {
                             Id = "file-storage",
                             Enabled = true,
                             Version = new Guid("4660b460-92b8-46cf-aae1-eb04318596b2")

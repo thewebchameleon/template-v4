@@ -25,7 +25,7 @@ export { BusinessDate } from './app/shared/business-date';
 export { CrmCustomerPicker } from './app/shared/crm-customer-picker';
 export { CommercialLines } from './app/shared/commercial-lines';
 export { CrmPage } from '../../../modules/Bundled/Crm/Frontend/records/crm';
-export { InvoicingPage } from '../../../modules/Bundled/Invoicing/Frontend/documents/invoicing';
+export { InvoicingPage } from '../../../modules/Bundled/CommercialBilling/Frontend/invoicing/documents/invoicing';
 export type * from './app/api/models';
 
 export * from './app/shared/workspace';

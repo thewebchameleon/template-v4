@@ -43,9 +43,10 @@ export const moduleDictionary: Record<string, [string, string]> = {
   ],
   'commercial-billing': ['Commercial Billing', 'Kommersiële intekeningfakturering'],
   'commercial-billingModuleHelp': [
-    'Accept new trials and subscription checkouts. Existing subscriptions, cancellations and payment reconciliation continue when disabled.',
-    'Aanvaar nuwe proeftydperke en intekeningbetalings. Bestaande intekeninge, kansellasies en betalingsversoening gaan voort wanneer dit gedeaktiveer is.',
+    'Subscription trials and checkouts, quotes and invoices. Disabling stops new work while existing subscriptions, cancellations, payment reconciliation and financial corrections remain available.',
+    'Intekeningproeftydperke en betalings, kwotasies en fakture. Deaktivering stop nuwe werk terwyl bestaande intekeninge, kansellasies, betalingsversoening en finansiële regstellings beskikbaar bly.',
   ],
+  invoicingSettings: ['Invoicing settings', 'Faktuurinstellings'],
   modules: ['Modules', 'Modules'],
   moduleSettings: ['Module settings', 'Module-instellings'],
   expandModules: ['Expand module settings', 'Vou module-instellings oop'],

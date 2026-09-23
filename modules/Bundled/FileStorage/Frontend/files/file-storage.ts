@@ -441,6 +441,8 @@ async function droppedItems(dataTransfer: DataTransfer): Promise<DroppedItems> {
             [refreshing]="view() === 'grid' && data.refreshing()"
             [refreshError]="data.refreshError()"
             (retry)="load()"
+            [skeleton]="view() === 'list' ? 'table' : 'cards'"
+            [skeletonColumns]="columns().length"
           >
             @if (view() === 'list') {
               <app-data-table

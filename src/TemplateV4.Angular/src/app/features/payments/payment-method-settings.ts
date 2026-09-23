@@ -10,7 +10,7 @@ import { Notifications } from '../notifications/notifications';
   selector: 'app-payment-method-settings',
   imports: [HlmSelectImports, WorkspaceUi],
   template: `<app-page-header title="paymentMethods" description="paymentMethodsHelp" />
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
+    <app-page-state [state]="data.state()" skeleton="form-card" [refreshError]="data.refreshError()" (retry)="load()">
       @if (settings; as value) {
         <section hlmCard>
           <div hlmCardHeader>

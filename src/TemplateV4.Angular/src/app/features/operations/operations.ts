@@ -73,6 +73,8 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
     @if (auth.has('settings.manage')) {
       <app-page-state
         [state]="overview.state()"
+        skeleton="cards"
+        [skeletonCards]="4"
         [refreshing]="overview.refreshing()"
         [refreshError]="overview.refreshError()"
         (retry)="refresh()"
@@ -174,6 +176,8 @@ const column = createColumnHelper<DataTableFeatures, DeliverySummary>();
 
             <app-page-state
               [state]="data.state()"
+              skeleton="table"
+              [skeletonColumns]="columns().length"
               [refreshError]="data.refreshError()"
               (retry)="load()"
               ><app-data-table

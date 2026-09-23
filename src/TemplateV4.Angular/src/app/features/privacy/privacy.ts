@@ -12,6 +12,7 @@ import { Auth } from '../../core/auth';
   providers: [workspaceIcons],
   template: ` <app-page-state
       [state]="data.state()"
+      skeleton="columns"
       [refreshing]="data.refreshing()"
       [refreshError]="data.refreshError()"
       (retry)="load()"

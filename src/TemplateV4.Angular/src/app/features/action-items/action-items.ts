@@ -104,6 +104,8 @@ const column = createColumnHelper<DataTableFeatures, ActionItemDto>();
 
         <app-page-state
           [state]="data.state()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
           [refreshError]="data.refreshError()"
           (retry)="load()"
         >

@@ -13,7 +13,13 @@ public static class ModuleServices
         services.AddDbContext<CommercialBillingDb>((provider, options) => options
             .UseNpgsql(provider.GetRequiredService<FrameworkDb>().Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "commercial_billing"))
             .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
+        services.AddDbContext<InvoicingDb>((provider, options) => options
+            .UseNpgsql(provider.GetRequiredService<FrameworkDb>().Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "invoicing"))
+            .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
+        services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, InvoicingMigrations>();
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, CommercialBillingMigrations>();
+        services.AddScoped<TemplateV4.Application.Invoicing.IInvoiceAttachments, TemplateV4.Infrastructure.Invoicing.InvoiceAttachments>();
+        InvoicingRegistration.AddInvoicing(services);
         CommercialBillingRegistration.AddCommercialBilling(services);
     }
 }

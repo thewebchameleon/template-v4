@@ -9,7 +9,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
   selector: 'app-audit-detail',
   imports: [WorkspaceUi, HlmTableImports],
   template: `
-    <app-page-state [state]="data.state()" (retry)="load()">
+    <app-page-state [state]="data.state()" skeleton="detail" (retry)="load()">
       @if (data.value(); as detail) {
         <div class="flex flex-col gap-6">
           @if (!detail.schemaVersion) {

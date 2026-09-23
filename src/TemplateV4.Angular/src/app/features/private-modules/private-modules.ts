@@ -47,6 +47,7 @@ interface RegistrationResult {
 
     <app-page-state
       [state]="status.state()"
+      skeleton="columns"
       [refreshError]="status.refreshError()"
       (retry)="load()"
     >

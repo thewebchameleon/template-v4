@@ -130,7 +130,17 @@
   .workspace-skeleton {
     display: grid;
     gap: 1rem;
-    padding-block: 1rem;
+    animation: workspace-skeleton-reveal 0s 120ms backwards;
+  }
+  .workspace-skeleton-table {
+    gap: 0;
+  }
+  [data-slot='card-content'] > app-page-state:first-child > .workspace-skeleton-table {
+    margin-block-start: calc(-1 * var(--card-spacing));
+  }
+  @keyframes workspace-skeleton-reveal {
+    from { visibility: hidden; }
+    to { visibility: visible; }
   }
   .workspace-columns {
     display: grid;

@@ -13,6 +13,7 @@ import { Notifications } from '../../../../../src/TemplateV4.Angular/src/app/fea
     [state]="data.state()"
     [refreshError]="data.refreshError()"
     (retry)="load()"
+    skeleton="form"
   >
     @if (conflict()) {
       <div hlmAlert role="alert">

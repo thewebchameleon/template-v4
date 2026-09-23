@@ -29,7 +29,7 @@ import { CrmCustomerPicker } from '../../../../../src/TemplateV4.Angular/src/app
         'crm' | t
       }}</a></app-page-header
     >
-    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
+    <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()" skeleton="form-card">
       @if (configuration(); as config) {
         <section hlmCard class="mb-6">
           <div hlmCardHeader>

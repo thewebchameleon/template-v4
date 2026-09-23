@@ -9,6 +9,7 @@ import { Notifications } from '../../notifications/notifications';
   imports: [WorkspaceUi],
   template: `<app-page-state
     [state]="data.state()"
+    skeleton="form"
     [refreshError]="data.refreshError()"
     (retry)="load()"
   >
