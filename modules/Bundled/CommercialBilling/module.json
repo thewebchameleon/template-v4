@@ -1,0 +1,26 @@
+{
+  "id": "commercial-billing",
+  "version": "0.2.0",
+  "category": "foundation",
+  "required": false,
+  "enabledByDefault": true,
+  "runtimeConfigurable": true,
+  "dependencies": [
+    "organisations",
+    "delivery",
+    "payments"
+  ],
+  "host": {
+    "services": "TemplateV4.Bundled.CommercialBilling.ModuleServices.Register",
+    "feature": "commercialBillingFeature",
+    "worker": "TemplateV4.Bundled.CommercialBilling.ModuleWorker.Register",
+    "map": "TemplateV4.Bundled.CommercialBilling.ModuleHost.Map"
+  },
+  "projects": {
+    "Application": "Application/TemplateV4.CommercialBilling.Application.csproj",
+    "Infrastructure": "Infrastructure/TemplateV4.CommercialBilling.Infrastructure.csproj",
+    "Worker": "Worker/TemplateV4.CommercialBilling.Worker.csproj",
+    "Api": "Api/TemplateV4.CommercialBilling.Api.csproj"
+  },
+  "compositionOrder": 4
+}

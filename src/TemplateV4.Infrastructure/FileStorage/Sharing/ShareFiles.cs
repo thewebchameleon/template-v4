@@ -19,7 +19,7 @@ public sealed partial class FileStorageService
     {
         var email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
         if (request.Permission != "viewer" || request.ExpiresAt <= time.GetUtcNow() || email is { Length: > 254 } || email is not null && !new EmailAddressAttribute().IsValid(email)) return Result<FileShareItem>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct) || !await db.Files.AnyAsync(x => x.Id == id && x.Ready && x.DeletedAt == null, ct)) return Result<FileShareItem>.Fail("files.not_found", ErrorKind.NotFound);
         Guid? recipient = null;
         if (email is not null)
@@ -40,7 +40,7 @@ public sealed partial class FileStorageService
     }
     public async Task<Result<Unit>> Revoke(Guid actor, Guid id, Guid shareId, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct) || !await db.Files.AnyAsync(x => x.Id == id, ct)) return Result.Fail("files.not_found", ErrorKind.NotFound);
         await db.Set<FileStorageShare>().Where(x => x.FileId == id && x.Id == shareId && x.RevokedAt == null)
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()).SetProperty(s => s.ProtectedToken, (string?)null), ct);

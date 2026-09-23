@@ -73,7 +73,7 @@ test("multi-select saves, offers build, and removal preserves module data and so
       privateModules: [],
     }),
   );
-  const data = path.join(root, "business-modules/reports/retained-data.txt");
+  const data = path.join(root, "modules/Private/reports/retained-data.txt");
   fs.writeFileSync(data, "retained");
   let result = run(root, ["1,2", "y", "y"]);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -107,7 +107,7 @@ test("multi-select saves, offers build, and removal preserves module data and so
   );
   assert.equal(fs.readFileSync(data, "utf8"), "retained");
   assert.ok(
-    fs.existsSync(path.join(root, "business-modules/reports/module.json")),
+    fs.existsSync(path.join(root, "modules/Private/reports/module.json")),
   );
   result = run(root, ["2", "y", "n"]);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -118,7 +118,7 @@ test("multi-select saves, offers build, and removal preserves module data and so
 });
 test("invalid choices and missing dependencies preserve selection; quit changes nothing", (t) => {
   const root = fixture(t);
-  const descriptor = path.join(root, "business-modules/reports/module.json");
+  const descriptor = path.join(root, "modules/Private/reports/module.json");
   const module = JSON.parse(fs.readFileSync(descriptor));
   fs.writeFileSync(
     descriptor,

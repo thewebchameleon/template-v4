@@ -266,7 +266,7 @@ test("a clean module packages with npm and composes only its pinned source", asy
   await composePinned(root, lock, "unused", async () => bundle);
   assert.equal(
     await fs.readFile(
-      path.join(root, "business-modules/reports/Sample.cs"),
+      path.join(root, "modules/Private/reports/Sample.cs"),
       "utf8",
     ),
     "// retained module source\n",

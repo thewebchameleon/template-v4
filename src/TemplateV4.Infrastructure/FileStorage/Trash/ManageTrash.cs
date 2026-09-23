@@ -8,7 +8,7 @@ public sealed partial class FileStorageService
     public async Task<Result<Unit>> EmptyTrash(Guid actor, CancellationToken ct)
     {
         StoredFile[] files;
-        await using (var claim = await db.Database.BeginTransactionAsync(ct))
+        await using (var claim = await db.Session.BeginTransactionAsync(ct))
         {
             await Lock(actor, ct);
             if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
@@ -25,7 +25,7 @@ public sealed partial class FileStorageService
 
         foreach (var file in files.Where(x => !x.IsFolder)) await storage.Delete(file.ObjectKey, ct);
 
-        await using var finish = await db.Database.BeginTransactionAsync(ct);
+        await using var finish = await db.Session.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         var purgedAt = time.GetUtcNow();
         var fileIds = files.Select(x => x.Id).ToArray();
@@ -42,7 +42,7 @@ public sealed partial class FileStorageService
 
     public async Task<Result<Unit>> Trash(Guid actor, Guid? id, bool restore, bool purge, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var entries = await db.Files.AsNoTracking().Where(x => x.PurgedAt == null && !x.PurgeRequested).ToArrayAsync(ct);
         var root = entries.SingleOrDefault(x => x.Id == id);

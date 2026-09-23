@@ -12,7 +12,7 @@ public sealed partial class FileStorageService
     public async Task<Result<Unit>> SaveSettings(Guid actor, StorageSettingsRequest request, CancellationToken ct)
     {
         if (!ValidDefaultQuotaBytes(request.DefaultQuotaBytes) || !ValidMaxUploadBytes(request.MaxUploadBytes) || request.DemoExpiryMinutes is < 1 or > 525600) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var previous = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM file_storage.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         var restartedAt = previous.DemoMode && previous.DemoExpiryMinutes != request.DemoExpiryMinutes ? time.GetUtcNow() : previous.DemoStartedAt;
         var changed = await db.FileStorageSettings.Where(x => x.Id == 1 && x.Version == request.Version).ExecuteUpdateAsync(x => x.SetProperty(s => s.DefaultQuotaBytes, request.DefaultQuotaBytes).SetProperty(s => s.MaxUploadBytes, request.MaxUploadBytes).SetProperty(s => s.DemoExpiryMinutes, request.DemoExpiryMinutes).SetProperty(s => s.DemoStartedAt, restartedAt).SetProperty(s => s.Version, Guid.NewGuid()), ct);

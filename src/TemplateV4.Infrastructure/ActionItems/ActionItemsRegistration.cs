@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class ActionItemsRegistration
 {
-    private static void AddActionItems(IServiceCollection services)
+    public static void AddActionItems(IServiceCollection services)
     {
         services.AddScoped<TemplateV4.Application.Platform.IActionItems, ActionItemsService>();
     }

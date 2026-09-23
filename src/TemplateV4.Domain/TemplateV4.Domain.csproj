@@ -1,1 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Domain package.</Description></PropertyGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>

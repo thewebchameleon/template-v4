@@ -20,7 +20,7 @@ public sealed partial class FileStorageService
             await content.WriteAsync(buffer.AsMemory(0, read), ct);
         }
         var file = new StoredFile { OwnerId = actor, ParentId = parentId, Name = name.Trim(), Size = content.Length, CreatedAt = time.GetUtcNow() };
-        await using (var reserve = await db.Database.BeginTransactionAsync(ct))
+        await using (var reserve = await db.Session.BeginTransactionAsync(ct))
         {
             await Lock(actor, ct);
             if (!await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
@@ -31,7 +31,7 @@ public sealed partial class FileStorageService
         // Durable reservations allow maintenance to reconcile uploads interrupted between storage and DB.
         content.Position = 0;
         await storage.Write(file.Id.ToString("N"), content, ct);
-        await using var finish = await db.Database.BeginTransactionAsync(ct);
+        await using var finish = await db.Session.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         await db.Entry(file).ReloadAsync(ct);
         if (file.DeletedAt != null || !await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);

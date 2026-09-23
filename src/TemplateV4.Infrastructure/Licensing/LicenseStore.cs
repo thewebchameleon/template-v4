@@ -21,7 +21,7 @@ public sealed class LicenseStore(FrameworkDb db, LicenseConfiguration configurat
     public async Task Record(SignedDeploymentLicense signed, CancellationToken ct)
     {
         var license = configuration.Verify(signed, time.GetUtcNow()) ?? throw new InvalidOperationException("Invalid license response.");
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(7821403902)", ct);
         var state = await db.Set<LicenseState>().SingleOrDefaultAsync(x => x.Id == 1, ct);
         if (state is not null && state.DeploymentId == license.DeploymentId &&

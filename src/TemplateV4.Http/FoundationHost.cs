@@ -30,6 +30,7 @@ public static class FoundationHost
         builder.AddServiceDefaults();
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, modules);
+        TemplateV4.Infrastructure.BundledRegistration.Register(builder.Services, builder.Configuration, builder.Environment);
         configure?.Invoke(builder);
         // Export describes routes without contacting a retained deployment database.
         if (exportPath is not null)

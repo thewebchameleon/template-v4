@@ -6,9 +6,9 @@ using TemplateV4.Infrastructure.Customers;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class OrganisationsRegistration
 {
-    private static void AddOrganisations(IServiceCollection services, IConfiguration config)
+    public static void AddOrganisations(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<CustomerAccess>();
         services.AddScoped<ICustomerAccess>(p => p.GetRequiredService<CustomerAccess>());

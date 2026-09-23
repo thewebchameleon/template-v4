@@ -33,6 +33,7 @@ export type CapabilityId =
   | 'support-tickets';
 export const runtimeConfigurableModuleIds = [
   'cms',
+  'commercial-billing',
   'crm',
   'file-storage',
   'invoicing',

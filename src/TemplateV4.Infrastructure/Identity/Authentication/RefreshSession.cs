@@ -9,7 +9,7 @@ public sealed partial class AuthService
     {
         if (raw is null || raw.Length > 256) return Result<AuthTokens>.Fail("auth.session_invalid", ErrorKind.Unauthorized);
         var hash = Hash(raw);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         // Lock the family, not just the token: concurrent rotations/revocations cannot resurrect it.
         var sessionId = await db.RefreshTokens.Where(x => x.Hash == hash).Select(x => (Guid?)x.SessionId).SingleOrDefaultAsync(ct);
         if (sessionId is null) return Result<AuthTokens>.Fail("auth.session_invalid", ErrorKind.Unauthorized);

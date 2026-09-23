@@ -1,4 +1,4 @@
-import { cmsTranslations } from './features/cms/cms-resolver';
+import { bundledFeatures } from '../bundled-modules.g';
 import { dashboardTranslations } from './features/dashboard/dashboard-resolver';
 import { actionItemTranslations } from './features/action-items/action-item-resolver';
 import { updateTranslations } from './features/updates/update-resolver';
@@ -6,146 +6,17 @@ import { backgroundJobTranslations } from './features/operations/background-job-
 import { customerTranslations } from './features/organisations/customer-resolver';
 import { businessTranslations } from './core/business-translations';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
-import { capabilityGuard } from './core/features';
-import {
-  destinationGuard,
-  workspaceDestinations,
-  administrationDestinations,
-  userManagementDestinations,
-} from './core/destinations';
+import { destinationGuard, workspaceDestinations, administrationDestinations, userManagementDestinations } from './core/destinations';
 import { moduleSettingsTranslations } from './features/modules/module-settings-resolver';
 import { apiKeyTranslations } from './features/api-keys/api-key-resolver';
 import { privateModuleTranslations } from './features/private-modules/private-module-resolver';
-import { supportTranslations } from './features/support/support-resolver';
 import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
-import { authGuard, permissionGuard, mfaSetupGuard } from './core/auth';
+import { authGuard, mfaSetupGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
-  {
-    path: 'cms',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    loadComponent: () =>
-      import('./features/cms/collections/collections').then((m) => m.ContentCollectionsPage),
-  },
-  {
-    path: 'cms/new',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cmsNew' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
-  },
-  {
-    path: 'cms/sections',
-    loadChildren: () =>
-      import('./features/cms/sections/sections-routes').then((m) => m.sectionsRoutes),
-  },
-  {
-    path: 'cms/collections/new',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/collections/collection-settings').then(
-        (m) => m.ContentCollectionSettingsPage,
-      ),
-  },
-  {
-    path: 'cms/collections/:key/settings',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/collections/collection-settings').then(
-        (m) => m.ContentCollectionSettingsPage,
-      ),
-  },
-  {
-    path: 'cms/collections/:key/items/new',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
-  },
-  {
-    path: 'cms/collections/:key/items/:id',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
-  },
-  {
-    path: 'cms/collections/:key',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    loadComponent: () =>
-      import('./features/cms/items/content-items').then((m) => m.ContentItemsPage),
-  },
-  {
-    path: 'cms/:id',
-    resolve: { cmsTranslations },
-    data: { breadcrumb: 'cms' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/cms/items/content-editor').then((m) => m.ContentEditorPage),
-  },
-  {
-    path: 'organisation/invoicing',
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'invoicing' },
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/invoicing/documents/invoicing').then((m) => m.InvoicingPage),
-  },
-  {
-    path: 'organisation/invoicing/new',
-    canDeactivate: [unsavedGuard],
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'issueDocument', permission: 'invoicing.issue' },
-    canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
-    loadComponent: () =>
-      import('./features/invoicing/documents/commercial-editor').then(
-        (m) => m.CommercialEditorPage,
-      ),
-  },
-  {
-    path: 'organisation/invoicing/settings',
-    redirectTo: ({ queryParams, fragment }) =>
-      inject(Router).createUrlTree(['/administration/invoicing'], {
-        queryParams,
-        fragment: fragment ?? undefined,
-      }),
-  },
-  {
-    path: 'organisation/invoicing/:documentId',
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'invoicing' },
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./features/invoicing/documents/commercial-detail').then(
-        (m) => m.CommercialDetailPage,
-      ),
-  },
-  {
-    path: 'organisation/crm',
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'crm' },
-    canActivate: [authGuard, capabilityGuard('crm')],
-    loadComponent: () => import('./features/crm/records/crm').then((m) => m.CrmPage),
-  },
+  ...bundledFeatures.flatMap(feature => feature.routes),
   {
     path: 'organisation/crm/configuration',
     redirectTo: ({ queryParams, fragment }) =>
@@ -154,14 +25,7 @@ export const routes: Routes = [
         fragment: fragment ?? undefined,
       }),
   },
-  {
-    path: 'organisation/crm/:recordId',
-    canDeactivate: [unsavedGuard],
-    resolve: { businessTranslations },
-    data: { breadcrumb: 'crmEdit' },
-    canActivate: [authGuard, capabilityGuard('crm')],
-    loadComponent: () => import('./features/crm/records/crm-detail').then((m) => m.CrmDetailPage),
-  },
+
   {
     path: 'files',
     pathMatch: 'full',
@@ -346,76 +210,6 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'support',
-    resolve: { supportTranslations },
-    runGuardsAndResolvers: 'always',
-    data: { breadcrumb: 'support' },
-    canActivate: [authGuard],
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'tickets',
-      },
-      {
-        path: 'tickets',
-        data: { breadcrumb: 'supportTickets' },
-        canActivate: [destinationGuard(workspaceDestinations.support)],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./features/support/tickets/support').then((m) => m.SupportPage),
-      },
-      {
-        path: 'tickets/new',
-        data: { breadcrumb: 'supportNew' },
-        canActivate: [destinationGuard(workspaceDestinations.support)],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./features/support/tickets/create/support-new').then((m) => m.SupportNewPage),
-      },
-      {
-        path: 'tickets/categories',
-        data: { breadcrumb: 'supportCategories', permission: 'support.admin' },
-        canActivate: [destinationGuard(workspaceDestinations.support), permissionGuard],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./features/support/categories/support-categories').then(
-            (m) => m.SupportCategoriesPage,
-          ),
-      },
-      {
-        path: 'tickets/:id',
-        data: { breadcrumb: 'supportTicketDetails' },
-        canActivate: [destinationGuard(workspaceDestinations.support)],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./features/support/tickets/detail/support-detail').then(
-            (m) => m.SupportDetailPage,
-          ),
-      },
-      {
-        path: 'contact',
-        data: { breadcrumb: false },
-        loadChildren: () =>
-          import('./features/support/enquiries/contact-routes').then((m) => m.contactRoutes),
-      },
-      {
-        path: 'settings',
-        data: { breadcrumb: 'support' },
-        resolve: { moduleSettingsTranslations },
-        canActivate: [destinationGuard(administrationDestinations.supportSettings)],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./features/support/configuration/support-settings').then(
-            (m) => m.SupportSettingsPage,
-          ),
-      },
-      { path: 'new', pathMatch: 'full', redirectTo: 'tickets/new' },
-      { path: 'categories', pathMatch: 'full', redirectTo: 'tickets/categories' },
-      { path: ':id', redirectTo: 'tickets/:id' },
-    ],
-  },
-  {
     path: 'file-storage/settings',
     resolve: { moduleSettingsTranslations },
     data: { breadcrumb: 'storageSettings', permission: 'settings.manage' },
@@ -425,14 +219,6 @@ export const routes: Routes = [
       import('./features/file-storage/configuration/storage-settings').then(
         (m) => m.StorageSettingsPage,
       ),
-  },
-  {
-    path: 'file-storage',
-    data: { breadcrumb: 'files' },
-    canActivate: [authGuard, destinationGuard(workspaceDestinations.fileStorage)],
-    canDeactivate: [unsavedGuard],
-    loadComponent: () =>
-      import('./features/file-storage/files/file-storage').then((m) => m.FileStoragePage),
   },
   { path: 'audit', redirectTo: 'administration/audit-history', pathMatch: 'full' },
   { path: 'operations', redirectTo: 'administration/system-health', pathMatch: 'full' },
@@ -509,15 +295,14 @@ export const routes: Routes = [
     path: 'administration',
     data: { breadcrumb: 'administration' },
     canActivate: [authGuard],
-    children: [
-      {
+    children: [...bundledFeatures.flatMap(feature => feature.administrationRoutes ?? []),
+{
         path: 'organisation',
         redirectTo: 'branding',
         pathMatch: 'full',
       },
-
-      { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
-      {
+{ path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
+{
         path: 'private-modules',
         resolve: { privateModuleTranslations },
         data: { breadcrumb: 'privateModules', permission: 'settings.manage' },
@@ -525,54 +310,32 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/private-modules/private-modules').then((m) => m.PrivateModulesPage),
       },
-      {
-        path: 'license',
-        canDeactivate: [unsavedGuard],
-        resolve: { customerTranslations, businessTranslations },
-        data: { breadcrumb: 'commercialBilling' },
-        canActivate: [authGuard, destinationGuard(administrationDestinations.license)],
-        loadComponent: () =>
-          import('./features/commercial-billing/commercial-billing').then(
-            (m) => m.CommercialBillingPage,
-          ),
-      },
-      {
+{
         path: 'api-keys',
         resolve: { apiKeyTranslations },
         data: { breadcrumb: 'apiKeys', permission: 'api-keys.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.apiKeys)],
         loadComponent: () => import('./features/api-keys/api-keys').then((m) => m.ApiKeysPage),
       },
-      {
+{
         path: 'modules',
         resolve: { moduleSettingsTranslations },
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.modules)],
         loadComponent: () => import('./features/modules/modules').then((m) => m.ModulesPage),
       },
-      {
+{
         path: 'payment-methods',
         canDeactivate: [unsavedGuard],
         resolve: { customerTranslations, businessTranslations },
         data: { breadcrumb: 'paymentMethods', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.paymentMethods)],
         loadComponent: () =>
-          import('./features/commercial-billing/payment-method-settings').then(
+          import('./features/payments/payment-method-settings').then(
             (m) => m.PaymentMethodSettingsPage,
           ),
       },
-      {
-        path: 'commercial-billing',
-        canDeactivate: [unsavedGuard],
-        resolve: { customerTranslations, businessTranslations },
-        data: { breadcrumb: 'commercialBillingSettings', permission: 'settings.manage' },
-        canActivate: [authGuard, destinationGuard(administrationDestinations.commercialBilling)],
-        loadComponent: () =>
-          import('./features/commercial-billing/commercial-billing-settings').then(
-            (m) => m.CommercialBillingSettingsPage,
-          ),
-      },
-      {
+{
         path: 'branding',
         resolve: { customerTranslations },
         data: { breadcrumb: 'configuration', permission: 'settings.manage' },
@@ -581,40 +344,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/configuration/configuration').then((m) => m.ConfigurationPage),
       },
-      {
-        path: 'file-storage',
-        pathMatch: 'full',
-        redirectTo: '/file-storage/settings',
-      },
-      {
-        path: 'crm',
-        canDeactivate: [unsavedGuard],
-        resolve: { businessTranslations },
-        data: { breadcrumb: 'crmConfiguration' },
-        canActivate: [authGuard, destinationGuard(administrationDestinations.crmConfiguration)],
-        loadComponent: () =>
-          import('./features/crm/configuration/crm-configuration').then(
-            (m) => m.CrmConfigurationPage,
-          ),
-      },
-      {
-        path: 'invoicing',
-        canDeactivate: [unsavedGuard],
-        resolve: { businessTranslations },
-        data: { breadcrumb: 'issuerSettings' },
-        canActivate: [authGuard, destinationGuard(administrationDestinations.invoicingSettings)],
-        loadComponent: () =>
-          import('./features/invoicing/configuration/issuer-settings').then(
-            (m) => m.IssuerSettingsPage,
-          ),
-      },
-      {
+{
         path: 'audit-history',
         data: { breadcrumb: 'auditHistory', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.auditHistory)],
         loadComponent: () => import('./features/audit-history/audit').then((m) => m.AuditPage),
       },
-      {
+{
         path: 'background-jobs',
         resolve: { backgroundJobTranslations },
         data: { breadcrumb: 'backgroundJobs', permission: 'settings.manage' },
@@ -622,15 +358,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/operations/background-jobs').then((m) => m.BackgroundJobsPage),
       },
-      {
+{
         path: 'system-health',
         resolve: { updateTranslations },
         data: { breadcrumb: 'systemHealth', permissions: ['settings.manage', 'jobs.trigger'] },
         canActivate: [authGuard, destinationGuard(administrationDestinations.operations)],
         loadComponent: () =>
           import('./features/operations/operations').then((m) => m.OperationsPage),
-      },
-    ],
+      }],
   },
   {
     path: 'forbidden',

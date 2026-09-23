@@ -19,7 +19,7 @@ public sealed class PaymentMethodConfiguration(FrameworkDb db, IPaymentProviderR
             settings.DefaultProvider == PaymentProviders.Stripe && !settings.StripeEnabled ||
             settings.DefaultProvider == PaymentProviders.PayFast && !settings.PayFastEnabled)
             return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var changed = await db.Set<PaymentMethodSettingsRow>().Where(x => x.Id == 1 && x.Version == settings.Version)
             .ExecuteUpdateAsync(update => update
                 .SetProperty(x => x.StripeEnabled, settings.StripeEnabled)

@@ -3,8 +3,6 @@
     <EmbeddedResource Include="../../modules/catalog.json" LogicalName="TemplateV4.Modules.catalog.json" />
     <EmbeddedResource Include="../../modules/presets/*.json" LogicalName="TemplateV4.Modules.%(Filename).json" />
     <Content Include="EmailTemplates/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    <EmbeddedResource Include="Persistence/Migrations/quartz-3.20.1.sql" />
-    <EmbeddedResource Include="Persistence/Migrations/quartz-4.0.1-upgrade.sql" />
 
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />
@@ -12,12 +10,27 @@
     <PackageReference Include="MailKit" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="PDFsharp" />
-    <EmbeddedResource Include="Invoicing/Fonts/*.ttf" />
-    <None Include="Invoicing/Fonts/LICENSE.txt" Pack="true" PackagePath="licenses/NotoSans.txt" />
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
-<PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Infrastructure package.</Description></PropertyGroup></Project>
+<PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Infrastructure package.</Description></PropertyGroup>  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Persistence/**/*.cs" />
+    <ProjectReference Include="../TemplateV4.Persistence/TemplateV4.Persistence.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+
+  </ItemGroup>
+<ItemGroup><Compile Remove="ActionItems/Persistence/ActionItemRow.cs" /><Compile Remove="ApiKeys/ApiKeyRow.cs" /><Compile Remove="AuditHistory/Persistence/AuditEntry.cs" /><Compile Remove="Configuration/Persistence/PlatformAppearanceSettings.cs" /><Compile Remove="Dashboards/DashboardPersistence.cs" /><Compile Remove="Outbox/Persistence/MessageEntities.cs" /><Compile Remove="Idempotency/Persistence/IdempotencyRecord.cs" /><Compile Remove="Identity/Persistence/IdentityEntities.cs" /><Compile Remove="Identity/Persistence/UserAvatar.cs" /><Compile Remove="Licensing/LicenseState.cs" /><Compile Remove="Modules/Persistence/RuntimeModuleSettings.cs" /><Compile Remove="Notifications/Persistence/UserNotification.cs" /><Compile Remove="Notifications/Persistence/WebPushSubscription.cs" /><Compile Remove="Quartz/Persistence/BackgroundJobSchedule.cs" /><Compile Remove="Quartz/Persistence/JobRun.cs" /><Compile Remove="Organisations/Persistence/OrganisationEntities.cs" /><Compile Remove="Payments/PaymentEntities.cs" /><Compile Remove="Privacy/Persistence/DeletionRequest.cs" /><Compile Remove="FileStorage/Persistence/FileEntities.cs" /><Compile Remove="Updates/Persistence/UpdateState.cs" /></ItemGroup>
+<ItemGroup>
+<ProjectReference Include="../../modules/Bundled/Cms/Application/TemplateV4.Cms.Application.csproj" />
+<ProjectReference Include="../../modules/Bundled/Crm/Application/TemplateV4.Crm.Application.csproj" />
+<ProjectReference Include="../../modules/Bundled/Support/Application/TemplateV4.Support.Application.csproj" />
+<ProjectReference Include="../../modules/Bundled/Invoicing/Application/TemplateV4.Invoicing.Application.csproj" />
+<ProjectReference Include="../../modules/Bundled/CommercialBilling/Application/TemplateV4.CommercialBilling.Application.csproj" />
+</ItemGroup>
+</Project>

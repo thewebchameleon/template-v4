@@ -1,3 +1,5 @@
+import { businessTranslations } from './core/business-translations';
+import { bundledFeatures } from '../bundled-modules.g';
 import { unsavedGuard } from './shared/confirmation';
 import {
   ApplicationConfig,
@@ -24,7 +26,7 @@ export function foundationConfig(features: readonly FoundationFeature[] = []): A
   for (const feature of features) Object.assign(dictionary, feature.translations ?? {});
   return {
     providers: [
-      { provide: FOUNDATION_FEATURES, useValue: features },
+      { provide: FOUNDATION_FEATURES, useValue: [...bundledFeatures, ...features] },
       provideBrowserGlobalErrorListeners(),
       provideSpartanHlm(),
       provideRouter([
@@ -47,7 +49,7 @@ export function foundationConfig(features: readonly FoundationFeature[] = []): A
         inject(UiSounds);
         const runtime = inject(Runtime);
         const appearance = inject(PlatformAppearanceTheme);
-        return runtime.load().then(() => appearance.load());
+        return Promise.all([runtime.load().then(() => appearance.load()), Promise.resolve(businessTranslations({} as never, {} as never)), import('../../../../modules/Bundled/FileStorage/Frontend/file-storage-translations').then(m => Object.assign(dictionary, m.fileStorageDictionary))]).then(() => undefined);
       }),
     ],
   };

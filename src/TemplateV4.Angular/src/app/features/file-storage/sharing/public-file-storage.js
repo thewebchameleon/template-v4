@@ -1,12 +1,12 @@
 import { Component, computed, inject } from '@angular/core';
-import { FileStorageDemoBanner } from '../files/file-storage-demo-banner';
+import { FileStorageDemoBanner } from '../../../../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-demo-banner';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { WorkspaceUi, Resource, ListQuery, DebouncedSearch } from '../../../shared/workspace';
 import { DataTable } from '../../../shared/data-table';
-import { FileStorageFileName } from '../files/file-storage-components';
+import { FileStorageFileName } from '../../../../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-components';
 import { RowActions } from '../../../shared/workspace-cells';
 import { I18n } from '../../../core/i18n';
 import { Runtime } from '../../../core/runtime';

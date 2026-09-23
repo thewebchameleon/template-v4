@@ -6,7 +6,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Security;
 
-public sealed partial class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, TemplateV4.Application.Platform.IActionItems actionItems)
+public sealed partial class PrivacyService(FrameworkDb db, UserManager<AppUser> users, SecurityService security, SharedRateLimiter limiter, IEventOutbox outbox, IDataProtectionProvider protection, IConfiguration config, TimeProvider time, TemplateV4.Application.Platform.IActionItems actionItems, IEnumerable<TemplateV4.Application.Privacy.IPrivacyContributor> contributors)
 {
     private readonly IDataProtector _recipient = protection.CreateProtector("TemplateV4.email.recipient.v1");
     private readonly IDataProtector _action = protection.CreateProtector("TemplateV4.email.action.v1");

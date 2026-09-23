@@ -38,7 +38,7 @@ public sealed partial class AccountService
         if (request.AvatarBase64 is not null && (request.RemoveAvatar || !PngImage.TryNormalize(request.AvatarBase64, 256, 262144, out png)))
             return Result<Guid>.Fail("profile.avatar_invalid", ErrorKind.Validation);
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({actor.ToString()}, 0))", ct);
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == actor && !x.Disabled, ct);
         if (profile is null) return Result<Guid>.Fail("user.not_found", ErrorKind.NotFound);

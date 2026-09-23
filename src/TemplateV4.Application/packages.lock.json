@@ -2,11 +2,160 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
+      "templatev4.actionitems.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.apikeys.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.audithistory.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.cms.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.commercialbilling.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )",
+          "TemplateV4.Payments.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.configuration.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.crm.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.dashboards.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.delivery.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.distribution.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
       "templatev4.domain": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Identity.Domain": "[0.2.0, )",
+          "TemplateV4.Invoicing.Domain": "[0.2.0, )",
+          "TemplateV4.Organisations.Domain": "[0.2.0, )",
+          "TemplateV4.Support.Domain": "[0.2.0, )"
+        }
+      },
+      "templatev4.identity.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Localisation.Application": "[0.2.0, )",
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.identity.domain": {
         "type": "Project"
+      },
+      "templatev4.invoicing.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Crm.Application": "[0.2.0, )",
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.domain": {
+        "type": "Project"
+      },
+      "templatev4.licensing.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )",
+          "TemplateV4.Updates.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.localisation.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.modulecontracts": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Domain": "[0.2.0, )",
+          "TemplateV4.SharedKernel": "[0.1.0, )"
+        }
+      },
+      "templatev4.operations.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.organisations.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.organisations.domain": {
+        "type": "Project"
+      },
+      "templatev4.payments.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
       },
       "templatev4.sharedkernel": {
         "type": "Project"
+      },
+      "templatev4.storage.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.support.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.support.domain": {
+        "type": "Project"
+      },
+      "templatev4.updates.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
       }
     }
   }

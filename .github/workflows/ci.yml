@@ -83,12 +83,12 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             git fetch origin "$BASE_SHA" --depth=1
-            mapfile -t files < <(git diff --name-only "$BASE_SHA" HEAD -- '*.cs' | grep -v '^src/TemplateV4.Infrastructure/Persistence/Migrations/' || true)
+            mapfile -t files < <(git diff --name-only "$BASE_SHA" HEAD -- '*.cs' | grep -v '^src/TemplateV4.Persistence/Persistence/Migrations/' || true)
             if [ "${#files[@]}" -gt 0 ]; then
               dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --include "${files[@]}"
             fi
           else
-            dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Infrastructure/Persistence/Migrations
+            dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Persistence/Persistence/Migrations
           fi
       - run: dotnet test src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-restore --logger trx
 

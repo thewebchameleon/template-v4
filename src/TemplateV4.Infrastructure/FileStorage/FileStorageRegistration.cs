@@ -5,9 +5,9 @@ using TemplateV4.Infrastructure.Storage;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class FileStorageRegistration
 {
-    private static void AddFileStorage(IServiceCollection services)
+    public static void AddFileStorage(IServiceCollection services)
     {
         services.AddScoped<FileStorageService>();
         services.AddScoped<IFileReferences, FileReferences>();

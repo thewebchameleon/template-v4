@@ -7,9 +7,9 @@ using TemplateV4.Infrastructure.Users;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class UsersRegistration
 {
-    private static void AddUsers(IServiceCollection services)
+    public static void AddUsers(IServiceCollection services)
     {
         services.AddScoped<IUserDirectory, UserDirectory>();
         services.AddScoped<IStorageUsageSource, AvatarStorageUsage>();

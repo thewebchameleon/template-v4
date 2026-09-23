@@ -39,7 +39,7 @@ public sealed class AdminBootstrapService(FrameworkDb db, UserManager<AppUser> u
 {
     public async Task<bool> Initialize(CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
         var settings = await db.SecuritySettings.SingleOrDefaultAsync(ct);
         if (settings?.BootstrapCompletedAt is not null)
@@ -77,7 +77,7 @@ public sealed class AdminBootstrapService(FrameworkDb db, UserManager<AppUser> u
             string.IsNullOrWhiteSpace(request.Password) || request.Password.Length > 1024)
             return Result.Fail("validation.failed", ErrorKind.Validation);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         // One database-wide lock makes competing API replicas agree which request creates the first administrator.
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
         var settings = await db.SecuritySettings.SingleOrDefaultAsync(ct);

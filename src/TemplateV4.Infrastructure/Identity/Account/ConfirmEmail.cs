@@ -9,7 +9,7 @@ public sealed partial class AccountService
     {
         var user = await users.FindByIdAsync(request.UserId.ToString());
         if (user is null || string.IsNullOrWhiteSpace(request.Token) || request.Token.Length > 4096) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await customers.Lock(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
         await db.Entry(user).ReloadAsync(ct);

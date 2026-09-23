@@ -9,7 +9,7 @@ public sealed partial class PasskeyService
     private sealed record PasskeyMfaState(string AssertionState, string LoginChallengeId);
     public async Task<Result<PasskeyOptions>> MfaOptions(PasskeyChallengeRequest request, HttpContext http, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var loginChallenge = await security.ReadChallenge(request.ChallengeId, "mfa-login", ct);
         var user = loginChallenge?.Row.UserId is { } id ? await users.FindByIdAsync(id.ToString()) : null;
         if (user is null || loginChallenge!.Row.SecurityStamp != user.SecurityStamp || !(await security.ConfiguredMethods(user)).Contains(MfaMethods.Passkey))
@@ -23,7 +23,7 @@ public sealed partial class PasskeyService
     public async Task<Result<AuthTokens>> CompleteMfa(PasskeyCredential request, HttpContext http, CancellationToken ct)
     {
         if (request.Credential.ValueKind != JsonValueKind.Object) return Result<AuthTokens>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var challenge = await security.Consume(request.ChallengeId, "passkey-mfa", ct);
         var state = challenge is null ? null : JsonSerializer.Deserialize<PasskeyMfaState>(challenge.State);
         var loginChallenge = state is null ? null : await security.ReadChallenge(state.LoginChallengeId, "mfa-login", ct);

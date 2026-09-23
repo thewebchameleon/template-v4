@@ -12,6 +12,7 @@ TemplateV4.Host.BusinessModules.ConfigureClient(builder);
 builder.AddServiceDefaults();
 var modules = TemplateV4.Host.BusinessModules.Descriptors;
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, modules);
+TemplateV4.Infrastructure.BundledRegistration.Register(builder.Services, builder.Configuration, builder.Environment);
 TemplateV4.Host.BusinessModules.Configure(builder);
 builder.Services.AddScoped<BackgroundExecutionContext>();
 builder.Services.AddScoped<IExecutionContext>(provider => provider.GetRequiredService<BackgroundExecutionContext>());
@@ -19,7 +20,7 @@ builder.Services.AddScoped<IIntegrationTransport, LocalTransport>();
 builder.Services.AddHostedService<OutboxPump>();
 builder.Services.AddHostedService<JobReconciler>();
 builder.Services.AddHostedService<StorageRetention>();
-builder.Services.AddHostedService<CommercialBillingReconciler>();
+BundledWorker.Register(builder.Services, builder.Configuration);
 builder.Services.AddHostedService<DeliveryMetrics>();
 builder.Services.AddHostedService<UpdateChecker>();
 builder.Services.AddQuartz(options =>

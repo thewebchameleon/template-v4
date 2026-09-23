@@ -40,7 +40,7 @@ public sealed class DashboardStore(FrameworkDb db, DashboardAccess access, IEnum
 
     public async Task<Result<DashboardDto>> Save(Guid actor, SaveDashboard request, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         if (!await ActiveActor(actor, ct)) return Missing<DashboardDto>();
         await Lock(ct);
         if (request.Shared && !await access.Administrator(actor, ct)) return Result<DashboardDto>.Fail("authorization.denied", ErrorKind.Forbidden);
@@ -86,7 +86,7 @@ public sealed class DashboardStore(FrameworkDb db, DashboardAccess access, IEnum
 
     public async Task<Result<Unit>> Reset(Guid actor, DashboardChange request, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         if (!await ActiveActor(actor, ct)) return Missing<Unit>();
         await Lock(ct);
         var source = await Visible(actor, request.Id, ct);
@@ -101,7 +101,7 @@ public sealed class DashboardStore(FrameworkDb db, DashboardAccess access, IEnum
 
     public async Task<Result<Unit>> Delete(Guid actor, DashboardChange request, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         if (!await ActiveActor(actor, ct)) return Missing<Unit>();
         await Lock(ct);
         var row = await Visible(actor, request.Id, ct);
@@ -121,7 +121,7 @@ public sealed class DashboardStore(FrameworkDb db, DashboardAccess access, IEnum
 
     public async Task<Result<Unit>> SetStarting(Guid actor, DashboardPreference request, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         if (!await ActiveActor(actor, ct)) return Missing<Unit>();
         await Lock(ct);
         if (await Visible(actor, request.Id, ct) is null) return Missing<Unit>();

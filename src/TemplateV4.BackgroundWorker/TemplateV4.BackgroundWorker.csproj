@@ -6,4 +6,7 @@
     <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Quartz.Serialization.SystemTextJson" />
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../TemplateV4.Composition/TemplateV4.Composition.csproj" /></ItemGroup>
 </Project>

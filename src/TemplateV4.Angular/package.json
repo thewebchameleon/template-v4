@@ -2,9 +2,9 @@
   "name": "templatev4-web",
   "version": "0.1.0",
   "scripts": {
-    "prestart": "node ../../tools/discover-business-modules.mjs",
-    "prebuild": "node ../../tools/discover-business-modules.mjs",
-    "prewatch": "node ../../tools/discover-business-modules.mjs",
+    "prestart": "node ../../tools/discover-business-modules.mjs && node ../../tools/discover-bundled-modules.mjs",
+    "prebuild": "node ../../tools/discover-business-modules.mjs && node ../../tools/discover-bundled-modules.mjs",
+    "prewatch": "node ../../tools/discover-business-modules.mjs && node ../../tools/discover-bundled-modules.mjs",
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0 --port 4200 --ssl --proxy-config proxy.conf.json --ssl-cert ../../.local/web.pem --ssl-key ../../.local/web.key",
     "build": "ng build",

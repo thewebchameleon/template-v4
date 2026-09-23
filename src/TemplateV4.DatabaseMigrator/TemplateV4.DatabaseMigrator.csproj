@@ -7,4 +7,5 @@
     <ProjectReference Include="../TemplateV4.Infrastructure/TemplateV4.Infrastructure.csproj" />
     <ProjectReference Include="../TemplateV4.ServiceDefaults/TemplateV4.ServiceDefaults.csproj" />
   </ItemGroup>
+  <ItemGroup><ProjectReference Include="../TemplateV4.Composition/TemplateV4.Composition.csproj" /></ItemGroup>
 </Project>

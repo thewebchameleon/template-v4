@@ -1,0 +1,32 @@
+{
+  "id": "crm",
+  "version": "0.2.0",
+  "category": "foundation",
+  "required": false,
+  "enabledByDefault": true,
+  "runtimeConfigurable": true,
+  "dependencies": [
+    "organisations",
+    "audit-recording"
+  ],
+  "capabilities": [
+    {
+      "id": "crm-files",
+      "requires": [
+        "organisation-files"
+      ]
+    }
+  ],
+  "host": {
+    "services": "TemplateV4.Bundled.Crm.ModuleServices.Register",
+    "configure": "TemplateV4.Bundled.Crm.ModuleHost.Configure",
+    "map": "TemplateV4.Bundled.Crm.ModuleHost.Map",
+    "feature": "crmFeature"
+  },
+  "projects": {
+    "Application": "Application/TemplateV4.Crm.Application.csproj",
+    "Infrastructure": "Infrastructure/TemplateV4.Crm.Infrastructure.csproj",
+    "Api": "Api/TemplateV4.Crm.Api.csproj"
+  },
+  "compositionOrder": 5
+}

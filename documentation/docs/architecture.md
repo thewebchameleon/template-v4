@@ -12,7 +12,10 @@ must preserve.
 | Domain | Business invariants and domain events | BCL |
 | Application | Commands, queries, validation, permissions, and event contracts | Domain, SharedKernel |
 | Infrastructure | EF Core, Identity, providers, transactions, and outbox | Application |
+| Persistence | Core EF model, shared database session, and permanent core migrations | Application, Domain |
+| Composition | Bundled module service registration | Infrastructure and bundled module infrastructure |
 | Http | HTTP adapters, authorization, Problem Details, and OpenAPI | Infrastructure, ServiceDefaults |
+| Http.Shared | HTTP contracts shared by the host and bundled module APIs | Application |
 | ApiService | Explicit host composition | Http and selected module APIs |
 | BackgroundWorker | Outbox delivery and Quartz jobs | Infrastructure, ServiceDefaults |
 | DatabaseMigrator | Migrations and built-in grant seeding | Infrastructure |
@@ -32,8 +35,11 @@ boundary. Expected caller failures use `Result<T>` with stable error codes; exce
 represent unexpected failures.
 
 Use focused EF operations rather than generic repositories. Only DatabaseMigrator
-changes schemas. Existing migration IDs, designer files, and snapshots are permanent
-history; corrections require a new forward migration. Outbox delivery is at least once,
+changes schemas. It applies the core history first, then the bundled modules' own
+migration histories in the same PostgreSQL database. `DatabaseSession` shares one
+connection and transaction across core and module contexts. Existing migration IDs,
+designer files, and snapshots are permanent history; corrections require a new forward
+migration. Outbox delivery is at least once,
 so irreversible consumers must be idempotent. Persist culture and W3C trace context with
 background work, but never payloads or secrets in diagnostics.
 

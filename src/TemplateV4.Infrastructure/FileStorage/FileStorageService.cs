@@ -21,7 +21,7 @@ public sealed partial class FileStorageService(FrameworkDb db, IFileStorage stor
     private static FileItem Item(StoredFile file) => new(file.Id, file.Name, file.ContentType, file.Size, file.CreatedAt, file.IsFolder, file.ParentId, file.UpdatedAt ?? file.CreatedAt, file.Important, file.Starred, "owner", Category(file.Name));
     private async Task Lock(Guid? owner, CancellationToken ct)
     {
-        await TemplateV4.Infrastructure.Customers.CustomerAccess.MutationLock(db, ct);
+        await TemplateV4.Infrastructure.Persistence.ModuleLocks.Organisation(db, ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
     }
     private Task<bool> FolderExists(Guid owner, Guid? parent, CancellationToken ct) => parent is null ? Task.FromResult(true) : db.Files.AnyAsync(x => x.Id == parent && x.IsFolder && x.Ready && x.DeletedAt == null, ct);

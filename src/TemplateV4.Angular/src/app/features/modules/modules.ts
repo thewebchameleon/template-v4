@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { provideIcons } from '@ng-icons/core';
 import {
+  lucideCreditCard,
   lucideBoxes,
   lucideCar,
   lucideContactRound,
@@ -84,7 +85,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
                 </span>
               }
               @if (
-                (enabled[module.id] !== false || module.id === 'file-storage') &&
+                (enabled[module.id] !== false || module.id === 'file-storage' || module.id === 'commercial-billing') &&
                   settingsDestination(module.id);
                 as destination
               ) {
@@ -124,6 +125,7 @@ export class ModulesPage implements OnInit {
   private readonly toast = inject(Notifications);
   enabled: Record<string, boolean> = {};
   moduleIcon(id: string) {
+    if (id === 'commercial-billing') return 'lucideCreditCard';
     if (id === 'support') return 'lucideLifeBuoy';
     const foundationDestinations: readonly Destination[] = [
       ...Object.values(workspaceDestinations),

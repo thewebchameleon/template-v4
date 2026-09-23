@@ -15,7 +15,7 @@ public sealed partial class PasskeyService
     public async Task<Result<AuthTokens>> Login(PasskeyCredential request, HttpContext http, CancellationToken ct)
     {
         if (request.Credential.ValueKind != JsonValueKind.Object) return Result<AuthTokens>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842003)", ct);
         var challenge = await security.Consume(request.ChallengeId, "passkey-login", ct);
         if (challenge is null) return Result<AuthTokens>.Fail("auth.challenge_expired", ErrorKind.Unauthorized);

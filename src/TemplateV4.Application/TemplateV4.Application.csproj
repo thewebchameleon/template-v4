@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../TemplateV4.Domain/TemplateV4.Domain.csproj" />
-    <ProjectReference Include="../TemplateV4.SharedKernel/TemplateV4.SharedKernel.csproj" />
+    <ProjectReference Include="../TemplateV4.ModuleContracts/TemplateV4.ModuleContracts.csproj" />
+    <Compile Remove="**/*Permissions.cs" />
   </ItemGroup>
-<PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version><Description>TemplateV4 reusable foundation Application package.</Description></PropertyGroup></Project>
+</Project>

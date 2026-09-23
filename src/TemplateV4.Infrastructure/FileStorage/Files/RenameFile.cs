@@ -11,7 +11,7 @@ public sealed partial class FileStorageService
         if (!ValidName(request.Name)) return Result.Fail("validation.failed", ErrorKind.Validation);
         var file = await Access(actor, id, true, ct);
         if (file is null) return Result.Fail("files.not_found", ErrorKind.NotFound);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(file.OwnerId, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(file.OwnerId, ct);
         file = await Access(actor, id, true, ct);
         if (file is null) return Result.Fail("files.not_found", ErrorKind.NotFound);
         var name = request.Name.Trim();

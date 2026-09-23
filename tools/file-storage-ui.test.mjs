@@ -10,7 +10,7 @@ const require = createRequire(
 const ts = require("typescript");
 const source = readFileSync(
   new URL(
-    "../src/TemplateV4.Angular/src/app/features/file-storage/files/file-storage-ui.ts",
+    "../modules/Bundled/FileStorage/Frontend/files/file-storage-ui.ts",
     import.meta.url,
   ),
   "utf8",

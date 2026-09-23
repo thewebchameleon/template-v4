@@ -20,4 +20,7 @@
     <Reference Include="Microsoft.CodeAnalysis" HintPath="$(MSBuildToolsPath)/Roslyn/bincore/Microsoft.CodeAnalysis.dll" />
     <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(MSBuildToolsPath)/Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../modules/Bundled/*/Tests/**/*.cs" Exclude="../../modules/Bundled/*/Tests/**/obj/**;../../modules/Bundled/*/Tests/**/bin/**" />
+  </ItemGroup>
 </Project>

@@ -56,8 +56,8 @@ jobs:
       - name: Package the clean source revision
         run: |
           mkdir -p artifacts/module-release
-          node tools/releases/cli.mjs module "business-modules/$MODULE_ID" "$PACKAGE_NAME" artifacts/module-release/release.json
-          node tools/releases/cli.mjs bundle "business-modules/$MODULE_ID" artifacts/module-release/release.json artifacts/module-release/package
+          node tools/releases/cli.mjs module "modules/Private/$MODULE_ID" "$PACKAGE_NAME" artifacts/module-release/release.json
+          node tools/releases/cli.mjs bundle "modules/Private/$MODULE_ID" artifacts/module-release/release.json artifacts/module-release/package
       - name: Validate the release composition with reviewed locks
         env:
           NPM_VERSION: ${{ steps.tools.outputs.npm }}

@@ -7,7 +7,7 @@ public sealed partial class PrivacyService
 {
     public async Task<Result<Unit>> RequestDeletion(Guid actor, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await security.Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await security.Lock(actor, ct);
         if (!await db.DeletionRequests.AnyAsync(x => x.UserId == actor && x.State == "Pending", ct))
         {
             var deletion = new DeletionRequest { UserId = actor, RequestedAt = time.GetUtcNow() };
@@ -20,7 +20,7 @@ public sealed partial class PrivacyService
     }
     public async Task<Result<Unit>> Withdraw(Guid actor, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await security.Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await security.Lock(actor, ct);
         var request = await db.DeletionRequests.SingleOrDefaultAsync(x => x.UserId == actor && x.State == "Pending", ct);
         if (request is null) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
         await actionItems.ResolveReview("Privacy", request.Id, actor, ct);

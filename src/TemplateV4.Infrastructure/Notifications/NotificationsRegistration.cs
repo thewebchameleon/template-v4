@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class NotificationsRegistration
 {
-    private static void AddNotifications(IServiceCollection services)
+    public static void AddNotifications(IServiceCollection services)
     {
         services.AddScoped<NotificationService>();
         services.AddScoped<WebPushService>();

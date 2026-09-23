@@ -9,7 +9,7 @@ using IExecutionContext = TemplateV4.SharedKernel.IExecutionContext;
 
 namespace TemplateV4.Infrastructure.ApiKeys;
 
-public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, TimeProvider time) : IApiKeys
+public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, TimeProvider time, IApiKeyCollections collectionCatalog) : IApiKeys
 {
     private static string Prefix(Guid id) => $"tv4_{id:N}"[..12];
     private static ApiKeyItem View(ApiKeyRow row, string createdByName) => new(row.Id, row.Name, Prefix(row.Id), row.Scopes,
@@ -74,7 +74,7 @@ public sealed class ApiKeyService(FrameworkDb db, IExecutionContext context, Tim
 
         var collections = request.Collections?.Distinct().ToArray() ?? [];
         if (collections.Length > 100 || scopes.Contains(ApiScopes.CmsContentRead) && collections.Length == 0 ||
-            await db.Set<Cms.ContentCollectionRow>().CountAsync(x => collections.Contains(x.Key), ct) != collections.Length)
+            !await collectionCatalog.Exist(collections, ct))
             return Result<ApiKeyCreated>.Fail("api_key.invalid", ErrorKind.Validation);
         var now = time.GetUtcNow();
         var created = Add(name, scopes, actor, request.ExpiresInDays is { } days ? now.AddDays(days) : null, now, collections: collections);

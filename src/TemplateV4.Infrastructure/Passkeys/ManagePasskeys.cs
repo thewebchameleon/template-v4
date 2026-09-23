@@ -11,7 +11,7 @@ public sealed partial class PasskeyService
     public async Task<Result<PasskeyOptions>> RegistrationOptions(Guid id, PasskeyRegistrationRequest request, HttpContext http, CancellationToken ct)
     {
         if (request.Proof is null || request.DeviceId == Guid.Empty) return Result<PasskeyOptions>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         var sessionId = EndpointSession(http);
         var setupEnrollment = string.IsNullOrEmpty(request.Proof.Password);
@@ -31,7 +31,7 @@ public sealed partial class PasskeyService
         if (request.Credential.ValueKind != JsonValueKind.Object) return Result.Fail("validation.failed", ErrorKind.Validation);
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 80) return Result.Fail("validation.failed", ErrorKind.Validation);
         if (request.DeviceId == Guid.Empty) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var challenge = await security.Consume(request.ChallengeId, "passkey-register", ct);
         await security.Lock(id, ct); var user = (await users.FindByIdAsync(id.ToString()))!;
         if (await security.RequiresRecentVerification(user, sessionId, ct))
@@ -54,7 +54,7 @@ public sealed partial class PasskeyService
     {
         if (string.IsNullOrWhiteSpace(request.Id) || request.Id.Length > 1400) return Result.Fail("validation.failed", ErrorKind.Validation);
         byte[] key; try { key = WebEncoders.Base64UrlDecode(request.Id); } catch (FormatException) { return Result.Fail("validation.failed", ErrorKind.Validation); }
-        await using var tx = await db.Database.BeginTransactionAsync(ct); var user = (await users.FindByIdAsync(id.ToString()))!;
+        await using var tx = await db.Session.BeginTransactionAsync(ct); var user = (await users.FindByIdAsync(id.ToString()))!;
         if (await security.RequiresRecentVerification(user, sessionId, ct))
             return Result.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await security.Proof(user, request.Proof, ct)) { await tx.CommitAsync(ct); return Result.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }

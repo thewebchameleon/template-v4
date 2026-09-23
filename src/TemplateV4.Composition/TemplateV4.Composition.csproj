@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../modules/Bundled/Cms/Infrastructure/TemplateV4.Cms.Infrastructure.csproj" />
+    <ProjectReference Include="../../modules/Bundled/Crm/Infrastructure/TemplateV4.Crm.Infrastructure.csproj" />
+    <ProjectReference Include="../../modules/Bundled/Support/Infrastructure/TemplateV4.Support.Infrastructure.csproj" />
+    <ProjectReference Include="../../modules/Bundled/Invoicing/Infrastructure/TemplateV4.Invoicing.Infrastructure.csproj" />
+    <ProjectReference Include="../../modules/Bundled/CommercialBilling/Infrastructure/TemplateV4.CommercialBilling.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

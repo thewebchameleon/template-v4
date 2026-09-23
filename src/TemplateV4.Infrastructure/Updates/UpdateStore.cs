@@ -19,7 +19,7 @@ public sealed class UpdateStore(FrameworkDb db, UpdateConfiguration configuratio
     public async Task<bool> Due(CancellationToken ct) => configuration.Enabled && !await db.Set<UpdateState>().AnyAsync(x => x.Id == 1 && x.InstalledHash == configuration.InstalledHash && x.CheckedAt > time.GetUtcNow().AddHours(-6), ct);
     public async Task Record(ComponentRelease[]? releases, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(7821403901)", ct);
         var state = await db.Set<UpdateState>().SingleOrDefaultAsync(x => x.Id == 1, ct);
         if (state is not null && state.InstalledHash == configuration.InstalledHash && state.CheckedAt > time.GetUtcNow().AddMinutes(-1)) return;

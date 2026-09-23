@@ -29,7 +29,7 @@ public sealed partial class AuthService
 
     public async Task Revoke(Guid userId, Guid? sessionId, CancellationToken ct, Guid? actorSessionId = null)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Sessions.Where(x => x.UserId == userId && (sessionId == null || x.Id == sessionId) && x.RevokedAt == null)
             .ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);
         Audit("auth.session_revoked", userId, actorSessionId); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);

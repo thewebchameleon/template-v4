@@ -41,6 +41,11 @@ export const moduleDictionary: Record<string, [string, string]> = {
     'File Storage module disabled',
     'Lêerbergingmodule gedeaktiveer',
   ],
+  'commercial-billing': ['Commercial Billing', 'Kommersiële intekeningfakturering'],
+  'commercial-billingModuleHelp': [
+    'Accept new trials and subscription checkouts. Existing subscriptions, cancellations and payment reconciliation continue when disabled.',
+    'Aanvaar nuwe proeftydperke en intekeningbetalings. Bestaande intekeninge, kansellasies en betalingsversoening gaan voort wanneer dit gedeaktiveer is.',
+  ],
   modules: ['Modules', 'Modules'],
   moduleSettings: ['Module settings', 'Module-instellings'],
   expandModules: ['Expand module settings', 'Vou module-instellings oop'],

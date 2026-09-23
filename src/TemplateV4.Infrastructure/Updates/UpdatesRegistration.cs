@@ -3,9 +3,9 @@ using TemplateV4.Application.Platform;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class UpdatesRegistration
 {
-    private static void AddUpdates(IServiceCollection services)
+    public static void AddUpdates(IServiceCollection services)
     {
         services.AddSingleton<Updates.UpdateConfiguration>();
         services.AddScoped<Updates.UpdateStore>();

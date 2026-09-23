@@ -8,7 +8,7 @@ public sealed partial class ActionItemsService
 
     public async Task<Result<Unit>> Complete(Guid actor, Guid id, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         var queues = await EligibleQueues(actor, ct);
         if (!await ActiveUsers.ContainsAsync(actor, ct)) return Result.Fail("auth.forbidden", ErrorKind.Forbidden);

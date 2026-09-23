@@ -12,7 +12,7 @@ public sealed partial class AuthService
 
     public async Task<Result<EmailMfaChallengeResponse>> SendEmailCode(EmailMfaChallengeRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var challenge = await security.ReadChallenge(request.ChallengeId, "mfa-login", ct);
         var user = challenge?.Row.UserId is { } id ? await users.FindByIdAsync(id.ToString()) : null;
         if (user is null || challenge!.Row.SecurityStamp != user.SecurityStamp || !(await security.ConfiguredMethods(user)).Contains(MfaMethods.Email))

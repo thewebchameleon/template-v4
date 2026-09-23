@@ -1,0 +1,31 @@
+using Microsoft.EntityFrameworkCore;
+using TemplateV4.Infrastructure.CommercialBilling;
+using TemplateV4.Infrastructure.Persistence;
+
+namespace TemplateV4.BackgroundWorker;
+
+public sealed class CommercialBillingReconciler(IServiceScopeFactory scopes, TimeProvider time, ILogger<CommercialBillingReconciler> logger) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await using var scan = scopes.CreateAsyncScope();
+                var ids = await scan.ServiceProvider.GetRequiredService<CommercialBillingDb>().Set<SubscriptionRow>()
+                    .Where(x => x.PaymentOrderId != null && x.NextCheckAt <= time.GetUtcNow()).OrderBy(x => x.NextCheckAt)
+                    .Take(50).Select(x => x.CustomerId).ToArrayAsync(stoppingToken);
+                await Parallel.ForEachAsync(ids, new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = stoppingToken }, async (id, ct) =>
+                {
+                    try { await using var scope = scopes.CreateAsyncScope(); await scope.ServiceProvider.GetRequiredService<CommercialBillingStore>().Reconcile(id, ct); }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
+                    catch (Exception exception) { logger.LogWarning("Commercial billing reconciliation deferred for customer {CustomerId} with {ErrorType}; provider or persistence unavailable.", id, exception.GetType().Name); }
+                });
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
+            catch (Exception exception) { logger.LogWarning(exception, "Commercial billing reconciliation scan deferred with {ErrorType}.", exception.GetType().Name); }
+            await Task.Delay(TimeSpan.FromMinutes(1), time, stoppingToken);
+        }
+    }
+}

@@ -12,7 +12,7 @@ public sealed partial class FileStorageService
     {
         var selected = Selection(request.Ids);
         if (selected is null) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var entries = await db.Files.AsNoTracking().Where(x => x.PurgedAt == null && !x.PurgeRequested).ToArrayAsync(ct);
         var roots = entries.Where(x => selected.Contains(x.Id) && x.Ready && x.DeletedAt == null).ToArray();
@@ -30,7 +30,7 @@ public sealed partial class FileStorageService
     {
         var selected = Selection(request.Ids);
         if (selected is null) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var entries = await db.Files.AsNoTracking().Where(x => x.Ready && x.DeletedAt == null && x.PurgedAt == null && !x.PurgeRequested).ToArrayAsync(ct);
         var roots = SelectionRoots(entries, selected);
@@ -55,7 +55,7 @@ public sealed partial class FileStorageService
         if (selected is null) return Result.Fail("validation.failed", ErrorKind.Validation);
         StoredFile[] sources;
         List<(StoredFile Source, StoredFile Copy)> copies;
-        await using (var reserve = await db.Database.BeginTransactionAsync(ct))
+        await using (var reserve = await db.Session.BeginTransactionAsync(ct))
         {
             await Lock(actor, ct);
             if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
@@ -92,7 +92,7 @@ public sealed partial class FileStorageService
             await using var content = await storage.Read(pair.Source.ObjectKey, ct);
             await storage.Write(pair.Copy.ObjectKey, content, ct);
         }
-        await using var finish = await db.Database.BeginTransactionAsync(ct);
+        await using var finish = await db.Session.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var ids = copies.Select(x => x.Copy.Id).ToArray();

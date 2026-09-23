@@ -30,7 +30,7 @@ public sealed partial class CustomerStore
             !CustomerRules.ValidEmail(request.ContactEmail) || !CustomerRules.ValidTimeZone(request.TimeZone) ||
             !CustomerRules.ValidCountry(request.Country) || !CustomerRules.ValidPhone(request.PrimaryContactNumber))
             return Result<CustomerInfo>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(ct);
         var info = await Managed(actor, ct);
         if (info is null) return Result<CustomerInfo>.Fail("authorization.denied", ErrorKind.Forbidden);
         if (info.Version != request.Version) return Result<CustomerInfo>.Fail("concurrency.conflict", ErrorKind.Conflict);
@@ -54,7 +54,7 @@ public sealed partial class CustomerStore
         byte[]? png = null;
         if (content is not null && !PngImage.TryNormalize(content, 512, 1048576, out png))
             return Result<CustomerInfo>.Fail("organisation.logo_invalid", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(ct);
         var info = await Managed(actor, ct);
         if (info is null) return Result<CustomerInfo>.Fail("authorization.denied", ErrorKind.Forbidden);
         if (info.Version != version) return Result<CustomerInfo>.Fail("concurrency.conflict", ErrorKind.Conflict);

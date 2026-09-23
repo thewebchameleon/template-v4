@@ -6,7 +6,7 @@ namespace TemplateV4.ApiService.Endpoints;
 
 public static class EndpointSecurity
 {
-    internal const string RefreshCookie = "__Host-templatev4-refresh";
+    public const string RefreshCookie = "__Host-templatev4-refresh";
 
     public static RouteGroupBuilder AddAuthSecurity(this RouteGroupBuilder group, string[] allowedOrigins)
         => group.AddBrowserSecurity(allowedOrigins, context => context.Request.Path.Value is
@@ -20,14 +20,14 @@ public static class EndpointSecurity
             "/api/v1/auth/forgot-password" or
             "/api/v1/auth/register");
 
-    internal static RouteGroupBuilder AddBootstrapSecurity(this RouteGroupBuilder group, string[] allowedOrigins)
+    public static RouteGroupBuilder AddBootstrapSecurity(this RouteGroupBuilder group, string[] allowedOrigins)
         => group.AddBrowserSecurity(allowedOrigins, _ => true);
 
-    internal static Guid Actor(ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue("sub")!);
+    public static Guid Actor(ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue("sub")!);
 
-    internal static Guid SessionId(ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue("sid")!);
+    public static Guid SessionId(ClaimsPrincipal principal) => Guid.Parse(principal.FindFirstValue("sid")!);
 
-    internal static CookieOptions RefreshCookieOptions() => new()
+    public static CookieOptions RefreshCookieOptions() => new()
     {
         HttpOnly = true,
         Secure = true,
@@ -37,7 +37,7 @@ public static class EndpointSecurity
         IsEssential = true
     };
 
-    internal static IResult Tokens(Result<AuthTokens> result, HttpResponse response)
+    public static IResult Tokens(Result<AuthTokens> result, HttpResponse response)
     {
         if (!result.IsSuccess)
         {

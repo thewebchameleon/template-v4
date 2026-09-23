@@ -5,7 +5,7 @@ import { discover } from "./discover-business-modules.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 for (const module of discover(root)) {
-  const directory = path.join(root, "business-modules", module.id, "Tests");
+  const directory = path.join(root, "modules/Private", module.id, "Tests");
   if (!fs.existsSync(directory)) continue;
   for (const project of fs
     .readdirSync(directory)

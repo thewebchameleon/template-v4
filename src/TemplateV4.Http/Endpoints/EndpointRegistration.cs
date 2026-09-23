@@ -18,17 +18,11 @@ public static class EndpointRegistration
             .MapUpdateEndpoints()
             .MapPrivateModuleEndpoints()
             .MapRuntimeModuleEndpoints()
-            .MapSupportEndpoints()
-            .MapCrmEndpoints()
-            .MapCmsEndpoints()
             .MapApiKeyEndpoints()
-            .MapContactAdministration()
-            .MapInvoicingEndpoints()
             .MapOrganisationAttachmentEndpoints()
-            .MapCustomerAndCommercialBillingEndpoints();
+            .MapOrganisationEndpoints();
 
-        app.MapCommercialBillingCallbacks();
-        app.MapExternalCmsEndpoints();
+
 
         app.MapGroup("/api/v1/bootstrap")
             .WithTags("Framework")
@@ -45,6 +39,7 @@ public static class EndpointRegistration
             .MapModuleEndpoints()
             .MapPlatformEndpoints();
 
+        TemplateV4.Infrastructure.BundledHttp.Map(app);
         return app;
     }
 }

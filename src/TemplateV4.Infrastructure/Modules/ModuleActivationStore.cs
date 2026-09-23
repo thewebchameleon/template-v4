@@ -52,14 +52,14 @@ public sealed class ModuleActivationStore(FrameworkDb db, ModuleCatalog catalog,
         return Result<ModuleActivation>.Success(Describe(previous, runtime));
     }
 
-    internal static Task<bool> IsAdministrator(FrameworkDb db, IExecutionContext context, CancellationToken ct)
+    public static Task<bool> IsAdministrator(FrameworkDb db, IExecutionContext context, CancellationToken ct)
         => (from membership in db.UserRoles
             join role in db.Roles on membership.RoleId equals role.Id
             where membership.UserId == context.ActorId && role.Name == "Administrator"
             select membership).AnyAsync(ct);
 
     // All activation/settings writers take these locks first, in stable order, inside the dispatcher transaction.
-    internal static Task<RuntimeModuleSettings[]> LockRows(FrameworkDb db, CancellationToken ct)
+    public static Task<RuntimeModuleSettings[]> LockRows(FrameworkDb db, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Module changes require a transaction.");
         return db.RuntimeModules.FromSqlRaw("SELECT * FROM app.runtime_modules ORDER BY \"Id\" FOR UPDATE").AsNoTracking().ToArrayAsync(ct);

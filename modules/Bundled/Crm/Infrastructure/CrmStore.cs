@@ -1,0 +1,25 @@
+using System.Text.Json;
+using TemplateV4.Application.Crm;
+using TemplateV4.Application.Customers;
+using TemplateV4.Infrastructure.Persistence;
+
+namespace TemplateV4.Infrastructure.Crm;
+
+public sealed partial class CrmStore(CrmDb db, IOrganisationOperations access, TimeProvider time) : ICrm
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private static CrmRecord Read(CrmRecordRow row) => new(row.Id, row.Version,
+        JsonSerializer.Deserialize<CrmRecordInput>(row.Data, Json)!, row.Archived, row.CreatedAt, row.UpdatedAt);
+    private IQueryable<CrmRecordRow> Records() => db.Set<CrmRecordRow>();
+    private Task Lock(CancellationToken ct) => ModuleLocks.Organisation(db, ct);
+    private void Audit(Guid actor, Guid id, string action, params TemplateV4.Application.Platform.AuditChange[] changes) => db.Audit.Add(new()
+    {
+        ActorId = actor,
+        SubjectId = id,
+        SubjectType = "crm.record",
+        Action = action,
+        ChangesJson = AuditCapture.Changes(changes),
+        At = time.GetUtcNow(),
+        RelatedEntitiesJson = JsonSerializer.Serialize(new[] { new { Type = "organisation", Id = Organisation.Id } }, Json)
+    });
+}

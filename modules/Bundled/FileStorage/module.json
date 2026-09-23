@@ -1,0 +1,18 @@
+{
+  "id": "file-storage",
+  "version": "0.2.0",
+  "category": "foundation",
+  "required": false,
+  "enabledByDefault": true,
+  "runtimeConfigurable": true,
+  "dependencies": [
+    "identity",
+    "audit-recording"
+  ],
+  "featureFlag": "file-storage",
+  "host": {
+    "feature": "fileStorageFeature"
+  },
+  "projects": {},
+  "compositionOrder": 100
+}

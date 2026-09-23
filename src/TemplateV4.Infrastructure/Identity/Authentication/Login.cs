@@ -10,7 +10,7 @@ public sealed partial class AuthService
             return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized);
         var user = await users.FindByNameAsync(request.Username);
         if (user is null) { await Task.Delay(TimeSpan.FromMilliseconds(200), time, ct); return Result<AuthTokens>.Fail("auth.invalid_credentials", ErrorKind.Unauthorized); }
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
         await db.Entry(user).ReloadAsync(ct);
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == user.Id, ct);
@@ -48,7 +48,7 @@ public sealed partial class AuthService
 
     public async Task<Result<AuthTokens>> CompleteMfa(MfaLoginRequest request, string? ipAddress, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var challenge = await security.ReadChallenge(request.ChallengeId, "mfa-login", ct);
         var user = challenge?.Row.UserId is { } id ? await users.FindByIdAsync(id.ToString()) : null;
         if (user is null || challenge!.Row.SecurityStamp != user.SecurityStamp)

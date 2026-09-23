@@ -91,7 +91,8 @@ switch (command) {
     console.log('Scaffold: review its behavior and explicitly register it before use.');
     const header = `using TemplateV4.SharedKernel;\n\nnamespace TemplateV4.Application.${name};\n\n`;
     const permissionSource = `namespace TemplateV4.Application.Users;\n\npublic static partial class Permissions\n{\n    public const string ${name}Read = "${name.toLowerCase()}.read";\n}\n`;
-    if (kind === 'feature' || kind === 'module') {
+    if (kind === 'module') { const { scaffoldBundled } = await import('./scaffold-bundled.mjs'); scaffoldBundled(root, name); break; }
+    if (kind === 'feature') {
       const owner = featureOwner ? pascal(featureOwner) : name;
       const folder = kind === 'feature' ? `${app}/${owner}/${name}` : `${app}/${owner}/Overview`;
       const files = [
@@ -141,7 +142,7 @@ switch (command) {
       adr: [`${manifest.adrs}/${name}.md`, `# ${name}\n\nStatus: Proposed\n\n## Context\n\n## Decision\n\n## Consequences\n\n## Enforcement and extension points\n`],
       feature: [`${app}/${name}/README.md`, `# ${name}\n\nFollow documentation/docs/architecture.md and documentation/docs/modules.md. Scaffold the command, validator, handler, permission, and endpoint, then register them explicitly. Add the transaction and outbox behavior required by the use case before enabling the feature.\n`]
     };
-    if (kind === 'migration') { run('dotnet', ['ef', 'migrations', 'add', name, '--project', manifest.projects.Infrastructure, '--output-dir', 'Persistence/Migrations']); break; }
+    if (kind === 'migration') { run('dotnet', ['ef', 'migrations', 'add', name, '--project', manifest.projects.Persistence, '--context', 'FrameworkDb', '--output-dir', 'Persistence/Migrations']); break; }
     if (!templates[kind]) throw new Error(`Unknown scaffold kind: ${kind}`);
     write(...templates[kind]);
     if (kind === 'localisation') {

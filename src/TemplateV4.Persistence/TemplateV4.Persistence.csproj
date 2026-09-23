@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><RootNamespace>TemplateV4.Infrastructure</RootNamespace><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" IncludeAssets="all" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <Using Include="TemplateV4.SharedKernel" />
+    <Compile Include="../TemplateV4.Infrastructure/ActionItems/Persistence/ActionItemRow.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/ApiKeys/ApiKeyRow.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/AuditHistory/Persistence/AuditEntry.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Configuration/Persistence/PlatformAppearanceSettings.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Dashboards/DashboardPersistence.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Outbox/Persistence/MessageEntities.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Idempotency/Persistence/IdempotencyRecord.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Identity/Persistence/IdentityEntities.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Identity/Persistence/UserAvatar.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Licensing/LicenseState.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Modules/Persistence/RuntimeModuleSettings.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Notifications/Persistence/UserNotification.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Notifications/Persistence/WebPushSubscription.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Quartz/Persistence/BackgroundJobSchedule.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Quartz/Persistence/JobRun.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Organisations/Persistence/OrganisationEntities.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Payments/PaymentEntities.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Privacy/Persistence/DeletionRequest.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/FileStorage/Persistence/FileEntities.cs" />
+    <Compile Include="../TemplateV4.Infrastructure/Updates/Persistence/UpdateState.cs" />
+    <EmbeddedResource Include="Persistence/Migrations/quartz-3.20.1.sql" LogicalName="TemplateV4.Infrastructure.Persistence.Migrations.quartz-3.20.1.sql" />
+    <EmbeddedResource Include="Persistence/Migrations/quartz-4.0.1-upgrade.sql" LogicalName="TemplateV4.Infrastructure.Persistence.Migrations.quartz-4.0.1-upgrade.sql" />
+    <InternalsVisibleTo Include="TemplateV4.Cms.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.CommercialBilling.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.Crm.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.FileStorage.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.Invoicing.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.Support.Infrastructure" />
+    <InternalsVisibleTo Include="TemplateV4.Application.Tests" />
+      <InternalsVisibleTo Include="TemplateV4.Infrastructure" />
+  </ItemGroup>
+<ItemGroup><Compile Include="../../tools/migrations/OwnershipDesignServices.cs" /></ItemGroup>
+</Project>

@@ -77,6 +77,7 @@ decision controls when the system has evolved.
 - [0043 — Module-owned composition](0043-module-owned-composition.md)
 - [0051 — Platform core and selectable File Storage](0051-platform-core-and-file-library.md)
 - [0052 — Provider-assigned compiled private modules](0052-provider-assigned-compiled-private-modules.md)
+- [0055 — Bundled module source and persistence](0055-bundled-module-source-and-persistence.md)
 
 ## Organisation and commercial boundaries
 

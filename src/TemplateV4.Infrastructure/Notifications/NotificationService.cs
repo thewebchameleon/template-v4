@@ -37,7 +37,7 @@ public sealed class NotificationService(FrameworkDb db, TimeProvider time)
     }
     public async Task<Result<Unit>> Preferences(Guid actor, NotificationPreference request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var previous = await db.Users.Where(x => x.Id == actor).Select(x => x.OptionalEmailEnabled).SingleAsync(ct);
         await db.Users.Where(x => x.Id == actor).ExecuteUpdateAsync(x => x.SetProperty(u => u.OptionalEmailEnabled, request.OptionalEmailEnabled), ct);
         db.Audit.Add(new() { ActorId = actor, SubjectId = actor, Action = "notifications.preferences_changed", ChangesJson = AuditCapture.Changes(new AuditChange("optionalEmailEnabled", previous.ToString(), request.OptionalEmailEnabled.ToString())), At = time.GetUtcNow() });

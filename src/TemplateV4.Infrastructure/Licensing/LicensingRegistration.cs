@@ -3,9 +3,9 @@ using TemplateV4.Application.Licensing;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class LicensingRegistration
 {
-    private static void AddLicensing(IServiceCollection services)
+    public static void AddLicensing(IServiceCollection services)
     {
         services.AddSingleton<Licensing.LicenseConfiguration>();
         services.AddScoped<Licensing.LicenseStore>();

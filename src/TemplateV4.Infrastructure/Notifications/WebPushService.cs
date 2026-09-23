@@ -12,15 +12,7 @@ public sealed record WebPushRegistration(string Endpoint, string P256dh, string 
 public sealed record WebPushStatus(bool Enabled, bool ShowPreview, string? PublicKey);
 public sealed record WebPushPreference(bool Enabled, bool ShowPreview);
 public sealed record WebPushDelivery(Guid NotificationId, Guid SubscriptionId);
-public sealed class WebPushSubscription
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid UserId { get; set; }
-    public string EndpointHash { get; set; } = "";
-    public string Endpoint { get; set; } = "";
-    public string P256dh { get; set; } = "";
-    public string Auth { get; set; } = "";
-}
+
 public sealed class WebPushService(FrameworkDb db, IConfiguration configuration, TimeProvider time)
 {
     public async Task<WebPushStatus> Status(Guid actor, CancellationToken ct)
@@ -55,7 +47,7 @@ public sealed class WebPushService(FrameworkDb db, IConfiguration configuration,
     {
         if (!Valid(request)) return Result.Fail("validation.failed", ErrorKind.Validation);
         if (!Configured) return Result.Fail("feature.disabled", ErrorKind.Conflict);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         // Registration and preference changes for the same account serialize.
         await Lock(actor, ct);
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.Endpoint)));
@@ -77,7 +69,7 @@ public sealed class WebPushService(FrameworkDb db, IConfiguration configuration,
     public async Task<Result<Unit>> Preferences(Guid actor, WebPushPreference request, CancellationToken ct)
     {
         if (request.Enabled && !Configured) return Result.Fail("feature.disabled", ErrorKind.Conflict);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         if (request.Enabled && !await db.Set<WebPushSubscription>().AnyAsync(x => x.UserId == actor, ct)) return Result.Fail("validation.failed", ErrorKind.Validation);
         var previous = await db.Users.AsNoTracking().SingleAsync(x => x.Id == actor, ct);

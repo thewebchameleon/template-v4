@@ -20,7 +20,7 @@ public sealed class RegistrationService(FrameworkDb db, UserManager<AppUser> use
             string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Trim().Length > 120 ||
             string.IsNullOrWhiteSpace(request.Password) || request.Password.Length > 1024 || !cultures.Supported.Contains(request.Culture))
             return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         // Serialize with policy changes so disabling registration takes effect atomically.
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         var settings = await Settings(ct);

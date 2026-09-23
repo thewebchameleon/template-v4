@@ -87,7 +87,7 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
     }
     public async Task<Result<Unit>> Replay(Guid actor, ReplayRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         if (request.Kind == "job")
         {
             var job = await db.JobRuns.FromSqlInterpolated($"SELECT * FROM messaging.job_runs WHERE \"Id\" = {request.Id} FOR UPDATE").SingleOrDefaultAsync(ct);
@@ -170,7 +170,7 @@ public sealed class OperationsService(FrameworkDb db, TimeProvider time, IConfig
 
     public async Task<Result<Unit>> RetryBackgroundJob(Guid actor, string id, Guid runId, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var run = await db.JobRuns.FromSqlInterpolated($"SELECT * FROM messaging.job_runs WHERE \"Id\" = {runId} FOR UPDATE").SingleOrDefaultAsync(ct);
         if (run is null || run.DefinitionId != id) return Result.Fail("background_job.not_found", ErrorKind.NotFound);
         if (run.State != "Failed") return Result.Fail("operations.not_replayable", ErrorKind.Conflict);

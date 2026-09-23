@@ -29,7 +29,7 @@ import * as i3 from "@spartan-ng/helm/sidebar";
 import * as i4 from "@spartan-ng/helm/separator";
 import * as i5 from "@spartan-ng/helm/drawer";
 const App_Conditional_3_Conditional_20_Defer_1_DepsFn = () => [/* @ts-ignore */
-    import("./features/file-storage/files/file-storage-components").then(m => m.FileStorageTree)];
+    import("../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-components").then(m => m.FileStorageTree)];
 const App_Conditional_3_Conditional_29_Defer_2_DepsFn = () => [/* @ts-ignore */
     import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer)];
 const App_Conditional_3_hlm_drawer_content_35_Defer_10_DepsFn = () => [i1.HlmButton, i5.HlmDrawerBody, i5.HlmDrawerFooter, /* @ts-ignore */
@@ -738,7 +738,7 @@ export class App {
             Translate], encapsulation: 2 });
 }
 (() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadataAsync(App, () => [/* @ts-ignore */
-    import("./features/file-storage/files/file-storage-components").then(m => m.FileStorageTree), /* @ts-ignore */
+    import("../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-components").then(m => m.FileStorageTree), /* @ts-ignore */
     import("./features/notifications/notification-drawer").then(m => m.NotificationDrawer), /* @ts-ignore */
     import("./core/preferences").then(m => m.Preferences)], (FileStorageTree, NotificationDrawer, Preferences) => { i0.ɵsetClassMetadata(App, [{
         type: Component,

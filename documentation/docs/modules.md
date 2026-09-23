@@ -6,15 +6,27 @@ Those files are authoritative; this page defines ownership and composition rules
 
 ## Ownership
 
-A module owns its use cases, registration, permissions, persistence, API adapters,
-frontend routes, localisation, and disable behavior. Composition is explicit and the
-host must not infer ownership from namespaces. Cross-module calls use narrow public
-contracts; modules do not query each other's tables.
+A bundled module is a runtime switch on Administration → Modules. The six bundled
+modules are CMS, CRM, Support, Invoicing, File Storage, and Commercial Billing. Their
+source lives under `modules/Bundled/<Module>`; client modules live under
+`modules/Private/<Module>`. Identity, delivery, payments, organisation storage,
+notifications, operations and the other always-on facilities belong to the platform
+under `src/TemplateV4.*`.
 
-Foundation modules use the coordinated repository packages and shared database.
-Business modules live under `business-modules/<Module>` with their own descriptor,
-DbContext, schema, migrations, API host, Worker host, and frontend entry point. Private
-client modules follow the same contract and may be distributed separately.
+Module descriptors own registration, API and frontend contributions. The build discovers
+these entry points through `tools/discover-bundled-modules.mjs`; it does not discover
+arbitrary platform folders. Cross-module calls use public Application contracts.
+The shared PostgreSQL database and `DatabaseSession` keep module changes, core audit
+and outgoing messages in one transaction.
+
+CMS, CRM, Support, Invoicing, and Commercial Billing own EF contexts and migrations in
+their `Infrastructure/Persistence` folders. The permanent core migration history remains
+in `src/TemplateV4.Persistence/Persistence/Migrations`. It creates the historical tables;
+the module baseline migrations adopt those existing schemas without recreating tables or
+discarding data. Always run `TemplateV4.DatabaseMigrator` before starting hosts; it applies
+core migrations first, then module contributors. Future module schema changes use the
+module's context and forward-only migrations. File Storage owns only the optional library
+routes and pages because its files, sharing, quota and retention data are core storage.
 
 Use Support, CMS, CRM, and Invoicing as reference implementations. Do not create a new
 service, assembly, or abstraction merely to satisfy folder shape.
@@ -36,7 +48,7 @@ Use PascalCase module, backend, and test directories. Use lowercase or kebab-cas
 ```
 
 Keep each command/query, validator, handler, endpoint, and focused persistence operation
-together by use case. Preserve existing public namespaces and migration paths when
+together by use case. Preserve existing public namespaces and migration histories when
 moving code.
 
 ## Adding or changing a module
@@ -47,8 +59,9 @@ moving code.
    must remain available while the module is disabled.
 3. Implement the use case through Domain, Application, Infrastructure, API/Worker, and
    Frontend only where each layer is needed.
-4. Give business modules a `module.json` with build-discovered host and frontend entry
-   points. Run the owning discovery/generation tools instead of editing generated files.
+4. Give bundled and private modules a `module.json` with build-discovered host and
+   frontend entry points. Run the owning discovery/generation tools instead of editing
+   generated files. Start a bundled module with `node tools/framework.mjs new module <Name>`.
 5. Define disable behavior: admission stops, accepted obligations settle safely, and
    retained data remains accessible to authorized recovery workflows.
 6. Update contracts, migrations, manifest, documentation, and release inputs together.

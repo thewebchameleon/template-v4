@@ -4,13 +4,27 @@
     <_BusinessSelection Condition="'$(DiscoverBusinessModules)' == 'true' And Exists('$(MSBuildThisFileDirectory)business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)business-modules.enabled'))</_BusinessSelection>
   </PropertyGroup>
   <Import Project=".private-modules/Directory.Build.private.props" Condition="Exists('.private-modules/Directory.Build.private.props')" />
+  <PropertyGroup>
+    <BundledLayer Condition="'$(MSBuildProjectName)' == 'TemplateV4.Domain'">Domain</BundledLayer>
+    <BundledLayer Condition="'$(MSBuildProjectName)' == 'TemplateV4.Composition'">Infrastructure</BundledLayer>
+    <BundledLayer Condition="'$(MSBuildProjectName)' == 'TemplateV4.Http'">Api</BundledLayer>
+    <BundledLayer Condition="'$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker'">Worker</BundledLayer>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(BundledLayer)' != ''">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)modules/Bundled/*/$(BundledLayer)/*.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'TemplateV4.Composition' Or '$(MSBuildProjectName)' == 'TemplateV4.Http' Or '$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker'">
+    <Compile Include="$(IntermediateOutputPath)BundledModules.g.cs" />
+  </ItemGroup>
+  <Target Name="GenerateBundledModules" BeforeTargets="CoreCompile" Condition="'$(MSBuildProjectName)' == 'TemplateV4.Composition' Or '$(MSBuildProjectName)' == 'TemplateV4.Http' Or '$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker'">
+    <Exec Command="node &quot;$(MSBuildThisFileDirectory)tools/discover-bundled-modules.mjs&quot; --host $(MSBuildProjectName) &quot;$(MSBuildProjectDirectory)/$(IntermediateOutputPath)BundledModules.g.cs&quot;" />
+  </Target>
   <ItemGroup Condition="'$(DiscoverBusinessModules)' == 'true'">
-    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' == 'TemplateV4.ApiService' And !Exists('$(MSBuildThisFileDirectory).private-modules/selection.json')" Include="$(MSBuildThisFileDirectory)business-modules/**/Api/*.csproj">
-      <ModuleId>$([System.Text.RegularExpressions.Regex]::Replace('%(RecursiveDir)', '[\\/](Api|Infrastructure)[\\/]?$', ''))</ModuleId>
-      <Selected>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_BusinessSelection)', '(?m)^%(ModuleId)\r?$'))</Selected>
-    </_AvailableBusinessProject>
-    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' != 'TemplateV4.ApiService' And !Exists('$(MSBuildThisFileDirectory).private-modules/selection.json')" Include="$(MSBuildThisFileDirectory)business-modules/**/Infrastructure/*.csproj">
-      <ModuleId>$([System.Text.RegularExpressions.Regex]::Replace('%(RecursiveDir)', '[\\/](Api|Infrastructure)[\\/]?$', ''))</ModuleId>
+    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' == 'TemplateV4.ApiService' And !Exists('$(MSBuildThisFileDirectory).private-modules/selection.json')" Include="$(MSBuildThisFileDirectory)modules/Private/**/Api/*.csproj" />
+    <_AvailableBusinessProject Condition="'$(MSBuildProjectName)' != 'TemplateV4.ApiService' And !Exists('$(MSBuildThisFileDirectory).private-modules/selection.json')" Include="$(MSBuildThisFileDirectory)modules/Private/**/Infrastructure/*.csproj" />
+    <_AvailableBusinessProject Update="@(_AvailableBusinessProject)">
+      <ModuleFolder>$([System.IO.Path]::GetFileName($([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName('%(FullPath)'))))))</ModuleFolder>
+      <ModuleId>$([System.Text.RegularExpressions.Regex]::Replace('%(ModuleFolder)', '([a-z0-9])([A-Z])', '$1-$2').ToLowerInvariant())</ModuleId>
       <Selected>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_BusinessSelection)', '(?m)^%(ModuleId)\r?$'))</Selected>
     </_AvailableBusinessProject>
     <ProjectReference Include="@(_AvailableBusinessProject->WithMetadataValue('Selected', 'True'))" />

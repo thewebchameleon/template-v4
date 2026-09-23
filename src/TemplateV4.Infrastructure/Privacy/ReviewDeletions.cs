@@ -27,7 +27,7 @@ public sealed partial class PrivacyService
     }
     public async Task<Result<Unit>> Review(Guid actor, ReviewDeletionRequest command, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         if (!await db.UserRoles.AnyAsync(x => x.UserId == actor && db.Roles.Any(r => r.Id == x.RoleId && r.Name == "Administrator"), ct)) return Result.Fail("auth.forbidden", ErrorKind.Forbidden);
         var request = await db.DeletionRequests.AsNoTracking().SingleOrDefaultAsync(x => x.Id == command.Id, ct);
@@ -40,19 +40,9 @@ public sealed partial class PrivacyService
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
         if (command.Approve)
         {
-            await TemplateV4.Infrastructure.Customers.CustomerAccess.MutationLock(db, ct);
+            await TemplateV4.Infrastructure.Persistence.ModuleLocks.Organisation(db, ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
-            // CRM customers are independent business records, not this identity account.
-            // Remove staff assignment while retaining organisation records and issued snapshots.
-            var assignments = await db.Set<TemplateV4.Infrastructure.Crm.CrmRecordRow>()
-                .FromSqlInterpolated($"SELECT * FROM crm.records WHERE \"Data\" ->> 'ownerId' = {user.Id.ToString()}").ToArrayAsync(ct);
-            foreach (var record in assignments)
-            {
-                var data = JsonSerializer.Deserialize<TemplateV4.Application.Crm.CrmRecordInput>(record.Data, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-                if (data.OwnerId != user.Id) continue;
-                record.Data = JsonSerializer.Serialize(data with { OwnerId = null }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                record.Version = Guid.NewGuid();
-            }
+            foreach (var contributor in contributors) await contributor.Erase(user.Id, ct);
             if (await users.IsInRoleAsync(user, "Administrator"))
             {
                 var admins = (await users.GetUsersInRoleAsync("Administrator")).Where(x => x.EmailConfirmed && x.PasswordHash != null).Select(x => x.Id).ToArray();
@@ -70,12 +60,6 @@ public sealed partial class PrivacyService
             await db.Set<TemplateV4.Infrastructure.Dashboards.DashboardPreferenceRow>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.Set<TemplateV4.Infrastructure.Dashboards.DashboardRow>().Where(x => x.OwnerId == user.Id).ExecuteDeleteAsync(ct);
             await db.Set<UserAvatar>().Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
-            // Erasure runs even when Support is disabled. Remove requester conversations and files,
-            // and erase contributions to other requesters' tickets without retaining content in audit.
-            await db.Set<SupportTicketRow>().Where(x => x.RequesterId == user.Id).ExecuteDeleteAsync(ct);
-            await db.Set<SupportMessageRow>().Where(x => x.AuthorId == user.Id).ExecuteDeleteAsync(ct);
-            await db.Set<SupportAttachmentRow>().Where(x => x.OwnerId == user.Id).ExecuteDeleteAsync(ct);
-            await db.Set<SupportTicketRow>().Where(x => x.AssigneeId == user.Id).ExecuteUpdateAsync(x => x.SetProperty(t => t.AssigneeId, (Guid?)null).SetProperty(t => t.Version, Guid.NewGuid()), ct);
             await db.Set<ActionItemRow>().Where(x => x.CreatorId == user.Id || x.AssigneeId == user.Id || x.SubjectId == user.Id).ExecuteDeleteAsync(ct);
             // Historical display names and file names follow the existing account erasure policy.
             var ownedFiles = db.Files.Where(x => x.OwnerId == user.Id).Select(x => x.Id);

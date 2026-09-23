@@ -9,7 +9,7 @@ export function scaffoldBusiness(root, name) {
   ).frameworkVersion;
   const [major, minor] = foundationVersion.split(".").map(Number);
   const id = name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-  const folder = `business-modules/${id}`;
+  const folder = `modules/Private/${name}`;
   const namespace = `TemplateV4.${name}`;
   const files = new Map();
   for (const layer of ["Domain", "Application", "Infrastructure", "Api"]) {
@@ -17,10 +17,10 @@ export function scaffoldBusiness(root, name) {
       layer === "Domain"
         ? ""
         : layer === "Application"
-          ? `<ProjectReference Include="../Domain/${namespace}.Domain.csproj"/><ProjectReference Include="../../../src/TemplateV4.Application/TemplateV4.Application.csproj"/>`
+          ? `<ProjectReference Include="../Domain/${namespace}.Domain.csproj"/><ProjectReference Include="../../../../src/TemplateV4.Application/TemplateV4.Application.csproj"/>`
           : layer === "Infrastructure"
             ? `<ProjectReference Include="../Application/${namespace}.Application.csproj"/>`
-            : `<ProjectReference Include="../Infrastructure/${namespace}.Infrastructure.csproj"/><ProjectReference Include="../../../src/TemplateV4.Http/TemplateV4.Http.csproj"/>`;
+            : `<ProjectReference Include="../Infrastructure/${namespace}.Infrastructure.csproj"/><ProjectReference Include="../../../../src/TemplateV4.Http/TemplateV4.Http.csproj"/>`;
     files.set(
       `${folder}/${layer}/${namespace}.${layer}.csproj`,
       `<Project Sdk="Microsoft.NET.Sdk${layer === "Api" ? ".Web" : ""}"><PropertyGroup><OutputType>Library</OutputType></PropertyGroup><ItemGroup>${references}${layer === "Infrastructure" ? '<FrameworkReference Include="Microsoft.AspNetCore.App"/>' : ""}</ItemGroup></Project>\n`,

@@ -237,12 +237,90 @@
       "templatev4.application": {
         "type": "Project",
         "dependencies": {
-          "TemplateV4.Domain": "[0.2.0, )",
-          "TemplateV4.SharedKernel": "[0.1.0, )"
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.cms.api": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "[10.0.12, )",
+          "TemplateV4.Cms.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Http.Shared": "[0.2.0, )"
+        }
+      },
+      "templatev4.cms.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.cms.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "Markdig": "[1.3.2, )",
+          "TemplateV4.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.commercialbilling.api": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.CommercialBilling.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Http.Shared": "[0.2.0, )"
+        }
+      },
+      "templatev4.commercialbilling.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.commercialbilling.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.composition": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Cms.Infrastructure": "[0.2.0, )",
+          "TemplateV4.CommercialBilling.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Crm.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Invoicing.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Support.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.crm.api": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Crm.Infrastructure": "[0.2.0, )",
+          "TemplateV4.Http.Shared": "[0.2.0, )"
+        }
+      },
+      "templatev4.crm.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.crm.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Infrastructure": "[0.2.0, )"
         }
       },
       "templatev4.domain": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Invoicing.Domain": "[0.2.0, )",
+          "TemplateV4.Support.Domain": "[0.2.0, )"
+        }
+      },
+      "templatev4.http.shared": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Infrastructure": "[0.2.0, )"
+        }
       },
       "templatev4.infrastructure": {
         "type": "Project",
@@ -254,6 +332,51 @@
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "PDFsharp": "[6.2.4, )",
+          "TemplateV4.Application": "[0.2.0, )",
+          "TemplateV4.Cms.Application": "[0.2.0, )",
+          "TemplateV4.CommercialBilling.Application": "[0.2.0, )",
+          "TemplateV4.Crm.Application": "[0.2.0, )",
+          "TemplateV4.Invoicing.Application": "[0.2.0, )",
+          "TemplateV4.Persistence": "[0.2.0, )",
+          "TemplateV4.Support.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.api": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Http.Shared": "[0.2.0, )",
+          "TemplateV4.Invoicing.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )",
+          "TemplateV4.Crm.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.domain": {
+        "type": "Project"
+      },
+      "templatev4.invoicing.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "PDFsharp": "[6.2.4, )",
+          "TemplateV4.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.modulecontracts": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Domain": "[0.2.0, )",
+          "TemplateV4.SharedKernel": "[0.1.0, )"
+        }
+      },
+      "templatev4.persistence": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "TemplateV4.Application": "[0.2.0, )"
         }
       },
@@ -271,6 +394,28 @@
       },
       "templatev4.sharedkernel": {
         "type": "Project"
+      },
+      "templatev4.support.api": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Http.Shared": "[0.2.0, )",
+          "TemplateV4.Support.Infrastructure": "[0.2.0, )"
+        }
+      },
+      "templatev4.support.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.support.domain": {
+        "type": "Project"
+      },
+      "templatev4.support.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Infrastructure": "[0.2.0, )"
+        }
       },
       "AWSSDK.S3": {
         "type": "CentralTransitive",

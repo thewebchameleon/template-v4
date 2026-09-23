@@ -4,9 +4,9 @@ using TemplateV4.Infrastructure.Payments;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class PaymentsRegistration
 {
-    private static void AddPayments(IServiceCollection services)
+    public static void AddPayments(IServiceCollection services)
     {
         services.AddScoped<IPaymentMethodConfiguration, PaymentMethodConfiguration>();
         services.AddScoped<IPaymentProviderRegistry, PaymentProviderRegistry>();

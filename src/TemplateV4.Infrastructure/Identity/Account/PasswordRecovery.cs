@@ -14,7 +14,7 @@ public sealed partial class AccountService
         if (!AccountDelivery.CanReceiveEmail(user)) return;
         var profile = await db.Profiles.SingleOrDefaultAsync(x => x.Id == user.Id && !x.Disabled, ct);
         if (profile is null) return;
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await QueueAction(user, user.EmailConfirmed ? EmailTemplate.PasswordReset : EmailTemplate.Verification, profile.Culture, ct);
         await tx.CommitAsync(ct);
     }
@@ -24,7 +24,7 @@ public sealed partial class AccountService
             return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         var user = await users.FindByIdAsync(request.UserId.ToString());
         if (user is null || !user.EmailConfirmed) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({user.Id.ToString()}, 0))", ct);
         await db.Entry(user).ReloadAsync(ct);
         if (!await db.Profiles.AnyAsync(x => x.Id == user.Id && !x.Disabled, ct) || user.InvitationCancelledAt != null || user.PasswordHash is null && user.InvitationExpiresAt < time.GetUtcNow()) return Result.Fail("auth.action_invalid", ErrorKind.Validation);

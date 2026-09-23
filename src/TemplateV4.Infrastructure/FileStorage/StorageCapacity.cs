@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.FileStorage;
-using TemplateV4.Infrastructure.Customers;
 using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
@@ -39,7 +38,7 @@ public sealed class StorageQuota(FrameworkDb db, IStorageCapacity capacity, ISto
         if (db.Database.CurrentTransaction is null)
             throw new InvalidOperationException("Storage quota admission requires an active database transaction.");
 
-        await CustomerAccess.MutationLock(db, ct);
+        await ModuleLocks.Organisation(db, ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
         if (replacementBytes <= currentBytes) return true;
 

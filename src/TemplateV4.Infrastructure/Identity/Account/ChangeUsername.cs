@@ -15,7 +15,7 @@ public sealed partial class AccountService
         if (!await limiter.Allow("change-username", actor.ToString(), 1, TimeSpan.FromMinutes(2), ct))
             return Result<string>.Fail("invitation.wait", ErrorKind.Conflict);
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(actor.ToString()))!;
         if (!await security.Proof(user, request.Proof, ct))
         {

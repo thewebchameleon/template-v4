@@ -8,7 +8,7 @@ export function runBusinessTool(tool, args = []) {
   for (const module of discover(root)) {
     const relative = module.tools?.[tool];
     if (!relative) continue;
-    const folder = path.join(root, "business-modules", module.id);
+    const folder = path.join(root, "modules/Private", module.id);
     const config = path.resolve(folder, relative);
     if (!config.startsWith(folder + path.sep) || !fs.existsSync(config))
       throw new Error(`Invalid ${tool} path in ${module.id}`);

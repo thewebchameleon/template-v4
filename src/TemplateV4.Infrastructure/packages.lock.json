@@ -338,14 +338,69 @@
       "templatev4.application": {
         "type": "Project",
         "dependencies": {
+          "TemplateV4.ModuleContracts": "[0.2.0, )"
+        }
+      },
+      "templatev4.cms.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.commercialbilling.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.crm.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.domain": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Invoicing.Domain": "[0.2.0, )",
+          "TemplateV4.Support.Domain": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )",
+          "TemplateV4.Crm.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.invoicing.domain": {
+        "type": "Project"
+      },
+      "templatev4.modulecontracts": {
+        "type": "Project",
+        "dependencies": {
           "TemplateV4.Domain": "[0.2.0, )",
           "TemplateV4.SharedKernel": "[0.1.0, )"
         }
       },
-      "templatev4.domain": {
-        "type": "Project"
+      "templatev4.persistence": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
+          "TemplateV4.Application": "[0.2.0, )"
+        }
       },
       "templatev4.sharedkernel": {
+        "type": "Project"
+      },
+      "templatev4.support.application": {
+        "type": "Project",
+        "dependencies": {
+          "TemplateV4.Application": "[0.2.0, )"
+        }
+      },
+      "templatev4.support.domain": {
         "type": "Project"
       },
       "Microsoft.EntityFrameworkCore": {

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><OutputType>Library</OutputType><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Infrastructure/TemplateV4.Infrastructure.csproj" />
+    <Using Include="TemplateV4.SharedKernel" />
+    <Compile Include="../TemplateV4.Http/ApiResults.cs" />
+    <Compile Include="../TemplateV4.Http/HttpCapabilities.cs" />
+    <Compile Include="../TemplateV4.Http/HttpExecutionContext.cs" />
+    <Compile Include="../TemplateV4.Http/Endpoints/EndpointSecurity.cs" />
+    <Compile Include="../../src/TemplateV4.Http/Modules/ModuleEndpoints.cs" />
+  </ItemGroup>
+</Project>

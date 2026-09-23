@@ -32,7 +32,7 @@ public sealed class OutboxPump(IServiceScopeFactory scopes, ILogger<OutboxPump> 
         var now = time.GetUtcNow();
         OutboxMessage? message;
         var lease = Guid.NewGuid();
-        await using (var claim = await db.Database.BeginTransactionAsync(ct))
+        await using (var claim = await db.Session.BeginTransactionAsync(ct))
         {
             message = await db.Outbox.FromSqlInterpolated($"SELECT * FROM messaging.outbox WHERE \"CompletedAt\" IS NULL AND \"PoisonedAt\" IS NULL AND \"AvailableAt\" <= {now} AND (\"LeaseUntil\" IS NULL OR \"LeaseUntil\" < {now}) ORDER BY \"CreatedAt\" LIMIT 1 FOR UPDATE SKIP LOCKED").FirstOrDefaultAsync(ct);
             if (message is null) return false;
@@ -47,9 +47,9 @@ public sealed class OutboxPump(IServiceScopeFactory scopes, ILogger<OutboxPump> 
         try
         {
             // External delivery is outside a database transaction. Local effects and receipts remain atomic.
-            await using var local = message.Type is "email.requested.v1" or "push.requested.v1" or "contact.notification.v1" ? null : await db.Database.BeginTransactionAsync(ct);
+            await using var local = message.Type is "email.requested.v1" or "push.requested.v1" or "contact.notification.v1" ? null : await db.Session.BeginTransactionAsync(ct);
             await scope.ServiceProvider.GetRequiredService<IIntegrationTransport>().Publish(new(message.Id, message.Type, message.Payload, message.Culture, message.TraceParent, message.ActorId), timeout.Token);
-            await using var externalCompletion = local is null ? await db.Database.BeginTransactionAsync(ct) : null;
+            await using var externalCompletion = local is null ? await db.Session.BeginTransactionAsync(ct) : null;
             var owned = await db.Outbox.Where(x => x.Id == message.Id && x.LeaseId == lease && x.LeaseUntil > time.GetUtcNow()).AnyAsync(ct);
             if (!owned) throw new InvalidOperationException("Delivery lease expired.");
             message.CompletedAt = time.GetUtcNow();
@@ -61,7 +61,7 @@ public sealed class OutboxPump(IServiceScopeFactory scopes, ILogger<OutboxPump> 
         {
             db.ChangeTracker.Clear();
             // Reacquire the row; another replica may have completed it since rollback.
-            await using var retryTx = await db.Database.BeginTransactionAsync(ct);
+            await using var retryTx = await db.Session.BeginTransactionAsync(ct);
             var failed = await db.Outbox.FromSqlInterpolated($"SELECT * FROM messaging.outbox WHERE \"Id\" = {message.Id} FOR UPDATE").SingleAsync(ct);
             if (failed.CompletedAt is null && failed.LeaseId == lease)
             {

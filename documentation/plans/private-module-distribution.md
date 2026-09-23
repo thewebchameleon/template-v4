@@ -43,7 +43,7 @@ The public repository already contains source-based discovery in
 release/update contracts, runtime capability evaluation, and a DatabaseMigrator with
 an advisory lock and `IMigrationContributor` support.
 
-The local `business-modules/` checkout contains Vehicle Licensing and Client
+The local `modules/Private/` checkout contains Vehicle Licensing and Client
 Management. At inspection, GitHub `brinksolutions/business-modules` main contained
 Vehicle Licensing but not Client Management and differed from the local checkout.
 Reconcile intended source revisions before changing or publishing either module;

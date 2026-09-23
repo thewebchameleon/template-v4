@@ -10,7 +10,7 @@ public sealed partial class CustomerStore
     public async Task<Result<Unit>> Rename(Guid actor, RenameOrganisation request, CancellationToken ct)
     {
         if (!CustomerRules.ValidName(request.Name)) return Result.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(ct);
         var info = await Managed(actor, ct);
         if (info is null) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         if (info.Version != request.Version) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);

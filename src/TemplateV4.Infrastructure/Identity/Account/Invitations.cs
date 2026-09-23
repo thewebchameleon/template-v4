@@ -39,7 +39,7 @@ public sealed partial class AccountService
     }
     public async Task<Result<Unit>> Invitation(Guid actor, InvitationRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         var allowed = await access.ActorPermissions(ct);
         if (!allowed.Contains(Permissions.Manage)) return Result.Fail("role.delegation_denied", ErrorKind.Forbidden);

@@ -4,9 +4,9 @@ using TemplateV4.Application.Users;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class AuditHistoryRegistration
 {
-    private static void AddAuditHistory(IServiceCollection services)
+    public static void AddAuditHistory(IServiceCollection services)
     {
         services.AddScoped<IAuditHistory, AuditHistory>();
         services.AddScoped<IHandler<GetAuditDetail, AuditDetail>, AuditDetailHandler>();

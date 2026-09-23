@@ -1,6 +1,4 @@
 import { navigationDictionary } from './navigation-translations';
-import { businessDictionary } from './business-translations';
-import { fileStorageDictionary } from '../features/file-storage/file-storage-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
@@ -40,7 +38,6 @@ export const dictionary: Record<string, [string, string]> = {
     'Review available versions and compatibility in Deployment health under System Health.',
     'Hersien beskikbare weergawes en versoenbaarheid in Ontplooiingsgesondheid onder Stelselgesondheid.',
   ],
-  ...businessDictionary,
   actionItems: ['Action items', 'Aksie-items'],
   notificationActionAssigned: [
     'An action item needs your input',
@@ -532,4 +529,3 @@ export const dictionary: Record<string, [string, string]> = {
   accountDisabled: ['Account disabled.', 'Rekening gedeaktiveer.'],
   rolesSaved: ['Roles saved.', 'Rolle gestoor.'],
 };
-Object.assign(dictionary, fileStorageDictionary);

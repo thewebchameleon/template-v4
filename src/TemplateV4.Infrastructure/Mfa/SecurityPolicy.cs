@@ -8,7 +8,7 @@ public sealed partial class SecurityService
 {
     public async Task<Result<Unit>> SetPreferredMethod(Guid id, MfaPreferenceRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(id, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(id, ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         var methods = await ConfiguredMethods(user);
         if (!methods.Contains(request.Method)) return Result.Fail("auth.mfa_method_unavailable", ErrorKind.Validation);
@@ -20,7 +20,7 @@ public sealed partial class SecurityService
     public async Task<Result<SecuritySettings>> SetPolicy(Guid actor, SecurityPolicyRequest request, CancellationToken ct)
     {
         if (request.MfaPolicy is not ("Optional" or "Administrators" or "Everyone")) return Result<SecuritySettings>.Fail("validation.failed", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         var settings = await db.SecuritySettings.SingleOrDefaultAsync(ct);
         if (settings is not null && settings.Version != request.Version) return Result<SecuritySettings>.Fail("concurrency.conflict", ErrorKind.Conflict);

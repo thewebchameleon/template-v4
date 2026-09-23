@@ -4,9 +4,9 @@ using TemplateV4.Infrastructure.Dashboards;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class DashboardsRegistration
 {
-    private static void AddDashboards(IServiceCollection services)
+    public static void AddDashboards(IServiceCollection services)
     {
         services.AddScoped<IDashboards, DashboardStore>();
         services.AddScoped<DashboardAccess>();

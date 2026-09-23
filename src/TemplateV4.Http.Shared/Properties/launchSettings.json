@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "TemplateV4.Http.Shared": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58623;http://localhost:58625"
+    }
+  }
+}

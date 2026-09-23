@@ -6,7 +6,7 @@ public sealed partial class FileStorageService
 {
     public async Task<Result<Unit>> Move(Guid actor, Guid id, FileMoveRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(actor, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         var entries = await db.Files.AsNoTracking().Where(x => x.DeletedAt == null && x.PurgedAt == null).ToArrayAsync(ct);
         var file = entries.SingleOrDefault(x => x.Id == id && x.Ready);

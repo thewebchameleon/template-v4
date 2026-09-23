@@ -65,7 +65,7 @@ test("frontend directory casing is validated even on case-insensitive filesystem
   const root = fixture(t);
   scaffoldBusiness(root, "Reports");
   select(root, ["reports"]);
-  const folder = path.join(root, "business-modules/reports");
+  const folder = path.join(root, "modules/Private/reports");
   fs.renameSync(path.join(folder, "Frontend"), path.join(folder, "temporary-frontend"));
   fs.renameSync(path.join(folder, "temporary-frontend"), path.join(folder, "frontend"));
   assert.throws(() => discover(root), /Missing frontend entry point/);
@@ -77,8 +77,8 @@ test("scaffold is discovered without host edits, and removal clears registration
   select(root, ["reports"]);
   const modules = discover(root);
   assert.equal(modules[0].id, "reports");
-  assert.ok(fs.existsSync(path.join(root, "business-modules/reports/Tests/README.md")));
-  assert.ok(fs.existsSync(path.join(root, "business-modules/reports/Docs/README.md")));
+  assert.ok(fs.existsSync(path.join(root, "modules/Private/reports/Tests/README.md")));
+  assert.ok(fs.existsSync(path.join(root, "modules/Private/reports/Docs/README.md")));
   assert.equal(modules[0].enabledByDefault, false);
   assert.match(
     backend(modules, "TemplateV4.ApiService"),
@@ -98,7 +98,7 @@ test("scaffold is discovered without host edits, and removal clears registration
   );
   assert.match(frontend(modules), /reports\/Frontend\/public-api/);
   fs.renameSync(
-    path.join(root, "business-modules"),
+    path.join(root, "modules/Private"),
     path.join(root, "removed-modules"),
   );
   assert.throws(() => discover(root), /missing/);
@@ -113,7 +113,7 @@ test("rejects invalid entry points and dependency graphs before generating code"
   const root = fixture(t);
   scaffoldBusiness(root, "Reports");
   select(root, ["reports"]);
-  const file = path.join(root, "business-modules/reports/module.json");
+  const file = path.join(root, "modules/Private/reports/module.json");
   const descriptor = JSON.parse(fs.readFileSync(file));
   fs.writeFileSync(
     file,
@@ -183,7 +183,7 @@ test("selection is explicit, bounded, and rejects missing dependencies", (t) => 
   select(root, ["reports", "reports"]);
   assert.throws(() => discover(root), /unique privateModules IDs/);
   select(root, ["reports"]);
-  const file = path.join(root, "business-modules/reports/module.json");
+  const file = path.join(root, "modules/Private/reports/module.json");
   const descriptor = JSON.parse(fs.readFileSync(file));
   fs.writeFileSync(
     file,

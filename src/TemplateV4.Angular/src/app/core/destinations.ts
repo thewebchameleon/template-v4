@@ -194,12 +194,13 @@ export const administrationDestinations = {
     icon: 'lucideCreditCard',
     section: 'modules',
     permissions: ['settings.manage'],
-    capability: 'commercial-billing',
+    navigationCapability: 'commercial-billing',
     administratorOnly: true,
   },
 } as const satisfies Record<string, BuiltInDestination>;
 
 export const moduleSettingsDestinations: Readonly<Record<string, Destination>> = {
+  'commercial-billing': administrationDestinations.commercialBilling,
   'file-storage': administrationDestinations.storage,
   support: administrationDestinations.supportSettings,
   crm: administrationDestinations.crmConfiguration,

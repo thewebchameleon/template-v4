@@ -4,9 +4,9 @@ using TemplateV4.Infrastructure.Modules;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class ModulesRegistration
 {
-    private static void AddModules(IServiceCollection services)
+    public static void AddModules(IServiceCollection services)
     {
         services.AddScoped<ICapabilities, CapabilityEvaluator>();
         services.AddScoped<IModuleActivation, ModuleActivationStore>();

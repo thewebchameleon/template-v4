@@ -1,5 +1,3 @@
-import { businessDictionary } from './business-translations';
-import { fileStorageDictionary } from '../features/file-storage/file-storage-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';
@@ -7,11 +5,11 @@ import { workspaceDictionary } from './workspace-translations';
 
 // Shell labels must be available before any feature route resolver runs.
 export const navigationDictionary = {
-  crm: businessDictionary['crm'],
-  invoicing: businessDictionary['invoicing'],
+  crm: ['CRM', 'CRM'],
+  invoicing: ['Commercial Billing', 'Kommersiële fakturering'],
   cms: ['CMS', 'CMS'],
   organisation: ['Organisation', 'Organisasie'],
-  files: fileStorageDictionary['files'],
+  files: ['Files', 'Lêers'],
   supportTickets: ['Support tickets', 'Ondersteuningskaartjies'],
   support: ['Support', 'Ondersteuning'],
   configuration: configurationDictionary['configuration'],

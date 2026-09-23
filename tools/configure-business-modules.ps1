@@ -4,7 +4,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $templateRoot = Split-Path -Parent $PSScriptRoot
-$moduleRoot = Join-Path $templateRoot 'business-modules'
+$moduleRoot = Join-Path $templateRoot 'modules/Private'
 
 function Invoke-CheckedCommand {
     param([string]$Command, [string[]]$Arguments)
@@ -18,14 +18,14 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     throw 'Install the Node version specified in framework.json before running this script.'
 }
 if (-not (Test-Path -LiteralPath $moduleRoot -PathType Container)) {
-    throw "Clone your private module repository into '$moduleRoot', then rerun this script. The supported layout is template-v4/business-modules/."
+    throw "Clone your private module repository into '$moduleRoot', then rerun this script. The supported layout is template-v4/modules/Private/."
 }
 
 $available = @(Get-ChildItem -LiteralPath $moduleRoot -Directory | Sort-Object Name | ForEach-Object {
     $descriptorPath = Join-Path $_.FullName 'module.json'
     if (Test-Path -LiteralPath $descriptorPath -PathType Leaf) {
         $descriptor = Get-Content -LiteralPath $descriptorPath -Raw | ConvertFrom-Json
-        if ($descriptor.category -cne 'private' -or $descriptor.id -cne $_.Name -or $descriptor.id -cnotmatch '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$') {
+        if ($descriptor.category -cne 'private' -or $descriptor.id -cne (($_.Name -creplace '([a-z0-9])([A-Z])', '$1-$2').ToLowerInvariant()) -or $descriptor.id -cnotmatch '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$') {
             throw "Invalid module identity in $descriptorPath"
         }
         $descriptor

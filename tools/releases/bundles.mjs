@@ -221,7 +221,7 @@ export async function composePinned(
     JSON.stringify(modules.map((c) => c.id).sort())
   )
     throw new Error("Module selection differs from pins.");
-  const destination = path.join(root, "business-modules");
+  const destination = path.join(root, "modules/Private");
   if (fs.existsSync(destination))
     throw new Error(
       "Pinned composition requires a clean checkout without business-modules.",

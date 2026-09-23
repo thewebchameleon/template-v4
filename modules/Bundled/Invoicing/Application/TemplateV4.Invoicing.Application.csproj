@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../src/TemplateV4.Application/TemplateV4.Application.csproj" />
+    <ProjectReference Include="../../Crm/Application/TemplateV4.Crm.Application.csproj" />
+    <Compile Remove="**/*Permissions.cs" />
+    <Using Include="TemplateV4.SharedKernel" />
+  </ItemGroup>
+</Project>

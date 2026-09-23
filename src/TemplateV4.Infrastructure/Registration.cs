@@ -23,25 +23,20 @@ public static partial class Registration
         if (config is IConfigurationBuilder templates && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "EmailTemplates")))
             foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"), "*.json").Order()) templates.AddJsonFile(file, optional: false);
         services.AddSingleton(TimeProvider.System);
-        AddUpdates(services);
-        AddPrivateModuleDistribution(services);
-        AddOrganisations(services, config);
-        AddPayments(services);
-        AddCommercialBilling(services);
-        AddCrm(services);
-        AddInvoicing(services);
-        AddCms(services);
-        AddOperations(services);
-        AddAuditHistory(services);
-        AddSupport(services);
-        AddNotifications(services);
-        AddActionItems(services);
-        AddDashboards(services);
-        AddFileStorage(services);
-        AddModules(services);
-        AddConfiguration(services);
-        AddUsers(services);
-        AddApiKeys(services);
+        UpdatesRegistration.AddUpdates(services);
+        DistributionRegistration.AddPrivateModuleDistribution(services);
+        OrganisationsRegistration.AddOrganisations(services, config);
+        PaymentsRegistration.AddPayments(services);
+        OperationsRegistration.AddOperations(services);
+        AuditHistoryRegistration.AddAuditHistory(services);
+        NotificationsRegistration.AddNotifications(services);
+        ActionItemsRegistration.AddActionItems(services);
+        DashboardsRegistration.AddDashboards(services);
+        FileStorageRegistration.AddFileStorage(services);
+        ModulesRegistration.AddModules(services);
+        ConfigurationRegistration.AddConfiguration(services);
+        UsersRegistration.AddUsers(services);
+        ApiKeysRegistration.AddApiKeys(services);
         services.AddScoped<FreshPasswordVerifier>();
         services.AddSingleton(ModuleConfiguration.Load(config, modules));
         services.AddHttpContextAccessor();
@@ -49,6 +44,7 @@ public static partial class Registration
         if (!cultures.Supported.Contains(cultures.DefaultCulture) || cultures.Supported.Any(culture => !CultureCatalog.Examples.Supported.Contains(culture)))
             throw new InvalidOperationException("Configure supported localisation resources before enabling a culture.");
         services.AddSingleton(cultures);
+        services.AddScoped<DatabaseSession>();
         services.AddScoped<AuditCapture>();
         services.AddDbContext<FrameworkDb>((provider, options) =>
         {
@@ -94,7 +90,12 @@ public static partial class Registration
             options.UserVerificationRequirement = "required";
         });
         services.AddScoped<IUnitOfWork, UnitOfWork>(); services.AddScoped<IEventOutbox, EventOutbox>();
-        services.AddSingleton(new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1").Register<TemplateV4.Application.Contact.ContactNotification>("contact.notification.v1"));
+        services.AddSingleton(provider =>
+        {
+            var contracts = new IntegrationContracts().Register<UserCreated>("users.created.v1").Register<EmailRequest>("email.requested.v1").Register<JobRequested>("maintenance.requested.v1");
+            foreach (var contributor in provider.GetServices<IIntegrationContractContributor>()) contributor.Register(contracts);
+            return contracts;
+        });
         services.AddScoped(typeof(Dispatcher<,>));
         services.AddSingleton<IFeatureFlags, ConfigurationFlags>();
         if (config["Storage:Provider"] == "S3") services.AddSingleton<IFileStorage, S3FileStorage>();

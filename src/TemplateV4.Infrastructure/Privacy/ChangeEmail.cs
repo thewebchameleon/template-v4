@@ -13,7 +13,7 @@ public sealed partial class PrivacyService
         if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 254 || !MailAddress.TryCreate(request.Email, out var address) || address.Address != request.Email)
             return Result.Fail("validation.failed", ErrorKind.Validation);
         if (!await limiter.Allow("change-email", actor.ToString(), 1, TimeSpan.FromMinutes(2), ct)) return Result.Fail("invitation.wait", ErrorKind.Conflict);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(actor.ToString()))!;
         if (!await security.Proof(user, request.Proof, ct)) { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Fail("auth.factor_invalid", ErrorKind.Forbidden); }
         if (string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase)) return Result.Fail("privacy.same_email", ErrorKind.Validation);
@@ -30,7 +30,7 @@ public sealed partial class PrivacyService
     }
     public async Task<Result<Unit>> ConfirmEmail(ConfirmEmailChangeRequest request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         if (string.IsNullOrWhiteSpace(request.Challenge) || request.Challenge.Length > 128) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         var hash = AuthService.Hash(request.Challenge);
         var subject = await db.AuthChallenges.AsNoTracking().Where(x => x.Id == hash && x.Purpose == "email-change").Select(x => x.UserId).SingleOrDefaultAsync(ct);

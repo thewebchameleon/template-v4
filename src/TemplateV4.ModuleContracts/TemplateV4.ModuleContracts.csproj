@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Domain/TemplateV4.Domain.csproj" />
+    <ProjectReference Include="../TemplateV4.SharedKernel/TemplateV4.SharedKernel.csproj" />
+    <Compile Include="../TemplateV4.Application/**/*Permissions.cs" />
+    <Compile Include="../../modules/Bundled/*/Application/**/*Permissions.cs" />
+  </ItemGroup>
+</Project>

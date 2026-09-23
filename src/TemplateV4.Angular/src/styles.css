@@ -151,3 +151,5 @@
     transition-duration: var(--app-modal-background-duration);
   }
 }
+
+@source '../../../modules/Bundled/*/Frontend/**/*.{ts,html,css}';

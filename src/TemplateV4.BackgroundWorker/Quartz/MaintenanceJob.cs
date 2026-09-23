@@ -28,7 +28,7 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
         Guid? runId = context.JobDetail.Key.Group == "requests" && Guid.TryParse(context.JobDetail.Key.Name, out var parsedId) ? parsedId : null;
         if (runId is not null)
         {
-            await using var claim = await db.Database.BeginTransactionAsync(ct);
+            await using var claim = await db.Session.BeginTransactionAsync(ct);
             var run = await db.JobRuns.FromSqlInterpolated($"SELECT * FROM messaging.job_runs WHERE \"Id\" = {runId.Value} FOR UPDATE").SingleOrDefaultAsync(ct);
             if (run is null || run.State is "Completed" or "Failed" || run.State == "Running" && run.LeaseUntil > now) return;
             if (run.Attempts >= 4) { run.State = "Failed"; run.ErrorCode = "job.recovery_exhausted"; await db.SaveChangesAsync(ct); await claim.CommitAsync(ct); return; }
@@ -39,7 +39,7 @@ public sealed class MaintenanceJob(FrameworkDb db, TimeProvider time, ILogger<Ma
         var retention = Math.Clamp(configuration.GetValue("Maintenance:RetentionDays", 7), 1, 90);
         try
         {
-            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await using var transaction = await db.Session.BeginTransactionAsync(ct);
             // Distinct durable request identities still share a single maintenance lock.
             await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842002)", ct);
             await db.Idempotency.Where(x => x.ExpiresAt < now).ExecuteDeleteAsync(ct);

@@ -6,6 +6,7 @@ export interface FoundationFeature {
   id: string;
   moduleSettingsDestination?: Pick<Destination, 'path' | 'label'>;
   routes: Routes;
+  administrationRoutes?: Routes;
   destinations?: readonly Destination[];
   organisationDestinations?: readonly Destination[];
   organisationLinks?: readonly { segment: string; label: string; capability: string }[];

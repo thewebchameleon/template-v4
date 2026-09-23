@@ -1,4 +1,4 @@
-import { cmsTranslations } from './features/cms/cms-resolver';
+import { cmsTranslations } from '../../../../modules/Bundled/Cms/Frontend/cms-resolver';
 import { actionItemTranslations } from './features/action-items/action-item-resolver';
 import { updateTranslations } from './features/updates/update-resolver';
 import { backgroundJobTranslations } from './features/operations/background-job-resolver';
@@ -9,7 +9,7 @@ import { capabilityGuard } from './core/features';
 import { destinationGuard, workspaceDestinations, administrationDestinations, userManagementDestinations, } from './core/destinations';
 import { moduleSettingsTranslations } from './features/modules/module-settings-resolver';
 import { apiKeyTranslations } from './features/api-keys/api-key-resolver';
-import { supportTranslations } from './features/support/support-resolver';
+import { supportTranslations } from '../../../../modules/Bundled/Support/Frontend/support-resolver';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { authGuard, permissionGuard, mfaSetupGuard } from './core/auth';
@@ -21,7 +21,7 @@ export const routes = [
         resolve: { cmsTranslations },
         data: { breadcrumb: 'cms' },
         canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
-        loadComponent: () => import('./features/cms/articles/cms').then((m) => m.CmsPage),
+        loadComponent: () => import('../../../../modules/Bundled/Cms/Frontend/articles/cms').then((m) => m.CmsPage),
     },
     {
         path: 'cms/new',
@@ -29,11 +29,11 @@ export const routes = [
         data: { breadcrumb: 'cmsNew' },
         canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
         canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/cms/articles/cms-editor').then((m) => m.CmsEditorPage),
+        loadComponent: () => import('../../../../modules/Bundled/Cms/Frontend/articles/cms-editor').then((m) => m.CmsEditorPage),
     },
     {
         path: 'cms/sections',
-        loadChildren: () => import('./features/cms/sections/sections-routes').then((m) => m.sectionsRoutes),
+        loadChildren: () => import('../../../../modules/Bundled/Cms/Frontend/sections/sections-routes').then((m) => m.sectionsRoutes),
     },
     {
         path: 'cms/:id',
@@ -41,14 +41,14 @@ export const routes = [
         data: { breadcrumb: 'cms' },
         canActivate: [authGuard, destinationGuard(workspaceDestinations.cms)],
         canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/cms/articles/cms-editor').then((m) => m.CmsEditorPage),
+        loadComponent: () => import('../../../../modules/Bundled/Cms/Frontend/articles/cms-editor').then((m) => m.CmsEditorPage),
     },
     {
         path: 'organisation/invoicing',
         resolve: { businessTranslations },
         data: { breadcrumb: 'invoicing' },
         canActivate: [authGuard],
-        loadComponent: () => import('./features/invoicing/documents/invoicing').then((m) => m.InvoicingPage),
+        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/invoicing').then((m) => m.InvoicingPage),
     },
     {
         path: 'organisation/invoicing/new',
@@ -56,7 +56,7 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'issueDocument', permission: 'invoicing.issue' },
         canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
-        loadComponent: () => import('./features/invoicing/documents/commercial-editor').then((m) => m.CommercialEditorPage),
+        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/commercial-editor').then((m) => m.CommercialEditorPage),
     },
     {
         path: 'organisation/invoicing/settings',
@@ -70,14 +70,14 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'invoicing' },
         canActivate: [authGuard],
-        loadComponent: () => import('./features/invoicing/documents/commercial-detail').then((m) => m.CommercialDetailPage),
+        loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/documents/commercial-detail').then((m) => m.CommercialDetailPage),
     },
     {
         path: 'organisation/crm',
         resolve: { businessTranslations },
         data: { breadcrumb: 'crm' },
         canActivate: [authGuard, capabilityGuard('crm')],
-        loadComponent: () => import('./features/crm/records/crm').then((m) => m.CrmPage),
+        loadComponent: () => import('../../../../modules/Bundled/Crm/Frontend/records/crm').then((m) => m.CrmPage),
     },
     {
         path: 'organisation/crm/configuration',
@@ -92,7 +92,7 @@ export const routes = [
         resolve: { businessTranslations },
         data: { breadcrumb: 'crmEdit' },
         canActivate: [authGuard, capabilityGuard('crm')],
-        loadComponent: () => import('./features/crm/records/crm-detail').then((m) => m.CrmDetailPage),
+        loadComponent: () => import('../../../../modules/Bundled/Crm/Frontend/records/crm-detail').then((m) => m.CrmDetailPage),
     },
     {
         path: 'files',
@@ -232,33 +232,33 @@ export const routes = [
                 data: { breadcrumb: 'supportTickets' },
                 canActivate: [destinationGuard(workspaceDestinations.support)],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/support/tickets/support').then((m) => m.SupportPage),
+                loadComponent: () => import('../../../../modules/Bundled/Support/Frontend/tickets/support').then((m) => m.SupportPage),
             },
             {
                 path: 'tickets/new',
                 data: { breadcrumb: 'supportNew' },
                 canActivate: [destinationGuard(workspaceDestinations.support)],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/support/tickets/create/support-new').then((m) => m.SupportNewPage),
+                loadComponent: () => import('../../../../modules/Bundled/Support/Frontend/tickets/create/support-new').then((m) => m.SupportNewPage),
             },
             {
                 path: 'tickets/categories',
                 data: { breadcrumb: 'supportCategories', permission: 'support.admin' },
                 canActivate: [destinationGuard(workspaceDestinations.support), permissionGuard],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/support/categories/support-categories').then((m) => m.SupportCategoriesPage),
+                loadComponent: () => import('../../../../modules/Bundled/Support/Frontend/categories/support-categories').then((m) => m.SupportCategoriesPage),
             },
             {
                 path: 'tickets/:id',
                 data: { breadcrumb: 'supportTicketDetails' },
                 canActivate: [destinationGuard(workspaceDestinations.support)],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/support/tickets/detail/support-detail').then((m) => m.SupportDetailPage),
+                loadComponent: () => import('../../../../modules/Bundled/Support/Frontend/tickets/detail/support-detail').then((m) => m.SupportDetailPage),
             },
             {
                 path: 'contact',
                 data: { breadcrumb: false },
-                loadChildren: () => import('./features/support/enquiries/contact-routes').then((m) => m.contactRoutes),
+                loadChildren: () => import('../../../../modules/Bundled/Support/Frontend/enquiries/contact-routes').then((m) => m.contactRoutes),
             },
             {
                 path: 'settings',
@@ -266,7 +266,7 @@ export const routes = [
                 resolve: { moduleSettingsTranslations },
                 canActivate: [destinationGuard(administrationDestinations.supportSettings)],
                 canDeactivate: [unsavedGuard],
-                loadComponent: () => import('./features/support/configuration/support-settings').then((m) => m.SupportSettingsPage),
+                loadComponent: () => import('../../../../modules/Bundled/Support/Frontend/configuration/support-settings').then((m) => m.SupportSettingsPage),
             },
             { path: 'new', pathMatch: 'full', redirectTo: 'tickets/new' },
             { path: 'categories', pathMatch: 'full', redirectTo: 'tickets/categories' },
@@ -278,7 +278,7 @@ export const routes = [
         data: { breadcrumb: 'files' },
         canActivate: [authGuard, destinationGuard(workspaceDestinations.fileStorage)],
         canDeactivate: [unsavedGuard],
-        loadComponent: () => import('./features/file-storage/files/file-storage').then((m) => m.FileStoragePage),
+        loadComponent: () => import('../../../../modules/Bundled/FileStorage/Frontend/files/file-storage').then((m) => m.FileStoragePage),
     },
     {
         path: 'privacy',
@@ -372,7 +372,7 @@ export const routes = [
                 resolve: { customerTranslations, businessTranslations },
                 data: { breadcrumb: 'commercialBilling' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.license)],
-                loadComponent: () => import('./features/commercial-billing/commercial-billing').then((m) => m.CommercialBillingPage),
+                loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/commercial-billing').then((m) => m.CommercialBillingPage),
             },
             {
                 path: 'api-keys',
@@ -394,7 +394,7 @@ export const routes = [
                 resolve: { customerTranslations, businessTranslations },
                 data: { breadcrumb: 'paymentMethods', permission: 'settings.manage' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.paymentMethods)],
-                loadComponent: () => import('./features/commercial-billing/payment-method-settings').then((m) => m.PaymentMethodSettingsPage),
+                loadComponent: () => import('./features/payments/payment-method-settings').then((m) => m.PaymentMethodSettingsPage),
             },
             {
                 path: 'commercial-billing',
@@ -405,7 +405,7 @@ export const routes = [
                     authGuard,
                     destinationGuard(administrationDestinations.commercialBilling),
                 ],
-                loadComponent: () => import('./features/commercial-billing/commercial-billing-settings').then((m) => m.CommercialBillingSettingsPage),
+                loadComponent: () => import('../../../../modules/Bundled/CommercialBilling/Frontend/commercial-billing-settings').then((m) => m.CommercialBillingSettingsPage),
             },
             {
                 path: 'branding',
@@ -429,7 +429,7 @@ export const routes = [
                 resolve: { businessTranslations },
                 data: { breadcrumb: 'crmConfiguration' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.crmConfiguration)],
-                loadComponent: () => import('./features/crm/configuration/crm-configuration').then((m) => m.CrmConfigurationPage),
+                loadComponent: () => import('../../../../modules/Bundled/Crm/Frontend/configuration/crm-configuration').then((m) => m.CrmConfigurationPage),
             },
             {
                 path: 'invoicing',
@@ -437,7 +437,7 @@ export const routes = [
                 resolve: { businessTranslations },
                 data: { breadcrumb: 'issuerSettings' },
                 canActivate: [authGuard, destinationGuard(administrationDestinations.invoicingSettings)],
-                loadComponent: () => import('./features/invoicing/configuration/issuer-settings').then((m) => m.IssuerSettingsPage),
+                loadComponent: () => import('../../../../modules/Bundled/Invoicing/Frontend/configuration/issuer-settings').then((m) => m.IssuerSettingsPage),
             },
             {
                 path: 'audit-history',

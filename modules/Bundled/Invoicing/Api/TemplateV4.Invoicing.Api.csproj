@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><OutputType>Library</OutputType><IsPackable>true</IsPackable><Version>0.2.0</Version></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../src/TemplateV4.Http.Shared/TemplateV4.Http.Shared.csproj" />
+    <ProjectReference Include="../Infrastructure/TemplateV4.Invoicing.Infrastructure.csproj" />
+    <Using Include="TemplateV4.SharedKernel" />
+  </ItemGroup>
+</Project>

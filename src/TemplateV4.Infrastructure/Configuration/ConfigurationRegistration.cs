@@ -3,9 +3,9 @@ using TemplateV4.Application.Platform;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class ConfigurationRegistration
 {
-    private static void AddConfiguration(IServiceCollection services)
+    public static void AddConfiguration(IServiceCollection services)
     {
         services.AddScoped<IPlatformAppearance, PlatformAppearanceStore>();
         services.AddScoped<IHandler<SavePlatformAppearance, PlatformAppearance>, SavePlatformAppearanceHandler>();

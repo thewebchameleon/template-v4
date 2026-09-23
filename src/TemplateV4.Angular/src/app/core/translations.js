@@ -1,5 +1,5 @@
 import { businessDictionary } from './business-translations';
-import { fileStorageDictionary } from '../features/file-storage/file-storage-translations';
+import { fileStorageDictionary } from '../../../../../modules/Bundled/FileStorage/Frontend/file-storage-translations';
 import { adminDictionary } from './admin-translations';
 import { moduleDictionary } from '../features/modules/module-translations';
 import { configurationDictionary } from '../features/configuration/configuration-translations';

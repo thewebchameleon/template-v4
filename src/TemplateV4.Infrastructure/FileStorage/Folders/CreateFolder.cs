@@ -7,7 +7,7 @@ public sealed partial class FileStorageService
     public async Task<Result<FileItem>> CreateFolder(Guid actor, CreateFolderRequest request, CancellationToken ct)
     {
         if (!ValidName(request.Name)) return Result<FileItem>.Fail("files.invalid_name", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await Lock(actor, ct);
         if (!await CanWrite(actor, ct)) return Result<FileItem>.Fail("authorization.denied", ErrorKind.Forbidden);
         if (!await FolderExists(actor, request.ParentId, ct)) return Result<FileItem>.Fail("files.not_found", ErrorKind.NotFound);

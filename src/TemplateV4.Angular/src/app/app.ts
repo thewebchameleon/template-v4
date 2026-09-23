@@ -10,7 +10,7 @@ import {
   supportDestinations,
   userManagementDestinations,
 } from './core/destinations';
-import { FileStorageTree } from './features/file-storage/files/file-storage-components';
+import { FileStorageTree } from '../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-components';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';

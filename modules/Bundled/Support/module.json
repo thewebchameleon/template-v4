@@ -1,0 +1,32 @@
+{
+  "id": "support",
+  "version": "0.2.0",
+  "category": "foundation",
+  "required": false,
+  "enabledByDefault": true,
+  "runtimeConfigurable": true,
+  "dependencies": [
+    "identity",
+    "audit-recording",
+    "delivery"
+  ],
+  "capabilities": [
+    {
+      "id": "support-tickets",
+      "requires": []
+    }
+  ],
+  "host": {
+    "services": "TemplateV4.Bundled.Support.ModuleServices.Register",
+    "configure": "TemplateV4.Bundled.Support.ModuleHost.Configure",
+    "map": "TemplateV4.Bundled.Support.ModuleHost.Map",
+    "feature": "supportFeature"
+  },
+  "projects": {
+    "Domain": "Domain/TemplateV4.Support.Domain.csproj",
+    "Application": "Application/TemplateV4.Support.Application.csproj",
+    "Infrastructure": "Infrastructure/TemplateV4.Support.Infrastructure.csproj",
+    "Api": "Api/TemplateV4.Support.Api.csproj"
+  },
+  "compositionOrder": 10
+}

@@ -3,9 +3,9 @@ using TemplateV4.Application.Distribution;
 
 namespace TemplateV4.Infrastructure;
 
-public static partial class Registration
+public static class DistributionRegistration
 {
-    private static void AddPrivateModuleDistribution(IServiceCollection services)
+    public static void AddPrivateModuleDistribution(IServiceCollection services)
     {
         services.AddSingleton<Distribution.PrivateModuleDistributionConfiguration>();
         services.AddHttpClient<IPrivateModuleRegistration, Distribution.PrivateModuleRegistrationClient>(http => http.Timeout = TimeSpan.FromSeconds(30))

@@ -57,7 +57,7 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
             request.Permissions is null || request.Permissions.Length > Permissions.All.Length || request.Permissions.Distinct().Count() != request.Permissions.Length || request.Permissions.Any(p => !Permissions.All.Contains(p)) ||
             (request.Permissions.Contains(Permissions.Manage) && !request.Permissions.Contains(Permissions.Read)))
             return Result<RoleItem>.Fail("role.invalid", ErrorKind.Validation);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         // Re-read current permissions inside the serialization boundary, never trust stale JWT grants.
         var allowed = await ActorPermissions(ct);

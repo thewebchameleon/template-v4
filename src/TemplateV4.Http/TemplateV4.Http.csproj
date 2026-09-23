@@ -12,4 +12,15 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TemplateV4.Http.Shared/TemplateV4.Http.Shared.csproj" />
+    <Compile Remove="ApiResults.cs" />
+    <Compile Remove="HttpCapabilities.cs" />
+    <Compile Remove="HttpExecutionContext.cs" />
+    <Compile Remove="Endpoints/EndpointSecurity.cs" />
+  </ItemGroup>
+  <ItemGroup><Compile Remove="Modules/ModuleEndpoints.cs" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../TemplateV4.Composition/TemplateV4.Composition.csproj" /></ItemGroup>
 </Project>

@@ -25,7 +25,7 @@ public sealed class RegistrationReviewService(FrameworkDb db, SecurityService se
 
     public async Task<Result<Unit>> Review(Guid actor, ReviewRegistration request, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
         await customers.Lock(ct);
         var admin = await (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id join claim in db.RoleClaims on role.Id equals claim.RoleId where membership.UserId == actor && role.Name == "Administrator" && claim.ClaimType == "permission" && claim.ClaimValue == Permissions.Settings select membership).AnyAsync(ct);

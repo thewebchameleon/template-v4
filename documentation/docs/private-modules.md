@@ -94,7 +94,7 @@ Upload the generated compiled `.tgz` to immutable HTTPS storage. Then create, di
 release metadata from the public repository:
 
 ```sh
-node tools/releases/cli.mjs module business-modules/vehicle-licensing \
+node tools/releases/cli.mjs module modules/Private/VehicleLicensing \
   @templatev4/vehicle-licensing-compiled release.json https://packages.example.com/vehicle-licensing-0.2.0.tgz
 node tools/releases/cli.mjs digest release.json artifacts/vehicle-licensing-0.2.0/templatev4-vehicle-licensing-compiled-0.2.0.tgz
 RELEASE_FEED_URL=https://modules.example.com/api/v1/client-management/ \

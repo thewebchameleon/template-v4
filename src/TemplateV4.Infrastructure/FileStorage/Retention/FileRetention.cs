@@ -25,7 +25,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         {
             // Publish an irreversible purge decision before touching object storage. A crash or
             // partial provider failure must never leave a partly removed entry restorable.
-            await using (var claim = await db.Database.BeginTransactionAsync(ct))
+            await using (var claim = await db.Session.BeginTransactionAsync(ct))
             {
                 await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
                 var claimed = await db.Files.Where(x => x.Id == id && x.PurgedAt == null && (x.PurgeRequested || x.DeletedAt < cutoff || !x.Ready && x.CreatedAt < abandoned))
@@ -33,7 +33,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
                 if (claimed == 0) continue;
                 await claim.CommitAsync(ct);
             }
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await using var tx = await db.Session.BeginTransactionAsync(ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({TemplateV4.Application.Customers.Organisation.Id.ToString()}, 0))", ct);
             var row = await db.Files.FromSqlInterpolated($"SELECT * FROM file_storage.files WHERE \"Id\" = {id} FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
             if (row != null) await db.Entry(row).ReloadAsync(ct);
@@ -59,7 +59,7 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
     }
     private async Task ClaimDemoExpiry(DateTimeOffset now, int batch, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM file_storage.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         var cutoff = now.AddMinutes(-settings.DemoExpiryMinutes);
         if (!settings.DemoMode || settings.DemoStartedAt is null || settings.DemoStartedAt > cutoff) return;

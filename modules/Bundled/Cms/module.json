@@ -1,0 +1,24 @@
+{
+  "id": "cms",
+  "version": "0.2.0",
+  "category": "foundation",
+  "required": false,
+  "enabledByDefault": true,
+  "runtimeConfigurable": true,
+  "dependencies": [
+    "identity",
+    "audit-recording"
+  ],
+  "host": {
+    "services": "TemplateV4.Bundled.Cms.ModuleServices.Register",
+    "configure": "TemplateV4.Bundled.Cms.ModuleHost.Configure",
+    "map": "TemplateV4.Bundled.Cms.ModuleHost.Map",
+    "feature": "cmsFeature"
+  },
+  "projects": {
+    "Application": "Application/TemplateV4.Cms.Application.csproj",
+    "Infrastructure": "Infrastructure/TemplateV4.Cms.Infrastructure.csproj",
+    "Api": "Api/TemplateV4.Cms.Api.csproj"
+  },
+  "compositionOrder": 7
+}

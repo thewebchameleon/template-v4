@@ -16,6 +16,7 @@ var builder = Host.CreateApplicationBuilder(args);
 TemplateV4.Host.BusinessModules.ConfigureClient(builder);
 builder.AddServiceDefaults();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, TemplateV4.Host.BusinessModules.Descriptors);
+TemplateV4.Infrastructure.BundledRegistration.Register(builder.Services, builder.Configuration, builder.Environment);
 TemplateV4.Host.BusinessModules.Configure(builder);
 builder.Services.AddScoped<IExecutionContext, BackgroundExecutionContext>();
 using var app = builder.Build();
@@ -84,7 +85,7 @@ try
     var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     foreach (var name in new[] { "Administrator", "Reader" })
     {
-        await using var roleTransaction = await db.Database.BeginTransactionAsync();
+        await using var roleTransaction = await db.Session.BeginTransactionAsync();
         var role = await roles.FindByNameAsync(name);
         if (role is null)
         {

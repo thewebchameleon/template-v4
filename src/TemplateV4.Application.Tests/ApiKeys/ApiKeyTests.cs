@@ -13,6 +13,7 @@ using TemplateV4.Application.Cms;
 using TemplateV4.Application.Modules;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.ApiKeys;
+using TemplateV4.Infrastructure.Cms;
 using TemplateV4.Infrastructure.Persistence;
 using Xunit;
 
@@ -78,7 +79,9 @@ public sealed class ApiKeyTests
         db.Users.Add(new AppUser { Id = actor, UserName = actor.ToString(), NormalizedUserName = actor.ToString().ToUpperInvariant(), EmailConfirmed = true });
         await db.SaveChangesAsync();
         var context = new TestExecutionContext(actor, new HashSet<string>(StringComparer.Ordinal) { Permissions.ApiKeysManage });
-        var service = new ApiKeyService(db, context, TimeProvider.System);
+        await using var cms = new CmsDb(new DbContextOptionsBuilder<CmsDb>()
+            .UseNpgsql(db.Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "cms")).Options, db.Session);
+        var service = new ApiKeyService(db, context, TimeProvider.System, new CmsApiKeyCollections(cms));
 
         var created = await service.Create(new("Reporting", [ApiScopes.CmsArticlesRead], 30), CancellationToken.None);
         Assert.True(created.IsSuccess);

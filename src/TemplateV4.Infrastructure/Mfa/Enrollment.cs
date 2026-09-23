@@ -8,7 +8,7 @@ public sealed partial class SecurityService
 {
     public async Task<Result<MfaEnrollment>> BeginEnrollment(Guid id, Guid sessionId, SecurityProof proof, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         var setupEnrollment = string.IsNullOrEmpty(proof.Password);
         if (await RequiresRecentVerification(user, sessionId, ct) || setupEnrollment && !await CanEnrollFromSetupSession(user, sessionId, ct))
@@ -25,7 +25,7 @@ public sealed partial class SecurityService
     }
     public async Task<Result<string[]>> ConfirmEnrollment(Guid id, Guid sessionId, string code, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Lock(id, ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct); await Lock(id, ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         if (user.TwoFactorEnabled || await users.IsLockedOutAsync(user) || string.IsNullOrWhiteSpace(code) || code.Length > 16 || !await users.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultAuthenticatorProvider, code.Replace(" ", "")))
         { await users.AccessFailedAsync(user); await tx.CommitAsync(ct); return Result<string[]>.Fail("auth.factor_invalid", ErrorKind.Validation); }
@@ -55,7 +55,7 @@ public sealed partial class SecurityService
     }
     public async Task<Result<string[]>> ManageMfa(Guid id, Guid sessionId, SecurityProof proof, bool disable, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await db.Session.BeginTransactionAsync(ct);
         var user = (await users.FindByIdAsync(id.ToString()))!;
         if (!user.TwoFactorEnabled || !await Proof(user, proof, ct)) { await tx.CommitAsync(ct); return Result<string[]>.Fail("auth.factor_invalid", ErrorKind.Unauthorized); }
         if (disable && !user.EmailMfaEnabled && await GloballyRequired(user, ct) && (await users.GetPasskeysAsync(user)).Count == 0) return Result<string[]>.Fail("auth.mfa_required", ErrorKind.Conflict);
