@@ -8,7 +8,7 @@ export function filterVisibleFileFolders<T extends { fileCount?: number }>(
   group: string,
   folders: readonly T[],
 ): T[] {
-  return group === 'file-storage' ? folders.filter(() => true) : [];
+  return group === 'file-storage' ? folders.filter(() => true) : folders.filter((folder) => (folder.fileCount ?? 0) > 0);
 }
 
 const extensions: Record<string, string> = {

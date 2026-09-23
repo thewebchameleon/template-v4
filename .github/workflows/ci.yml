@@ -76,7 +76,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: ${{ steps.tools.outputs.dotnet }}
-      - run: dotnet restore src/TemplateV4.Backend.slnx --locked-mode
+      - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - name: Verify C# formatting
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -85,10 +85,10 @@ jobs:
             git fetch origin "$BASE_SHA" --depth=1
             mapfile -t files < <(git diff --name-only "$BASE_SHA" HEAD -- '*.cs' | grep -v '^src/TemplateV4.Persistence/Persistence/Migrations/' || true)
             if [ "${#files[@]}" -gt 0 ]; then
-              dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --include "${files[@]}"
+              dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --include "${files[@]}"
             fi
           else
-            dotnet format src/TemplateV4.Backend.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Persistence/Persistence/Migrations
+            dotnet format src/TemplateV4.slnx --verify-no-changes --no-restore --exclude src/TemplateV4.Persistence/Persistence/Migrations
           fi
       - run: dotnet test src/TemplateV4.Application.Tests/TemplateV4.Application.Tests.csproj -c Release --no-restore --logger trx
 
@@ -111,7 +111,7 @@ jobs:
           node-version: ${{ steps.tools.outputs.node }}
       - run: npm install -g npm@${{ steps.tools.outputs.npm }}
       - run: npm audit --prefix src/TemplateV4.Angular --omit=dev --audit-level=moderate
-      - run: dotnet restore src/TemplateV4.Backend.slnx --locked-mode
+      - run: dotnet restore src/TemplateV4.slnx --locked-mode
       - name: Audit NuGet dependencies
         run: node tools/audit-nuget.mjs --no-restore
 

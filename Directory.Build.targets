@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <DiscoverBusinessModules Condition="'$(MSBuildProjectName)' == 'TemplateV4.ApiService' Or '$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker' Or '$(MSBuildProjectName)' == 'TemplateV4.DatabaseMigrator'">true</DiscoverBusinessModules>
-    <_BusinessSelection Condition="'$(DiscoverBusinessModules)' == 'true' And Exists('$(MSBuildThisFileDirectory)business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)business-modules.enabled'))</_BusinessSelection>
+    <_BusinessSelection Condition="'$(DiscoverBusinessModules)' == 'true' And Exists('$(MSBuildThisFileDirectory)modules/client/business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)modules/client/business-modules.enabled'))</_BusinessSelection>
   </PropertyGroup>
   <Import Project=".private-modules/Directory.Build.private.props" Condition="Exists('.private-modules/Directory.Build.private.props')" />
   <PropertyGroup>

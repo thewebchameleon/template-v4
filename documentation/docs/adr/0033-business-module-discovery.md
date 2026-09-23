@@ -2,7 +2,7 @@
 
 Status: Accepted
 
-Physical inclusion uses the explicit `client-modules.json` allowlist defined by
+Physical inclusion uses the explicit `modules/client/client-modules.json` allowlist defined by
 [ADR 0034](0034-private-client-module-composition.md).
 
 Supersedes the manual host attachment convention in ADR 0032. The user approved

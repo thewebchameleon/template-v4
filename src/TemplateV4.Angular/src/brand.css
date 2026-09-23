@@ -63,7 +63,7 @@
   --secondary: var(--brand-neutral-100);
   --secondary-foreground: var(--brand-neutral-900);
   --muted: var(--brand-neutral-100);
-  --muted-foreground: var(--brand-neutral-500);
+  --muted-foreground: var(--brand-neutral-600);
   --accent: var(--brand-primary-50);
   --accent-foreground: var(--brand-primary-900);
   --warning: oklch(0.553 0.195 38.402);

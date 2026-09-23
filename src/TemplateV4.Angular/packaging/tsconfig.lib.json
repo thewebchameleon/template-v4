@@ -1,6 +1,14 @@
 {
   "extends": "../tsconfig.json",
-  "compilerOptions": { "allowJs": true, "checkJs": false, "declaration": true, "declarationMap": true, "inlineSources": true, "types": [], "rootDir": ".." },
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true,
+    "types": [],
+    "rootDir": ".."
+  },
   "angularCompilerOptions": { "compilationMode": "partial" },
-  "exclude": ["../e2e", "../src/**/*.spec.ts"]
+  "exclude": ["../src/**/*.spec.ts"]
 }

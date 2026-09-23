@@ -12,11 +12,11 @@ Group module-owned pages, resolvers, translations and services under `src/app/fe
 - Keep shared styling in owned components and semantic theme/layout tokens. Maintain UI text in both manifest-supported cultures; keep generated API code untouched.
 - Register built-in destination labels in `core/navigation-translations.ts`, which loads with the shell. Keep the `BuiltInDestination` type checks in `core/destinations.ts`; a route resolver must never be required to translate a menu entry. Keep page-only text in feature translations.
 - Accessibility is an acceptance criterion: semantic HTML, keyboard operation, visible focus, accessible names and state announcements, contrast in both themes, reduced-motion preferences, and usable zoom/reflow.
-- Validate affected interactions with proportional keyboard and visual review and applicable automated accessibility checks. Root E2E permission requirements also apply to accessibility automation. Report any review that could not be performed.
+- Validate affected interactions with proportional keyboard and visual review. Report any review that could not be performed.
 
 ## Validation
 
-Follow the root minimum-test policy. Reuse existing coverage and add only the fewest cases needed for changed interaction behavior or a regression. Styling, copy edits, and straightforward behavior-preserving refactors need no new tests. Keep visual and accessibility review proportional to the affected UI; do not build a new test harness or duplicate browser-free coverage in E2E without a distinct risk. Preserve accessibility acceptance criteria and the root E2E permission requirement.
+Follow the root minimum-test policy. Reuse existing coverage and add only the fewest cases needed for changed interaction behavior or a regression. Styling, copy edits, and straightforward behavior-preserving refactors need no new tests. Keep visual and accessibility review proportional to the affected UI. Preserve accessibility acceptance criteria.
 
 ## Data tables
 

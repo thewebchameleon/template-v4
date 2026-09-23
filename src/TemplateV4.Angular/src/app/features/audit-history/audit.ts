@@ -313,6 +313,7 @@ class RelatedRecordHeader {}
           hlmDrawerBody
           orientation="vertical"
           role="region"
+          tabindex="0"
           [attr.aria-label]="'auditDetails' | t"
           class="min-h-0 flex-1"
         >

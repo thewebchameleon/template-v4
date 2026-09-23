@@ -119,28 +119,6 @@ export function compatibility(components) {
       .map(([id]) => `${c.id} requires compatible ${id}`),
   );
 }
-export function propose(lock, releases) {
-  validateLock(lock);
-  releases.forEach(validateRelease);
-  const proposed = structuredClone(lock);
-  // Try the newest versions as a coordinated combination, including reverse dependencies.
-  for (let i = 0; i < proposed.components.length; i++) {
-    const current = proposed.components[i];
-    proposed.components[i] =
-      releases
-        .filter(
-          (r) => r.id === current.id && compare(r.version, current.version) > 0,
-        )
-        .sort((a, b) => compare(b.version, a.version))[0] ?? current;
-  }
-  const blocked = compatibility(proposed.components);
-  if (blocked.length) return { lock, blocked, changed: false };
-  return {
-    lock: proposed,
-    blocked: [],
-    changed: JSON.stringify(lock) !== JSON.stringify(proposed),
-  };
-}
 export const sha256 = (value) =>
   crypto.createHash("sha256").update(value).digest("hex");
 export async function boundedBody(response, limit = 4 * 1024 * 1024) {
@@ -152,27 +130,4 @@ export async function boundedBody(response, limit = 4 * 1024 * 1024) {
     parts.push(Buffer.from(part));
   }
   return Buffer.concat(parts);
-}
-export async function readFeed(url, token) {
-  if (!httpsUrl(url) || !token)
-    throw new Error("An HTTPS release feed and credential are required.");
-  const response = await fetch(
-    new URL("v1/releases", url.endsWith("/") ? url : url + "/"),
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      redirect: "error",
-      signal: AbortSignal.timeout(30000),
-    },
-  );
-  if (!response.ok)
-    throw new Error(`Release feed returned ${response.status}.`);
-  const feed = JSON.parse((await boundedBody(response)).toString());
-  if (
-    feed.schemaVersion !== 1 ||
-    !Array.isArray(feed.releases) ||
-    feed.releases.length > 1000
-  )
-    throw new Error("Invalid release feed.");
-  feed.releases.forEach(validateRelease);
-  return feed.releases;
 }

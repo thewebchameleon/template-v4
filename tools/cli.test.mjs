@@ -11,6 +11,7 @@ test('scaffolding is deterministic, bounded and never overwrites existing work',
   try {
     fs.mkdirSync(path.join(temporary, 'tools'));
     fs.copyFileSync(path.join(root, 'tools/framework.mjs'), path.join(temporary, 'tools/framework.mjs'));
+    fs.copyFileSync(path.join(root, 'tools/scaffold-bundled.mjs'), path.join(temporary, 'tools/scaffold-bundled.mjs'));
     fs.copyFileSync(path.join(root, 'framework.json'), path.join(temporary, 'framework.json'));
     fs.mkdirSync(path.join(temporary, 'modules'));
     fs.copyFileSync(path.join(root, 'modules/catalog.json'), path.join(temporary, 'modules/catalog.json'));
@@ -26,10 +27,12 @@ test('scaffolding is deterministic, bounded and never overwrites existing work',
     assert.notEqual(run('new', 'unknown', 'Example').status, 0);
     assert.equal(run('new', 'command', 'ArchiveUser').status, 0);
     assert.equal(run('new', 'module', 'Invoices').status, 0);
-    assert.ok(fs.existsSync(path.join(temporary, 'src/TemplateV4.Infrastructure/Invoices/InvoicesRegistration.cs')));
-    assert.ok(fs.existsSync(path.join(temporary, 'src/TemplateV4.Application/Invoices/InvoicesPermissions.cs')));
-    assert.match(fs.readFileSync(path.join(temporary, 'src/TemplateV4.Http/Invoices/InvoicesEndpoints.cs'), 'utf8'), /RequireCapability\("invoices"\)/);
-    assert.equal(JSON.parse(fs.readFileSync(path.join(temporary, 'modules/scaffolds/invoices.json'), 'utf8')).enabledByDefault, false);
+    const scaffold = path.join(temporary, 'modules/Bundled/Invoices');
+    assert.ok(fs.existsSync(path.join(scaffold, 'Infrastructure/ModuleServices.cs')));
+    assert.ok(fs.existsSync(path.join(scaffold, 'Api/ModuleHost.cs')));
+    const module = JSON.parse(fs.readFileSync(path.join(scaffold, 'module.json'), 'utf8'));
+    assert.equal(module.enabledByDefault, false);
+    assert.equal(module.runtimeConfigurable, true);
     assert.notEqual(run('new', 'module', 'Invoices').status, 0);
     const permissionPath = path.join(temporary, 'src/TemplateV4.Application/Support/ExistingPermissions.cs');
     fs.writeFileSync(permissionPath, 'existing permission declarations');

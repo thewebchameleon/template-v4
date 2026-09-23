@@ -2,15 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 export function readClientModules(root) {
-  const file = path.join(root, "client-modules.json");
-  const previousSelection = path.join(root, "business-modules.enabled");
+  const file = path.join(root, "modules/client/client-modules.json");
+  const previousSelection = path.join(root, "modules/client/business-modules.enabled");
   if (
     !fs.existsSync(file) &&
     fs.existsSync(previousSelection) &&
     fs.readFileSync(previousSelection, "utf8").trim()
   )
     throw new Error(
-      "Transfer existing business-modules.enabled IDs into client-modules.json privateModules before regenerating. Existing selection was preserved.",
+      "Transfer existing modules/client/business-modules.enabled IDs into modules/client/client-modules.json privateModules before regenerating. Existing selection was preserved.",
     );
   const config = fs.existsSync(file)
     ? JSON.parse(fs.readFileSync(file, "utf8"))
@@ -32,7 +32,7 @@ export function readClientModules(root) {
     new Set(config.privateModules).size !== config.privateModules.length
   )
     throw new Error(
-      "Invalid client-modules.json: use schemaVersion 1, foundation booleans and unique privateModules IDs.",
+      "Invalid modules/client/client-modules.json: use schemaVersion 1, foundation booleans and unique privateModules IDs.",
     );
   const catalog = JSON.parse(
     fs.readFileSync(path.join(root, "modules/catalog.json"), "utf8"),
@@ -56,12 +56,12 @@ export function selectionText(ids) {
 }
 
 export function checkGeneratedSelection(root, ids) {
-  const file = path.join(root, "business-modules.enabled");
+  const file = path.join(root, "modules/client/business-modules.enabled");
   const actual = fs.existsSync(file)
     ? fs.readFileSync(file, "utf8").replaceAll("\r\n", "\n")
     : "";
   if (actual !== selectionText(ids))
     throw new Error(
-      "Stale business-modules.enabled. Run node tools/discover-business-modules.mjs before restore/build; edit client-modules.json, not generated selection.",
+      "Stale modules/client/business-modules.enabled. Run node tools/discover-business-modules.mjs before restore/build; edit modules/client/client-modules.json, not generated selection.",
     );
 }

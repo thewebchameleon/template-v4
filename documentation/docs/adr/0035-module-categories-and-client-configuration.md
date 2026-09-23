@@ -9,13 +9,13 @@ The catalog distinguishes required `core`, optional `foundation`, and physically
 selected `private` modules. The catalog is authoritative for current category and
 dependency membership; ADRs must not duplicate its inventory.
 
-Ignored `client-modules.json` uses schema version 1, a `foundation` boolean map, and a
-`privateModules` list. Foundation keys must name catalog foundation modules. Private IDs
+Ignored `modules/client/client-modules.json` uses schema version 1, a `foundation`
+boolean map, and a `privateModules` list. Foundation keys must name catalog foundation modules. Private IDs
 must be unique kebab-case identifiers. An absent file selects no private modules and
 uses preset/default foundation state.
 
-The discovery tool generates `business-modules.enabled` and all build-owned host and
-frontend composition. Stale generated selection fails before compilation. Explicit
+The discovery tool generates `modules/client/business-modules.enabled` and all
+build-owned host and frontend composition. Stale generated selection fails before compilation. Explicit
 client choices override presets, while deployment restrictions may disable but never
 enable client-excluded modules.
 

@@ -14,14 +14,12 @@ Both platforms run the same four parts:
 - **Worker** handles background jobs and email.
 - **Migrator** prepares the database before the app starts.
 
-### 1. Build a release
+### 1. Check out the source
 
-Run the **Publish Compose release** GitHub Actions workflow. It tests the app,
-builds the four Docker images, and updates the `deploy-demo` branch only when
-everything succeeds.
-
-Private client apps use their own release workflow and a `deploy` branch. Read
-[Modules](documentation/docs/modules.md) before creating one.
+Check out the intended public repository revision on the deployment server. The
+server builds Web, API, Worker, and Migrator from this checkout. Private modules
+are resolved as compiled packages during the coordinated build. Read
+[Modules](documentation/docs/modules.md) before configuring a private client.
 
 ### 2. Set up your hosting platform
 
@@ -30,8 +28,9 @@ Follow the guide for your platform:
 - [Deploy with EasyPanel](deploy/compose-platforms/README.md)
 - [Deploy with Coolify](deploy/compose-platforms/COOLIFY.md)
 
-Connect the platform to the release branch, not the source branch. The release
-branch contains ready-to-run images and Compose files.
+Connect the platform to the source checkout and use `compose.production.yaml`.
+Keep the checkout and Compose project name stable so updates reuse the same data
+volumes.
 
 ### 3. Add production settings
 
@@ -54,9 +53,10 @@ Point your public HTTPS domain to the **Web** service on port `8080`. The hostin
 platform should manage HTTPS certificates. Do not expose the API, Worker, Migrator,
 or PostgreSQL directly to the internet.
 
-On startup, PostgreSQL becomes ready, the Migrator updates the database, and then
-the API, Worker, and Web services start. If migration fails, fix it before starting
-the rest of the app.
+PostgreSQL uses one `postgres` login and `POSTGRES_PASSWORD` for Migrator, API,
+and Worker. For the first deployment, PostgreSQL becomes ready, the Migrator
+updates the database, and then API, Worker, and Web start. If migration fails,
+fix it before starting the rest of the app.
 
 ### 5. Create the first administrator
 
@@ -70,11 +70,12 @@ instances.
 Before every update:
 
 1. Back up PostgreSQL, file storage, signing keys, and Data Protection keys.
-2. Build a new release.
-3. Put the site into maintenance mode.
-4. Stop the old API and Worker.
-5. Deploy the release and let the Migrator finish first.
-6. Check service health, then reopen the site.
+2. Check out the intended source revision.
+3. Disable automatic platform deployments and run `sh deploy/private-module-deploy.sh`
+   from the preserved checkout with the platform's Compose file, environment file,
+   project directory, and project name. The helper stops writers, resolves packages,
+   builds images, backs up PostgreSQL, runs Migrator, and starts the workloads.
+4. Check service health, then reopen the site.
 
 Do not use `docker compose down -v`; `-v` removes persistent data volumes.
 

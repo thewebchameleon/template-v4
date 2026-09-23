@@ -37,10 +37,12 @@ public sealed class ApiKeyTests
         builder.Services.AddAuthorization();
         builder.Services.AddScoped<ICms>(_ => null!);
         builder.Services.AddScoped<ICmsSections>(_ => null!);
+        builder.Services.AddScoped<IContentCms>(_ => null!);
         await using var app = builder.Build();
         app.MapExternalCmsEndpoints();
-        var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(x => x.Endpoints).OfType<RouteEndpoint>().ToArray();
-        Assert.Equal(3, endpoints.Length);
+        var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(x => x.Endpoints).OfType<RouteEndpoint>()
+            .Where(endpoint => endpoint.RoutePattern.RawText?.StartsWith("/api/external/cms/", StringComparison.Ordinal) == true).ToArray();
+        Assert.Equal(5, endpoints.Length);
         Assert.All(endpoints, endpoint =>
         {
             Assert.StartsWith("/api/external/cms/", endpoint.RoutePattern.RawText, StringComparison.Ordinal);

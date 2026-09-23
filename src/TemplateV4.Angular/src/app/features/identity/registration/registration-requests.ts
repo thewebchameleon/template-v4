@@ -6,14 +6,14 @@ import {
   Resource,
   ListQuery,
   Confirmations,
-} from '../../../shared/workspace';
-import { DataTable, DataTableFeatures, ServerSort } from '../../../shared/data-table';
-import { RecordIdentity, RowActions } from '../../../shared/workspace-cells';
-import { WorkspaceApi } from '../../../core/workspace-api';
-import { I18n } from '../../../core/i18n';
+} from '@app/shared/workspace';
+import { DataTable, DataTableFeatures, ServerSort } from '@app/shared/data-table';
+import { RecordIdentity, RowActions } from '@app/shared/workspace-cells';
+import { WorkspaceApi } from '@app/core/workspace-api';
+import { I18n } from '@app/core/i18n';
 import { Notifications } from '../../notifications/notifications';
-import { Auth } from '../../../core/auth';
-import { RegistrationReviewItem, PageOfRegistrationReviewItem } from '../../../api/models';
+import { Auth } from '@app/core/auth';
+import { RegistrationReviewItem, PageOfRegistrationReviewItem } from '@app/api/models';
 const column = createColumnHelper<DataTableFeatures, RegistrationReviewItem>();
 @Component({
   selector: 'app-registration-requests',

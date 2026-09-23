@@ -25,7 +25,7 @@ export function selectedIds(root) {
     new Set(ids).size !== ids.length
   )
     throw new Error(
-      "business-modules.enabled must contain unique module IDs, one per line.",
+      "modules/client/business-modules.enabled must contain unique module IDs, one per line.",
     );
   return ids;
 }
@@ -184,7 +184,7 @@ if (
     : frontend(modules);
   if (!host && !process.argv.includes("--check"))
     fs.writeFileSync(
-      path.join(repository, "business-modules.enabled"),
+      path.join(repository, "modules/client/business-modules.enabled"),
       selectionText(selectedIds(repository)),
     );
   if (!host) {

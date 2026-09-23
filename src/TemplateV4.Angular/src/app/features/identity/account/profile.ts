@@ -18,13 +18,13 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
-import { Auth } from '../../../core/auth';
+import { Auth } from '@app/core/auth';
 import { Passkeys } from '../../passkeys/passkeys';
-import { Runtime } from '../../../core/runtime';
-import { Translate } from '../../../core/i18n';
-import { ProfileResponse } from '../../../api/models/profile-response';
-import { MfaEnrollment } from '../../../api/models/mfa-enrollment';
-import { protectUnload } from '../../../shared/confirmation';
+import { Runtime } from '@app/core/runtime';
+import { Translate } from '@app/core/i18n';
+import { ProfileResponse } from '@app/api/models/profile-response';
+import { MfaEnrollment } from '@app/api/models/mfa-enrollment';
+import { protectUnload } from '@app/shared/confirmation';
 import { Notifications } from '../../notifications/notifications';
 
 type MfaProfile = ProfileResponse & {

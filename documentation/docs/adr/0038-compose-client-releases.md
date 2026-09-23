@@ -1,6 +1,6 @@
 # ADR 0038: coordinated client Compose releases
 
-Status: Accepted
+Status: Superseded by [ADR 0052](0052-provider-assigned-compiled-private-modules.md)
 
 Native EasyPanel Compose deployments need the same compiled module selection in Web,
 API, Worker and Migrator. Independently moving image tags can mix release components;

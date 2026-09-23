@@ -115,16 +115,5 @@ try
         }
         await roleTransaction.CommitAsync();
     }
-    if (builder.Configuration.GetValue("Database:GrantRuntimeRoles", false))
-        await db.Database.ExecuteSqlRawAsync("""
-            GRANT USAGE ON SCHEMA app, identity, messaging, audit, files, support, crm, invoicing, cms, website, contact TO templatev4_api, templatev4_worker;
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app, identity, messaging, files, support, crm, invoicing, cms, website, contact TO templatev4_api, templatev4_worker;
-            GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA audit TO templatev4_api, templatev4_worker;
-            GRANT USAGE ON ALL SEQUENCES IN SCHEMA app, identity, messaging, audit, files, support, crm, invoicing, cms, website, contact TO templatev4_api, templatev4_worker;
-            GRANT USAGE ON SCHEMA quartz TO templatev4_worker;
-            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA quartz TO templatev4_worker;
-            GRANT USAGE ON ALL SEQUENCES IN SCHEMA quartz TO templatev4_worker;
-            REVOKE ALL ON app.migrations FROM templatev4_api, templatev4_worker;
-            """);
 }
 finally { await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_unlock(74842000)"); }

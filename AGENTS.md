@@ -4,6 +4,7 @@
 
 - Complete the requested work within its authorized scope. Make routine, reversible implementation decisions using existing conventions. Ask and wait when missing input materially affects scope, public behavior, data safety, or an irreversible action; do not ask again for authorization already given.
 - Inspect the working tree before editing and preserve unrelated local changes. Work in the primary agent; parallelize independent reads and checks when useful.
+- Use only the repository-root `.temp/` directory for AI-generated temporary files and folders. Do not create temporary work elsewhere in the repository; remove it when finished.
 - Scale inspection and validation to the change. Use focused searches and read relevant sections once; avoid full-repo audits for local fixes. Use available timing information without building a separate timing harness.
 - Keep routine work simple: follow the nearest existing pattern, avoid speculative analysis and elaborate scaffolding, and stop once the requested behavior and required checks are satisfied.
 - Keep updates concise. Finish with the outcome, validation performed, and any remaining limitation. Do not claim checks that were not run.
@@ -35,4 +36,4 @@ Do not write tests, ordinary validation, fallback behavior, or defensive error h
 
 After the core implementation is clear, explain the process and let the user use it to build shared understanding. If the user explicitly requests further hardening, work through concrete scenarios with them step by step, then add only the targeted tests, important checks, and justified fallbacks arising from those scenarios. Keep the user in control of that progression: do not infer permission to add these supporting layers from a general implementation request.
 
-Any test execution also requires an explicit user request or permission. E2E tests require specific explicit permission and include browser accessibility checks, Angular's `npm test` (Playwright), and end-to-end smoke scripts. Read [verification guidance](documentation/docs/verification.md) before running requested checks, and choose the smallest relevant command set.
+Any test execution also requires an explicit user request or permission. Read [verification guidance](documentation/docs/verification.md) before running requested checks, and choose the smallest relevant command set.

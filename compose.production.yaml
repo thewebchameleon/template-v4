@@ -27,7 +27,7 @@ services:
       POSTGRES_DB: templatev4
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes: [postgres:/var/lib/postgresql, './deploy/init-database.sh:/docker-entrypoint-initdb.d/01-roles.sh:ro']
+    volumes: [postgres:/var/lib/postgresql]
     healthcheck:
       test: [CMD-SHELL, pg_isready -U postgres -d templatev4]
       interval: 5s
@@ -38,8 +38,7 @@ services:
     build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.DatabaseMigrator}}
     environment:
       <<: *runtime
-      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_migrator;Password=${POSTGRES_PASSWORD}
-      Database__GrantRuntimeRoles: 'true'
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=postgres;Password=${POSTGRES_PASSWORD}
     volumes: [keys:/keys]
     depends_on:
       postgres: {condition: service_healthy}
@@ -48,7 +47,7 @@ services:
     restart: unless-stopped
     environment:
       <<: *runtime
-      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_api;Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=postgres;Password=${POSTGRES_PASSWORD}
       Jwt__PrivateKeyBase64: ${JWT_KEY_B64}
       ReverseProxy__Address: web
       ModuleDistribution__Url: ${MODULE_DISTRIBUTION_URL:-}
@@ -71,7 +70,7 @@ services:
     restart: unless-stopped
     environment:
       <<: *runtime
-      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4_worker;Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__app: Host=postgres;Database=templatev4;Username=postgres;Password=${POSTGRES_PASSWORD}
       Email__Host: ${SMTP_HOST}
       Email__Port: ${SMTP_PORT}
       Email__From: ${SMTP_FROM}

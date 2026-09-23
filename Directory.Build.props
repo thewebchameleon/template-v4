@@ -7,7 +7,7 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <_ClientModuleSelection Condition="Exists('$(MSBuildThisFileDirectory)business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)business-modules.enabled').Trim())</_ClientModuleSelection>
+    <_ClientModuleSelection Condition="Exists('$(MSBuildThisFileDirectory)modules/client/business-modules.enabled')">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)modules/client/business-modules.enabled').Trim())</_ClientModuleSelection>
     <NuGetLockFilePath Condition="'$(_ClientModuleSelection)' != '' And ('$(MSBuildProjectName)' == 'TemplateV4.ApiService' Or '$(MSBuildProjectName)' == 'TemplateV4.BackgroundWorker' Or '$(MSBuildProjectName)' == 'TemplateV4.DatabaseMigrator' Or '$(MSBuildProjectName)' == 'TemplateV4.AppHost' Or '$(MSBuildProjectName)' == 'TemplateV4.Application.Tests')">$(MSBuildThisFileDirectory).local/client-locks/$(MSBuildProjectName).packages.lock.json</NuGetLockFilePath>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <InformationalVersion Condition="'$(ReleaseVersion)' != ''">$(ReleaseVersion)</InformationalVersion>

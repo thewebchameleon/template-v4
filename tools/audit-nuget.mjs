@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
 const child = spawn(
   'dotnet',
-  ['list', 'src/TemplateV4.Backend.slnx', 'package', '--vulnerable', '--include-transitive', '--format', 'json', ...process.argv.slice(2)],
+  ['list', 'src/TemplateV4.slnx', 'package', '--vulnerable', '--include-transitive', '--format', 'json', ...process.argv.slice(2)],
   { cwd: root }
 );
 

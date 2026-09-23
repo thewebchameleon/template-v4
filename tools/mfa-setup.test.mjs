@@ -46,7 +46,7 @@ function harness(file, setupRequired = true, returnUrl = "/me") {
       supported: true,
       register: async (proof, name) => {
         assert.equal(proof.password, "");
-        assert.equal(name, "Browser");
+        assert.equal(name, undefined);
         calls.push("passkeys/register");
       },
     },

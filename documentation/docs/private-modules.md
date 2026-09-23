@@ -84,7 +84,8 @@ versions; resume admits current releases again.
 
 ## Build and publish a private release
 
-From a committed `business-modules` checkout, build the compiled artifact:
+From a committed private `business-modules` checkout, run that repository's build tool to
+create the compiled artifact. The tool is not part of the public foundation checkout:
 
 ```sh
 node tools/build-compiled-module.mjs vehicle-licensing artifacts/vehicle-licensing-0.2.0

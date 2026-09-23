@@ -76,7 +76,7 @@ export function scaffoldBusiness(root, name) {
   );
   files.set(
     `${folder}/Tests/README.md`,
-    `# ${name} verification\n\nPlace behavioral tests under their owning concern or use case. Register a module-owned test project here when implementing operations. Persistence requires real PostgreSQL coverage; browser tests in E2E require explicit permission.\n`,
+    `# ${name} verification\n\nPlace behavioral tests under their owning concern or use case. Register a module-owned test project here when implementing operations. Persistence requires real PostgreSQL coverage.\n`,
   );
   for (const relative of files.keys())
     if (fs.existsSync(path.join(root, relative)))

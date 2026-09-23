@@ -12,6 +12,12 @@ public service; it serves Angular and proxies `/api` on the same origin. AppHost
 3. Supply every setting in `deploy/compose-platforms/.env.example`, including a strong
    database password, production RSA signing key, SMTP credentials, public origins, and
    private S3-compatible storage credentials.
+   PostgreSQL, Migrator, API, and Worker all use the `postgres` login with
+   `POSTGRES_PASSWORD`. This simplifies deployment but gives application processes
+   database administrator privileges. Keep the database network private and protect
+   that password. Existing databases retain any previously created runtime roles;
+   the application no longer uses them, and PostgreSQL does not rerun initialization
+   scripts for an existing volume.
 4. Expose only Web port 8080 through platform-managed HTTPS. Keep API, Worker, Migrator,
    PostgreSQL, health endpoints, and telemetry private. Preserve WebSocket upgrades.
 5. Run Migrator to completion before API and Worker. Deployments with private modules use

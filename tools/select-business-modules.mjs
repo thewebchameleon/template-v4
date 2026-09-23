@@ -19,11 +19,11 @@ if (
 const modules = discover(root, selection);
 const client = readClientModules(root);
 fs.writeFileSync(
-  path.join(root, "client-modules.json"),
+  path.join(root, "modules/client/client-modules.json"),
   JSON.stringify({ ...client, privateModules: selection }, null, 2) + "\n",
 );
 fs.writeFileSync(
-  path.join(root, "business-modules.enabled"),
+  path.join(root, "modules/client/business-modules.enabled"),
   selection.length ? selection.join("\n") + "\n" : "",
 );
 fs.writeFileSync(

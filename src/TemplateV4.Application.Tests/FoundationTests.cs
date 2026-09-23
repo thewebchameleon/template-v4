@@ -53,7 +53,7 @@ public sealed class FoundationTests
     public void Application_does_not_reference_infrastructure_or_hosting()
     {
         Assert.All(typeof(CreateUser).Assembly.GetReferencedAssemblies(), reference =>
-            Assert.True(reference.Name!.StartsWith("System", StringComparison.Ordinal) || reference.Name is "TemplateV4.Domain" or "TemplateV4.SharedKernel"));
+            Assert.True(reference.Name!.StartsWith("System", StringComparison.Ordinal) || reference.Name is "TemplateV4.Domain" or "TemplateV4.SharedKernel" or "TemplateV4.ModuleContracts"));
     }
     [Fact]
     public void User_creation_records_domain_event_and_updates_concurrency_token()

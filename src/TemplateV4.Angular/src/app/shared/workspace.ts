@@ -399,6 +399,8 @@ export class ListPager {
 }
 
 export { Confirmation, Confirmations, unsavedGuard, protectUnload } from './confirmation';
+export { ViewModeToggle } from './view-mode-toggle';
+export { Translate } from '../core/i18n';
 
 export const WorkspaceUi = [
   PageHeader,

@@ -70,6 +70,7 @@ public sealed class SupportFeatureTests
         });
         builder.Logging.ClearProviders();
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, []);
+        TemplateV4.Infrastructure.BundledRegistration.Register(builder.Services, builder.Configuration, builder.Environment);
         builder.Services.AddScoped<BackgroundExecutionContext>();
         builder.Services.AddScoped<IExecutionContext>(sp => sp.GetRequiredService<BackgroundExecutionContext>());
         await using var provider = builder.Services.BuildServiceProvider();
@@ -86,12 +87,14 @@ public sealed class SupportFeatureTests
                     VALUES ({enquiry}, 'Retained', 'retained@example.test', 'Existing enquiry', now(), FALSE);
                 """);
             await db.Database.MigrateAsync();
+            await scope.ServiceProvider.GetRequiredService<SupportDb>().Database.MigrateAsync();
             Assert.False(db.Database.HasPendingModelChanges());
-            var settings = await db.Set<SupportSettingsRow>().SingleAsync();
+            var supportDb = scope.ServiceProvider.GetRequiredService<SupportDb>();
+            var settings = await supportDb.Set<SupportSettingsRow>().SingleAsync();
             Assert.False(settings.EnquiriesEnabled);
             Assert.Equal("enquiries@example.test", settings.NotificationEmail);
             Assert.False(await db.RuntimeModules.AnyAsync(x => x.Id == "contact"));
-            Assert.True(await db.Set<ContactRow>().AnyAsync(x => x.Id == enquiry));
+            Assert.True(await supportDb.Set<ContactRow>().AnyAsync(x => x.Id == enquiry));
             foreach (var id in new[] { administrator, requester, other })
             {
                 db.Users.Add(new AppUser { Id = id, UserName = id.ToString(), EmailConfirmed = true });
@@ -118,7 +121,16 @@ public sealed class SupportFeatureTests
         async Task<Result<SupportModuleSettings>> Save(SaveSupportModuleSettings request)
         {
             using var scope = Scope(administrator);
-            return await scope.ServiceProvider.GetRequiredService<Dispatcher<SaveSupportModuleSettings, SupportModuleSettings>>().Send(request);
+            var db = scope.ServiceProvider.GetRequiredService<SupportDb>();
+            await using var transaction = await db.Session.BeginTransactionAsync();
+            var result = await scope.ServiceProvider.GetRequiredService<ISupportModuleSettings>().Save(request, default);
+            if (result.IsSuccess)
+            {
+                await db.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            else await transaction.RollbackAsync();
+            return result;
         }
         async Task<Dictionary<string, bool>> Capabilities()
         {
@@ -150,7 +162,7 @@ public sealed class SupportFeatureTests
         {
             var ticket = (await scope.ServiceProvider.GetRequiredService<ISupportTickets>().Get(new(ticketId), default)).Value!;
             Assert.True((await scope.ServiceProvider.GetRequiredService<Dispatcher<AttachTicket, Unit>>().Send(new(ticketId, "sample.txt", [1, 2, 3], ticket.Ticket.Version))).IsSuccess);
-            var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
+            var db = scope.ServiceProvider.GetRequiredService<SupportDb>();
             attachment = await db.Set<SupportAttachmentRow>().Select(x => x.Id).SingleAsync();
             version = await db.Set<SupportTicketRow>().Where(x => x.Id == ticketId).Select(x => x.Version).SingleAsync();
         }
@@ -165,7 +177,7 @@ public sealed class SupportFeatureTests
             Assert.False((await scope.ServiceProvider.GetRequiredService<ISupportAttachments>().Download(ticketId, attachment, default)).IsSuccess);
             Assert.False((await scope.ServiceProvider.GetRequiredService<Dispatcher<AttachTicket, Unit>>().Send(new(ticketId, "blocked.txt", [4], version))).IsSuccess);
             Assert.False((await scope.ServiceProvider.GetRequiredService<ISupportTickets>().Get(new(ticketId), default)).IsSuccess);
-            Assert.True(await scope.ServiceProvider.GetRequiredService<FrameworkDb>().Set<SupportAttachmentRow>().AnyAsync());
+            Assert.True(await scope.ServiceProvider.GetRequiredService<SupportDb>().Set<SupportAttachmentRow>().AnyAsync());
         }
         using (var scope = Scope(administrator))
         {
@@ -184,8 +196,8 @@ public sealed class SupportFeatureTests
         current = await Settings();
         using (var scope = Scope(administrator))
         {
-            var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
-            await using var tx = await db.Database.BeginTransactionAsync();
+            var db = scope.ServiceProvider.GetRequiredService<SupportDb>();
+            await using var tx = await db.Session.BeginTransactionAsync();
             Assert.True((await scope.ServiceProvider.GetRequiredService<ISupportModuleSettings>().Save(new(true, current.Version), default)).IsSuccess);
             await db.SaveChangesAsync(); await tx.RollbackAsync();
         }
@@ -206,7 +218,7 @@ public sealed class SupportFeatureTests
         Assert.True(capabilities[CapabilityIds.SupportTickets]);
         using (var scope = Scope(administrator))
         {
-            var db = scope.ServiceProvider.GetRequiredService<FrameworkDb>();
+            var db = scope.ServiceProvider.GetRequiredService<SupportDb>();
             await db.Set<SupportSettingsRow>().ExecuteDeleteAsync();
         }
         capabilities = await Capabilities();

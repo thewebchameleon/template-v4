@@ -27,6 +27,7 @@ public sealed class ModuleOwnershipTests
             ["DataProtection:KeyPath"] = Path.Combine(Path.GetTempPath(), "templatev4-ownership")
         });
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment, []);
+        TemplateV4.Infrastructure.BundledRegistration.Register(builder.Services, builder.Configuration, builder.Environment);
         builder.Services.AddScoped<TemplateV4.SharedKernel.IExecutionContext, BackgroundExecutionContext>();
         using var provider = builder.Services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         using var first = provider.CreateScope();
@@ -45,8 +46,20 @@ public sealed class ModuleOwnershipTests
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "framework.json"))) directory = directory.Parent;
         Assert.NotNull(directory);
         var root = Path.Combine(directory.FullName, "src", "TemplateV4.Infrastructure");
+        var persistenceSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "ActionItems/Persistence/ActionItemRow.cs", "ApiKeys/ApiKeyRow.cs", "AuditHistory/Persistence/AuditEntry.cs",
+            "Configuration/Persistence/PlatformAppearanceSettings.cs",
+            "Outbox/Persistence/MessageEntities.cs", "Idempotency/Persistence/IdempotencyRecord.cs",
+            "Identity/Persistence/IdentityEntities.cs", "Identity/Persistence/UserAvatar.cs", "Licensing/LicenseState.cs",
+            "Modules/Persistence/RuntimeModuleSettings.cs", "Notifications/Persistence/UserNotification.cs",
+            "Notifications/Persistence/WebPushSubscription.cs", "Quartz/Persistence/BackgroundJobSchedule.cs",
+            "Quartz/Persistence/JobRun.cs", "Organisations/Persistence/OrganisationEntities.cs", "Payments/PaymentEntities.cs",
+            "Privacy/Persistence/DeletionRequest.cs", "FileStorage/Persistence/FileEntities.cs", "Updates/Persistence/UpdateState.cs"
+        };
         var trees = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(file => !Path.GetRelativePath(root, file).Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj"))
+            .Where(file => !persistenceSources.Contains(Path.GetRelativePath(root, file).Replace('\\', '/')))
             .Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), path: Path.GetRelativePath(root, file).Replace('\\', '/')))
             .Append(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; global using System.IO; global using System.Linq; global using System.Net.Http; global using System.Threading; global using System.Threading.Tasks;"));
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)

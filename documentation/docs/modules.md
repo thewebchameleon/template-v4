@@ -4,6 +4,11 @@
 configuration, and feature flags. `modules/presets/*.json` selects deployment defaults.
 Those files are authoritative; this page defines ownership and composition rules.
 
+Client-specific module choices live in the ignored `modules/client/client-modules.json`.
+Start from `modules/client/client-modules.example.json`, then run
+`node tools/discover-business-modules.mjs` to generate the build input
+`modules/client/business-modules.enabled`. Edit the client selection, not the generated file.
+
 ## Ownership
 
 A bundled module is a runtime switch on Administration → Modules. The six bundled

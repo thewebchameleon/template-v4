@@ -1,50 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { updateWorkflowPins } from "./client-workflows.mjs";
 import {
   httpsUrl,
-  propose,
-  readFeed,
   sha256,
   validateRelease,
-  validateLock,
 } from "./contracts.mjs";
 
 const [command, ...args] = process.argv.slice(2);
 const read = (file) => JSON.parse(fs.readFileSync(file, "utf8"));
 const write = (file, value) =>
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + "\n");
-if (command === "init-client") {
-  const lock = validateLock(read(args[0]));
-  const destination = path.resolve(args[1]);
-  const commit = lock.components.find((c) => c.id === "foundation").commit;
-  const names = ["release.yml", "updates.yml", "validate.yml"];
-  const directory = path.join(destination, ".github/workflows");
-  for (const name of names)
-    if (fs.existsSync(path.join(directory, name)))
-      throw new Error("Refusing to overwrite client workflows.");
-  if (fs.existsSync(path.join(destination, "client-template.json")))
-    throw new Error("Refusing to overwrite client pins.");
-  fs.mkdirSync(directory, { recursive: true });
-  write(path.join(destination, "client-template.json"), lock);
-  for (const name of names)
-    fs.writeFileSync(
-      path.join(directory, name),
-      fs
-        .readFileSync(path.join(import.meta.dirname, "templates", name), "utf8")
-        .replaceAll("__FOUNDATION_COMMIT__", commit),
-      { flag: "wx" },
-    );
-} else if (command === "workflow-pins") {
-  const before = validateLock(read(args[0])).components.find(
-    (c) => c.id === "foundation",
-  ).commit;
-  const after = validateLock(read(args[1])).components.find(
-    (c) => c.id === "foundation",
-  ).commit;
-  updateWorkflowPins(path.resolve(args[2]), before, after);
-} else if (command === "module") {
+if (command === "module") {
   const directory = path.resolve(args[0]);
   const descriptor = read(path.join(directory, "module.json"));
   const notes = read(path.join(directory, "release.json"));
@@ -66,8 +33,6 @@ if (command === "init-client") {
       artifact: { package: args[1], sha256: "0".repeat(64), downloadUrl: args[3] },
     }),
   );
-} else if (command === "bundle") {
-  throw new Error("Source bundles are retired. Build a compiled module bundle in the business-modules repository.");
 } else if (command === "digest") {
   const release = read(args[0]);
   release.artifact.sha256 = sha256(fs.readFileSync(args[1]));
@@ -111,48 +76,7 @@ if (command === "init-client") {
   );
   if (!result.ok)
     throw new Error(`Release publication returned ${result.status}.`);
-} else if (command === "compose") {
-  throw new Error("Source composition is retired. Run node tools/private-modules.mjs prepare.");
-} else if (command === "validate") {
-  validateLock(read(args[0]));
-} else if (command === "check") {
-  const current = validateLock(read(args[0]));
-  const result = propose(
-    current,
-    await readFeed(
-      process.env.RELEASE_FEED_URL,
-      process.env.RELEASE_FEED_TOKEN,
-    ),
-  );
-  if (result.changed) write(args[0], result.lock);
-  const notes = result.changed
-    ? result.lock.components
-        .filter(
-          (c) =>
-            current.components.find((x) => x.id === c.id).version !== c.version,
-        )
-        .map(
-          (c) =>
-            `- ${c.id}: ${c.version}${c.breaking ? " (breaking)" : ""}\n  Release notes: ${c.notesUrl}\n  Migration guidance: ${c.migrationNotes}`,
-        )
-        .join("\n")
-    : result.blocked.join("\n");
-  fs.writeFileSync(
-    args[1],
-    `Update the client's pinned foundation and module releases. Deployment remains manual.\n\n${notes}\n\nReview dependency lock changes and run the client validation workflow before merging.\n`,
-  );
-  if (process.env.GITHUB_OUTPUT)
-    fs.appendFileSync(
-      process.env.GITHUB_OUTPUT,
-      `changed=${result.changed}\nblocked=${result.blocked.length > 0}\n`,
-    );
-  if (result.blocked.length) {
-    console.error(
-      "Available releases require incompatible component changes; pins were preserved.",
-    );
-    process.exitCode = 2;
-  }
 } else
   throw new Error(
-    "Expected init-client, module, bundle, digest, foundation, publish, compose, validate or check.",
+    "Expected module, digest, foundation or publish.",
   );

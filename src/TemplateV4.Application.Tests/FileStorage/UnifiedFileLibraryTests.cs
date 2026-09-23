@@ -72,9 +72,7 @@ public sealed class UnifiedFileLibraryTests
         Assert.Equal(activationVersion, activation.Version);
         Assert.False(await db.RuntimeModules.AnyAsync(x => x.Id == "my-files"));
         Assert.Equal("retained-share-token-hash", (await db.Set<FileStorageShare>().AsNoTracking().SingleAsync(x => x.Id == shareId)).TokenHash);
-        // The rename is reversible without discarding shares or resetting activation.
-        await db.GetService<IMigrator>().MigrateAsync("20260916144412_OrganisationBranding");
-        await db.Database.MigrateAsync();
+        // Ownership transfers are forward-only; verify retained rows after the transfer.
         Assert.Equal(activationVersion, (await db.RuntimeModules.AsNoTracking().SingleAsync(x => x.Id == "file-storage")).Version);
         Assert.Equal(personal, (await db.Set<FileStorageShare>().AsNoTracking().SingleAsync(x => x.Id == shareId)).FileId);
         Assert.False(db.Database.HasPendingModelChanges());
@@ -100,7 +98,7 @@ public sealed class UnifiedFileLibraryTests
         Assert.True((await service.Trash(writer, shared, true, false, default)).IsSuccess);
         // Uploader deactivation and attribution erasure must not hide organisation files.
         await db.Files.Where(x => x.OwnerId == reader).ExecuteUpdateAsync(x => x.SetProperty(f => f.OwnerId, (Guid?)null));
-        db.Profiles.Local.Single(x => x.Id == reader).SetDisabled(true);
+        (await db.Profiles.SingleAsync(x => x.Id == reader)).SetDisabled(true);
         await db.SaveChangesAsync();
         Assert.True((await service.Download(writer, personal, default)).IsSuccess);
         Assert.False((await service.List(reader, 1, 10, null, "name", "asc", default)).IsSuccess);
@@ -135,7 +133,7 @@ public sealed class UnifiedFileLibraryTests
             new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:app"] = connectionString }).Build(),
             TimeProvider.System, hasher);
         var purgeHandler = new PurgeAllFileStorageDataHandler(db, new TestExecutionContext(writer), passwordVerifier, TimeProvider.System);
-        await using (var purgeTransaction = await db.Database.BeginTransactionAsync())
+        await using (var purgeTransaction = await db.Session.BeginTransactionAsync())
         {
             var purge = await purgeHandler.Handle(new(PurgeAllFileStorageData.RequiredConfirmation, "Correct horse battery staple 7!"), default);
             Assert.True(purge.IsSuccess);

@@ -18,7 +18,8 @@ executed or extracted. A coordinated client build still runs migrations and depl
 the API, Worker and frontend together.
 
 `client-template.json` pins the full release metadata for foundation and each selected
-private module; `client-modules.json` remains the selection contract. Host generation
+private module; `modules/client/client-modules.json` remains the selection contract.
+Host generation
 embeds installed metadata before compilation. Unpinned development builds remain
 supported but cannot enable update checks. Runtime activation does not affect version
 checks: disabled compiled modules still impose compatibility requirements.

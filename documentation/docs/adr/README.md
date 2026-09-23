@@ -30,7 +30,6 @@ decision controls when the system has evolved.
 - [0012 — Platform TLS and Nginx routing](0012-platform-tls-and-nginx-routing.md)
 - [0013 — Feature-owned endpoint registration](0013-endpoint-registration-files.md)
 - [0017 — SignalR notification invalidation](0017-signalr-notification-invalidation.md)
-- [0038 — Coordinated Compose client releases](0038-compose-client-releases.md)
 - [0039 — Component releases and client updates](0039-component-releases-and-client-updates.md)
 - [0045 — Compose proxy DNS discovery](0045-discovered-compose-proxy.md)
 
@@ -93,6 +92,7 @@ These files intentionally contain only pointers to current decisions:
 - [0021 — Personal user file library](0021-user-file-library.md) → 0048 and 0051
 - [0023 — Files-only module administration](0023-runtime-module-administration.md) → 0031, 0035, 0036, and 0051
 - [0026 — Former customer/billing implementation](0026-customer-billing-implementation.md) → 0020, 0047, and 0048
+- [0038 — Coordinated Compose client releases](0038-compose-client-releases.md) → 0052
 
 ADR number 0026 was historically assigned twice. The account-profile ADR remains
 accepted; the customer/billing ADR is the superseded record. Numbers 0027 and 0044 were

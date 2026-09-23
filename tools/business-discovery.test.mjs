@@ -15,7 +15,7 @@ const repository = path.resolve(import.meta.dirname, "..");
 test("client settings reject core overrides, unavailable prerequisites and stale generated selection", (t) => {
   const root = fixture(t);
   scaffoldBusiness(root, "Reports");
-  const file = path.join(root, "client-modules.json");
+  const file = path.join(root, "modules/client/client-modules.json");
   const save = (foundation) =>
     fs.writeFileSync(
       file,
@@ -42,11 +42,11 @@ test("client settings reject core overrides, unavailable prerequisites and stale
 });
 function select(root, ids) {
   fs.writeFileSync(
-    path.join(root, "client-modules.json"),
+    path.join(root, "modules/client/client-modules.json"),
     JSON.stringify({ schemaVersion: 1, foundation: {}, privateModules: ids }),
   );
   fs.writeFileSync(
-    path.join(root, "business-modules.enabled"),
+    path.join(root, "modules/client/business-modules.enabled"),
     ids.length ? ids.join("\n") + "\n" : "",
   );
 }
@@ -54,6 +54,7 @@ function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "templatev4-discovery-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.mkdirSync(path.join(root, "modules"));
+  fs.mkdirSync(path.join(root, "modules/client"));
   fs.copyFileSync(
     path.join(repository, "modules/catalog.json"),
     path.join(root, "modules/catalog.json"),
@@ -96,7 +97,7 @@ test("scaffold is discovered without host edits, and removal clears registration
     backend(modules, "TemplateV4.DatabaseMigrator"),
     /Microsoft.Extensions.Hosting.IHostApplicationBuilder/,
   );
-  assert.match(frontend(modules), /reports\/Frontend\/public-api/);
+  assert.match(frontend(modules), /Reports\/Frontend\/public-api/);
   fs.renameSync(
     path.join(root, "modules/Private"),
     path.join(root, "removed-modules"),
