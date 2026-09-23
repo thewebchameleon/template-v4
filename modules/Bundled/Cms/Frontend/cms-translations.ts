@@ -3,18 +3,15 @@ export const cmsDictionary: Record<string, [string, string]> = {
     'Publish related items before publishing this item.',
     'Publiseer verwante items voordat hierdie item gepubliseer word.',
   ],
-  cmsCollections: ['Collections', 'Versamelings'],
   cmsCollectionsHelp: [
     'Define content types and manage their entries.',
     'Definieer inhoudtipes en bestuur hul inskrywings.',
   ],
-  cmsNewCollection: ['New collection', 'Nuwe versameling'],
   cmsNoCollections: [
     'No collections are available to you.',
     'Geen versamelings is vir jou beskikbaar nie.',
   ],
   cmsItems: ['Content items', 'Inhouditems'],
-  cmsSchema: ['Schema and settings', 'Skema en instellings'],
   cmsSchemaHelp: [
     'Add fields without losing existing content. Field keys and types remain stable.',
     'Voeg velde by sonder om bestaande inhoud te verloor. Veldsleutels en tipes bly onveranderd.',

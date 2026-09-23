@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { CommercialDocument, PageOfCommercialDocument } from '../../../../../src/TemplateV4.Angular/src/app/api/models';
 import { I18n } from '../../../../../src/TemplateV4.Angular/src/app/core/i18n';
@@ -21,14 +21,14 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
 @Component({
   selector: 'app-invoicing',
   imports: [WorkspaceUi, DataTable],
-  template: ` <app-page-header title="invoicing" description="invoicingHelp">
+  template: ` <app-page-header [title]="title" description="invoicingHelp">
       @if (features.enabled('invoicing')) {
         <a hlmBtn variant="outline" routerLink="/administration/invoicing">{{
           'issuerSettings' | t
         }}</a>
         @if (auth.has('invoicing.issue')) {
-          <a hlmBtn [routerLink]="['/organisation', 'invoicing', 'new']">{{
-            'issueDocument' | t
+          <a hlmBtn [routerLink]="['/organisation', 'invoicing', segment, 'new']">{{
+            createLabel | t
           }}</a>
         }
       }
@@ -40,7 +40,7 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
     }
     <section hlmCard>
       <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'invoicing' | t }}</h2>
+        <h2 hlmCardTitle>{{ title | t }}</h2>
         <div hlmField>
           <label hlmFieldLabel for="invoice-search">{{ 'search' | t }}</label
           ><input
@@ -77,6 +77,11 @@ export const commercialKinds = ['quotation', 'invoice', 'receipt', 'creditNote']
     </section>`,
 })
 export class InvoicingPage {
+  private readonly route = inject(ActivatedRoute);
+  readonly kind = this.route.snapshot.data['kind'] as 0 | 1;
+  readonly title = this.route.snapshot.data['title'] as string;
+  readonly createLabel = this.route.snapshot.data['createLabel'] as string;
+  readonly segment = this.kind === 0 ? 'quotes' : 'invoices';
   readonly query = new ListQuery();
   readonly search = new DebouncedSearch(this.query);
   readonly i18n = inject(I18n);
@@ -144,6 +149,7 @@ export class InvoicingPage {
           `organisation/invoicing`,
           {
             search: this.query.text('search'),
+            group: this.segment,
             pageNumber: this.query.page,
             pageSize: this.size(),
             sort: this.query.text('sort', 'issuedAt'),

@@ -19,7 +19,7 @@ public sealed class SupportAttachmentsStore(SupportDb db, SupportTicketContext t
         var ticket = await tickets.Lock(q.Id, await tickets.Agent(ct), ct);
         if (ticket == null) return Result.Fail("support.not_found", ErrorKind.NotFound);
         if (ticket.Version != q.Version) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
-        if (ticket.Status is "Closed" or "Resolved") return Result.Fail("support.reopen_required", ErrorKind.Conflict);
+        if (ticket.Status is "Closed" or "Resolved" or "Draft") return Result.Fail("support.reopen_required", ErrorKind.Conflict);
         var files = db.Set<SupportAttachmentRow>().Where(x => x.TicketId == q.Id);
         if (await files.CountAsync(ct) >= 10 || await files.SumAsync(x => (long)x.Content.Length, ct) + q.Content.Length > 20 * 1024 * 1024)
             return Result.Fail("support.attachment_limit", ErrorKind.Conflict);

@@ -10,31 +10,22 @@ import {
 import { WorkspaceApi } from '../../../../../src/TemplateV4.Angular/src/app/core/workspace-api';
 import { I18n } from '../../../../../src/TemplateV4.Angular/src/app/core/i18n';
 import { WorkspaceUi } from '../../../../../src/TemplateV4.Angular/src/app/shared/workspace';
-import { BusinessSelect } from '../../../../../src/TemplateV4.Angular/src/app/shared/business-select';
 import { CrmCustomerPicker } from '../../../../../src/TemplateV4.Angular/src/app/shared/crm-customer-picker';
 import { CommercialLines } from '../../../../../src/TemplateV4.Angular/src/app/shared/commercial-lines';
 @Component({
   selector: 'app-commercial-editor',
-  imports: [WorkspaceUi, BusinessSelect, CrmCustomerPicker, CommercialLines],
-  template: ` <app-page-header title="issueDocument" description="invoicingHelp"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing']">{{
-        'invoicing' | t
+  imports: [WorkspaceUi, CrmCustomerPicker, CommercialLines],
+  template: ` <app-page-header [title]="title" description="invoicingHelp"
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing', segment]">{{
+        listLabel | t
       }}</a></app-page-header
     >
     <section hlmCard>
       <div hlmCardHeader>
-        <h2 hlmCardTitle>{{ 'issueDocument' | t }}</h2>
+        <h2 hlmCardTitle>{{ title | t }}</h2>
       </div>
       <form hlmCardContent class="grid gap-6" (ngSubmit)="issue()">
         <fieldset [disabled]="busy()" class="grid gap-6">
-          <app-business-select
-            controlId="document-kind"
-            label="type"
-            [options]="kinds"
-            [(value)]="kind"
-            [allowEmpty]="false"
-            [disabled]="!!source"
-          />
           <app-crm-customer-picker controlId="document-customer" [(value)]="customer" />
           <div hlmField>
             <label hlmFieldLabel for="document-reference">{{ 'reference' | t }}</label
@@ -55,7 +46,7 @@ import { CommercialLines } from '../../../../../src/TemplateV4.Angular/src/app/s
             </div>
           }
           <button hlmBtn [disabled]="busy() || !customer || !totals() || totals()!.total <= 0">
-            {{ 'issueDocument' | t }}
+            {{ title | t }}
           </button>
         </fieldset>
       </form>
@@ -76,11 +67,10 @@ export class CommercialEditorPage extends BusinessDraft {
   readonly i18n = inject(I18n);
   readonly source = this.route.snapshot.queryParamMap.get('source');
   readonly mode = this.route.snapshot.queryParamMap.get('mode');
-  readonly kinds = [
-    { id: '0', label: 'quotation' },
-    { id: '1', label: 'invoice' },
-  ];
-  kind = '1';
+  readonly kind = this.route.snapshot.data['kind'] as 0 | 1;
+  readonly segment = this.kind === 0 ? 'quotes' : 'invoices';
+  readonly listLabel = this.kind === 0 ? 'quotes' : 'invoices';
+  readonly title = this.kind === 0 ? 'newQuote' : 'newInvoice';
   customer = '';
   reference = '';
   lines: CommercialLine[] = [
@@ -109,7 +99,6 @@ export class CommercialEditorPage extends BusinessDraft {
         .then((detail) => {
           this.customer = detail.document.customerId;
           this.lines = structuredClone(detail.document.snapshot.totals.lines.map((x) => x.source));
-          this.kind = this.mode === 'revision' ? '0' : '1';
           this.changed();
           this.markSaved();
         })
@@ -155,7 +144,7 @@ export class CommercialEditorPage extends BusinessDraft {
       const result = await this.api.post<CommercialDocument>(`organisation/invoicing`, {
         idempotencyKey: this.key,
         customerId: this.customer,
-        kind: Number(this.kind),
+        kind: this.kind,
         lines: this.lines,
         origin: null,
         acceptedQuotationId: this.mode === 'invoice' ? this.source : null,

@@ -15,8 +15,8 @@ import { commercialKinds } from './invoicing';
   selector: 'app-commercial-detail',
   imports: [RecordAttachments, WorkspaceUi, BusinessSelect, BusinessDate],
   template: ` <app-page-header title="invoicing" description="immutableDocument"
-      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing']">{{
-        'invoicing' | t
+      ><a hlmBtn variant="outline" [routerLink]="['/organisation', 'invoicing', data.value()?.document?.kind === 0 ? 'quotes' : 'invoices']">{{
+        (data.value()?.document?.kind === 0 ? 'quotes' : 'invoices') | t
       }}</a></app-page-header
     >
     <app-page-state [state]="data.state()" [refreshError]="data.refreshError()" (retry)="load()">
@@ -46,7 +46,7 @@ import { commercialKinds } from './invoicing';
                   <a
                     hlmBtn
                     variant="outline"
-                    [routerLink]="['/organisation', 'invoicing', 'new']"
+                    [routerLink]="['/organisation', 'invoicing', 'quotes', 'new']"
                     [queryParams]="{ source: doc.id, mode: 'revision' }"
                     >{{ 'reviseQuotation' | t }}</a
                   >

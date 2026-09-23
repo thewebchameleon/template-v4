@@ -11,6 +11,7 @@ import {
   userManagementDestinations,
 } from './core/destinations';
 import { FileStorageTree } from '../../../../modules/Bundled/FileStorage/Frontend/files/file-storage-components';
+import { CmsCollectionNavigation } from '../../../../modules/Bundled/Cms/Frontend/collections/collection-navigation';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -21,6 +22,7 @@ import {
   lucideCommand,
   lucideContactRound,
   lucideFileSpreadsheet,
+  lucideFileText,
   lucideCar,
   lucideLayoutDashboard,
   lucideUserRound,
@@ -44,6 +46,7 @@ import {
   lucideDollarSign,
   lucideKeyRound,
   lucideCreditCard,
+  lucidePlus,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmToasterImports } from '@spartan-ng/helm/sonner';
@@ -73,6 +76,7 @@ type RailLink = Destination & {
   settingsDestination?: Pick<Destination, 'path' | 'label'>;
   runtimeConfigurable?: boolean;
 };
+type PanelLink = Destination & { createPath?: string; createLabel?: string };
 const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds);
 @Component({
   selector: 'app-root',
@@ -93,6 +97,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
     HlmTooltip,
     PreferencesDrawerBody,
     FileStorageTree,
+    CmsCollectionNavigation,
     Translate,
     Confirmation,
     NotificationDrawer,
@@ -103,6 +108,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
       lucideCommand,
       lucideContactRound,
       lucideFileSpreadsheet,
+      lucideFileText,
       lucideCar,
       lucideLayoutDashboard,
       lucideUserRound,
@@ -126,6 +132,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
       lucideDollarSign,
       lucideKeyRound,
       lucideCreditCard,
+      lucidePlus,
     }),
   ],
   template: `
@@ -315,38 +322,59 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                   }
                 </div>
               }
+              @if (cmsLinkAvailable() && (sidebar.isMobile() || cmsPanelActive())) {
+                <app-cms-collection-navigation />
+              }
               @for (panel of navigationPanels(); track panel.label) {
                 @if (
-                  (panel.links.length || panel.settings) && (sidebar.isMobile() || panel.active)
+                  (panel.sections.length || panel.settings) && (sidebar.isMobile() || panel.active)
                 ) {
                   <nav
                     hlmSidebarGroup
                     appSidebarSelectionIndicator
                     class="sidebar-submenu min-h-0"
+                    [class.gap-4]="panel.sections.length > 1"
                     [class.flex-1]="!sidebar.isMobile()"
                     [attr.aria-label]="panel.label | t"
                   >
-                    <div hlmSidebarGroupLabel>{{ panel.label | t }}</div>
-                    <ul hlmSidebarMenu>
-                      @for (item of panel.links; track item.path; let itemIndex = $index) {
-                        <li
-                          hlmSidebarMenuItem
-                          animate.enter="sidebar-item-enter"
-                          [style.--sidebar-item-index]="itemIndex"
-                        >
-                          <a
-                            hlmSidebarMenuButton
-                            [routerLink]="item.path"
-                            routerLinkActive
-                            #active="routerLinkActive"
-                            [isActive]="active.isActive"
-                            ariaCurrentWhenActive="page"
-                            closeMobileSidebarOnClick
-                            ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
-                          >
-                        </li>
-                      }
-                    </ul>
+                    @for (section of panel.sections; track section.label) {
+                      <div role="group" [attr.aria-labelledby]="'panel-' + panel.label + '-' + section.label">
+                        <div hlmSidebarGroupLabel [id]="'panel-' + panel.label + '-' + section.label">
+                          {{ section.label | t }}
+                        </div>
+                        <ul hlmSidebarMenu>
+                          @for (item of section.links; track item.path; let itemIndex = $index) {
+                            <li
+                              hlmSidebarMenuItem
+                              animate.enter="sidebar-item-enter"
+                              [style.--sidebar-item-index]="itemIndex"
+                            >
+                              <a
+                                hlmSidebarMenuButton
+                                [routerLink]="item.path"
+                                routerLinkActive
+                                #active="routerLinkActive"
+                                [isActive]="active.isActive"
+                                ariaCurrentWhenActive="page"
+                                closeMobileSidebarOnClick
+                                ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
+                              >
+                              @if (item.createPath && auth.has('invoicing.issue') && features.enabled('invoicing')) {
+                                <button
+                                  hlmSidebarMenuAction
+                                  type="button"
+                                  [routerLink]="item.createPath"
+                                  [attr.aria-label]="item.createLabel! | t"
+                                  (click)="sidebar.setOpenMobile(false)"
+                                >
+                                  <ng-icon name="lucidePlus" aria-hidden="true" />
+                                </button>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
                     @if (panel.settings; as settings) {
                       <div class="sidebar-module-footer -mx-2 mt-auto">
                         <ul hlmSidebarMenu>
@@ -690,22 +718,68 @@ export class App {
     );
   });
   readonly userManagementPanelActive = computed(() => this.railPanelActive('/user-management'));
-  readonly navigationPanels = computed(() => [
+  readonly invoicingLinks: readonly PanelLink[] = [
+    {
+      path: '/organisation/invoicing/quotes',
+      label: 'quotes',
+      icon: 'lucideFileText',
+      createPath: '/organisation/invoicing/quotes/new',
+      createLabel: 'newQuote',
+    },
+    {
+      path: '/organisation/invoicing/invoices',
+      label: 'invoices',
+      icon: 'lucideFileSpreadsheet',
+      createPath: '/organisation/invoicing/invoices/new',
+      createLabel: 'newInvoice',
+    },
+  ];
+  readonly navigationPanels = computed<{
+    label: string;
+    sections: { label: string; links: readonly PanelLink[] }[];
+    settings?: Pick<Destination, 'path' | 'label'>;
+    active: boolean;
+  }[]>(() => [
     ...this.moduleRailLinks()
-      .filter((item) => item.path !== '/file-storage' && item.hasPanel)
-      .map((item) => ({
-        label: item.label,
-        links: item.moduleId === 'support' ? this.supportLinks() : [item],
-        settings: item.settingsDestination,
-        active: this.railPanelActive(item.path),
-      })),
+      .filter((item) => item.path !== '/file-storage' && item.path !== '/cms' && item.hasPanel)
+      .map((item) => {
+        const links: readonly PanelLink[] = item.moduleId === 'support'
+          ? this.supportLinks()
+          : item.moduleId === 'invoicing'
+            ? this.invoicingLinks
+            : this.organisationPanelLinks(item);
+        const sections = [...new Set(links.map((link) => link.section ?? item.label))].map(
+          (label) => ({ label, links: links.filter((link) => (link.section ?? item.label) === label) }),
+        );
+        return {
+          label: item.label,
+          sections,
+          settings: item.settingsDestination,
+          active: this.railPanelActive(item.path),
+        };
+      }),
     {
       label: 'userManagement',
-      links: this.userManagementLinks(),
+      sections: this.userManagementLinks().length
+        ? [{ label: 'userManagement', links: this.userManagementLinks() }]
+        : [],
       settings: undefined,
       active: this.userManagementPanelActive(),
     },
   ]);
+  private organisationPanelLinks(item: RailLink): readonly PanelLink[] {
+    const feature = this.extensions.find((candidate) => candidate.id === item.moduleId);
+    if (!feature?.organisationLinks?.length) return [item];
+    return feature.organisationLinks
+      .map((link) => ({
+        path: `/organisation/${link.segment}`,
+        label: link.label,
+        icon: link.icon ?? item.icon,
+        capability: link.capability,
+        section: link.section,
+      }))
+      .filter((link) => destinationAvailable(link, this.auth, this.features));
+  }
   readonly organisationRailLinks = computed<RailLink[]>(() => {
     this.navigationEnd();
     return [
@@ -723,7 +797,7 @@ export class App {
       destination: `/organisation/${item.path}`,
       destinationQueryParams: null,
       activePath: `/organisation/${item.activePath ?? item.path}`,
-      hasPanel: false,
+      hasPanel: item.hasPanel ?? false,
     }));
   });
   readonly destinationRailLinks = computed<RailLink[]>(() =>
@@ -856,6 +930,8 @@ export class App {
   );
 
   readonly fileStoragePanelActive = computed(() => this.railPanelActive('/file-storage'));
+  readonly cmsPanelActive = computed(() => this.railPanelActive('/cms'));
+  readonly cmsLinkAvailable = computed(() => this.railLinks().some((item) => item.path === '/cms'));
   readonly hasSecondaryNavigation = computed(
     () =>
       this.userManagementPanelActive() ||
@@ -877,12 +953,13 @@ export class App {
     this.navigationEnd();
     if (path === '/file-storage' && this.fileStorageSettingsActive()) return false;
     const selectedPanel = this.selectedPanel();
-    const settingsPath = this.moduleRailLinks().find((item) => item.path === path)
-      ?.settingsDestination?.path;
+    const module = this.moduleRailLinks().find((item) => item.path === path);
+    const settingsPath = module?.settingsDestination?.path;
+    const activePath = module?.activePath ?? path;
     return (
       selectedPanel === path ||
       (selectedPanel === null &&
-        [path, settingsPath].some(
+        [activePath, settingsPath].some(
           (candidate) =>
             !!candidate &&
             this.router.isActive(candidate, {

@@ -4,11 +4,13 @@
 export interface TicketItem {
   assignee: (string | null);
   assigneeId: (string | null);
-  category: string;
-  categoryId: string;
+  category: (string | null);
+  categoryId: (string | null);
   createdAt: string;
+  description: string;
   id: string;
   priority: string;
+  referenceNumber: number;
   requester: string;
   requesterId: string;
   status: string;

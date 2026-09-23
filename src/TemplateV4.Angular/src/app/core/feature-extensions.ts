@@ -9,7 +9,13 @@ export interface FoundationFeature {
   administrationRoutes?: Routes;
   destinations?: readonly Destination[];
   organisationDestinations?: readonly Destination[];
-  organisationLinks?: readonly { segment: string; label: string; capability: string }[];
+  organisationLinks?: readonly {
+    segment: string;
+    label: string;
+    capability: string;
+    icon?: string;
+    section?: string;
+  }[];
   crmDealActions?: readonly { segment: string; label: string; capability: string }[];
   translations?: Record<string, [string, string]>;
 }

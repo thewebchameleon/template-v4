@@ -62,7 +62,7 @@ export const workspaceDestinations = {
       'roles.manage',
     ],
     help: 'cmsModuleHelp',
-    hasPanel: false,
+    hasPanel: true,
   },
   organisations: {
     path: '/organisation',

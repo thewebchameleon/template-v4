@@ -8,6 +8,7 @@ export function filterVisibleFileFolders<T extends { fileCount?: number }>(
   group: string,
   folders: readonly T[],
 ): T[] {
+  if (group === 'recent' || group === 'important' || group === 'starred') return [];
   return group === 'file-storage' ? folders.filter(() => true) : folders.filter((folder) => (folder.fileCount ?? 0) > 0);
 }
 

@@ -3,7 +3,8 @@
 ## Working agreement
 
 - Complete the requested work within its authorized scope. Make routine, reversible implementation decisions using existing conventions. Ask and wait when missing input materially affects scope, public behavior, data safety, or an irreversible action; do not ask again for authorization already given.
-- Inspect the working tree before editing and preserve unrelated local changes. Work in the primary agent; parallelize independent reads and checks when useful.
+- Read and follow [AI workflow](SUBAGENTS.md) for repository-specific orchestration, model preferences, delegation contracts, and acceptance. Keep orchestration in the primary agent and delegate selectively through native subagents as described there.
+- Inspect the working tree before editing and preserve unrelated local changes. Parallelize independent reads and authorized checks when useful.
 - Use only the repository-root `.temp/` directory for AI-generated temporary files and folders. Do not create temporary work elsewhere in the repository; remove it when finished.
 - Scale inspection and validation to the change. Use focused searches and read relevant sections once; avoid full-repo audits for local fixes. Use available timing information without building a separate timing harness.
 - Keep routine work simple: follow the nearest existing pattern, avoid speculative analysis and elaborate scaffolding, and stop once the requested behavior and required checks are satisfied.

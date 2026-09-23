@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TemplateV4.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Support.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SupportDb))]
-    partial class SupportDbModelSnapshot : ModelSnapshot
+    [Migration("20260923115113_AllowIncompleteTicketDrafts")]
+    partial class AllowIncompleteTicketDrafts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

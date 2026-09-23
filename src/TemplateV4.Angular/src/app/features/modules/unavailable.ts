@@ -13,7 +13,7 @@ import { WorkspaceUi } from '../../shared/workspace';
       >
     } @else {
       <section class="not-found" aria-labelledby="not-found-title">
-        <div class="not-found-panel">
+        <div class="not-found-content">
           <p class="not-found-code" data-text="404" aria-hidden="true">404</p>
           <div class="not-found-copy">
             <p class="workspace-eyebrow">{{ 'lostYourWay' | t }}</p>
@@ -29,31 +29,31 @@ import { WorkspaceUi } from '../../shared/workspace';
     }`,
   styles: `
     .not-found {
-      min-height: min(40rem, calc(100svh - 12rem));
+      min-height: 100svh;
       display: grid;
       place-items: center;
-      padding-block: 3rem;
+      padding: 3rem;
     }
 
-    .not-found-panel {
+    :host-context(.app-content) .not-found {
+      min-height: calc(
+        100svh - var(--app-header-height) - var(--app-content-padding) - var(--app-content-padding)
+      );
+      padding: 0;
+    }
+
+    .not-found-content {
       width: min(100%, 44rem);
       display: grid;
       justify-items: center;
       gap: 2rem;
-      padding: clamp(2rem, 7vw, 5rem);
-      overflow: hidden;
       text-align: center;
-      background: var(--card);
-      color: var(--card-foreground);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-sm);
     }
 
     .not-found-code {
       position: relative;
       margin: 0;
-      color: var(--foreground);
+      color: var(--primary);
       font-family: var(--font-heading);
       font-size: clamp(6rem, 25vw, 13rem);
       font-weight: 700;
@@ -69,16 +69,16 @@ import { WorkspaceUi } from '../../shared/workspace';
       inset: 0;
       content: attr(data-text);
       pointer-events: none;
-      opacity: 0.72;
+      opacity: 0;
     }
 
     .not-found-code::before {
-      color: var(--primary);
+      color: var(--chart-2);
       animation: chromatic-shift-start 2.8s steps(1, end) infinite;
     }
 
     .not-found-code::after {
-      color: var(--destructive);
+      color: var(--chart-4);
       animation: chromatic-shift-end 2.8s steps(1, end) infinite;
     }
 
@@ -104,10 +104,12 @@ import { WorkspaceUi } from '../../shared/workspace';
       0%,
       86%,
       100% {
+        opacity: 0;
         transform: translate(-0.035em, 0);
         clip-path: inset(0 0 0 0);
       }
       88% {
+        opacity: 0.8;
         transform: translate(-0.07em, 0.018em);
         clip-path: inset(8% 0 58% 0);
       }
@@ -125,10 +127,12 @@ import { WorkspaceUi } from '../../shared/workspace';
       0%,
       86%,
       100% {
+        opacity: 0;
         transform: translate(0.035em, 0);
         clip-path: inset(0 0 0 0);
       }
       88% {
+        opacity: 0.8;
         transform: translate(0.055em, -0.014em);
         clip-path: inset(64% 0 10% 0);
       }
@@ -156,11 +160,10 @@ import { WorkspaceUi } from '../../shared/workspace';
 
     @media (max-width: 36rem) {
       .not-found {
-        min-height: auto;
-        padding-block: 1rem;
+        padding: 1.5rem;
       }
 
-      .not-found-panel {
+      .not-found-content {
         gap: 1.5rem;
       }
 

@@ -13,6 +13,23 @@ public sealed partial class SupportTicketStore
         var agent = await tickets.Agent(ct); var ticket = await tickets.Lock(q.Id, agent, ct);
         if (ticket == null) return Result.Fail("support.not_found", ErrorKind.NotFound);
         if (ticket.Version != q.Version) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
+        if (ticket.Status == "Draft")
+        {
+            if (ticket.RequesterId != context.ActorId || q.Status is not ("Draft" or "Open") || q.Priority != ticket.Priority || q.AssigneeId != null)
+                return Result.Fail("authorization.denied", ErrorKind.Forbidden);
+            var subject = (q.Subject ?? ticket.Subject).Trim();
+            var description = (q.Description ?? ticket.Description).Trim();
+            if (q.Status == "Open" && (subject == "" || description == "" || q.CategoryId == null))
+                return Result.Fail("validation.failed", ErrorKind.Validation);
+            if (q.CategoryId is { } draftCategory && (q.Status == "Open" || q.CategoryId != ticket.CategoryId) &&
+                !await db.Set<SupportCategoryRow>().AnyAsync(x => x.Id == draftCategory && x.Active, ct))
+                return Result.Fail("support.category_invalid", ErrorKind.Validation);
+            ticket.Subject = subject; ticket.Description = description; ticket.CategoryId = q.CategoryId;
+            if (q.Status == "Open") { ticket.Status = "Open"; tickets.History(ticket, "status", "Open"); }
+            tickets.Touch(ticket); tickets.Audit(ticket, q.Status == "Open" ? "created" : "draft_saved");
+            return Result.Success();
+        }
+        if (q.Subject != null || q.Description != null || q.CategoryId == null) return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         if (!TicketWorkflow.CanTransition(ticket.Status, q.Status, agent) || !agent && (q.Priority != ticket.Priority || q.CategoryId != ticket.CategoryId || q.AssigneeId != ticket.AssigneeId))
             return Result.Fail("authorization.denied", ErrorKind.Forbidden);
         if (q.CategoryId != ticket.CategoryId && !await db.Set<SupportCategoryRow>().AnyAsync(x => x.Id == q.CategoryId && x.Active, ct)) return Result.Fail("support.category_invalid", ErrorKind.Validation);

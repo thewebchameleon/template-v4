@@ -3,9 +3,11 @@
 
 export interface UpdateTicket {
   assigneeId: (string | null);
-  categoryId: string;
+  categoryId: (string | null);
+  description?: (string | null);
   id: string;
   priority: string;
   status: string;
+  subject?: (string | null);
   version: string;
 }

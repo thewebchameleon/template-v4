@@ -15,6 +15,7 @@ export interface ListCommercialDocuments$Params {
   search?: string;
   sort?: string;
   direction?: string;
+  group?: string;
 }
 
 export function listCommercialDocuments(http: HttpClient, rootUrl: string, params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
@@ -25,6 +26,7 @@ export function listCommercialDocuments(http: HttpClient, rootUrl: string, param
     rb.query('search', params.search, {});
     rb.query('sort', params.sort, {});
     rb.query('direction', params.direction, {});
+    rb.query('group', params.group, {});
   }
 
   return http.request(

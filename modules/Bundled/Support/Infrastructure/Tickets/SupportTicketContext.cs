@@ -30,10 +30,10 @@ public sealed class SupportTicketContext(SupportDb db, IExecutionContext context
                                            select m.UserId).Distinct();
 
     internal async Task<bool> Agent(CancellationToken ct) => (await access.ActorPermissions(ct)).Any(p => p is Permissions.SupportAgent or Permissions.SupportAdmin);
-    internal IQueryable<SupportTicketRow> Visible(bool agent) => db.Set<SupportTicketRow>().Where(x => agent || x.RequesterId == context.ActorId);
-    internal IQueryable<TicketItem> Items(IQueryable<SupportTicketRow> source) => source.Select(x => new TicketItem(x.Id, x.Subject, x.RequesterId,
+    internal IQueryable<SupportTicketRow> Visible(bool agent) => db.Set<SupportTicketRow>().Where(x => x.RequesterId == context.ActorId || agent && x.Status != "Draft");
+    internal IQueryable<TicketItem> Items(IQueryable<SupportTicketRow> source) => source.Select(x => new TicketItem(x.Id, x.ReferenceNumber, x.Subject, x.Description, x.RequesterId,
         db.Profiles.Where(p => p.Id == x.RequesterId).Select(p => p.DisplayName).FirstOrDefault() ?? "",
-        x.CategoryId, db.Set<SupportCategoryRow>().Where(c => c.Id == x.CategoryId).Select(c => c.Name).First(),
+        x.CategoryId, db.Set<SupportCategoryRow>().Where(c => c.Id == x.CategoryId).Select(c => c.Name).FirstOrDefault(),
         x.Status, x.Priority, x.AssigneeId, db.Profiles.Where(p => p.Id == x.AssigneeId).Select(p => p.DisplayName).FirstOrDefault(),
         x.CreatedAt, x.UpdatedAt, x.Version));
     // Serialize writes per ticket; version checks prevent stale replies/edits and bound attachment quotas under concurrency.

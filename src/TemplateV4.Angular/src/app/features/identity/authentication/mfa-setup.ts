@@ -57,7 +57,12 @@ import { Notifications } from '../../notifications/notifications';
             {{ 'copyRecoveryCodes' | t }}
           </button>
         </div>
-        <button hlmBtn [disabled]="busy()" (click)="finish()">{{ 'savedRecovery' | t }}</button>
+        <button hlmBtn [disabled]="busy()" [attr.aria-busy]="finishing()" (click)="finish()">
+          @if (finishing()) {
+            <hlm-spinner />
+          }
+          {{ 'savedRecovery' | t }}
+        </button>
       } @else if (configured()) {
         <div class="auth-heading" role="status">
           <svg
@@ -77,7 +82,12 @@ import { Notifications } from '../../notifications/notifications';
           <h1 class="auth-title">{{ 'mfaSetupSuccessTitle' | t }}</h1>
           <p class="auth-description">{{ 'mfaSetupComplete' | t }}</p>
         </div>
-        <button hlmBtn [disabled]="busy()" (click)="finish()">{{ 'mfaSetupContinue' | t }}</button>
+        <button hlmBtn [disabled]="busy()" [attr.aria-busy]="finishing()" (click)="finish()">
+          @if (finishing()) {
+            <hlm-spinner />
+          }
+          {{ 'mfaSetupContinue' | t }}
+        </button>
       } @else if (enrollment(); as setup) {
         <div class="auth-heading">
           <h2 class="auth-title">{{ 'authenticatorSetupTitle' | t }}</h2>
@@ -155,6 +165,9 @@ import { Notifications } from '../../notifications/notifications';
             {{ 'confirmFactor' | t }}
           </button>
         </form>
+        <button hlmBtn type="button" variant="link" [disabled]="busy()" (click)="chooseAnotherMethod()">
+          {{ 'chooseAnotherMethod' | t }}
+        </button>
       } @else {
         <button hlmBtn [disabled]="busy()" (click)="enroll()">
           {{ 'enrollAuthenticator' | t }}
@@ -176,7 +189,7 @@ import { Notifications } from '../../notifications/notifications';
           <p hlmFieldDescription>{{ 'passkeysUnsupported' | t }}</p>
         }
       }
-      @if (busy() && !passkeyBusy() && !backToSignInBusy()) {
+      @if (busy() && !passkeyBusy() && !backToSignInBusy() && !finishing()) {
         <div role="status" class="flex items-center gap-2"><hlm-spinner />{{ 'loading' | t }}</div>
       }
       <button
@@ -207,6 +220,7 @@ export class MfaSetupPage {
   readonly codes = signal<string[]>([]);
   readonly configured = signal(false);
   readonly busy = signal(false);
+  readonly finishing = signal(false);
   readonly passkeyBusy = signal(false);
   readonly backToSignInBusy = signal(false);
   readonly otpSlots = [0, 1, 2, 3, 4, 5];
@@ -244,6 +258,12 @@ export class MfaSetupPage {
       this.enrollment.set(enrollment);
     });
   }
+  chooseAnotherMethod() {
+    this.enrollment.set(null);
+    this.qrSvg.set(null);
+    this.manualSetup.set(false);
+    this.code = '';
+  }
   confirm() {
     return this.run(async () => {
       this.codes.set(await this.auth.action<string[]>('mfa/confirm', { code: this.code }));
@@ -269,6 +289,7 @@ export class MfaSetupPage {
   }
   finish() {
     if (!this.configured()) return;
+    this.finishing.set(true);
     return this.run(async () => {
       if (!(await this.auth.refresh())) return;
       if (this.auth.access()?.setupRequired) {
@@ -283,7 +304,7 @@ export class MfaSetupPage {
           ? requested
           : this.auth.landing();
       await this.router.navigateByUrl(target);
-    });
+    }).finally(() => this.finishing.set(false));
   }
   async signInAgain() {
     this.backToSignInBusy.set(true);

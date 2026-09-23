@@ -442,12 +442,17 @@ export class FileStorageNavigation {
                 [attr.aria-current]="
                   selectedGroup() === group.id && !selectedFolder() ? 'page' : null
                 "
-                ><ng-icon [name]="group.icon" /><span>{{ group.label | t }}</span
-                ><span
-                  class="file-storage-nav-count"
-                  [class.file-storage-nav-count-important]="group.id === 'important'"
-                  >{{ count(group.id) }}</span
-                ></a
+                ><ng-icon [name]="group.icon" /><span>{{ group.label | t }}</span>
+                @if (group.id !== 'recent') {
+                  <span
+                    class="file-storage-nav-count"
+                    [class.file-storage-nav-count-important]="
+                      group.id === 'important' && (data.value()?.[group.id]?.fileCount ?? 0) > 0
+                    "
+                    >{{ count(group.id) }}</span
+                  >
+                }
+                </a
               >
               @if (group.id === 'file-storage') {
                 <button

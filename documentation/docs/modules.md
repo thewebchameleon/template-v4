@@ -71,6 +71,14 @@ moving code.
    retained data remains accessible to authorized recovery workflows.
 6. Update contracts, migrations, manifest, documentation, and release inputs together.
 
+Module frontend contributions can declare `organisationDestinations` for the icon rail
+and `organisationLinks` for that destination's submenu. Set `hasPanel` on a rail
+destination and keep its `activePath` at the module prefix so the panel remains active
+on child pages. Each submenu link supplies a segment relative to `/organisation`, a
+label available in both cultures at startup, and its capability; optional `icon` and
+`section` values select the link icon and a labelled submenu group. Route guards must
+enforce the same capability independently of navigation visibility.
+
 Runtime capability checks complement permissions and feature flags; none replaces the
 others. Dependency-safe activation is application-wide. Financial settlement, cleanup,
 and other accepted obligations continue when their optional UI capability is disabled.

@@ -13,7 +13,7 @@ public sealed class SupportDashboardCards(SupportDb db, SupportTicketContext tic
     public async Task<bool> Available(Guid actor, string id, CancellationToken ct) => await tickets.Available(ct) && await tickets.Agent(ct);
     public async Task<DashboardCardData> Read(Guid actor, DashboardCardQuery q, DateTimeOffset? since, CancellationToken ct)
     {
-        var source = tickets.Visible(true).AsNoTracking();
+        var source = tickets.Visible(true).AsNoTracking().Where(x => x.Status != "Draft");
         if (q.Filter != "all") source = source.Where(x => x.Status == q.Filter);
         if (since != null) source = source.Where(x => x.CreatedAt >= since);
         if (q.DefinitionId == "support.awaiting") source = source.Where(x => x.Status != "Closed" && x.Status != "Resolved" && x.Status != "WaitingOnRequester" &&

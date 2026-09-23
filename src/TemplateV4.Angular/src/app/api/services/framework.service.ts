@@ -3498,897 +3498,6 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `listSupportTickets()` */
-  static readonly ListSupportTicketsPath = '/api/v1/auth/support';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listSupportTickets()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listSupportTickets$Response(params?: ListSupportTickets$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfTicketItem>> {
-    const obs = listSupportTickets(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listSupportTickets$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listSupportTickets(params?: ListSupportTickets$Params, context?: HttpContext): Observable<PageOfTicketItem> {
-    const resp = this.listSupportTickets$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfTicketItem>): PageOfTicketItem => r.body)
-    );
-  }
-
-  /** Path part for operation `createSupportTicket()` */
-  static readonly CreateSupportTicketPath = '/api/v1/auth/support';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `createSupportTicket()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createSupportTicket$Response(params: CreateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
-    const obs = createSupportTicket(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `createSupportTicket$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createSupportTicket(params: CreateSupportTicket$Params, context?: HttpContext): Observable<string> {
-    const resp = this.createSupportTicket$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<string>): string => r.body)
-    );
-  }
-
-  /** Path part for operation `getSupportOptions()` */
-  static readonly GetSupportOptionsPath = '/api/v1/auth/support/options';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getSupportOptions()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getSupportOptions$Response(params?: GetSupportOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<SupportOptions>> {
-    const obs = getSupportOptions(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getSupportOptions$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getSupportOptions(params?: GetSupportOptions$Params, context?: HttpContext): Observable<SupportOptions> {
-    const resp = this.getSupportOptions$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<SupportOptions>): SupportOptions => r.body)
-    );
-  }
-
-  /** Path part for operation `getSupportTicket()` */
-  static readonly GetSupportTicketPath = '/api/v1/auth/support/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getSupportTicket()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getSupportTicket$Response(params: GetSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<TicketDetail>> {
-    const obs = getSupportTicket(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getSupportTicket$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getSupportTicket(params: GetSupportTicket$Params, context?: HttpContext): Observable<TicketDetail> {
-    const resp = this.getSupportTicket$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<TicketDetail>): TicketDetail => r.body)
-    );
-  }
-
-  /** Path part for operation `replySupportTicket()` */
-  static readonly ReplySupportTicketPath = '/api/v1/auth/support/reply';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `replySupportTicket()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  replySupportTicket$Response(params: ReplySupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = replySupportTicket(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `replySupportTicket$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  replySupportTicket(params: ReplySupportTicket$Params, context?: HttpContext): Observable<void> {
-    const resp = this.replySupportTicket$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `updateSupportTicket()` */
-  static readonly UpdateSupportTicketPath = '/api/v1/auth/support/update';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `updateSupportTicket()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  updateSupportTicket$Response(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = updateSupportTicket(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `updateSupportTicket$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  updateSupportTicket(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<void> {
-    const resp = this.updateSupportTicket$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `saveSupportCategory()` */
-  static readonly SaveSupportCategoryPath = '/api/v1/auth/support/categories';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveSupportCategory()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveSupportCategory$Response(params: SaveSupportCategory$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = saveSupportCategory(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveSupportCategory$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveSupportCategory(params: SaveSupportCategory$Params, context?: HttpContext): Observable<void> {
-    const resp = this.saveSupportCategory$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `attachSupportTicket()` */
-  static readonly AttachSupportTicketPath = '/api/v1/auth/support/attachments';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `attachSupportTicket()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  attachSupportTicket$Response(params: AttachSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = attachSupportTicket(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `attachSupportTicket$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  attachSupportTicket(params: AttachSupportTicket$Params, context?: HttpContext): Observable<void> {
-    const resp = this.attachSupportTicket$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `downloadSupportAttachment()` */
-  static readonly DownloadSupportAttachmentPath = '/api/v1/auth/support/{id}/attachments/{attachmentId}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `downloadSupportAttachment()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadSupportAttachment$Response(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = downloadSupportAttachment(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `downloadSupportAttachment$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadSupportAttachment(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<void> {
-    const resp = this.downloadSupportAttachment$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `listCrmRecords()` */
-  static readonly ListCrmRecordsPath = '/api/v1/auth/organisation/crm';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listCrmRecords()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCrmRecords$Response(params?: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
-    const obs = listCrmRecords(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listCrmRecords$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCrmRecords(params?: ListCrmRecords$Params, context?: HttpContext): Observable<PageOfCrmRecord> {
-    const resp = this.listCrmRecords$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfCrmRecord>): PageOfCrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `saveCrmRecord()` */
-  static readonly SaveCrmRecordPath = '/api/v1/auth/organisation/crm';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveCrmRecord()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCrmRecord$Response(params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
-    const obs = saveCrmRecord(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveCrmRecord$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCrmRecord(params: SaveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
-    const resp = this.saveCrmRecord$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmOverview()` */
-  static readonly GetCrmOverviewPath = '/api/v1/auth/organisation/crm/overview';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmOverview()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmOverview$Response(params?: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
-    const obs = getCrmOverview(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmOverview$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmOverview(params?: GetCrmOverview$Params, context?: HttpContext): Observable<CrmOverview> {
-    const resp = this.getCrmOverview$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmOverview>): CrmOverview => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmConfiguration()` */
-  static readonly GetCrmConfigurationPath = '/api/v1/auth/organisation/crm/configuration';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmConfiguration()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmConfiguration$Response(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
-    const obs = getCrmConfiguration(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmConfiguration$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmConfiguration(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<CrmConfiguration> {
-    const resp = this.getCrmConfiguration$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
-    );
-  }
-
-  /** Path part for operation `configureCrm()` */
-  static readonly ConfigureCrmPath = '/api/v1/auth/organisation/crm/configuration';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `configureCrm()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureCrm$Response(params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
-    const obs = configureCrm(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `configureCrm$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureCrm(params: ConfigureCrm$Params, context?: HttpContext): Observable<CrmConfiguration> {
-    const resp = this.configureCrm$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmDetail()` */
-  static readonly GetCrmDetailPath = '/api/v1/auth/organisation/crm/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmDetail()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmDetail$Response(params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
-    const obs = getCrmDetail(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmDetail$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmDetail(params: GetCrmDetail$Params, context?: HttpContext): Observable<CrmDetail> {
-    const resp = this.getCrmDetail$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmDetail>): CrmDetail => r.body)
-    );
-  }
-
-  /** Path part for operation `archiveCrmRecord()` */
-  static readonly ArchiveCrmRecordPath = '/api/v1/auth/organisation/crm/{id}/archive';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `archiveCrmRecord()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  archiveCrmRecord$Response(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
-    const obs = archiveCrmRecord(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `archiveCrmRecord$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  archiveCrmRecord(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
-    const resp = this.archiveCrmRecord$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `addCrmNote()` */
-  static readonly AddCrmNotePath = '/api/v1/auth/organisation/crm/{id}/notes';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `addCrmNote()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  addCrmNote$Response(params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
-    const obs = addCrmNote(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `addCrmNote$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  addCrmNote(params: AddCrmNote$Params, context?: HttpContext): Observable<CrmNote> {
-    const resp = this.addCrmNote$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
-    );
-  }
-
-  /** Path part for operation `listContentCollections()` */
-  static readonly ListContentCollectionsPath = '/api/v1/auth/cms/collections';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listContentCollections()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContentCollections$Response(params?: ListContentCollections$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ContentCollection>>> {
-    const obs = listContentCollections(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listContentCollections$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContentCollections(params?: ListContentCollections$Params, context?: HttpContext): Observable<Array<ContentCollection>> {
-    const resp = this.listContentCollections$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<Array<ContentCollection>>): Array<ContentCollection> => r.body)
-    );
-  }
-
-  /** Path part for operation `saveContentCollection()` */
-  static readonly SaveContentCollectionPath = '/api/v1/auth/cms/collections';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveContentCollection()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentCollection$Response(params: SaveContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
-    const obs = saveContentCollection(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveContentCollection$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentCollection(params: SaveContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
-    const resp = this.saveContentCollection$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
-    );
-  }
-
-  /** Path part for operation `getContentAccessOptions()` */
-  static readonly GetContentAccessOptionsPath = '/api/v1/auth/cms/collections/access-options';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getContentAccessOptions()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentAccessOptions$Response(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentAccessOptions>> {
-    const obs = getContentAccessOptions(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getContentAccessOptions$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentAccessOptions(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<ContentAccessOptions> {
-    const resp = this.getContentAccessOptions$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentAccessOptions>): ContentAccessOptions => r.body)
-    );
-  }
-
-  /** Path part for operation `getContentCollection()` */
-  static readonly GetContentCollectionPath = '/api/v1/auth/cms/collections/{key}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getContentCollection()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentCollection$Response(params: GetContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
-    const obs = getContentCollection(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getContentCollection$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentCollection(params: GetContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
-    const resp = this.getContentCollection$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
-    );
-  }
-
-  /** Path part for operation `saveContentGrants()` */
-  static readonly SaveContentGrantsPath = '/api/v1/auth/cms/collections/{key}/grants';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveContentGrants()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentGrants$Response(params: SaveContentGrants$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
-    const obs = saveContentGrants(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveContentGrants$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentGrants(params: SaveContentGrants$Params, context?: HttpContext): Observable<ContentCollection> {
-    const resp = this.saveContentGrants$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
-    );
-  }
-
-  /** Path part for operation `listContentItems()` */
-  static readonly ListContentItemsPath = '/api/v1/auth/cms/collections/{key}/items';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listContentItems()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContentItems$Response(params: ListContentItems$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfContentItemSummary>> {
-    const obs = listContentItems(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listContentItems$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContentItems(params: ListContentItems$Params, context?: HttpContext): Observable<PageOfContentItemSummary> {
-    const resp = this.listContentItems$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfContentItemSummary>): PageOfContentItemSummary => r.body)
-    );
-  }
-
-  /** Path part for operation `saveContentItem()` */
-  static readonly SaveContentItemPath = '/api/v1/auth/cms/collections/{key}/items';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveContentItem()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentItem$Response(params: SaveContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
-    const obs = saveContentItem(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveContentItem$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveContentItem(params: SaveContentItem$Params, context?: HttpContext): Observable<ContentItem> {
-    const resp = this.saveContentItem$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
-    );
-  }
-
-  /** Path part for operation `getContentItem()` */
-  static readonly GetContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getContentItem()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentItem$Response(params: GetContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
-    const obs = getContentItem(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getContentItem$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getContentItem(params: GetContentItem$Params, context?: HttpContext): Observable<ContentItem> {
-    const resp = this.getContentItem$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
-    );
-  }
-
-  /** Path part for operation `transitionContentItem()` */
-  static readonly TransitionContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}/transition';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `transitionContentItem()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  transitionContentItem$Response(params: TransitionContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
-    const obs = transitionContentItem(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `transitionContentItem$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  transitionContentItem(params: TransitionContentItem$Params, context?: HttpContext): Observable<ContentItem> {
-    const resp = this.transitionContentItem$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
-    );
-  }
-
-  /** Path part for operation `listCmsArticles()` */
-  static readonly ListCmsArticlesPath = '/api/v1/auth/cms';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listCmsArticles()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCmsArticles$Response(params?: ListCmsArticles$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCmsArticleSummary>> {
-    const obs = listCmsArticles(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listCmsArticles$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCmsArticles(params?: ListCmsArticles$Params, context?: HttpContext): Observable<PageOfCmsArticleSummary> {
-    const resp = this.listCmsArticles$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfCmsArticleSummary>): PageOfCmsArticleSummary => r.body)
-    );
-  }
-
-  /** Path part for operation `saveCmsArticle()` */
-  static readonly SaveCmsArticlePath = '/api/v1/auth/cms';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveCmsArticle()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCmsArticle$Response(params: SaveCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
-    const obs = saveCmsArticle(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveCmsArticle$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCmsArticle(params: SaveCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
-    const resp = this.saveCmsArticle$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
-    );
-  }
-
-  /** Path part for operation `getCmsArticle()` */
-  static readonly GetCmsArticlePath = '/api/v1/auth/cms/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCmsArticle()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCmsArticle$Response(params: GetCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
-    const obs = getCmsArticle(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCmsArticle$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCmsArticle(params: GetCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
-    const resp = this.getCmsArticle$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
-    );
-  }
-
-  /** Path part for operation `publishCmsArticle()` */
-  static readonly PublishCmsArticlePath = '/api/v1/auth/cms/{id}/publish';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `publishCmsArticle()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  publishCmsArticle$Response(params: PublishCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
-    const obs = publishCmsArticle(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `publishCmsArticle$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  publishCmsArticle(params: PublishCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
-    const resp = this.publishCmsArticle$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
-    );
-  }
-
-  /** Path part for operation `getCmsSections()` */
-  static readonly GetCmsSectionsPath = '/api/v1/auth/cms/sections';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCmsSections()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCmsSections$Response(params?: GetCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
-    const obs = getCmsSections(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCmsSections$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCmsSections(params?: GetCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
-    const resp = this.getCmsSections$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
-    );
-  }
-
-  /** Path part for operation `saveCmsSections()` */
-  static readonly SaveCmsSectionsPath = '/api/v1/auth/cms/sections';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveCmsSections()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCmsSections$Response(params: SaveCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
-    const obs = saveCmsSections(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveCmsSections$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCmsSections(params: SaveCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
-    const resp = this.saveCmsSections$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
-    );
-  }
-
-  /** Path part for operation `publishCmsSections()` */
-  static readonly PublishCmsSectionsPath = '/api/v1/auth/cms/sections/publish';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `publishCmsSections()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  publishCmsSections$Response(params: PublishCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
-    const obs = publishCmsSections(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `publishCmsSections$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  publishCmsSections(params: PublishCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
-    const resp = this.publishCmsSections$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
-    );
-  }
-
   /** Path part for operation `listApiKeys()` */
   static readonly ListApiKeysPath = '/api/v1/auth/administration/api-keys';
 
@@ -4521,411 +3630,6 @@ export class FrameworkService extends BaseService {
     const resp = this.deleteApiKey$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `listContactEnquiries()` */
-  static readonly ListContactEnquiriesPath = '/api/v1/auth/contact';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listContactEnquiries()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContactEnquiries$Response(params?: ListContactEnquiries$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfContactEnquiry>> {
-    const obs = listContactEnquiries(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listContactEnquiries$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listContactEnquiries(params?: ListContactEnquiries$Params, context?: HttpContext): Observable<PageOfContactEnquiry> {
-    const resp = this.listContactEnquiries$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfContactEnquiry>): PageOfContactEnquiry => r.body)
-    );
-  }
-
-  /** Path part for operation `markContactEnquiryRead()` */
-  static readonly MarkContactEnquiryReadPath = '/api/v1/auth/contact/{id}/read';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `markContactEnquiryRead()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  markContactEnquiryRead$Response(params: MarkContactEnquiryRead$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = markContactEnquiryRead(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `markContactEnquiryRead$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  markContactEnquiryRead(params: MarkContactEnquiryRead$Params, context?: HttpContext): Observable<void> {
-    const resp = this.markContactEnquiryRead$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `storeCommercialPdf()` */
-  static readonly StoreCommercialPdfPath = '/api/v1/auth/organisation/invoicing/{id}/store-pdf';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `storeCommercialPdf()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  storeCommercialPdf$Response(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = storeCommercialPdf(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `storeCommercialPdf$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  storeCommercialPdf(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<void> {
-    const resp = this.storeCommercialPdf$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `previewCommercialDocument()` */
-  static readonly PreviewCommercialDocumentPath = '/api/v1/auth/organisation/invoicing/preview';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `previewCommercialDocument()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  previewCommercialDocument$Response(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialTotals>> {
-    const obs = previewCommercialDocument(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `previewCommercialDocument$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  previewCommercialDocument(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<CommercialTotals> {
-    const resp = this.previewCommercialDocument$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialTotals>): CommercialTotals => r.body)
-    );
-  }
-
-  /** Path part for operation `listCommercialDocuments()` */
-  static readonly ListCommercialDocumentsPath = '/api/v1/auth/organisation/invoicing';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listCommercialDocuments()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCommercialDocuments$Response(params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
-    const obs = listCommercialDocuments(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listCommercialDocuments$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCommercialDocuments(params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<PageOfCommercialDocument> {
-    const resp = this.listCommercialDocuments$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfCommercialDocument>): PageOfCommercialDocument => r.body)
-    );
-  }
-
-  /** Path part for operation `issueCommercialDocument()` */
-  static readonly IssueCommercialDocumentPath = '/api/v1/auth/organisation/invoicing';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `issueCommercialDocument()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  issueCommercialDocument$Response(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
-    const obs = issueCommercialDocument(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `issueCommercialDocument$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  issueCommercialDocument(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<CommercialDocument> {
-    const resp = this.issueCommercialDocument$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
-    );
-  }
-
-  /** Path part for operation `acceptCommercialQuotation()` */
-  static readonly AcceptCommercialQuotationPath = '/api/v1/auth/organisation/invoicing/{id}/accept';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `acceptCommercialQuotation()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  acceptCommercialQuotation$Response(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
-    const obs = acceptCommercialQuotation(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `acceptCommercialQuotation$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  acceptCommercialQuotation(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
-    const resp = this.acceptCommercialQuotation$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
-    );
-  }
-
-  /** Path part for operation `getInvoicingSettings()` */
-  static readonly GetInvoicingSettingsPath = '/api/v1/auth/organisation/invoicing/settings';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getInvoicingSettings()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getInvoicingSettings$Response(params?: GetInvoicingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
-    const obs = getInvoicingSettings(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getInvoicingSettings$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getInvoicingSettings(params?: GetInvoicingSettings$Params, context?: HttpContext): Observable<IssuerSettings> {
-    const resp = this.getInvoicingSettings$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
-    );
-  }
-
-  /** Path part for operation `configureInvoicing()` */
-  static readonly ConfigureInvoicingPath = '/api/v1/auth/organisation/invoicing/settings';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `configureInvoicing()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureInvoicing$Response(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
-    const obs = configureInvoicing(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `configureInvoicing$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureInvoicing(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<IssuerSettings> {
-    const resp = this.configureInvoicing$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
-    );
-  }
-
-  /** Path part for operation `invoiceAcceptedQuotation()` */
-  static readonly InvoiceAcceptedQuotationPath = '/api/v1/auth/organisation/invoicing/{id}/invoice';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `invoiceAcceptedQuotation()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  invoiceAcceptedQuotation$Response(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
-    const obs = invoiceAcceptedQuotation(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `invoiceAcceptedQuotation$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  invoiceAcceptedQuotation(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
-    const resp = this.invoiceAcceptedQuotation$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
-    );
-  }
-
-  /** Path part for operation `downloadCommercialPdf()` */
-  static readonly DownloadCommercialPdfPath = '/api/v1/auth/organisation/invoicing/{id}/pdf';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `downloadCommercialPdf()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadCommercialPdf$Response(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
-    const obs = downloadCommercialPdf(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `downloadCommercialPdf$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  downloadCommercialPdf(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<string> {
-    const resp = this.downloadCommercialPdf$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<string>): string => r.body)
-    );
-  }
-
-  /** Path part for operation `getCommercialDocument()` */
-  static readonly GetCommercialDocumentPath = '/api/v1/auth/organisation/invoicing/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCommercialDocument()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialDocument$Response(params: GetCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDetail>> {
-    const obs = getCommercialDocument(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCommercialDocument$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialDocument(params: GetCommercialDocument$Params, context?: HttpContext): Observable<CommercialDetail> {
-    const resp = this.getCommercialDocument$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialDetail>): CommercialDetail => r.body)
-    );
-  }
-
-  /** Path part for operation `recordCommercialPayment()` */
-  static readonly RecordCommercialPaymentPath = '/api/v1/auth/organisation/invoicing/{id}/payment';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `recordCommercialPayment()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  recordCommercialPayment$Response(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
-    const obs = recordCommercialPayment(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `recordCommercialPayment$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  recordCommercialPayment(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<FinancialEntry> {
-    const resp = this.recordCommercialPayment$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
-    );
-  }
-
-  /** Path part for operation `creditCommercialInvoice()` */
-  static readonly CreditCommercialInvoicePath = '/api/v1/auth/organisation/invoicing/{id}/credit';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `creditCommercialInvoice()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  creditCommercialInvoice$Response(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
-    const obs = creditCommercialInvoice(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `creditCommercialInvoice$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  creditCommercialInvoice(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
-    const resp = this.creditCommercialInvoice$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
-    );
-  }
-
-  /** Path part for operation `refundCommercialInvoice()` */
-  static readonly RefundCommercialInvoicePath = '/api/v1/auth/organisation/invoicing/{id}/refund';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `refundCommercialInvoice()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  refundCommercialInvoice$Response(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
-    const obs = refundCommercialInvoice(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `refundCommercialInvoice$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  refundCommercialInvoice(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
-    const resp = this.refundCommercialInvoice$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
     );
   }
 
@@ -5388,114 +4092,6 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `getCommercialBilling()` */
-  static readonly GetCommercialBillingPath = '/api/v1/auth/commercial-billing';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCommercialBilling()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialBilling$Response(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSummary>> {
-    const obs = getCommercialBilling(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCommercialBilling$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialBilling(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<CommercialBillingSummary> {
-    const resp = this.getCommercialBilling$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialBillingSummary>): CommercialBillingSummary => r.body)
-    );
-  }
-
-  /** Path part for operation `startCommercialBillingTrial()` */
-  static readonly StartCommercialBillingTrialPath = '/api/v1/auth/commercial-billing/trial';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `startCommercialBillingTrial()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  startCommercialBillingTrial$Response(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = startCommercialBillingTrial(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `startCommercialBillingTrial$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  startCommercialBillingTrial(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<void> {
-    const resp = this.startCommercialBillingTrial$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `createCommercialSubscriptionCheckout()` */
-  static readonly CreateCommercialSubscriptionCheckoutPath = '/api/v1/auth/commercial-billing/checkout';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `createCommercialSubscriptionCheckout()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createCommercialSubscriptionCheckout$Response(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<StrictHttpResponse<PaymentCheckout>> {
-    const obs = createCommercialSubscriptionCheckout(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `createCommercialSubscriptionCheckout$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  createCommercialSubscriptionCheckout(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<PaymentCheckout> {
-    const resp = this.createCommercialSubscriptionCheckout$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PaymentCheckout>): PaymentCheckout => r.body)
-    );
-  }
-
-  /** Path part for operation `cancelCommercialSubscription()` */
-  static readonly CancelCommercialSubscriptionPath = '/api/v1/auth/commercial-billing/cancel';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `cancelCommercialSubscription()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  cancelCommercialSubscription$Response(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = cancelCommercialSubscription(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `cancelCommercialSubscription$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  cancelCommercialSubscription(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<void> {
-    const resp = this.cancelCommercialSubscription$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
   /** Path part for operation `getPaymentMethods()` */
   static readonly GetPaymentMethodsPath = '/api/v1/auth/configuration/payment-methods';
 
@@ -5545,60 +4141,6 @@ export class FrameworkService extends BaseService {
    */
   savePaymentMethods(params: SavePaymentMethods$Params, context?: HttpContext): Observable<void> {
     const resp = this.savePaymentMethods$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<void>): void => r.body)
-    );
-  }
-
-  /** Path part for operation `getCommercialBillingSettings()` */
-  static readonly GetCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCommercialBillingSettings()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialBillingSettings$Response(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSettings>> {
-    const obs = getCommercialBillingSettings(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCommercialBillingSettings$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCommercialBillingSettings(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<CommercialBillingSettings> {
-    const resp = this.getCommercialBillingSettings$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CommercialBillingSettings>): CommercialBillingSettings => r.body)
-    );
-  }
-
-  /** Path part for operation `saveCommercialBillingSettings()` */
-  static readonly SaveCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveCommercialBillingSettings()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCommercialBillingSettings$Response(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
-    const obs = saveCommercialBillingSettings(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveCommercialBillingSettings$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCommercialBillingSettings(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<void> {
-    const resp = this.saveCommercialBillingSettings$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );
@@ -5904,6 +4446,1464 @@ export class FrameworkService extends BaseService {
    */
   triggerMaintenance(params?: TriggerMaintenance$Params, context?: HttpContext): Observable<void> {
     const resp = this.triggerMaintenance$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getCommercialBilling()` */
+  static readonly GetCommercialBillingPath = '/api/v1/auth/commercial-billing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCommercialBilling()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBilling$Response(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSummary>> {
+    const obs = getCommercialBilling(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCommercialBilling$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBilling(params?: GetCommercialBilling$Params, context?: HttpContext): Observable<CommercialBillingSummary> {
+    const resp = this.getCommercialBilling$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialBillingSummary>): CommercialBillingSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `startCommercialBillingTrial()` */
+  static readonly StartCommercialBillingTrialPath = '/api/v1/auth/commercial-billing/trial';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `startCommercialBillingTrial()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  startCommercialBillingTrial$Response(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = startCommercialBillingTrial(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `startCommercialBillingTrial$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  startCommercialBillingTrial(params: StartCommercialBillingTrial$Params, context?: HttpContext): Observable<void> {
+    const resp = this.startCommercialBillingTrial$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `createCommercialSubscriptionCheckout()` */
+  static readonly CreateCommercialSubscriptionCheckoutPath = '/api/v1/auth/commercial-billing/checkout';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createCommercialSubscriptionCheckout()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createCommercialSubscriptionCheckout$Response(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<StrictHttpResponse<PaymentCheckout>> {
+    const obs = createCommercialSubscriptionCheckout(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createCommercialSubscriptionCheckout$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createCommercialSubscriptionCheckout(params: CreateCommercialSubscriptionCheckout$Params, context?: HttpContext): Observable<PaymentCheckout> {
+    const resp = this.createCommercialSubscriptionCheckout$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PaymentCheckout>): PaymentCheckout => r.body)
+    );
+  }
+
+  /** Path part for operation `cancelCommercialSubscription()` */
+  static readonly CancelCommercialSubscriptionPath = '/api/v1/auth/commercial-billing/cancel';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `cancelCommercialSubscription()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  cancelCommercialSubscription$Response(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = cancelCommercialSubscription(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `cancelCommercialSubscription$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  cancelCommercialSubscription(params: CancelCommercialSubscription$Params, context?: HttpContext): Observable<void> {
+    const resp = this.cancelCommercialSubscription$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `getCommercialBillingSettings()` */
+  static readonly GetCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCommercialBillingSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBillingSettings$Response(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialBillingSettings>> {
+    const obs = getCommercialBillingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCommercialBillingSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialBillingSettings(params?: GetCommercialBillingSettings$Params, context?: HttpContext): Observable<CommercialBillingSettings> {
+    const resp = this.getCommercialBillingSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialBillingSettings>): CommercialBillingSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCommercialBillingSettings()` */
+  static readonly SaveCommercialBillingSettingsPath = '/api/v1/auth/configuration/commercial-billing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCommercialBillingSettings()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCommercialBillingSettings$Response(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveCommercialBillingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCommercialBillingSettings$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCommercialBillingSettings(params: SaveCommercialBillingSettings$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveCommercialBillingSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listCrmRecords()` */
+  static readonly ListCrmRecordsPath = '/api/v1/auth/organisation/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCrmRecords()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords$Response(params?: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
+    const obs = listCrmRecords(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCrmRecords$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords(params?: ListCrmRecords$Params, context?: HttpContext): Observable<PageOfCrmRecord> {
+    const resp = this.listCrmRecords$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCrmRecord>): PageOfCrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCrmRecord()` */
+  static readonly SaveCrmRecordPath = '/api/v1/auth/organisation/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord$Response(params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = saveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord(params: SaveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.saveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmOverview()` */
+  static readonly GetCrmOverviewPath = '/api/v1/auth/organisation/crm/overview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmOverview()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview$Response(params?: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
+    const obs = getCrmOverview(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmOverview$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview(params?: GetCrmOverview$Params, context?: HttpContext): Observable<CrmOverview> {
+    const resp = this.getCrmOverview$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmOverview>): CrmOverview => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmConfiguration()` */
+  static readonly GetCrmConfigurationPath = '/api/v1/auth/organisation/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmConfiguration()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration$Response(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = getCrmConfiguration(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmConfiguration$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.getCrmConfiguration$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `configureCrm()` */
+  static readonly ConfigureCrmPath = '/api/v1/auth/organisation/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `configureCrm()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm$Response(params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = configureCrm(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `configureCrm$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm(params: ConfigureCrm$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.configureCrm$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmDetail()` */
+  static readonly GetCrmDetailPath = '/api/v1/auth/organisation/crm/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmDetail()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail$Response(params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
+    const obs = getCrmDetail(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmDetail$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail(params: GetCrmDetail$Params, context?: HttpContext): Observable<CrmDetail> {
+    const resp = this.getCrmDetail$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmDetail>): CrmDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `archiveCrmRecord()` */
+  static readonly ArchiveCrmRecordPath = '/api/v1/auth/organisation/crm/{id}/archive';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `archiveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord$Response(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = archiveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `archiveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.archiveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `addCrmNote()` */
+  static readonly AddCrmNotePath = '/api/v1/auth/organisation/crm/{id}/notes';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `addCrmNote()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote$Response(params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
+    const obs = addCrmNote(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `addCrmNote$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote(params: AddCrmNote$Params, context?: HttpContext): Observable<CrmNote> {
+    const resp = this.addCrmNote$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
+    );
+  }
+
+  /** Path part for operation `storeCommercialPdf()` */
+  static readonly StoreCommercialPdfPath = '/api/v1/auth/organisation/invoicing/{id}/store-pdf';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `storeCommercialPdf()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  storeCommercialPdf$Response(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = storeCommercialPdf(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `storeCommercialPdf$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  storeCommercialPdf(params: StoreCommercialPdf$Params, context?: HttpContext): Observable<void> {
+    const resp = this.storeCommercialPdf$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `previewCommercialDocument()` */
+  static readonly PreviewCommercialDocumentPath = '/api/v1/auth/organisation/invoicing/preview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `previewCommercialDocument()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCommercialDocument$Response(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialTotals>> {
+    const obs = previewCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `previewCommercialDocument$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  previewCommercialDocument(params: PreviewCommercialDocument$Params, context?: HttpContext): Observable<CommercialTotals> {
+    const resp = this.previewCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialTotals>): CommercialTotals => r.body)
+    );
+  }
+
+  /** Path part for operation `listCommercialDocuments()` */
+  static readonly ListCommercialDocumentsPath = '/api/v1/auth/organisation/invoicing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCommercialDocuments()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCommercialDocuments$Response(params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCommercialDocument>> {
+    const obs = listCommercialDocuments(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCommercialDocuments$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCommercialDocuments(params?: ListCommercialDocuments$Params, context?: HttpContext): Observable<PageOfCommercialDocument> {
+    const resp = this.listCommercialDocuments$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCommercialDocument>): PageOfCommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `issueCommercialDocument()` */
+  static readonly IssueCommercialDocumentPath = '/api/v1/auth/organisation/invoicing';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `issueCommercialDocument()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  issueCommercialDocument$Response(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = issueCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `issueCommercialDocument$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  issueCommercialDocument(params: IssueCommercialDocument$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.issueCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `acceptCommercialQuotation()` */
+  static readonly AcceptCommercialQuotationPath = '/api/v1/auth/organisation/invoicing/{id}/accept';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `acceptCommercialQuotation()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  acceptCommercialQuotation$Response(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = acceptCommercialQuotation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `acceptCommercialQuotation$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  acceptCommercialQuotation(params: AcceptCommercialQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.acceptCommercialQuotation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `getInvoicingSettings()` */
+  static readonly GetInvoicingSettingsPath = '/api/v1/auth/organisation/invoicing/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getInvoicingSettings()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getInvoicingSettings$Response(params?: GetInvoicingSettings$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
+    const obs = getInvoicingSettings(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getInvoicingSettings$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getInvoicingSettings(params?: GetInvoicingSettings$Params, context?: HttpContext): Observable<IssuerSettings> {
+    const resp = this.getInvoicingSettings$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `configureInvoicing()` */
+  static readonly ConfigureInvoicingPath = '/api/v1/auth/organisation/invoicing/settings';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `configureInvoicing()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureInvoicing$Response(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<StrictHttpResponse<IssuerSettings>> {
+    const obs = configureInvoicing(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `configureInvoicing$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureInvoicing(params: ConfigureInvoicing$Params, context?: HttpContext): Observable<IssuerSettings> {
+    const resp = this.configureInvoicing$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<IssuerSettings>): IssuerSettings => r.body)
+    );
+  }
+
+  /** Path part for operation `invoiceAcceptedQuotation()` */
+  static readonly InvoiceAcceptedQuotationPath = '/api/v1/auth/organisation/invoicing/{id}/invoice';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `invoiceAcceptedQuotation()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  invoiceAcceptedQuotation$Response(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDocument>> {
+    const obs = invoiceAcceptedQuotation(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `invoiceAcceptedQuotation$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  invoiceAcceptedQuotation(params: InvoiceAcceptedQuotation$Params, context?: HttpContext): Observable<CommercialDocument> {
+    const resp = this.invoiceAcceptedQuotation$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDocument>): CommercialDocument => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadCommercialPdf()` */
+  static readonly DownloadCommercialPdfPath = '/api/v1/auth/organisation/invoicing/{id}/pdf';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadCommercialPdf()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadCommercialPdf$Response(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+    const obs = downloadCommercialPdf(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadCommercialPdf$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadCommercialPdf(params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<string> {
+    const resp = this.downloadCommercialPdf$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<string>): string => r.body)
+    );
+  }
+
+  /** Path part for operation `getCommercialDocument()` */
+  static readonly GetCommercialDocumentPath = '/api/v1/auth/organisation/invoicing/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCommercialDocument()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialDocument$Response(params: GetCommercialDocument$Params, context?: HttpContext): Observable<StrictHttpResponse<CommercialDetail>> {
+    const obs = getCommercialDocument(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCommercialDocument$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCommercialDocument(params: GetCommercialDocument$Params, context?: HttpContext): Observable<CommercialDetail> {
+    const resp = this.getCommercialDocument$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CommercialDetail>): CommercialDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `recordCommercialPayment()` */
+  static readonly RecordCommercialPaymentPath = '/api/v1/auth/organisation/invoicing/{id}/payment';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `recordCommercialPayment()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  recordCommercialPayment$Response(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = recordCommercialPayment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `recordCommercialPayment$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  recordCommercialPayment(params: RecordCommercialPayment$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.recordCommercialPayment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `creditCommercialInvoice()` */
+  static readonly CreditCommercialInvoicePath = '/api/v1/auth/organisation/invoicing/{id}/credit';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `creditCommercialInvoice()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  creditCommercialInvoice$Response(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = creditCommercialInvoice(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `creditCommercialInvoice$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  creditCommercialInvoice(params: CreditCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.creditCommercialInvoice$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `refundCommercialInvoice()` */
+  static readonly RefundCommercialInvoicePath = '/api/v1/auth/organisation/invoicing/{id}/refund';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `refundCommercialInvoice()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  refundCommercialInvoice$Response(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<StrictHttpResponse<FinancialEntry>> {
+    const obs = refundCommercialInvoice(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `refundCommercialInvoice$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  refundCommercialInvoice(params: RefundCommercialInvoice$Params, context?: HttpContext): Observable<FinancialEntry> {
+    const resp = this.refundCommercialInvoice$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `listContentCollections()` */
+  static readonly ListContentCollectionsPath = '/api/v1/auth/cms/collections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listContentCollections()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentCollections$Response(params?: ListContentCollections$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<ContentCollection>>> {
+    const obs = listContentCollections(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listContentCollections$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentCollections(params?: ListContentCollections$Params, context?: HttpContext): Observable<Array<ContentCollection>> {
+    const resp = this.listContentCollections$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<ContentCollection>>): Array<ContentCollection> => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentCollection()` */
+  static readonly SaveContentCollectionPath = '/api/v1/auth/cms/collections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentCollection()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentCollection$Response(params: SaveContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = saveContentCollection(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentCollection$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentCollection(params: SaveContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.saveContentCollection$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentAccessOptions()` */
+  static readonly GetContentAccessOptionsPath = '/api/v1/auth/cms/collections/access-options';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentAccessOptions()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentAccessOptions$Response(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentAccessOptions>> {
+    const obs = getContentAccessOptions(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentAccessOptions$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentAccessOptions(params?: GetContentAccessOptions$Params, context?: HttpContext): Observable<ContentAccessOptions> {
+    const resp = this.getContentAccessOptions$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentAccessOptions>): ContentAccessOptions => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentCollection()` */
+  static readonly GetContentCollectionPath = '/api/v1/auth/cms/collections/{key}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentCollection()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentCollection$Response(params: GetContentCollection$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = getContentCollection(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentCollection$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentCollection(params: GetContentCollection$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.getContentCollection$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentGrants()` */
+  static readonly SaveContentGrantsPath = '/api/v1/auth/cms/collections/{key}/grants';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentGrants()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentGrants$Response(params: SaveContentGrants$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentCollection>> {
+    const obs = saveContentGrants(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentGrants$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentGrants(params: SaveContentGrants$Params, context?: HttpContext): Observable<ContentCollection> {
+    const resp = this.saveContentGrants$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentCollection>): ContentCollection => r.body)
+    );
+  }
+
+  /** Path part for operation `listContentItems()` */
+  static readonly ListContentItemsPath = '/api/v1/auth/cms/collections/{key}/items';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listContentItems()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentItems$Response(params: ListContentItems$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfContentItemSummary>> {
+    const obs = listContentItems(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listContentItems$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContentItems(params: ListContentItems$Params, context?: HttpContext): Observable<PageOfContentItemSummary> {
+    const resp = this.listContentItems$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfContentItemSummary>): PageOfContentItemSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `saveContentItem()` */
+  static readonly SaveContentItemPath = '/api/v1/auth/cms/collections/{key}/items';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveContentItem()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentItem$Response(params: SaveContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = saveContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveContentItem$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveContentItem(params: SaveContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.saveContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
+    );
+  }
+
+  /** Path part for operation `getContentItem()` */
+  static readonly GetContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getContentItem()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentItem$Response(params: GetContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = getContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getContentItem$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getContentItem(params: GetContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.getContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
+    );
+  }
+
+  /** Path part for operation `transitionContentItem()` */
+  static readonly TransitionContentItemPath = '/api/v1/auth/cms/collections/{key}/items/{id}/transition';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `transitionContentItem()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  transitionContentItem$Response(params: TransitionContentItem$Params, context?: HttpContext): Observable<StrictHttpResponse<ContentItem>> {
+    const obs = transitionContentItem(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `transitionContentItem$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  transitionContentItem(params: TransitionContentItem$Params, context?: HttpContext): Observable<ContentItem> {
+    const resp = this.transitionContentItem$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<ContentItem>): ContentItem => r.body)
+    );
+  }
+
+  /** Path part for operation `listCmsArticles()` */
+  static readonly ListCmsArticlesPath = '/api/v1/auth/cms';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCmsArticles()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCmsArticles$Response(params?: ListCmsArticles$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCmsArticleSummary>> {
+    const obs = listCmsArticles(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCmsArticles$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCmsArticles(params?: ListCmsArticles$Params, context?: HttpContext): Observable<PageOfCmsArticleSummary> {
+    const resp = this.listCmsArticles$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCmsArticleSummary>): PageOfCmsArticleSummary => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCmsArticle()` */
+  static readonly SaveCmsArticlePath = '/api/v1/auth/cms';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCmsArticle()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsArticle$Response(params: SaveCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = saveCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCmsArticle$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsArticle(params: SaveCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.saveCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `getCmsArticle()` */
+  static readonly GetCmsArticlePath = '/api/v1/auth/cms/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCmsArticle()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsArticle$Response(params: GetCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = getCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCmsArticle$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsArticle(params: GetCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.getCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `publishCmsArticle()` */
+  static readonly PublishCmsArticlePath = '/api/v1/auth/cms/{id}/publish';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `publishCmsArticle()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsArticle$Response(params: PublishCmsArticle$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsArticle>> {
+    const obs = publishCmsArticle(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `publishCmsArticle$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsArticle(params: PublishCmsArticle$Params, context?: HttpContext): Observable<CmsArticle> {
+    const resp = this.publishCmsArticle$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsArticle>): CmsArticle => r.body)
+    );
+  }
+
+  /** Path part for operation `getCmsSections()` */
+  static readonly GetCmsSectionsPath = '/api/v1/auth/cms/sections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCmsSections()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsSections$Response(params?: GetCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
+    const obs = getCmsSections(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCmsSections$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCmsSections(params?: GetCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
+    const resp = this.getCmsSections$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCmsSections()` */
+  static readonly SaveCmsSectionsPath = '/api/v1/auth/cms/sections';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCmsSections()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsSections$Response(params: SaveCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
+    const obs = saveCmsSections(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCmsSections$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCmsSections(params: SaveCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
+    const resp = this.saveCmsSections$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
+    );
+  }
+
+  /** Path part for operation `publishCmsSections()` */
+  static readonly PublishCmsSectionsPath = '/api/v1/auth/cms/sections/publish';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `publishCmsSections()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsSections$Response(params: PublishCmsSections$Params, context?: HttpContext): Observable<StrictHttpResponse<CmsSections>> {
+    const obs = publishCmsSections(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `publishCmsSections$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  publishCmsSections(params: PublishCmsSections$Params, context?: HttpContext): Observable<CmsSections> {
+    const resp = this.publishCmsSections$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CmsSections>): CmsSections => r.body)
+    );
+  }
+
+  /** Path part for operation `listSupportTickets()` */
+  static readonly ListSupportTicketsPath = '/api/v1/auth/support';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listSupportTickets()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSupportTickets$Response(params?: ListSupportTickets$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfTicketItem>> {
+    const obs = listSupportTickets(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listSupportTickets$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listSupportTickets(params?: ListSupportTickets$Params, context?: HttpContext): Observable<PageOfTicketItem> {
+    const resp = this.listSupportTickets$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfTicketItem>): PageOfTicketItem => r.body)
+    );
+  }
+
+  /** Path part for operation `createSupportTicket()` */
+  static readonly CreateSupportTicketPath = '/api/v1/auth/support';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `createSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createSupportTicket$Response(params: CreateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+    const obs = createSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `createSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  createSupportTicket(params: CreateSupportTicket$Params, context?: HttpContext): Observable<string> {
+    const resp = this.createSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<string>): string => r.body)
+    );
+  }
+
+  /** Path part for operation `getSupportOptions()` */
+  static readonly GetSupportOptionsPath = '/api/v1/auth/support/options';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getSupportOptions()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportOptions$Response(params?: GetSupportOptions$Params, context?: HttpContext): Observable<StrictHttpResponse<SupportOptions>> {
+    const obs = getSupportOptions(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getSupportOptions$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportOptions(params?: GetSupportOptions$Params, context?: HttpContext): Observable<SupportOptions> {
+    const resp = this.getSupportOptions$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<SupportOptions>): SupportOptions => r.body)
+    );
+  }
+
+  /** Path part for operation `getSupportTicket()` */
+  static readonly GetSupportTicketPath = '/api/v1/auth/support/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getSupportTicket()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportTicket$Response(params: GetSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<TicketDetail>> {
+    const obs = getSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getSupportTicket$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getSupportTicket(params: GetSupportTicket$Params, context?: HttpContext): Observable<TicketDetail> {
+    const resp = this.getSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<TicketDetail>): TicketDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `replySupportTicket()` */
+  static readonly ReplySupportTicketPath = '/api/v1/auth/support/reply';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `replySupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  replySupportTicket$Response(params: ReplySupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = replySupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `replySupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  replySupportTicket(params: ReplySupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.replySupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `updateSupportTicket()` */
+  static readonly UpdateSupportTicketPath = '/api/v1/auth/support/update';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `updateSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateSupportTicket$Response(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = updateSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `updateSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  updateSupportTicket(params: UpdateSupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.updateSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `saveSupportCategory()` */
+  static readonly SaveSupportCategoryPath = '/api/v1/auth/support/categories';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveSupportCategory()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportCategory$Response(params: SaveSupportCategory$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = saveSupportCategory(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveSupportCategory$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveSupportCategory(params: SaveSupportCategory$Params, context?: HttpContext): Observable<void> {
+    const resp = this.saveSupportCategory$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `attachSupportTicket()` */
+  static readonly AttachSupportTicketPath = '/api/v1/auth/support/attachments';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `attachSupportTicket()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  attachSupportTicket$Response(params: AttachSupportTicket$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = attachSupportTicket(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `attachSupportTicket$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  attachSupportTicket(params: AttachSupportTicket$Params, context?: HttpContext): Observable<void> {
+    const resp = this.attachSupportTicket$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `downloadSupportAttachment()` */
+  static readonly DownloadSupportAttachmentPath = '/api/v1/auth/support/{id}/attachments/{attachmentId}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `downloadSupportAttachment()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadSupportAttachment$Response(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = downloadSupportAttachment(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `downloadSupportAttachment$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  downloadSupportAttachment(params: DownloadSupportAttachment$Params, context?: HttpContext): Observable<void> {
+    const resp = this.downloadSupportAttachment$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
+  /** Path part for operation `listContactEnquiries()` */
+  static readonly ListContactEnquiriesPath = '/api/v1/auth/contact';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listContactEnquiries()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContactEnquiries$Response(params?: ListContactEnquiries$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfContactEnquiry>> {
+    const obs = listContactEnquiries(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listContactEnquiries$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listContactEnquiries(params?: ListContactEnquiries$Params, context?: HttpContext): Observable<PageOfContactEnquiry> {
+    const resp = this.listContactEnquiries$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfContactEnquiry>): PageOfContactEnquiry => r.body)
+    );
+  }
+
+  /** Path part for operation `markContactEnquiryRead()` */
+  static readonly MarkContactEnquiryReadPath = '/api/v1/auth/contact/{id}/read';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `markContactEnquiryRead()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  markContactEnquiryRead$Response(params: MarkContactEnquiryRead$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = markContactEnquiryRead(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `markContactEnquiryRead$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  markContactEnquiryRead(params: MarkContactEnquiryRead$Params, context?: HttpContext): Observable<void> {
+    const resp = this.markContactEnquiryRead$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<void>): void => r.body)
     );

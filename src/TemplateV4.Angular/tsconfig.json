@@ -159,6 +159,9 @@
       ],
       "@spartan-ng/helm/country-controls": [
         "./libs/ui/country-controls/src/index.ts"
+      ],
+      "@spartan-ng/helm/bubble": [
+        "./libs/ui/bubble/src/index.ts"
       ]
     }
   },

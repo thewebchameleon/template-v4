@@ -8,17 +8,49 @@ import { authGuard, permissionGuard } from '../../../../src/TemplateV4.Angular/s
 import { unsavedGuard } from '../../../../src/TemplateV4.Angular/src/app/shared/confirmation';
 export const routes: Routes = [{
     path: 'organisation/invoicing',
+    pathMatch: 'full',
+    redirectTo: '/organisation/invoicing/invoices',
+  },
+{
+    path: 'organisation/invoicing/quotes',
     resolve: { businessTranslations },
-    data: { breadcrumb: 'invoicing' },
+    data: { breadcrumb: 'quotes', kind: 0, title: 'quotes', createLabel: 'newQuote' },
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./documents/invoicing').then((m) => m.InvoicingPage),
+  },
+{
+    path: 'organisation/invoicing/invoices',
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'invoices', kind: 1, title: 'invoices', createLabel: 'newInvoice' },
     canActivate: [authGuard],
     loadComponent: () =>
       import('./documents/invoicing').then((m) => m.InvoicingPage),
   },
 {
     path: 'organisation/invoicing/new',
+    redirectTo: ({ queryParams, fragment }) =>
+      inject(Router).createUrlTree(
+        ['/organisation', 'invoicing', queryParams['mode'] === 'revision' ? 'quotes' : 'invoices', 'new'],
+        { queryParams, fragment: fragment ?? undefined },
+      ),
+  },
+{
+    path: 'organisation/invoicing/quotes/new',
     canDeactivate: [unsavedGuard],
     resolve: { businessTranslations },
-    data: { breadcrumb: 'issueDocument', permission: 'invoicing.issue' },
+    data: { breadcrumb: 'newQuote', kind: 0, permission: 'invoicing.issue' },
+    canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
+    loadComponent: () =>
+      import('./documents/commercial-editor').then(
+        (m) => m.CommercialEditorPage,
+      ),
+  },
+{
+    path: 'organisation/invoicing/invoices/new',
+    canDeactivate: [unsavedGuard],
+    resolve: { businessTranslations },
+    data: { breadcrumb: 'newInvoice', kind: 1, permission: 'invoicing.issue' },
     canActivate: [authGuard, permissionGuard, capabilityGuard('invoicing')],
     loadComponent: () =>
       import('./documents/commercial-editor').then(

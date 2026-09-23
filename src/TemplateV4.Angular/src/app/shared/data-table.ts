@@ -1,5 +1,6 @@
 import { Component, input, output, type TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown, lucideChevronsUpDown, lucideChevronUp } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -33,6 +34,7 @@ export interface DataTableRowDragEvent<TData> {
   imports: [
     FlexRender,
     NgTemplateOutlet,
+    RouterLink,
     NgIcon,
     HlmButtonImports,
     HlmEmptyImports,
@@ -157,20 +159,33 @@ export interface DataTableRowDragEvent<TData> {
                       rowActionLabel() &&
                       cell.column.id === (fillColumn() || row.getAllCells()[0]?.column.id)
                     ) {
-                      <button
-                        hlmBtn
-                        type="button"
-                        variant="link"
-                        class="h-auto whitespace-normal p-0 text-start"
-                        data-row-action
-                        aria-haspopup="dialog"
-                        [attr.aria-label]="
-                          rowDoubleActionLabel()?.(row.original) ?? rowActionLabel()?.(row.original)
-                        "
-                        (click)="activateRowAction($event, row.original)"
-                      >
-                        <ng-container [ngTemplateOutlet]="renderedCell" />
-                      </button>
+                      @if (rowActionLink(); as link) {
+                        <a
+                          hlmBtn
+                          variant="link"
+                          class="h-auto whitespace-normal p-0 text-start"
+                          data-row-action
+                          [routerLink]="link(row.original)"
+                          [attr.aria-label]="rowActionLabel()?.(row.original)"
+                        >
+                          <ng-container [ngTemplateOutlet]="renderedCell" />
+                        </a>
+                      } @else {
+                        <button
+                          hlmBtn
+                          type="button"
+                          variant="link"
+                          class="h-auto whitespace-normal p-0 text-start"
+                          data-row-action
+                          aria-haspopup="dialog"
+                          [attr.aria-label]="
+                            rowDoubleActionLabel()?.(row.original) ?? rowActionLabel()?.(row.original)
+                          "
+                          (click)="activateRowAction($event, row.original)"
+                        >
+                          <ng-container [ngTemplateOutlet]="renderedCell" />
+                        </button>
+                      }
                     } @else {
                       <ng-container [ngTemplateOutlet]="renderedCell" />
                     }
@@ -217,6 +232,7 @@ export class DataTable<TData extends RowData> {
   readonly sortDirection = input.required<SortDirection>();
   readonly sortChange = output<ServerSort>();
   readonly rowActionLabel = input<(row: TData) => string>();
+  readonly rowActionLink = input<(row: TData) => string>();
   readonly rowDoubleActionLabel = input<(row: TData) => string>();
   readonly rowSelectionActionLabel = input<(row: TData) => string>();
   readonly rowContextMenu = input<TemplateRef<unknown>>();
@@ -253,7 +269,7 @@ export class DataTable<TData extends RowData> {
     )
       return;
     (event.currentTarget as HTMLElement)
-      .querySelector<HTMLButtonElement>('[data-row-action]')
+      .querySelector<HTMLElement>('[data-row-action]')
       ?.focus();
     this.rowAction.emit(row);
   }

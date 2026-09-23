@@ -12,7 +12,7 @@ public sealed partial class SupportTicketStore
         var ticket = await tickets.Lock(q.Id, agent, ct);
         if (ticket == null) return Result.Fail("support.not_found", ErrorKind.NotFound);
         if (ticket.Version != q.Version) return Result.Fail("concurrency.conflict", ErrorKind.Conflict);
-        if (ticket.Status is "Closed" or "Resolved") return Result.Fail("support.reopen_required", ErrorKind.Conflict);
+        if (ticket.Status is "Closed" or "Resolved" or "Draft") return Result.Fail("support.reopen_required", ErrorKind.Conflict);
         tickets.History(ticket, "reply", q.Body.Trim(), q.Internal);
         if (!q.Internal && ticket.RequesterId == context.ActorId && ticket.Status == "WaitingOnRequester") { ticket.Status = "Open"; tickets.History(ticket, "status", "Open"); }
         tickets.Touch(ticket); tickets.Audit(ticket, q.Internal ? "internal_note" : "replied");

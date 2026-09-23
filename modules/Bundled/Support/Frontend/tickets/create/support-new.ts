@@ -82,6 +82,9 @@ import { SupportOptions } from '../../../../../../src/TemplateV4.Angular/src/app
         </app-page-state>
       </ng-scrollbar>
       <hlm-drawer-footer>
+        <button hlmBtn type="button" variant="outline" [disabled]="busy() || !(subject.trim() || description.trim() || category)" (click)="save(true)">
+          {{ 'supportSaveDraft' | t }}
+        </button>
         <button
           hlmBtn
           type="submit"
@@ -126,19 +129,20 @@ export class SupportNewPage {
   beforeUnload(e: BeforeUnloadEvent) {
     protectUnload(e, this.hasUnsavedChanges());
   }
-  async save() {
-    if (this.busy() || !this.category) return;
+  async save(draft = false) {
+    if (this.busy() || !draft && !this.category) return;
     this.busy.set(true);
     try {
       const id = await this.api.post<string>('support/', {
         subject: this.subject,
         description: this.description,
-        categoryId: this.category,
+        categoryId: this.category || null,
+        draft,
       });
       this.subject = '';
       this.description = '';
       this.category = '';
-      this.toast.success('supportCreated');
+      this.toast.success(draft ? 'supportDraftSaved' : 'supportCreated');
       await this.router.navigate(['/support/tickets', id]);
     } catch {
       /* Central error UI retains the draft. */

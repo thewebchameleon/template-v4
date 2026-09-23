@@ -12,6 +12,7 @@ import {
   ContentGrant,
 } from '../../../../../src/TemplateV4.Angular/src/app/api/models';
 import { ContentSchemaFields } from './schema-fields';
+import { CmsCollectionNavigationState } from './collection-navigation';
 
 @Component({
   selector: 'app-content-collection-settings',
@@ -195,6 +196,7 @@ export class ContentCollectionSettingsPage {
   private readonly api = inject(WorkspaceApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly navigation = inject(CmsCollectionNavigationState);
   readonly data = new Resource<ContentCollection[]>();
   readonly current = signal<ContentCollection | null>(null);
   readonly options = signal<ContentAccessOptions | null>(null);
@@ -295,6 +297,7 @@ export class ContentCollectionSettingsPage {
       this.savedSchema = this.snapshot();
       this.savedGrants = JSON.stringify(this.current()!.grants);
       this.grants = grants;
+      this.navigation.refresh();
       if (this.route.snapshot.paramMap.get('key') === null)
         await this.router.navigate(['/cms/collections', this.key, 'settings'], {
           replaceUrl: true,
@@ -317,6 +320,7 @@ export class ContentCollectionSettingsPage {
       this.current.set(result);
       this.grants = structuredClone(result.grants);
       this.savedGrants = JSON.stringify(this.grants);
+      this.navigation.refresh();
     } catch {
       this.error.set('cmsSchemaFailure');
     } finally {

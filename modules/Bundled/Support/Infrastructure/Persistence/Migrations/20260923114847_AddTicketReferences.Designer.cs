@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TemplateV4.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Support.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SupportDb))]
-    partial class SupportDbModelSnapshot : ModelSnapshot
+    [Migration("20260923114847_AddTicketReferences")]
+    partial class AddTicketReferences
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1744,7 +1747,7 @@ namespace TemplateV4.Support.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AssigneeId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -2317,7 +2320,8 @@ namespace TemplateV4.Support.Infrastructure.Persistence.Migrations
                     b.HasOne("TemplateV4.Infrastructure.Persistence.SupportCategoryRow", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("TemplateV4.Infrastructure.Persistence.AppUser", null)
                         .WithMany()

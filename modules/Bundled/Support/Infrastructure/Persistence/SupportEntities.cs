@@ -5,10 +5,11 @@ namespace TemplateV4.Infrastructure.Persistence;
 public sealed class SupportTicketRow
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public long ReferenceNumber { get; set; }
     public Guid RequesterId { get; set; }
     public string Subject { get; set; } = "";
     public string Description { get; set; } = "";
-    public Guid CategoryId { get; set; }
+    public Guid? CategoryId { get; set; }
     public string Status { get; set; } = "Open";
     public string Priority { get; set; } = "Normal";
     public Guid? AssigneeId { get; set; }
@@ -53,7 +54,8 @@ internal static class SupportModel
         });
         model.Entity<SupportTicketRow>(e =>
         {
-            e.ToTable("tickets", "support"); e.Property(x => x.Subject).HasMaxLength(180); e.Property(x => x.Description).HasMaxLength(10000);
+            e.ToTable("tickets", "support"); e.Property(x => x.ReferenceNumber).UseIdentityByDefaultColumn(); e.HasIndex(x => x.ReferenceNumber).IsUnique();
+            e.Property(x => x.Subject).HasMaxLength(180); e.Property(x => x.Description).HasMaxLength(10000);
             e.Property(x => x.Status).HasMaxLength(30); e.Property(x => x.Priority).HasMaxLength(20); e.Property(x => x.Version).IsConcurrencyToken();
             e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.RequesterId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.AssigneeId).OnDelete(DeleteBehavior.Restrict);
