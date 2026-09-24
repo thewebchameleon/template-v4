@@ -1,7 +1,7 @@
 name: templatev4
 services:
   storage:
-    image: chrislusf/seaweedfs:4.45
+    image: chrislusf/seaweedfs:4.47
     command: [mini, '-dir=/data', '-bucket=templatev4']
     environment:
       AWS_ACCESS_KEY_ID: local-development
@@ -27,7 +27,7 @@ services:
       timeout: 3s
       retries: 20
   mailpit:
-    image: axllent/mailpit:v1.31.0
+    image: axllent/mailpit:v1.31.2
     ports: ["127.0.0.1:${MAILPIT_HTTP_PORT}:8025", "127.0.0.1:${MAILPIT_SMTP_PORT}:1025"]
   pdf:
     image: gotenberg/gotenberg:8.37.0

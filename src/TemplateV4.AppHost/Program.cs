@@ -7,7 +7,7 @@ var database = builder
     .AddDatabase("app");
 
 var mail = builder
-    .AddContainer("mailpit", "axllent/mailpit", "v1.31.0")
+    .AddContainer("mailpit", "axllent/mailpit", "v1.31.2")
     .WithHttpEndpoint(targetPort: 8025, name: "ui")
     .WithEndpoint(targetPort: 1025, name: "smtp");
 
@@ -15,7 +15,7 @@ var pdf = builder.AddContainer("pdf", "gotenberg/gotenberg", "8.37.0")
     .WithHttpEndpoint(targetPort: 3000, name: "http");
 
 var repositoryRoot = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "../.."));
-var storage = builder.AddContainer("storage", "chrislusf/seaweedfs", "4.45")
+var storage = builder.AddContainer("storage", "chrislusf/seaweedfs", "4.47")
     .WithArgs("mini", "-dir=/data", "-bucket=templatev4")
     .WithVolume("templatev4-storage", "/data")
     .WithHttpEndpoint(targetPort: 8333, name: "s3")

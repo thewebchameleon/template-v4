@@ -1,4 +1,4 @@
-FROM node:24.21.0-bookworm-slim
+FROM node:26.10.0-bookworm-slim
 WORKDIR /app
 COPY tools/releases/contracts.mjs tools/releases/contracts.mjs
 COPY deploy/release-feed/server.mjs deploy/release-feed/server.mjs

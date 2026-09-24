@@ -6,7 +6,7 @@ Quartz PostgreSQL schema in `src/TemplateV4.Infrastructure/Persistence/Migration
 
 Spartan Helm sources in `src/TemplateV4.Angular/libs/ui` are generated from @spartan-ng/cli 1.4.1, https://github.com/spartan-ng/spartan, distributed under the MIT license. Preserve upstream notices when customizing these components.
 
-The documentation site is generated with @docmd/core 0.9.5, https://github.com/docmd-io/docmd, distributed under the MIT license.
+The documentation site is generated with @docmd/core 0.9.6, https://github.com/docmd-io/docmd, distributed under the MIT license.
 
 Other dependencies retain their respective licenses in NuGet/npm packages. See package lockfiles for exact versions.
 

@@ -89,7 +89,7 @@ services:
     healthcheck: *health
     stop_grace_period: 60s
   storage:
-    image: chrislusf/seaweedfs:4.45
+    image: chrislusf/seaweedfs:4.47
     restart: unless-stopped
     environment:
       SEAWEED_CONFIG_JSON: ${SEAWEED_CONFIG_JSON}

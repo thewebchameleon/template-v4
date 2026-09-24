@@ -12,11 +12,11 @@
   },
   "toolchains": {
     "dotnet": "10.0.401",
-    "node": "24.21.0",
-    "npm": "12.0.2",
-    "docmd": "0.9.5",
-    "angular": "22.1.6",
-    "spartan": "1.4.1"
+    "node": "26.10.0",
+    "npm": "12.1.0",
+    "docmd": "0.9.6",
+    "angular": "22.2.0",
+    "spartan": "1.5.0"
   },
   "modules": [
     "cms",
