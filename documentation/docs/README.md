@@ -19,6 +19,15 @@ node tools/framework.mjs dev
 Aspire starts the application and local dependencies. Use the Web address it reports.
 Development keys, Mailpit, and `compose.yaml` are not production configuration.
 
+To run a demo, set `TEMPLATEV4_DEMO_MODE=true` for AppHost or Compose; on separate
+deployments set it on the Database Migrator, API and Worker. Run the Migrator before
+the API and Worker. It enables the deployed modules and
+adds fictional sample data on fresh or existing databases. Create the first
+administrator through the normal bootstrap flow. No files are seeded. Set the value
+to `false` and rerun the Migrator to stop File Storage demo expiry; sample records
+remain. See [demo environment](adr/0057-demo-environment.md) for file retention and
+existing-database behavior.
+
 ## Where to look
 
 - [Architecture](architecture.md): layer boundaries, request flow, persistence, and

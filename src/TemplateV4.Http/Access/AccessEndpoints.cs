@@ -10,6 +10,8 @@ public static class AccessEndpoints
         group.MapGet("/roles", async (AccessManagementService service, CancellationToken ct, int pageNumber = 1, int pageSize = 25, string? search = null, string sort = "name", string direction = "asc") => (await service.Catalog(pageNumber, pageSize, search, sort, direction, ct)).ToHttp())
             .RequireAuthorization(policy => policy.RequireAssertion(c => c.User.HasClaim("permission", Permissions.Read) || c.User.HasClaim("permission", Permissions.Roles)))
             .WithName("GetAccessCatalog").Produces<AccessCatalog>();
+        group.MapGet("/roles/permissions", (AccessManagementService service, int pageNumber = 1, int pageSize = 10, string? search = null, string? matchingKeys = null, string sort = "key", string direction = "asc") => service.PermissionCatalog(pageNumber, pageSize, search, matchingKeys, sort, direction).ToHttp())
+            .RequireAuthorization(Permissions.Roles).WithName("GetPermissionCatalog").Produces<Page<PermissionItem>>();
         group.MapPost("/roles", async (SaveRoleRequest request, AccessManagementService service, CancellationToken ct) => (await service.Save(null, request, ct)).ToHttp())
             .RequireAuthorization(Permissions.Roles).WithName("CreateRole").Produces<RoleItem>();
         group.MapPut("/roles/{id:guid}", async (Guid id, SaveRoleRequest request, AccessManagementService service, CancellationToken ct) => (await service.Save(id, request, ct)).ToHttp())

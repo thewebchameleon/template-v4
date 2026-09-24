@@ -389,6 +389,21 @@ app-data-table.file-storage-list-drop-area app-my-file-name {
   display: block;
   inline-size: 100%;
 }
+app-data-table.support-attachment-list [data-slot='table'] {
+  min-inline-size: 20rem;
+  table-layout: fixed;
+}
+app-data-table.support-attachment-list [data-slot='table-head']:nth-child(2),
+app-data-table.support-attachment-list [data-slot='table-cell']:nth-child(2) {
+  inline-size: 8rem;
+}
+app-data-table.support-attachment-list [data-slot='table-cell']:first-child > button,
+app-data-table.support-attachment-list app-ticket-attachment-name {
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
 .file-storage-grid-card {
   display: flex;
   align-items: center;

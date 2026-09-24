@@ -8,11 +8,15 @@ feature flags, and module state improve navigation but never replace authorizati
 Use short-lived access with rotating, revocable sessions. Mutating browser requests
 require CSRF protection. Recent verification is required for sensitive account actions.
 MFA policy may be optional, Administrator-only, or universal; privileged accounts must
-not bypass the configured policy. Keep at least two passkeys on separate devices and a
-second active administrator.
+not bypass the configured policy. By default, a verified email code, authenticator, or
+passkey satisfies privileged MFA. Set `Security:RequireAdministratorPasskey=true` to
+require a user-verified passkey for privileged accounts instead. Keep a second active
+administrator and a backup factor; under the passkey-only setting, keep at least two
+passkeys on separate devices.
 
-Permissions are stable public contracts. Built-in roles are protected, delegated roles
-receive only explicit grants, and last-administrator invariants must be transactional.
+Permissions are stable public contracts. Built-in role names and grants are protected;
+their descriptions can be edited by role managers. Delegated roles receive only explicit
+grants, and last-administrator invariants must be transactional.
 Bind commands to the authenticated actor rather than trusting actor IDs supplied by a
 client. Background work receives an explicit execution context; never pass `HttpContext`
 into Application code.

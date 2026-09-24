@@ -143,7 +143,7 @@ export class SupportNewPage {
       this.description = '';
       this.category = '';
       this.toast.success(draft ? 'supportDraftSaved' : 'supportCreated');
-      await this.router.navigate(['/support/tickets', id]);
+      await this.router.navigate(['/support/tickets', id], { queryParamsHandling: 'preserve' });
     } catch {
       /* Central error UI retains the draft. */
     } finally {

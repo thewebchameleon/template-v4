@@ -182,8 +182,8 @@ export const adminDictionary: Record<string, [string, string]> = {
   customRole: ['Custom', 'Pasgemaak'],
   roleType: ['Type', 'Tipe'],
   builtInRoleHelp: [
-    'Built-in roles are protected and maintained by the starter.',
-    'Ingeboude rolle word beskerm en deur die beginraamwerk onderhou.',
+    'You can edit the description. The name and permissions are maintained by the starter.',
+    'Jy kan die beskrywing wysig. Die naam en toestemmings word deur die beginraamwerk onderhou.',
   ],
   members: ['members', 'lede'],
   roleMembers: ['Members', 'Lede'],
@@ -192,6 +192,17 @@ export const adminDictionary: Record<string, [string, string]> = {
   roleSearchEmpty: ['No roles match your search.', 'Geen rolle pas by jou soektog nie.'],
   description: ['Description', 'Beskrywing'],
   findPermission: ['Find a permission', 'Vind ’n toestemming'],
+  rolePermissions: ['Permissions', 'Toestemmings'],
+  permissionName: ['Permission', 'Toestemming'],
+  permissionCategory: ['Category', 'Kategorie'],
+  permissionPagination: ['Permission pages', 'Toestemmingbladsye'],
+  selectPermission: ['Select permission', 'Kies toestemming'],
+  deselectPermission: ['Deselect permission', 'Ontkies toestemming'],
+  permissionsEmpty: ['No permissions are available.', 'Geen toestemmings is beskikbaar nie.'],
+  permissionsSearchEmpty: [
+    'No permissions match your search.',
+    'Geen toestemmings pas by jou soektog nie.',
+  ],
   delegationHelp: [
     'Grant only the capabilities this role needs. You cannot grant permissions you do not hold or edit your own role.',
     'Ken slegs die vermoëns toe wat hierdie rol nodig het. Jy kan nie toestemmings toeken wat jy nie het nie of jou eie rol wysig nie.',
@@ -200,6 +211,10 @@ export const adminDictionary: Record<string, [string, string]> = {
   roleChangeConsequence: [
     'Members will be signed out. Their next sign-in uses these permissions.',
     'Lede sal afgemeld word. Hul volgende aanmelding gebruik hierdie toestemmings.',
+  ],
+  roleDescriptionChangeConsequence: [
+    'This updates the role description without changing member access.',
+    'Dit werk die rolbeskrywing by sonder om lede se toegang te verander.',
   ],
   roleSaved: ['Role saved.', 'Rol gestoor.'],
   rolesSelectionHelp: [
@@ -269,6 +284,7 @@ export const adminDictionary: Record<string, [string, string]> = {
   clearPersonFilter: ['Clear person filter', 'Maak persoonfilter skoon'],
   'audit.role.created': ['Role created', 'Rol geskep'],
   'audit.role.permissions_changed': ['Role permissions changed', 'Roltoestemmings verander'],
+  'audit.role.description_changed': ['Role description changed', 'Rolbeskrywing verander'],
   'audit.user.access_changed': ['User access changed', 'Gebruikerstoegang verander'],
   'audit.api_key.created': ['API key created', 'API-sleutel geskep'],
   'audit.api_key.revoked': ['API key revoked', 'API-sleutel herroep'],

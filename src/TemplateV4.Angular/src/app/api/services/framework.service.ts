@@ -119,6 +119,8 @@ import { downloadPublicFileStorageFile } from '../fn/framework/download-public-f
 import { DownloadPublicFileStorageFile$Params } from '../fn/framework/download-public-file-storage-file';
 import { downloadSupportAttachment } from '../fn/framework/download-support-attachment';
 import { DownloadSupportAttachment$Params } from '../fn/framework/download-support-attachment';
+import { emailInvoicePdf } from '../fn/framework/email-invoice-pdf';
+import { EmailInvoicePdf$Params } from '../fn/framework/email-invoice-pdf';
 import { EmailMfaChallengeResponse } from '../models/email-mfa-challenge-response';
 import { emptyFileStorageTrash } from '../fn/framework/empty-file-storage-trash';
 import { EmptyFileStorageTrash$Params } from '../fn/framework/empty-file-storage-trash';
@@ -198,6 +200,8 @@ import { getOrganisationUsers } from '../fn/framework/get-organisation-users';
 import { GetOrganisationUsers$Params } from '../fn/framework/get-organisation-users';
 import { getPaymentMethods } from '../fn/framework/get-payment-methods';
 import { GetPaymentMethods$Params } from '../fn/framework/get-payment-methods';
+import { getPermissionCatalog } from '../fn/framework/get-permission-catalog';
+import { GetPermissionCatalog$Params } from '../fn/framework/get-permission-catalog';
 import { getPlatformAppearance } from '../fn/framework/get-platform-appearance';
 import { GetPlatformAppearance$Params } from '../fn/framework/get-platform-appearance';
 import { getPrivacyStatus } from '../fn/framework/get-privacy-status';
@@ -231,6 +235,7 @@ import { GetWebPushStatus$Params } from '../fn/framework/get-web-push-status';
 import { InvitationPage } from '../models/invitation-page';
 import { invoiceAcceptedQuotation } from '../fn/framework/invoice-accepted-quotation';
 import { InvoiceAcceptedQuotation$Params } from '../fn/framework/invoice-accepted-quotation';
+import { InvoicePdfVersion } from '../models/invoice-pdf-version';
 import { issueCommercialDocument } from '../fn/framework/issue-commercial-document';
 import { IssueCommercialDocument$Params } from '../fn/framework/issue-commercial-document';
 import { IssuerSettings } from '../models/issuer-settings';
@@ -264,6 +269,8 @@ import { listFileStorageShares } from '../fn/framework/list-file-storage-shares'
 import { ListFileStorageShares$Params } from '../fn/framework/list-file-storage-shares';
 import { listInvitations } from '../fn/framework/list-invitations';
 import { ListInvitations$Params } from '../fn/framework/list-invitations';
+import { listInvoicePdfVersions } from '../fn/framework/list-invoice-pdf-versions';
+import { ListInvoicePdfVersions$Params } from '../fn/framework/list-invoice-pdf-versions';
 import { listInvoicingAttachments } from '../fn/framework/list-invoicing-attachments';
 import { ListInvoicingAttachments$Params } from '../fn/framework/list-invoicing-attachments';
 import { listModuleActivations } from '../fn/framework/list-module-activations';
@@ -313,6 +320,7 @@ import { PageOfCrmRecord } from '../models/page-of-crm-record';
 import { PageOfDeletionItem } from '../models/page-of-deletion-item';
 import { PageOfOrganisationAttachment } from '../models/page-of-organisation-attachment';
 import { PageOfOrganisationUser } from '../models/page-of-organisation-user';
+import { PageOfPermissionItem } from '../models/page-of-permission-item';
 import { PageOfRegistrationReviewItem } from '../models/page-of-registration-review-item';
 import { PageOfTicketItem } from '../models/page-of-ticket-item';
 import { passkeyLogin } from '../fn/framework/passkey-login';
@@ -4362,6 +4370,33 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `getPermissionCatalog()` */
+  static readonly GetPermissionCatalogPath = '/api/v1/roles/permissions';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getPermissionCatalog()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPermissionCatalog$Response(params?: GetPermissionCatalog$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfPermissionItem>> {
+    const obs = getPermissionCatalog(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getPermissionCatalog$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getPermissionCatalog(params?: GetPermissionCatalog$Params, context?: HttpContext): Observable<PageOfPermissionItem> {
+    const resp = this.getPermissionCatalog$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfPermissionItem>): PageOfPermissionItem => r.body)
+    );
+  }
+
   /** Path part for operation `updateRole()` */
   static readonly UpdateRolePath = '/api/v1/roles/{id}';
 
@@ -4613,222 +4648,6 @@ export class FrameworkService extends BaseService {
     );
   }
 
-  /** Path part for operation `listCrmRecords()` */
-  static readonly ListCrmRecordsPath = '/api/v1/auth/organisation/crm';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `listCrmRecords()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCrmRecords$Response(params?: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
-    const obs = listCrmRecords(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `listCrmRecords$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  listCrmRecords(params?: ListCrmRecords$Params, context?: HttpContext): Observable<PageOfCrmRecord> {
-    const resp = this.listCrmRecords$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<PageOfCrmRecord>): PageOfCrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `saveCrmRecord()` */
-  static readonly SaveCrmRecordPath = '/api/v1/auth/organisation/crm';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `saveCrmRecord()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCrmRecord$Response(params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
-    const obs = saveCrmRecord(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `saveCrmRecord$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  saveCrmRecord(params: SaveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
-    const resp = this.saveCrmRecord$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmOverview()` */
-  static readonly GetCrmOverviewPath = '/api/v1/auth/organisation/crm/overview';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmOverview()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmOverview$Response(params?: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
-    const obs = getCrmOverview(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmOverview$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmOverview(params?: GetCrmOverview$Params, context?: HttpContext): Observable<CrmOverview> {
-    const resp = this.getCrmOverview$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmOverview>): CrmOverview => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmConfiguration()` */
-  static readonly GetCrmConfigurationPath = '/api/v1/auth/organisation/crm/configuration';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmConfiguration()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmConfiguration$Response(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
-    const obs = getCrmConfiguration(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmConfiguration$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmConfiguration(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<CrmConfiguration> {
-    const resp = this.getCrmConfiguration$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
-    );
-  }
-
-  /** Path part for operation `configureCrm()` */
-  static readonly ConfigureCrmPath = '/api/v1/auth/organisation/crm/configuration';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `configureCrm()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureCrm$Response(params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
-    const obs = configureCrm(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `configureCrm$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  configureCrm(params: ConfigureCrm$Params, context?: HttpContext): Observable<CrmConfiguration> {
-    const resp = this.configureCrm$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
-    );
-  }
-
-  /** Path part for operation `getCrmDetail()` */
-  static readonly GetCrmDetailPath = '/api/v1/auth/organisation/crm/{id}';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `getCrmDetail()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmDetail$Response(params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
-    const obs = getCrmDetail(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `getCrmDetail$Response()` instead.
-   *
-   * This method doesn't expect any request body.
-   */
-  getCrmDetail(params: GetCrmDetail$Params, context?: HttpContext): Observable<CrmDetail> {
-    const resp = this.getCrmDetail$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmDetail>): CrmDetail => r.body)
-    );
-  }
-
-  /** Path part for operation `archiveCrmRecord()` */
-  static readonly ArchiveCrmRecordPath = '/api/v1/auth/organisation/crm/{id}/archive';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `archiveCrmRecord()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  archiveCrmRecord$Response(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
-    const obs = archiveCrmRecord(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `archiveCrmRecord$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  archiveCrmRecord(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
-    const resp = this.archiveCrmRecord$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
-    );
-  }
-
-  /** Path part for operation `addCrmNote()` */
-  static readonly AddCrmNotePath = '/api/v1/auth/organisation/crm/{id}/notes';
-
-  /**
-   * This method provides access to the full `HttpResponse`, allowing access to response headers.
-   * To access only the response body, use `addCrmNote()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  addCrmNote$Response(params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
-    const obs = addCrmNote(this.http, this.rootUrl, params, context);
-    return obs;
-  }
-
-  /**
-   * This method provides access only to the response body.
-   * To access the full response (for headers, for example), `addCrmNote$Response()` instead.
-   *
-   * This method sends `application/json` and handles request body of type `application/json`.
-   */
-  addCrmNote(params: AddCrmNote$Params, context?: HttpContext): Observable<CrmNote> {
-    const resp = this.addCrmNote$Response(params, context);
-    return resp.pipe(
-      map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
-    );
-  }
-
   /** Path part for operation `storeCommercialPdf()` */
   static readonly StoreCommercialPdfPath = '/api/v1/auth/organisation/invoicing/{id}/store-pdf';
 
@@ -5072,6 +4891,60 @@ export class FrameworkService extends BaseService {
     );
   }
 
+  /** Path part for operation `listInvoicePdfVersions()` */
+  static readonly ListInvoicePdfVersionsPath = '/api/v1/auth/organisation/invoicing/{id}/pdf-versions';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listInvoicePdfVersions()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listInvoicePdfVersions$Response(params: ListInvoicePdfVersions$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<InvoicePdfVersion>>> {
+    const obs = listInvoicePdfVersions(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listInvoicePdfVersions$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listInvoicePdfVersions(params: ListInvoicePdfVersions$Params, context?: HttpContext): Observable<Array<InvoicePdfVersion>> {
+    const resp = this.listInvoicePdfVersions$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<Array<InvoicePdfVersion>>): Array<InvoicePdfVersion> => r.body)
+    );
+  }
+
+  /** Path part for operation `emailInvoicePdf()` */
+  static readonly EmailInvoicePdfPath = '/api/v1/auth/organisation/invoicing/{id}/email';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `emailInvoicePdf()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  emailInvoicePdf$Response(params: EmailInvoicePdf$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
+    const obs = emailInvoicePdf(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `emailInvoicePdf$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  emailInvoicePdf(params: EmailInvoicePdf$Params, context?: HttpContext): Observable<void> {
+    const resp = this.emailInvoicePdf$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<void>): void => r.body)
+    );
+  }
+
   /** Path part for operation `getCommercialDocument()` */
   static readonly GetCommercialDocumentPath = '/api/v1/auth/organisation/invoicing/{id}';
 
@@ -5177,6 +5050,222 @@ export class FrameworkService extends BaseService {
     const resp = this.refundCommercialInvoice$Response(params, context);
     return resp.pipe(
       map((r: StrictHttpResponse<FinancialEntry>): FinancialEntry => r.body)
+    );
+  }
+
+  /** Path part for operation `listCrmRecords()` */
+  static readonly ListCrmRecordsPath = '/api/v1/auth/organisation/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `listCrmRecords()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords$Response(params?: ListCrmRecords$Params, context?: HttpContext): Observable<StrictHttpResponse<PageOfCrmRecord>> {
+    const obs = listCrmRecords(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `listCrmRecords$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  listCrmRecords(params?: ListCrmRecords$Params, context?: HttpContext): Observable<PageOfCrmRecord> {
+    const resp = this.listCrmRecords$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<PageOfCrmRecord>): PageOfCrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `saveCrmRecord()` */
+  static readonly SaveCrmRecordPath = '/api/v1/auth/organisation/crm';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `saveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord$Response(params: SaveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = saveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `saveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  saveCrmRecord(params: SaveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.saveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmOverview()` */
+  static readonly GetCrmOverviewPath = '/api/v1/auth/organisation/crm/overview';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmOverview()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview$Response(params?: GetCrmOverview$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmOverview>> {
+    const obs = getCrmOverview(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmOverview$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmOverview(params?: GetCrmOverview$Params, context?: HttpContext): Observable<CrmOverview> {
+    const resp = this.getCrmOverview$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmOverview>): CrmOverview => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmConfiguration()` */
+  static readonly GetCrmConfigurationPath = '/api/v1/auth/organisation/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmConfiguration()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration$Response(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = getCrmConfiguration(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmConfiguration$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmConfiguration(params?: GetCrmConfiguration$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.getCrmConfiguration$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `configureCrm()` */
+  static readonly ConfigureCrmPath = '/api/v1/auth/organisation/crm/configuration';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `configureCrm()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm$Response(params: ConfigureCrm$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmConfiguration>> {
+    const obs = configureCrm(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `configureCrm$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  configureCrm(params: ConfigureCrm$Params, context?: HttpContext): Observable<CrmConfiguration> {
+    const resp = this.configureCrm$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmConfiguration>): CrmConfiguration => r.body)
+    );
+  }
+
+  /** Path part for operation `getCrmDetail()` */
+  static readonly GetCrmDetailPath = '/api/v1/auth/organisation/crm/{id}';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getCrmDetail()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail$Response(params: GetCrmDetail$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmDetail>> {
+    const obs = getCrmDetail(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getCrmDetail$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getCrmDetail(params: GetCrmDetail$Params, context?: HttpContext): Observable<CrmDetail> {
+    const resp = this.getCrmDetail$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmDetail>): CrmDetail => r.body)
+    );
+  }
+
+  /** Path part for operation `archiveCrmRecord()` */
+  static readonly ArchiveCrmRecordPath = '/api/v1/auth/organisation/crm/{id}/archive';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `archiveCrmRecord()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord$Response(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmRecord>> {
+    const obs = archiveCrmRecord(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `archiveCrmRecord$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  archiveCrmRecord(params: ArchiveCrmRecord$Params, context?: HttpContext): Observable<CrmRecord> {
+    const resp = this.archiveCrmRecord$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmRecord>): CrmRecord => r.body)
+    );
+  }
+
+  /** Path part for operation `addCrmNote()` */
+  static readonly AddCrmNotePath = '/api/v1/auth/organisation/crm/{id}/notes';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `addCrmNote()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote$Response(params: AddCrmNote$Params, context?: HttpContext): Observable<StrictHttpResponse<CrmNote>> {
+    const obs = addCrmNote(this.http, this.rootUrl, params, context);
+    return obs;
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `addCrmNote$Response()` instead.
+   *
+   * This method sends `application/json` and handles request body of type `application/json`.
+   */
+  addCrmNote(params: AddCrmNote$Params, context?: HttpContext): Observable<CrmNote> {
+    const resp = this.addCrmNote$Response(params, context);
+    return resp.pipe(
+      map((r: StrictHttpResponse<CrmNote>): CrmNote => r.body)
     );
   }
 

@@ -3,6 +3,7 @@
     <EmbeddedResource Include="../../modules/catalog.json" LogicalName="TemplateV4.Modules.catalog.json" />
     <EmbeddedResource Include="../../modules/presets/*.json" LogicalName="TemplateV4.Modules.%(Filename).json" />
     <Content Include="EmailTemplates/*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="EmailTemplates/*.html" LogicalName="TemplateV4.Infrastructure.EmailTemplates.%(Filename)%(Extension)" />
 
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../TemplateV4.Application/TemplateV4.Application.csproj" />

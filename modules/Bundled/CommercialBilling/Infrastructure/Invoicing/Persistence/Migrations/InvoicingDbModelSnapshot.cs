@@ -571,6 +571,38 @@ namespace TemplateV4.Invoicing.Infrastructure.Persistence.Migrations
                     b.ToTable("attachments", "invoicing");
                 });
 
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.InvoicePdfRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("document_pdfs", "invoicing");
+                });
+
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.IssuerSettingsRow", b =>
                 {
                     b.Property<int>("Id")
@@ -2161,6 +2193,15 @@ namespace TemplateV4.Invoicing.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.FinancialEntryRow", b =>
+                {
+                    b.HasOne("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TemplateV4.Infrastructure.Invoicing.InvoicePdfRow", b =>
                 {
                     b.HasOne("TemplateV4.Infrastructure.Invoicing.CommercialDocumentRow", null)
                         .WithMany()

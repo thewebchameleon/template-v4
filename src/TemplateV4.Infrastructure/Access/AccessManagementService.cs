@@ -39,6 +39,27 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         return Result<AccessCatalog>.Success(new(new(items, total, pageNumber, pageSize), Permissions.All.Select(p => new PermissionItem(p, p.Split('.')[0])).ToArray()));
     }
 
+    public Result<Page<PermissionItem>> PermissionCatalog(int pageNumber, int pageSize, string? search, string? matchingKeys, string sort, string direction)
+    {
+        if (pageNumber is < 1 or > 10000 || pageSize is < 1 or > 100 || search is { Length: > 120 } || matchingKeys is { Length: > 4096 } ||
+            sort is not ("key" or "group") || direction is not ("asc" or "desc"))
+            return Result<Page<PermissionItem>>.Fail("validation.failed", ErrorKind.Validation);
+        var translatedMatches = (matchingKeys ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet(StringComparer.Ordinal);
+        var source = Permissions.All.Select(key => new PermissionItem(key, key.Split('.')[0]));
+        if (!string.IsNullOrWhiteSpace(search))
+            source = source.Where(item => item.Key.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                item.Group.Contains(search, StringComparison.OrdinalIgnoreCase) || translatedMatches.Contains(item.Key));
+        var total = source.Count();
+        source = (sort, direction) switch
+        {
+            ("group", "desc") => source.OrderByDescending(item => item.Group, StringComparer.Ordinal).ThenBy(item => item.Key, StringComparer.Ordinal),
+            ("group", _) => source.OrderBy(item => item.Group, StringComparer.Ordinal).ThenBy(item => item.Key, StringComparer.Ordinal),
+            (_, "desc") => source.OrderByDescending(item => item.Key, StringComparer.Ordinal),
+            _ => source.OrderBy(item => item.Key, StringComparer.Ordinal)
+        };
+        return Result<Page<PermissionItem>>.Success(new(source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArray(), total, pageNumber, pageSize));
+    }
+
     public async Task<Result<UserAccessDetail>> User(Guid id, CancellationToken ct)
     {
         var entry = await (from p in db.Profiles.AsNoTracking() join u in db.Users.AsNoTracking() on p.Id equals u.Id where p.Id == id select new { p, u }).SingleOrDefaultAsync(ct);
@@ -64,11 +85,26 @@ public sealed class AccessManagementService(FrameworkDb db, IExecutionContext co
         if (!allowed.Contains(Permissions.Roles)) return Result<RoleItem>.Fail("auth.forbidden", ErrorKind.Forbidden);
         var role = id is null ? null : await db.Roles.SingleOrDefaultAsync(x => x.Id == id, ct);
         if (id is not null && role is null) return Result<RoleItem>.Fail("role.not_found", ErrorKind.NotFound);
-        if (BuiltIn(name) || role is not null && BuiltIn(role.Name!)) return Result<RoleItem>.Fail("role.protected", ErrorKind.Conflict);
+        if (BuiltIn(name) && (role is null || name != role.Name)) return Result<RoleItem>.Fail("role.protected", ErrorKind.Conflict);
         if (role is not null && role.ConcurrencyStamp != request.Version) return Result<RoleItem>.Fail("concurrency.conflict", ErrorKind.Conflict);
+        var old = role is null ? [] : await db.RoleClaims.Where(x => x.RoleId == role.Id).ToArrayAsync(ct);
+        if (role is not null && BuiltIn(role.Name!))
+        {
+            var storedPermissions = old.Where(x => x.ClaimType == "permission").Select(x => x.ClaimValue!).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+            if (name != role.Name || !request.Permissions.OrderBy(x => x, StringComparer.Ordinal).SequenceEqual(storedPermissions))
+                return Result<RoleItem>.Fail("role.protected", ErrorKind.Conflict);
+            var description = request.Description.Trim();
+            var claim = old.FirstOrDefault(x => x.ClaimType == "description");
+            if (claim is null) db.RoleClaims.Add(new() { RoleId = role.Id, ClaimType = "description", ClaimValue = description });
+            else claim.ClaimValue = description;
+            role.ConcurrencyStamp = Guid.NewGuid().ToString();
+            db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = role.Id, SubjectType = "role", Action = "role.description_changed", At = time.GetUtcNow() });
+            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
+            return Result<RoleItem>.Success(new(role.Id, role.Name!, description, role.ConcurrencyStamp, true,
+                await db.UserRoles.CountAsync(x => x.RoleId == role.Id, ct), storedPermissions));
+        }
         var normalized = name.ToUpperInvariant();
         if (await db.Roles.AnyAsync(x => x.NormalizedName == normalized && (id == null || x.Id != id), ct)) return Result<RoleItem>.Fail("role.exists", ErrorKind.Conflict);
-        var old = role is null ? [] : await db.RoleClaims.Where(x => x.RoleId == role.Id).ToArrayAsync(ct);
         if (request.Permissions.Concat(old.Where(x => x.ClaimType == "permission").Select(x => x.ClaimValue!)).Any(p => !allowed.Contains(p)))
             return Result<RoleItem>.Fail("role.delegation_denied", ErrorKind.Forbidden);
         // A delegated operator must not alter a role assigned to themselves.

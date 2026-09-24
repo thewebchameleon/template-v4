@@ -32,7 +32,8 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
     {
         var roles = await users.GetRolesAsync(user);
         var mfaConfigured = (await security.ConfiguredMethods(user)).Length > 0;
-        var setup = await security.PasskeyRequired(user, default) && !session.PasskeyVerified || session.SetupOnly || (!session.MfaVerified && await security.Required(user, default));
+        var passkeyRequired = await security.PasskeyRequired(user, default);
+        var setup = passkeyRequired && !session.PasskeyVerified || session.SetupOnly || (!session.MfaVerified && await security.Required(user, default));
         var permissions = await (from membership in db.UserRoles
                                  join claim in db.RoleClaims on membership.RoleId equals claim.RoleId
                                  where membership.UserId == user.Id && claim.ClaimType == "permission"
@@ -46,7 +47,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
             new SigningCredentials(keys.Active, SecurityAlgorithms.RsaSha256));
         var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         db.RefreshTokens.Add(new() { Hash = Hash(raw), SessionId = session.Id, ExpiresAt = session.ExpiresAt });
-        return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, IsAdministrator: !setup && roles.Contains("Administrator"), TimeZone: await db.Profiles.Where(x => x.Id == user.Id).Select(x => x.TimeZone).SingleAsync()), raw);
+        return new(new(new JwtSecurityTokenHandler().WriteToken(jwt), expires, user.Id, permissions, culture, mfaConfigured, setup, PasskeyRequired: passkeyRequired, IsAdministrator: !setup && roles.Contains("Administrator"), TimeZone: await db.Profiles.Where(x => x.Id == user.Id).Select(x => x.TimeZone).SingleAsync()), raw);
     }
     private void Audit(string action, Guid userId, Guid? sessionId = null) => db.Audit.Add(new() { Action = action, SessionId = sessionId, ActorId = action == "auth.login_failed" ? null : userId, ActorType = action == "auth.login_failed" ? "anonymous" : "user", SubjectId = userId, SubjectType = "user", Outcome = action == "auth.login_failed" ? "failure" : action == "auth.refresh_reuse" ? "denied" : "success", FailureCode = action == "auth.login_failed" ? "auth.invalid_credentials" : action == "auth.refresh_reuse" ? "auth.refresh_reuse" : null, At = time.GetUtcNow(), TraceParent = System.Diagnostics.Activity.Current?.Id });
     private static string NormalizeIp(string? ipAddress) => string.IsNullOrWhiteSpace(ipAddress) ? "unknown" : ipAddress[..Math.Min(ipAddress.Length, 45)];

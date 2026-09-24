@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TemplateV4.Application;
+using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure;
@@ -66,6 +67,35 @@ try
             MetadataJson = JsonSerializer.Serialize(new { ModuleId = id })
         });
     foreach (var row in await db.RuntimeModules.Where(x => x.Version == Guid.Empty).ToArrayAsync()) row.Version = Guid.NewGuid();
+    var demoMode = builder.Configuration.GetValue<bool>("TEMPLATEV4_DEMO_MODE");
+    if (demoMode)
+        foreach (var row in await db.RuntimeModules.Where(x => !x.Enabled).ToArrayAsync())
+        {
+            row.Enabled = true;
+            row.Version = Guid.NewGuid();
+            db.Audit.Add(new()
+            {
+                Action = "module." + row.Id + "_enabled", Source = "migrator",
+                SubjectType = "module", SubjectNameSnapshot = row.Id,
+                ChangesJson = AuditCapture.Changes(new AuditChange("enabled", "False", "True")),
+                At = DateTimeOffset.UtcNow
+            });
+        }
+    var fileSettings = await db.FileStorageSettings.SingleAsync();
+    if (fileSettings.DemoMode != demoMode)
+        db.Audit.Add(new()
+        {
+            Action = "module.file-storage_demo_changed", Source = "migrator",
+            SubjectType = "module", SubjectNameSnapshot = "file-storage",
+            ChangesJson = AuditCapture.Changes(new AuditChange("demoMode", fileSettings.DemoMode.ToString(), demoMode.ToString())),
+            At = DateTimeOffset.UtcNow
+        });
+    if (fileSettings.DemoMode != demoMode || demoMode)
+    {
+        fileSettings.DemoMode = demoMode;
+        fileSettings.DemoStartedAt = demoMode ? DateTimeOffset.UtcNow : null;
+        fileSettings.Version = Guid.NewGuid();
+    }
     var updates = scope.ServiceProvider.GetRequiredService<TemplateV4.Infrastructure.Updates.UpdateConfiguration>();
     if (updates.Installed.Components.Any(x => x.Id != "foundation"))
     {
@@ -114,6 +144,18 @@ try
             await db.SaveChangesAsync();
         }
         await roleTransaction.CommitAsync();
+    }
+    if (demoMode)
+    {
+        var contributors = scope.ServiceProvider.GetServices<TemplateV4.Application.Modules.IDemoDataContributor>()
+            .OrderBy(x => x.Order).ThenBy(x => x.ModuleId, StringComparer.Ordinal).ToArray();
+        var missing = catalog.Definitions.Where(x => x.Category != "core" && x.Id != "file-storage" && catalog.Enabled(x.Id) &&
+            contributors.All(contributor => contributor.ModuleId != x.Id)).Select(x => x.Id).ToArray();
+        if (missing.Length > 0)
+            throw new InvalidOperationException($"Demo data contributor missing for: {string.Join(", ", missing)}.");
+        await DemoData.SeedAccount(db);
+        foreach (var contributor in contributors)
+            await contributor.Seed(CancellationToken.None);
     }
 }
 finally { await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_unlock(74842000)"); }

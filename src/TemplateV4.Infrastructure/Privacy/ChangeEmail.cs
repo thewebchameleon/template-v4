@@ -45,6 +45,7 @@ public sealed partial class PrivacyService
         var state = JsonSerializer.Deserialize<EmailChangeState>(challenge.State)!;
         if (!(await users.ChangeEmailAsync(user, state.Email, state.Token)).Succeeded)
             return Result.Fail("privacy.email_unavailable", ErrorKind.Conflict);
+        user.EmailMfaEnabled = AccountDelivery.CanReceiveEmail(user);
         await users.UpdateSecurityStampAsync(user);
         db.AuthChallenges.Remove(challenge.Row);
         await db.Sessions.Where(x => x.UserId == id && x.RevokedAt == null).ExecuteUpdateAsync(x => x.SetProperty(s => s.RevokedAt, time.GetUtcNow()), ct);

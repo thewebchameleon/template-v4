@@ -19,7 +19,7 @@ public sealed partial class AccountService
             return Result.Fail("commercial-billing.seats", ErrorKind.Conflict);
         if (!(await users.ConfirmEmailAsync(user, request.Token)).Succeeded) return Result.Fail("auth.action_invalid", ErrorKind.Validation);
         if (user.RegistrationState == "Pending") await actionItems.AddReview("Registration", user.Id, user.Id, "registrationReviewAction", "/administration/users/registration-requests", ct);
-        user.EmailMfaEnabled = true;
+        user.EmailMfaEnabled = AccountDelivery.CanReceiveEmail(user);
         user.PreferredMfaMethod = MfaMethods.Email;
         var profile = await db.Profiles.SingleAsync(x => x.Id == user.Id, ct);
         if (user.PasswordHash is null) await QueueAction(user, EmailTemplate.PasswordReset, profile.Culture, ct);

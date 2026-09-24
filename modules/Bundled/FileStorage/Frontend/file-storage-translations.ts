@@ -57,11 +57,6 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
     'Slow upload mode changed',
     'Stadige oplaaimodus verander',
   ],
-  fileStorageDemoHelp: [
-    'Automatically delete expired files and empty folders for everyone. Enabling restarts all existing timers. Set the expiry under Administration → File Storage.',
-    'Verwyder verstreke lêers en leë vouers outomaties vir almal. Aktivering herbegin alle bestaande tydtellers. Stel die vervaltyd onder Administrasie → Lêerberging.',
-  ],
-  fileStorageDemoSaved: ['Demo mode updated.', 'Demomodus bygewerk.'],
   fileStorageDemoExpiry: ['Demo expiry (minutes)', 'Demo-vervaltyd (minute)'],
   maxUploadSize: ['Maximum upload file size (MB)', 'Maksimum oplaailêergrootte (MB)'],
   maxUploadSizeHelp: ['Applies to all organisation files.', 'Geld vir alle organisasielêers.'],
@@ -75,12 +70,12 @@ export const fileStorageDictionary: Record<string, [string, string]> = {
     'Voer ’n heelgetal van 1 tot 525600 minute in.',
   ],
   fileStorageDemoBannerHour: [
-    'Demo mode is enabled. Files and folders are automatically deleted after 1 hour.',
-    'Demomodus is aktief. Lêers en vouers word outomaties ná 1 uur verwyder.',
+    'Demo mode is enabled. New files and folders are automatically deleted after 1 hour.',
+    'Demomodus is aktief. Nuwe lêers en vouers word outomaties ná 1 uur verwyder.',
   ],
   fileStorageDemoBannerStart: [
-    'Demo mode is enabled. Files and folders are automatically deleted after',
-    'Demomodus is aktief. Lêers en vouers word outomaties verwyder ná',
+    'Demo mode is enabled. New files and folders are automatically deleted after',
+    'Demomodus is aktief. Nuwe lêers en vouers word outomaties verwyder ná',
   ],
   fileStorageDemoBannerEnd: ['minutes.', 'minute.'],
   fileStorageDemoFolderHelp: [

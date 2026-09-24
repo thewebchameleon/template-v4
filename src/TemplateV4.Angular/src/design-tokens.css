@@ -184,6 +184,35 @@
     background: var(--sidebar-accent);
     color: var(--sidebar-accent-foreground);
   }
+  .sidebar-rail-bottom {
+    position: relative;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    flex-direction: column;
+    gap: var(--app-sidebar-rail-gap);
+  }
+  .sidebar-rail-user-management[data-active='true'] {
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+  .sidebar-rail-bottom-indicator {
+    position: absolute;
+    inset-inline-start: 0;
+    top: calc((var(--app-sidebar-rail-target-size) - 1.5rem) / 2);
+    width: 0.25rem;
+    height: 1.5rem;
+    transform: translateY(
+      calc(
+        var(--rail-bottom-active-index) *
+          (var(--app-sidebar-rail-target-size) + var(--app-sidebar-rail-gap))
+      )
+    );
+    transition: transform 200ms ease-out;
+    border-radius: 9999px;
+    background: var(--sidebar-primary);
+    pointer-events: none;
+  }
   [appSidebarSelectionIndicator]::before {
     content: '';
     position: absolute;

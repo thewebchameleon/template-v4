@@ -473,17 +473,17 @@ export class PageState {
 @Component({
   selector: 'app-list-pager',
   imports: [Translate, HlmButtonImports, HlmSelectImports],
-  template: ` <nav class="workspace-pager" [attr.aria-label]="'pagination' | t">
+  template: ` <nav class="workspace-pager" [attr.aria-label]="ariaLabel() | t">
     <div class="workspace-pager-summary">
       @if (showSizePicker()) {
-        <label class="flex items-center gap-2" for="rows-per-page">
+        <label class="flex items-center gap-2" [for]="sizePickerId()">
           <span>{{ 'rowsPerPage' | t }}</span>
           <hlm-select
             [value]="size()"
             [itemToString]="sizeLabel"
             (valueChange)="changeSize($event)"
           >
-            <hlm-select-trigger buttonId="rows-per-page" size="sm" class="w-20">
+            <hlm-select-trigger [buttonId]="sizePickerId()" size="sm" class="w-20">
               <hlm-select-value />
             </hlm-select-trigger>
             <hlm-select-content *hlmSelectPortal [ariaLabel]="'rowsPerPage' | t">
@@ -559,9 +559,11 @@ export class PageState {
 })
 export class ListPager {
   readonly i18n = inject(I18n);
+  readonly ariaLabel = input('pagination');
   readonly total = input(0);
   readonly page = input(1);
   readonly size = input(DEFAULT_PAGE_SIZE);
+  readonly sizePickerId = input('rows-per-page');
   readonly showSizePicker = input(false);
   readonly sizeOptions = input(PAGE_SIZE_OPTIONS);
   readonly busy = input(false);

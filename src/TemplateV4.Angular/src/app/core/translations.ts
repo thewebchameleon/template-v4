@@ -383,8 +383,8 @@ export const dictionary: Record<string, [string, string]> = {
   ],
   signInAgain: ['Sign in again', 'Meld weer aan'],
   bootstrapRecoveryHelp: [
-    'This permanent bootstrap account has no deliverable email address. Password and factor recovery require the documented operator recovery procedure.',
-    'Hierdie permanente beginrekening het nie ’n aflewerbare e-posadres nie. Wagwoord- en faktorherstel vereis die gedokumenteerde operateurherstelprosedure.',
+    'This bootstrap address cannot receive email. To use email MFA, change your email under My profile and confirm the new address. Until then, password and factor recovery require the documented operator recovery procedure.',
+    'Hierdie beginadres kan nie e-pos ontvang nie. Om e-pos-MFA te gebruik, verander jou e-posadres onder My profiel en bevestig die nuwe adres. Tot dan vereis wagwoord- en faktorherstel die gedokumenteerde operateurherstelprosedure.',
   ],
   securitySaved: ['Security settings saved.', 'Sekuriteitsinstellings gestoor.'],
   policyHelp: [

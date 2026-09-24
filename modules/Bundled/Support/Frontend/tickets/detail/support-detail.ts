@@ -1,23 +1,26 @@
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmBubbleImports } from '@spartan-ng/helm/bubble';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
-import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { afterNextRender, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, output, signal, untracked, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { WorkspaceUi, Resource, Confirmations, protectUnload } from '../../../../../../src/TemplateV4.Angular/src/app/shared/workspace';
 import { WorkspaceApi } from '../../../../../../src/TemplateV4.Angular/src/app/core/workspace-api';
 import { I18n } from '../../../../../../src/TemplateV4.Angular/src/app/core/i18n';
 import { Notifications } from '../../../../../../src/TemplateV4.Angular/src/app/features/notifications/notifications';
-import { SupportOptions, TicketDetail, UpdateTicket } from '../../../../../../src/TemplateV4.Angular/src/app/api/models';
+import { SupportOptions, TicketDetail, TicketMessage, UpdateTicket } from '../../../../../../src/TemplateV4.Angular/src/app/api/models';
 import { TicketAttachments } from '../../attachments/ticket-attachments';
 import { ticketStates, ticketPriorities } from '../ticket-options';
 
 @Component({
   selector: 'app-support-detail',
-  imports: [HlmSelectImports, HlmBubbleImports, HlmDrawerImports, WorkspaceUi, HlmTextareaImports, TicketAttachments],
+  imports: [HlmSelectImports, HlmBubbleImports, HlmDrawerImports, HlmLabelImports, HlmScrollAreaImports, NgScrollbar, WorkspaceUi, HlmTextareaImports, TicketAttachments],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: `@if (!embedded()) { <app-page-header title="supportTicketDetails" description="supportDetailHelp"
-      ><a hlmBtn variant="outline" routerLink="/support/tickets">{{ 'supportTickets' | t }}</a
+      ><a hlmBtn variant="outline" routerLink="/support/tickets" queryParamsHandling="preserve">{{ 'supportTickets' | t }}</a
       ><button hlmBtn variant="outline" [disabled]="busy()" (click)="reload()">
         {{ 'refresh' | t }}
       </button></app-page-header
@@ -26,8 +29,14 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
       @if (data.value(); as detail) {
         <div class="grid gap-6 lg:grid-cols-3">
           <div class="min-w-0 lg:col-span-2">
-            <section hlmCard class="min-w-0 overflow-visible">
-              <div hlmCardHeader>
+            <section
+              hlmCard
+              #conversationCard
+              class="relative min-w-0"
+              [class]="detail.ticket.status !== 'Draft' ? 'h-[calc(100dvh-20rem)] min-h-[28rem]' : ''"
+              [style.height.px]="detail.ticket.status !== 'Draft' ? panelHeight() : null"
+            >
+              <div hlmCardHeader class="shrink-0">
                 <h2 hlmCardTitle>{{ 'supportConversation' | t }}</h2>
                 <div hlmCardDescription class="flex flex-wrap items-center gap-2">
                   <span class="min-w-0 break-words">{{ reference(detail.ticket.referenceNumber) }} · {{ detail.ticket.requester }}</span>
@@ -145,7 +154,24 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
                   }
                 }
               </div>
-              <div hlmCardContent class="min-w-0">
+              <div
+                hlmCardContent
+                class="min-w-0"
+                [class]="detail.ticket.status !== 'Draft' ? 'min-h-0 flex flex-1 flex-col' : ''"
+                [style.padding-top]="detail.ticket.status !== 'Draft' ? '0' : null"
+              >
+                <ng-scrollbar
+                  #chatScroll="ngScrollbar"
+                  hlm
+                  orientation="vertical"
+                  class="min-w-0 focus-visible:outline-2 focus-visible:outline-ring"
+                  [class]="detail.ticket.status !== 'Draft' ? '-mx-(--card-spacing) min-h-0 max-w-none w-[calc(100%+var(--card-spacing)+var(--card-spacing))] flex-1 overscroll-contain' : ''"
+                  role="region"
+                  [attr.aria-label]="'supportConversation' | t"
+                  tabindex="0"
+                  (scroll)="onChatScroll()"
+                >
+                  <div [class]="detail.ticket.status !== 'Draft' ? 'px-(--card-spacing) pb-3' : ''">
                 @if (detail.ticket.status === 'Draft') {
                   <p class="whitespace-pre-wrap break-words">{{ detail.description || '—' }}</p>
                 }
@@ -194,7 +220,10 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
                           </div>
                         </div>
                       </article>
-                      @for (message of detail.messages.items.slice().reverse(); track message.id) {
+                      @if (loadingOlder()) {
+                        <p class="px-(--card-spacing) py-2 text-center text-sm text-muted-foreground" role="status">{{ 'loading' | t }}</p>
+                      }
+                      @for (message of messages(); track message.id) {
                         @if (message.kind === 'reply') {
                           @let outgoing = !message.internal && !!message.authorId && message.authorId !== detail.ticket.requesterId;
                           <article class="flex min-w-0 flex-col gap-1 px-[calc(var(--card-spacing)+0.5rem)] py-[0.6875rem] transition-colors hover:bg-muted/40 motion-reduce:transition-none">
@@ -225,53 +254,52 @@ import { ticketStates, ticketPriorities } from '../ticket-options';
                         }
                       }
                     </div>
-                    <app-list-pager
-                      [total]="detail.messages.total"
-                      [page]="page"
-                      [size]="25"
-                      [busy]="busy() || data.refreshing()"
-                      (pageChange)="changePage($event)"
-                    />
-                    @if (detail.ticket.status === 'Resolved' || detail.ticket.status === 'Closed') {
-                      <div hlmAlert class="mt-4">
-                        <h3 hlmAlertTitle>{{ 'supportReopen' | t }}</h3>
-                        <p hlmAlertDescription>{{ 'supportReopenHelp' | t }}</p>
-                        <button hlmBtn class="mt-4" [disabled]="busy()" (click)="reopen()">
-                          {{ 'supportReopen' | t }}
-                        </button>
-                      </div>
-                    }
                   </div>
                 }
-              </div>
-              @if (detail.ticket.status !== 'Draft' && detail.ticket.status !== 'Resolved' && detail.ticket.status !== 'Closed') {
-                <form hlmCardFooter class="sticky bottom-0 z-10 grid max-h-[60vh] gap-4 overflow-y-auto" #replyForm="ngForm" (ngSubmit)="replyForm.valid && reply()">
-                  <div>
-                    <h3 class="font-semibold">{{ (internal ? 'supportInternal' : 'supportReply') | t }}</h3>
-                    <p class="text-muted-foreground">{{ (internal ? 'supportInternalHelp' : 'supportPublicHelp') | t }}</p>
                   </div>
-                  <div hlmField>
-                    <label hlmFieldLabel for="reply">{{ 'supportMessage' | t }}</label
-                    ><textarea
+                </ng-scrollbar>
+                @if (canReply(detail.ticket.status)) {
+                  <div class="-mb-[calc(var(--panel-inset)+var(--card-spacing)-var(--spacing))] shrink-0" [style.height.px]="composerHeight()" aria-hidden="true"></div>
+                }
+              </div>
+              @if (detail.ticket.status === 'Resolved' || detail.ticket.status === 'Closed') {
+                <div hlmAlert class="mx-3 mb-3 shrink-0 sm:mx-4">
+                  <h3 hlmAlertTitle>{{ 'supportReopen' | t }}</h3>
+                  <p hlmAlertDescription>{{ 'supportReopenHelp' | t }}</p>
+                  <button hlmBtn class="mt-4" [disabled]="busy()" (click)="reopen()">
+                    {{ 'supportReopen' | t }}
+                  </button>
+                </div>
+              }
+              @if (canReply(detail.ticket.status)) {
+                <form
+                  #replyComposer
+                  class="absolute inset-x-3 bottom-3 z-10 grid max-h-[70vh] gap-3 overflow-y-auto rounded-2xl border border-border bg-card p-3 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/50 sm:inset-x-4 sm:bottom-4 sm:p-4"
+                  #replyForm="ngForm"
+                  (ngSubmit)="replyForm.valid && reply()"
+                >
+                  <div hlmField class="min-w-0">
+                    <label hlmFieldLabel class="sr-only" for="reply">{{ (internal ? 'supportInternal' : 'supportReply') | t }}</label>
+                    <textarea
                       hlmTextarea
                       id="reply"
                       name="reply"
                       [(ngModel)]="body"
+                      [placeholder]="(internal ? 'supportNotePlaceholder' : 'supportReplyPlaceholder') | t"
                       maxlength="10000"
                       required
-                      rows="3"
+                      rows="4"
+                      class="min-h-28 max-h-48 resize-y rounded-none border-0 bg-transparent px-1 py-1 text-base shadow-none focus-visible:border-transparent focus-visible:ring-0"
                     ></textarea>
                   </div>
-                  <div class="flex flex-wrap items-center justify-end gap-3">
+                  <div class="flex flex-wrap items-center gap-3">
                     @if (detail.agent) {
-                      <label hlmFieldLabel for="internal" class="w-auto">
-                        <span hlmField orientation="horizontal" class="w-auto gap-2">
-                          <hlm-checkbox inputId="internal" name="internal" [(ngModel)]="internal" />
-                          <span hlmFieldTitle>{{ 'supportInternal' | t }}</span>
-                        </span>
+                      <label hlmLabel for="internal" class="w-fit">
+                        <hlm-checkbox inputId="internal" name="internal" [(ngModel)]="internal" />
+                        <span>{{ 'supportInternal' | t }}</span>
                       </label>
                     }
-                    <button hlmBtn type="submit" [disabled]="busy() || !body.trim()">
+                    <button hlmBtn type="submit" class="ms-auto rounded-xl px-5" [disabled]="busy() || !body.trim()">
                       {{ (internal ? 'supportSaveNote' : 'supportSendReply') | t }}
                     </button>
                   </div>
@@ -304,7 +332,15 @@ export class SupportDetailPage {
   readonly embedded = input(false);
   readonly changed = output<void>();
   private readonly route = inject(ActivatedRoute);
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly conversationCard = viewChild<ElementRef<HTMLElement>>('conversationCard');
+  private readonly chatScroll = viewChild<NgScrollbar>('chatScroll');
+  private readonly replyComposer = viewChild<ElementRef<HTMLElement>>('replyComposer');
+  readonly panelHeight = signal<number | null>(null);
+  readonly composerHeight = signal(240);
   readonly id = computed(() => this.ticketId() ?? this.route.snapshot.paramMap.get('id'));
+  canReply(status: string) { return status !== 'Draft' && status !== 'Resolved' && status !== 'Closed'; }
   reference(number: number) { return `TK-${String(number).padStart(6, '0')}`; }
   activityText(kind: string, body: string) {
     if (kind === 'status' || kind === 'priority')
@@ -313,7 +349,12 @@ export class SupportDetailPage {
   }
   readonly data = new Resource<TicketDetail>();
   readonly options = new Resource<SupportOptions>();
+  readonly messages = signal<TicketMessage[]>([]);
+  readonly messageTotal = signal(0);
+  readonly loadingOlder = signal(false);
   readonly busy = signal(false);
+  private loadedPage = 1;
+  private olderRequest: AbortController | null = null;
   readonly manageOpen = signal(false);
   readonly confirmManageClose = async () =>
     !this.busy() && (!this.triageChanged() || (await this.confirm.ask('unsavedTitle', 'unsavedHelp')));
@@ -339,28 +380,74 @@ export class SupportDetailPage {
   draftDescription = '';
   draftCategory = '';
   internal = false;
-  page = 1;
   agentSearch = '';
   draft: UpdateTicket | null = null;
   constructor() {
+    this.destroyRef.onDestroy(() => this.olderRequest?.abort());
+    effect((onCleanup) => {
+      if (!this.conversationCard()) return;
+      const resize = () => this.fitPanelToViewport();
+      window.addEventListener('resize', resize);
+      afterNextRender(resize, { injector: this.injector });
+      onCleanup(() => window.removeEventListener('resize', resize));
+    });
+    effect((onCleanup) => {
+      const composer = this.replyComposer()?.nativeElement;
+      if (!composer) return;
+      const observer = new ResizeObserver(() => this.measureComposer());
+      observer.observe(composer);
+      onCleanup(() => observer.disconnect());
+    });
     effect(() => {
       if (!this.id()) return;
       untracked(() => {
         this.data.value.set(null);
+        this.messages.set([]);
+        this.messageTotal.set(0);
+        this.loadedPage = 1;
         void this.load();
       });
     });
     void this.loadOptions();
   }
+  fitPanelToViewport() {
+    const card = this.conversationCard()?.nativeElement;
+    if (!card) return;
+    const page = card.closest<HTMLElement>('.app-content');
+    const bottomPadding = page ? parseFloat(getComputedStyle(page).paddingBottom) : 0;
+    const height = Math.max(0, Math.floor(window.innerHeight - card.getBoundingClientRect().top - bottomPadding));
+    if (height === this.panelHeight()) return;
+    const pane = this.chatScroll()?.nativeElement;
+    const atLatest = !!pane && pane.scrollHeight - pane.clientHeight - pane.scrollTop <= 48;
+    this.panelHeight.set(height);
+    if (atLatest) afterNextRender(() => { pane!.scrollTop = pane!.scrollHeight; }, { injector: this.injector });
+  }
+  measureComposer() {
+    const composer = this.replyComposer()?.nativeElement;
+    if (!composer) return;
+    const height = Math.ceil(composer.getBoundingClientRect().height);
+    if (height === this.composerHeight()) return;
+    const pane = this.chatScroll()?.nativeElement;
+    const atLatest = !!pane && pane.scrollHeight - pane.clientHeight - pane.scrollTop <= 48;
+    this.composerHeight.set(height);
+    if (atLatest) afterNextRender(() => { pane!.scrollTop = pane!.scrollHeight; }, { injector: this.injector });
+  }
   async load() {
+    this.olderRequest?.abort();
+    this.olderRequest = null;
+    this.loadingOlder.set(false);
     if (
       await this.data.load((signal) =>
-        this.api.get(`support/${this.id()}`, { pageNumber: this.page }, signal),
+        this.api.get(`support/${this.id()}`, { pageNumber: 1 }, signal),
       )
     ) {
-      const t = this.data.value()!.ticket;
+      const detail = this.data.value()!;
+      const t = detail.ticket;
+      this.messages.set(detail.messages.items.slice().reverse());
+      this.messageTotal.set(detail.messages.total);
+      this.loadedPage = detail.messages.pageNumber;
       this.draftSubject = t.subject;
-      this.draftDescription = this.data.value()!.description;
+      this.draftDescription = detail.description;
       this.draftCategory = t.categoryId ?? '';
       this.draft = {
         id: t.id,
@@ -370,6 +457,53 @@ export class SupportDetailPage {
         assigneeId: t.assigneeId,
         version: t.version,
       };
+      afterNextRender(() => {
+        const pane = this.chatScroll()?.nativeElement;
+        if (!pane || t.status === 'Draft') return;
+        pane.scrollTop = pane.scrollHeight;
+        if (pane.scrollHeight <= pane.clientHeight && this.hasOlder()) void this.loadOlder();
+      }, { injector: this.injector });
+    }
+  }
+  hasOlder() {
+    const detail = this.data.value();
+    return !!detail && this.loadedPage * detail.messages.pageSize < this.messageTotal();
+  }
+  onChatScroll() {
+    const pane = this.chatScroll()?.nativeElement;
+    if (pane && pane.scrollTop <= 64) void this.loadOlder();
+  }
+  async loadOlder() {
+    if (this.loadingOlder() || !this.hasOlder()) return;
+    const request = new AbortController();
+    this.olderRequest = request;
+    this.loadingOlder.set(true);
+    const page = this.loadedPage + 1;
+    try {
+      const detail = await this.api.get<TicketDetail>(`support/${this.id()}`, { pageNumber: page }, request.signal);
+      if (request.signal.aborted) return;
+      const pane = this.chatScroll()?.nativeElement;
+      const height = pane?.scrollHeight ?? 0;
+      const top = pane?.scrollTop ?? 0;
+      const existing = new Set(this.messages().map((message) => message.id));
+      this.messages.update((messages) => [
+        ...detail.messages.items.slice().reverse().filter((message) => !existing.has(message.id)),
+        ...messages,
+      ]);
+      this.messageTotal.set(detail.messages.total);
+      this.loadedPage = page;
+      afterNextRender(() => {
+        if (!pane) return;
+        pane.scrollTop = top + pane.scrollHeight - height;
+        if (pane.scrollHeight <= pane.clientHeight && this.hasOlder()) void this.loadOlder();
+      }, { injector: this.injector });
+    } catch {
+      /* Central error handling keeps the loaded conversation visible. */
+    } finally {
+      if (this.olderRequest === request) {
+        this.olderRequest = null;
+        this.loadingOlder.set(false);
+      }
     }
   }
   loadOptions() {
@@ -418,11 +552,6 @@ export class SupportDetailPage {
       await this.load();
     }
   }
-  async changePage(page: number) {
-    if (this.triageChanged() && !(await this.confirm.ask('unsavedTitle', 'unsavedHelp'))) return;
-    this.page = page;
-    await this.load();
-  }
   async mutate(
     path: string,
     body: unknown,
@@ -456,7 +585,6 @@ export class SupportDetailPage {
       },
       () => {
         this.body = '';
-        this.page = 1;
       },
     );
   }

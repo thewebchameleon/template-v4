@@ -118,7 +118,7 @@ public static class ApiResults
 
             "authorization.denied" => af ? "Jy het nie toestemming nie." : "You do not have permission.",
 
-            "role.protected" => af ? "Ingeboude rolle kan nie verander word nie." : "Built-in roles cannot be changed.",
+            "role.protected" => af ? "Ingeboude rolname en toestemmings kan nie verander word nie." : "Built-in role names and permissions cannot be changed.",
 
             "role.invalid" => af ? "Gebruik Ã¢â‚¬â„¢n geldige rolnaam en toestemmings. Bestuur gebruikers vereis Bekyk gebruikers." : "Use a valid role name and permissions. Manage users requires View users.",
 

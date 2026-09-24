@@ -181,10 +181,10 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                       : '0px'
                   "
                 >
-                  @if (activeRailIndex() >= 0) {
+                  @if (activeRailIndex() >= 0 && activeRailIndex() < scrollRailLinks().length) {
                     <span class="sidebar-rail-indicator" aria-hidden="true"></span>
                   }
-                  @for (item of railLinks(); track item.path; let index = $index) {
+                  @for (item of scrollRailLinks(); track item.path; let index = $index) {
                     @if (index === railModuleStartIndex()) {
                       <hlm-separator class="sidebar-rail-module-separator" decorative="true" />
                     }
@@ -225,21 +225,48 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                   }
                 </div>
               </nav>
-              <a
-                hlmBtn
-                variant="ghost"
-                size="icon"
-                [routerLink]="administrationDestination()"
-                [attr.aria-label]="'administration' | t"
-                [hlmTooltip]="'administration' | t"
-                position="right"
-                [attr.aria-expanded]="administrationPanelActive() && sidebar.open()"
-                aria-controls="sidebar-label-panel"
-                [attr.data-active]="administrationPanelActive()"
-                (click)="selectRailPanel($event, '/administration')"
-              >
-                <ng-icon name="lucideSettings" size="1.5rem" />
-              </a>
+              <div class="sidebar-rail-bottom">
+                @if (userManagementPanelActive() || administrationPanelActive()) {
+                  <span
+                    class="sidebar-rail-bottom-indicator"
+                    [style.--rail-bottom-active-index]="administrationPanelActive() && userManagementLinks().length ? 1 : 0"
+                    aria-hidden="true"
+                  ></span>
+                }
+                @if (userManagementLinks()[0]; as userManagementLink) {
+                  <a
+                    hlmBtn
+                    variant="ghost"
+                    size="icon"
+                    class="sidebar-rail-user-management"
+                    [routerLink]="userManagementLink.path"
+                    [attr.aria-label]="'userManagement' | t"
+                    [hlmTooltip]="'userManagement' | t"
+                    position="right"
+                    [attr.aria-expanded]="userManagementPanelActive() && sidebar.open()"
+                    aria-controls="sidebar-label-panel"
+                    [attr.data-active]="userManagementPanelActive()"
+                    (click)="selectRailPanel($event, '/user-management')"
+                  >
+                    <ng-icon name="lucideUserRound" size="1.5rem" />
+                  </a>
+                }
+                <a
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  [routerLink]="administrationDestination()"
+                  [attr.aria-label]="'administration' | t"
+                  [hlmTooltip]="'administration' | t"
+                  position="right"
+                  [attr.aria-expanded]="administrationPanelActive() && sidebar.open()"
+                  aria-controls="sidebar-label-panel"
+                  [attr.data-active]="administrationPanelActive()"
+                  (click)="selectRailPanel($event, '/administration')"
+                >
+                  <ng-icon name="lucideSettings" size="1.5rem" />
+                </a>
+              </div>
             </div>
           }
           <div
@@ -884,6 +911,7 @@ export class App {
         ]
       : []),
     ...this.primaryDestinationRailLinks(),
+    ...this.moduleRailLinks(),
     ...(this.userManagementLinks().length
       ? [
           {
@@ -896,8 +924,10 @@ export class App {
           },
         ]
       : []),
-    ...this.moduleRailLinks(),
   ]);
+  readonly scrollRailLinks = computed(() =>
+    this.railLinks().filter((item) => item.path !== '/user-management'),
+  );
   readonly mobileRailLinks = computed<RailLink[]>(() => [
     ...this.railLinks(),
     {
@@ -910,9 +940,9 @@ export class App {
     },
   ]);
   readonly railModuleStartIndex = computed(() => {
-    if (!this.moduleRailLinks().length || this.railLinks().length === this.moduleRailLinks().length)
+    if (!this.moduleRailLinks().length || this.scrollRailLinks().length === this.moduleRailLinks().length)
       return -1;
-    return this.railLinks().length - this.moduleRailLinks().length;
+    return this.scrollRailLinks().length - this.moduleRailLinks().length;
   });
   readonly activeRailIndex = computed(() => {
     this.navigationEnd();

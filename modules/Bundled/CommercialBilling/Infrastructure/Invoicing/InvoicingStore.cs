@@ -10,7 +10,8 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Invoicing;
 
-public sealed partial class InvoicingStore(InvoicingDb db, IOrganisationOperations access, ICrmCustomers crm, TimeProvider time) : IInvoicing
+public sealed partial class InvoicingStore(InvoicingDb db, IOrganisationOperations access, ICrmCustomers crm,
+    ICustomers organisations, InvoiceHtmlPdf pdfRenderer, IEventOutbox outbox, TimeProvider time) : IInvoicing
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private IQueryable<CommercialDocumentRow> Documents() => db.Set<CommercialDocumentRow>();

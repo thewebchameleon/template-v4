@@ -4,6 +4,7 @@ import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { Router } from '@angular/router';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { SupportNewPage } from './create/support-new';
+import { SupportTicketsLayout } from './tickets-layout';
 import { ticketStates, ticketPriorities } from './ticket-options';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import {
@@ -74,24 +75,10 @@ class TicketBadgeCell {
         }}</a>
       }
     </app-page-header>
-    <app-page-state [state]="options.state()" (retry)="loadOptions()" skeleton="inline">
-      @if (options.value()?.agent) {
-        <hlm-tabs
-          class="mb-6"
-          [tab]="query.text('queue', 'false')"
-          (tabActivated)="query.set({ queue: $event, page: 1 })"
-        >
-          <hlm-tabs-list [attr.aria-label]="'supportView' | t">
-            <button hlmTabsTrigger="false">{{ 'supportMine' | t }}</button>
-            <button hlmTabsTrigger="true">{{ 'supportQueue' | t }}</button>
-          </hlm-tabs-list>
-        </hlm-tabs>
-      }
-    </app-page-state>
     <section hlmCard>
       <div hlmCardHeader>
         <h2 hlmCardTitle>
-          {{ (query.text('queue') === 'true' ? 'supportQueue' : 'supportMine') | t }}
+          {{ (ticketsLayout.selectedTab() === 'true' ? 'supportQueue' : 'supportMine') | t }}
         </h2>
         <p hlmCardDescription>{{ 'supportListHelp' | t }}</p>
       </div>
@@ -244,9 +231,14 @@ class TicketBadgeCell {
 export class SupportPage {
   private readonly confirm = inject(Confirmations);
   private readonly router = inject(Router);
+  readonly ticketsLayout = inject(SupportTicketsLayout);
   readonly filtersOpen = signal(false);
   readonly rowLabel = (ticket: TicketItem) => `${this.i18n.text('supportTicketDetails')}: ${this.reference(ticket.referenceNumber)}`;
-  readonly ticketLink = (ticket: TicketItem) => `/support/tickets/${ticket.id}`;
+  readonly ticketLink = (ticket: TicketItem) =>
+    this.router.serializeUrl(this.router.createUrlTree(
+      ['/support/tickets', ticket.id],
+      { queryParamsHandling: 'preserve' },
+    ));
   reference(number: number) { return `TK-${String(number).padStart(6, '0')}`; }
   dateLogged(value: string) {
     return new Intl.DateTimeFormat(this.i18n.culture(), { dateStyle: 'medium', timeZone: this.i18n.timeZone() }).format(new Date(value));
@@ -352,7 +344,7 @@ export class SupportPage {
             priority: this.query.text('priority'),
             category: this.query.text('category'),
             assignee: this.query.text('assignee'),
-            queue: this.query.text('queue') === 'true',
+            queue: this.ticketsLayout.selectedTab() === 'true',
             sort: this.query.text('sort', 'createdAt'),
             direction: this.query.direction('desc'),
           },

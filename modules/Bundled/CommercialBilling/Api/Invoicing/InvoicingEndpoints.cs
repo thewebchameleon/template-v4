@@ -16,8 +16,23 @@ public static class InvoicingEndpoints
         {
             var actor = Actor(user); var document = await store.Read(actor, id, ct);
             if (!document.IsSuccess) return document.ToHttp();
-            var logo = document.Value!.Document.Snapshot.OrganisationLogoId is { } logoId ? await organisations.Logo(logoId, ct) : null;
-            using var content = new MemoryStream(TemplateV4.Infrastructure.Invoicing.CommercialPdf.Render(document.Value!, logo?.Png));
+            byte[] bytes;
+            if (document.Value!.Document.Kind == TemplateV4.Domain.Invoicing.CommercialDocumentKind.Invoice)
+            {
+                var retained = await store.Pdf(actor, id, null, ct);
+                if (retained.IsSuccess) bytes = retained.Value!.Content;
+                else
+                {
+                    var oldLogo = document.Value.Document.Snapshot.OrganisationLogoId is { } oldLogoId ? await organisations.Logo(oldLogoId, ct) : null;
+                    bytes = TemplateV4.Infrastructure.Invoicing.CommercialPdf.Render(document.Value, oldLogo?.Png);
+                }
+            }
+            else
+            {
+                var logo = document.Value.Document.Snapshot.OrganisationLogoId is { } logoId ? await organisations.Logo(logoId, ct) : null;
+                bytes = TemplateV4.Infrastructure.Invoicing.CommercialPdf.Render(document.Value, logo?.Png);
+            }
+            using var content = new MemoryStream(bytes);
             var uploaded = await files.Upload(actor, document.Value!.Document.Number + ".pdf", content, ct);
             if (!uploaded.IsSuccess) return uploaded.ToHttp();
             return (await attachments.Change(actor, TemplateV4.Application.Crm.AttachmentRecordKind.Invoicing, id, new(uploaded.Value!.Id, true), ct)).ToHttp();
@@ -25,13 +40,25 @@ public static class InvoicingEndpoints
         invoices.MapPost("/{id:guid}/invoice", async (Guid id, Guid idempotencyKey, ClaimsPrincipal user, IInvoicing store, CancellationToken ct) =>
             (await store.InvoiceAccepted(Actor(user), id, idempotencyKey, ct)).ToHttp()).WithName("InvoiceAcceptedQuotation").Produces<CommercialDocument>().ContinuesWhenDisabled(ModuleIds.CommercialBilling, "Fulfil an accepted quotation from its immutable snapshot, including when CRM is unavailable");
         work.MapPost("/preview", async (ClaimsPrincipal user, PreviewCommercialDocument request, IInvoicing store, CancellationToken ct) => (await store.Preview(Actor(user), request, ct)).ToHttp()).WithName("PreviewCommercialDocument").Produces<TemplateV4.Domain.Invoicing.CommercialTotals>();
-        invoices.MapGet("/{id:guid}/pdf", async (Guid id, ClaimsPrincipal user, IInvoicing store, ICustomers organisations, CancellationToken ct) =>
+        invoices.MapGet("/{id:guid}/pdf", async (Guid id, int? version, ClaimsPrincipal user, IInvoicing store, ICustomers organisations, CancellationToken ct) =>
         {
             var result = await store.Read(Actor(user), id, ct);
             if (!result.IsSuccess) return result.ToHttp();
+            if (result.Value!.Document.Kind == TemplateV4.Domain.Invoicing.CommercialDocumentKind.Invoice)
+            {
+                var retained = await store.Pdf(Actor(user), id, version, ct);
+                if (retained.IsSuccess) return Results.File(retained.Value!.Content, "application/pdf", result.Value.Document.Number + ".pdf");
+                if (version is not null) return retained.ToHttp();
+            }
             var logo = result.Value!.Document.Snapshot.OrganisationLogoId is { } logoId ? await organisations.Logo(logoId, ct) : null;
             return Results.File(TemplateV4.Infrastructure.Invoicing.CommercialPdf.Render(result.Value!, logo?.Png), "application/pdf", result.Value.Document.Number + ".pdf");
         }).WithName("DownloadCommercialPdf").Produces<byte[]>(200, "application/pdf").ContinuesWhenDisabled(ModuleIds.CommercialBilling, "Download retained documents for existing obligations after application permission checks");
+        invoices.MapGet("/{id:guid}/pdf-versions", async (Guid id, ClaimsPrincipal user, IInvoicing store, CancellationToken ct) =>
+            (await store.PdfVersions(Actor(user), id, ct)).ToHttp()).WithName("ListInvoicePdfVersions")
+            .Produces<InvoicePdfVersion[]>().ContinuesWhenDisabled(ModuleIds.CommercialBilling, "Read retained invoice PDF history");
+        invoices.MapPost("/{id:guid}/email", async (Guid id, ClaimsPrincipal user, EmailInvoicePdf request, IInvoicing store, CancellationToken ct) =>
+            (await store.EmailPdf(Actor(user), id, request, ct)).ToHttp()).WithName("EmailInvoicePdf")
+            .ContinuesWhenDisabled(ModuleIds.CommercialBilling, "Send an existing invoice PDF after explicit confirmation and permission checks");
         work.MapPost("", async (ClaimsPrincipal user, IssueCommercialDocument request, IInvoicing store, CancellationToken ct) => request.Origin != null
             ? ApiResults.Failure(new("validation.failed", ErrorKind.Validation))
             : (await store.Issue(Actor(user), request, ct)).ToHttp()).WithName("IssueCommercialDocument").Produces<CommercialDocument>();

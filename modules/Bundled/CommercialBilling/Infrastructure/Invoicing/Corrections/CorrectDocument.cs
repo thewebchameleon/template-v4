@@ -57,6 +57,7 @@ public sealed partial class InvoicingStore
             db.Set<CommercialDocumentRow>().Add(correction); entry.IssuedDocumentId = correction.Id;
         }
         db.Set<FinancialEntryRow>().Add(entry); Remember(request.IdempotencyKey, hash, entry.Id); Audit(actor, id, "invoicing." + kind);
+        await RetainPdf(row, kind, ct);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<FinancialEntry>.Success(Read(entry));
     }
 }

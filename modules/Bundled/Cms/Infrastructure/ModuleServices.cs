@@ -14,6 +14,7 @@ public static class ModuleServices
             .UseNpgsql(provider.GetRequiredService<FrameworkDb>().Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "cms"))
             .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, CmsMigrations>();
+        services.AddScoped<TemplateV4.Application.Modules.IDemoDataContributor, CmsDemoData>();
         services.AddScoped<TemplateV4.Application.ApiKeys.IApiKeyCollections, TemplateV4.Infrastructure.Cms.CmsApiKeyCollections>();
         CmsRegistration.AddCms(services);
     }

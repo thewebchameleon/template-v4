@@ -42,6 +42,17 @@ import { AccessCatalog, UserAccessDetail } from '../../api/models';
             <div hlmCardHeader>
               <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
               <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
+              @if (embedded() && detail.user.status === 'Invited' && editable()) {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  [disabled]="busy()"
+                  (click)="resendInvitation()"
+                >
+                  {{ 'resendInvitation' | t }}
+                </button>
+              }
               @if (auth.has('settings.manage') && features.enabled('file-storage')) {
                 <a hlmBtn variant="outline" routerLink="/file-storage">{{ 'files' | t }}</a>
               }
@@ -207,6 +218,20 @@ export class UserDetailPage implements OnInit {
   }
   async reloadDraft() {
     if (await this.confirm.ask('unsavedTitle', 'unsavedHelp')) await this.load();
+  }
+  async resendInvitation() {
+    const user = this.data.value()?.user;
+    if (!user || user.status !== 'Invited' || this.busy() || !this.editable()) return;
+    this.busy.set(true);
+    try {
+      await this.api.post('invitations', { userId: user.id, cancel: false });
+      this.toast.success('invitationSent');
+      this.saved.emit();
+    } catch {
+      /* Central notification preserves server feedback. */
+    } finally {
+      this.busy.set(false);
+    }
   }
   async save() {
     const user = this.data.value()?.user;

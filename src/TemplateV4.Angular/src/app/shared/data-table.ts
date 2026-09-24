@@ -113,7 +113,23 @@ export interface DataTableRowDragEvent<TData> {
             @for (row of table.getRowModel().rows; track row.id) {
               <tr
                 hlmTr
-                [class.cursor-pointer]="!!rowActionLabel()"
+                class="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                [class.cursor-pointer]="
+                  !!rowActionLabel() ||
+                  (!!rowSelectionActionLabel() && !rowSelectionActionDisabled()?.(row.original))
+                "
+                [attr.tabindex]="
+                  !rowActionLabel() && rowSelectionActionLabel() && !rowSelectionActionDisabled()?.(row.original)
+                    ? 0
+                    : null
+                "
+                [attr.aria-label]="
+                  !rowActionLabel() && !rowSelectionActionDisabled()?.(row.original)
+                    ? rowSelectionActionLabel()?.(row.original)
+                    : null
+                "
+                [attr.aria-selected]="rowSelected() ? rowSelected()?.(row.original) : null"
+                [attr.data-state]="rowSelected()?.(row.original) ? 'selected' : null"
                 [hlmContextMenuTrigger]="rowContextMenu() ?? null"
                 [hlmContextMenuTriggerData]="{ file: row.original }"
                 [disabled]="
@@ -139,7 +155,9 @@ export interface DataTableRowDragEvent<TData> {
                     [class.w-px]="cell.column.id === 'selection'"
                     [class.whitespace-nowrap]="cell.column.id === 'selection'"
                     [class.cursor-pointer]="
-                      cell.column.id === 'selection' && !!rowSelectionActionLabel()
+                      cell.column.id === 'selection' &&
+                      !!rowSelectionActionLabel() &&
+                      !rowSelectionActionDisabled()?.(row.original)
                     "
                     [class.text-end]="cell.column.id === 'actions'"
                     (click)="activateSelectionCell($event, row.original, cell.column.id)"
@@ -235,6 +253,8 @@ export class DataTable<TData extends RowData> {
   readonly rowActionLink = input<(row: TData) => string>();
   readonly rowDoubleActionLabel = input<(row: TData) => string>();
   readonly rowSelectionActionLabel = input<(row: TData) => string>();
+  readonly rowSelectionActionDisabled = input<(row: TData) => boolean>();
+  readonly rowSelected = input<(row: TData) => boolean>();
   readonly rowContextMenu = input<TemplateRef<unknown>>();
   readonly rowContextMenuDisabled = input<(row: TData) => boolean>();
   readonly rowAction = output<TData>();
@@ -251,7 +271,8 @@ export class DataTable<TData extends RowData> {
 
   protected activateRow(event: MouseEvent, row: TData) {
     if (
-      !this.rowActionLabel() ||
+      (!this.rowActionLabel() &&
+        (!this.rowSelectionActionLabel() || this.rowSelectionActionDisabled()?.(row))) ||
       this.loading() ||
       event.button !== 0 ||
       event.detail > 1 ||
@@ -268,10 +289,15 @@ export class DataTable<TData extends RowData> {
       target.closest('button, a, input, select, textarea, [role="button"], [role="checkbox"]')
     )
       return;
-    (event.currentTarget as HTMLElement)
-      .querySelector<HTMLElement>('[data-row-action]')
-      ?.focus();
-    this.rowAction.emit(row);
+    if (this.rowActionLabel()) {
+      (event.currentTarget as HTMLElement)
+        .querySelector<HTMLElement>('[data-row-action]')
+        ?.focus();
+      this.rowAction.emit(row);
+    } else {
+      (event.currentTarget as HTMLElement).focus();
+      this.rowSelectionAction.emit(row);
+    }
   }
 
   protected activateRowAction(event: MouseEvent, row: TData) {
@@ -280,7 +306,13 @@ export class DataTable<TData extends RowData> {
   }
 
   protected activateSelectionCell(event: MouseEvent, row: TData, column: string) {
-    if (column !== 'selection' || !this.rowSelectionActionLabel() || this.loading()) return;
+    if (
+      column !== 'selection' ||
+      !this.rowSelectionActionLabel() ||
+      this.rowSelectionActionDisabled()?.(row) ||
+      this.loading()
+    )
+      return;
     const target = event.target;
     if (
       !(target instanceof Element) ||
@@ -292,10 +324,15 @@ export class DataTable<TData extends RowData> {
   }
 
   protected rowKeydown(event: KeyboardEvent, row: TData) {
-    if (event.target !== event.currentTarget || !this.rowActionLabel() || this.loading()) return;
+    if (event.target !== event.currentTarget || this.loading()) return;
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.rowAction.emit(row);
+      if (this.rowActionLabel()) {
+        event.preventDefault();
+        this.rowAction.emit(row);
+      } else if (this.rowSelectionActionLabel() && !this.rowSelectionActionDisabled()?.(row)) {
+        event.preventDefault();
+        this.rowSelectionAction.emit(row);
+      }
     }
   }
 

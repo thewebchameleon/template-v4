@@ -63,9 +63,8 @@ public sealed class FileRetention(FrameworkDb db, IFileStorage storage, IConfigu
         var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM file_storage.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         var cutoff = now.AddMinutes(-settings.DemoExpiryMinutes);
         if (!settings.DemoMode || settings.DemoStartedAt is null || settings.DemoStartedAt > cutoff) return;
-        // max(CreatedAt, DemoStartedAt) gives each new item its own lifetime and
-        // restarts all existing timers without rewriting file creation timestamps.
-        var eligible = db.Files.Where(x => x.PurgedAt == null && !x.PurgeRequested && x.CreatedAt <= cutoff &&
+        // Files already in an existing database before demo activation are never demo-expired.
+        var eligible = db.Files.Where(x => x.PurgedAt == null && !x.PurgeRequested && x.CreatedAt >= settings.DemoStartedAt && x.CreatedAt <= cutoff &&
             (!x.IsFolder || !db.Files.Any(child => child.ParentId == x.Id && child.PurgedAt == null)));
         var candidates = await eligible.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Take(batch).Select(x => new { x.Id, x.OwnerId }).ToArrayAsync(ct);
         // Folder mutations and retention share the organisation library lock.

@@ -11,6 +11,9 @@ var mail = builder
     .WithHttpEndpoint(targetPort: 8025, name: "ui")
     .WithEndpoint(targetPort: 1025, name: "smtp");
 
+var pdf = builder.AddContainer("pdf", "gotenberg/gotenberg", "8.37.0")
+    .WithHttpEndpoint(targetPort: 3000, name: "http");
+
 var repositoryRoot = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "../.."));
 var storage = builder.AddContainer("storage", "chrislusf/seaweedfs", "4.45")
     .WithArgs("mini", "-dir=/data", "-bucket=templatev4")
@@ -26,20 +29,25 @@ if (!File.Exists(signingKey))
 }
 
 var dataProtectionKeys = Path.Combine(repositoryRoot, ".local/keys");
+var demoMode = Environment.GetEnvironmentVariable("TEMPLATEV4_DEMO_MODE") ?? "false";
 var migrator = builder
     .AddProject<Projects.TemplateV4_DatabaseMigrator>("migrator")
     .WithReference(database)
     .WaitFor(database)
+    .WithEnvironment("TEMPLATEV4_DEMO_MODE", demoMode)
     .WithEnvironment("DataProtection__KeyPath", dataProtectionKeys);
 
 var api = builder
     .AddProject<Projects.TemplateV4_ApiService>("api")
     .WithReference(database)
     .WaitForCompletion(migrator)
+    .WithEnvironment("TEMPLATEV4_DEMO_MODE", demoMode)
     .WithEnvironment("Jwt__PrivateKeyPath", signingKey)
     .WithEnvironment("Jwt__KeyId", "local-v1")
     .WithEnvironment("DataProtection__KeyPath", dataProtectionKeys)
     .WithEnvironment("Web__PublicUrl", "https://localhost:4200")
+    .WaitFor(pdf)
+    .WithEnvironment("Pdf__RendererUrl", pdf.GetEndpoint("http"))
     .WaitFor(storage)
     .WithEnvironment("Storage__Provider", "S3")
     .WithEnvironment("Storage__S3__Endpoint", storage.GetEndpoint("s3"))
@@ -52,6 +60,7 @@ builder
     .AddProject<Projects.TemplateV4_BackgroundWorker>("worker")
     .WithReference(database)
     .WaitForCompletion(migrator)
+    .WithEnvironment("TEMPLATEV4_DEMO_MODE", demoMode)
     .WaitFor(mail)
     .WaitFor(storage)
     .WithEnvironment("Storage__Provider", "S3")

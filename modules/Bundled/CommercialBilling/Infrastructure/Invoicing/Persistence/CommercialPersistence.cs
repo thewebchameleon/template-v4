@@ -41,6 +41,15 @@ public sealed class CommercialOperationRow
     public string Fingerprint { get; set; } = "";
     public Guid ResultId { get; set; }
 }
+public sealed class InvoicePdfRow
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid DocumentId { get; set; }
+    public int Version { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public string Reason { get; set; } = "";
+    public byte[] Content { get; set; } = [];
+}
 public sealed class FinancialEntryRow
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -67,6 +76,10 @@ public static class CommercialMappings
         d.HasIndex(x => x.Number).IsUnique();
         d.HasIndex(x => new { x.OriginModule, x.OriginType, x.OriginId }).IsUnique().HasFilter("\"Kind\" = 'Invoice' AND \"OriginId\" IS NOT NULL");
         d.HasIndex(x => new { x.IssuedAt, x.Id });
+        var pdf = model.Entity<InvoicePdfRow>(); pdf.ToTable("document_pdfs", "invoicing"); pdf.HasKey(x => x.Id);
+        pdf.Property(x => x.Reason).HasMaxLength(32); pdf.Property(x => x.Content).HasColumnType("bytea");
+        pdf.HasIndex(x => new { x.DocumentId, x.Version }).IsUnique();
+        pdf.HasOne<CommercialDocumentRow>().WithMany().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.Restrict);
         var s = model.Entity<IssuerSettingsRow>(); s.ToTable("issuer_settings", "invoicing", t => t.HasCheckConstraint("CK_issuer_settings_singleton", "\"Id\" = 1")); s.HasKey(x => x.Id); s.Property(x => x.Version).IsConcurrencyToken(); s.Property(x => x.Data).HasColumnType("jsonb");
         var o = model.Entity<CommercialOperationRow>(); o.ToTable("operations", "invoicing"); o.HasKey(x => x.Key); o.Property(x => x.Fingerprint).HasMaxLength(64);
         var e = model.Entity<FinancialEntryRow>(); e.ToTable("entries", "invoicing"); e.HasKey(x => x.Id);

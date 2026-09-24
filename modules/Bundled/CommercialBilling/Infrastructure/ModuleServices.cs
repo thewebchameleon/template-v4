@@ -18,7 +18,10 @@ public static class ModuleServices
             .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, InvoicingMigrations>();
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, CommercialBillingMigrations>();
+        services.AddScoped<TemplateV4.Application.Modules.IDemoDataContributor, CommercialBillingDemoData>();
         services.AddScoped<TemplateV4.Application.Invoicing.IInvoiceAttachments, TemplateV4.Infrastructure.Invoicing.InvoiceAttachments>();
+        services.AddSingleton<IIntegrationContractContributor, TemplateV4.Infrastructure.Invoicing.InvoicePdfIntegrationContracts>();
+        services.AddScoped<IIntegrationConsumer, TemplateV4.Infrastructure.Invoicing.InvoicePdfEmailConsumer>();
         InvoicingRegistration.AddInvoicing(services);
         CommercialBillingRegistration.AddCommercialBilling(services);
     }

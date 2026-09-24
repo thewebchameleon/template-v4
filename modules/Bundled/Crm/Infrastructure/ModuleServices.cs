@@ -14,6 +14,7 @@ public static class ModuleServices
             .UseNpgsql(provider.GetRequiredService<FrameworkDb>().Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "crm"))
             .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, CrmMigrations>();
+        services.AddScoped<TemplateV4.Application.Modules.IDemoDataContributor, CrmDemoData>();
         services.AddScoped<TemplateV4.Application.Privacy.IPrivacyContributor, TemplateV4.Infrastructure.Crm.CrmPrivacy>();
         CrmRegistration.AddCrm(services);
     }

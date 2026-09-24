@@ -38,6 +38,9 @@ public static class ModuleConfiguration
         }
         // Environment settings may restrict a client selection, but cannot re-enable excluded features.
         foreach (var item in client.Where(x => !x.Value)) overrides[item.Key] = false;
-        return new ModuleCatalog(definitions.Concat(contributions ?? []), overrides);
+        var selected = definitions.Concat(contributions ?? []).ToArray();
+        if (configuration.GetValue<bool>("TEMPLATEV4_DEMO_MODE"))
+            foreach (var item in selected.Where(x => x.Category != "core")) overrides[item.Id] = true;
+        return new ModuleCatalog(selected, overrides);
     }
 }

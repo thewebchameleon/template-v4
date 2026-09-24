@@ -10,12 +10,14 @@ import { RequestBuilder } from '../../request-builder';
 
 export interface DownloadCommercialPdf$Params {
   id: string;
+  version?: number;
 }
 
 export function downloadCommercialPdf(http: HttpClient, rootUrl: string, params: DownloadCommercialPdf$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
   const rb = new RequestBuilder(rootUrl, downloadCommercialPdf.PATH, 'get');
   if (params) {
     rb.path('id', params.id, {});
+    rb.query('version', params.version, {});
   }
 
   return http.request(

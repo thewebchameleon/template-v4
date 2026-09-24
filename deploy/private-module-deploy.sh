@@ -24,7 +24,7 @@ if [ -f "$compose_env_file" ]; then node --env-file="$compose_env_file" tools/pr
 else node tools/private-modules.mjs prepare
 fi
 compose build migrator api worker web
-compose up -d --wait postgres
+compose up -d --wait postgres pdf
 
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 backup=".local/backups/templatev4-$stamp.dump"

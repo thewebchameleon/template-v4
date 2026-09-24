@@ -10,10 +10,12 @@ discard stale cached identity state. Angular reuses routes only when path parame
 match, preserving query-based list navigation while destroying entity drafts after
 approved navigation.
 
-Privileged accounts require user-verified passkeys under the configured policy. Persist
-factor verification time and passkey proof separately from session creation and generic
-MFA. MFA policy changes require recent proof. Account challenge consumers acquire the
-account lock before challenge rows.
+Privileged accounts may use verified email, authenticator, or passkey MFA by default.
+Deployments may explicitly require user-verified passkeys for privileged accounts.
+Persist factor verification time and passkey proof separately from session creation and
+generic MFA. MFA policy changes require recent proof of a method eligible under the
+configured policy. Account challenge consumers acquire the account lock before challenge
+rows.
 
 Idempotency records bind the actor, payload hash, and response subject. Privacy erasure
 retains only a payload-free tombstone until idempotency expiry. Storage providers enforce
@@ -26,7 +28,8 @@ facts, and retires confirmed settled cancellations.
 
 ## Consequences
 
-Keep two administrator passkeys on separate devices and another active administrator.
+Keep a backup factor and another active administrator. When passkey-only policy is
+enabled, keep two administrator passkeys on separate devices.
 External delivery remains at least once. Provider sandbox verification, browser
 acceptance, and production recovery remain separate from local integration checks. See
 [Security](../security.md) and [Deployment](../deployment.md).

@@ -12,6 +12,9 @@ public interface ICommercialDocuments
 }
 public interface IInvoicing : ICommercialDocuments
 {
+    Task<Result<InvoicePdfFile>> Pdf(Guid actor, Guid id, int? version, CancellationToken ct);
+    Task<Result<InvoicePdfVersion[]>> PdfVersions(Guid actor, Guid id, CancellationToken ct);
+    Task<Result<Unit>> EmailPdf(Guid actor, Guid id, EmailInvoicePdf request, CancellationToken ct);
     Task<Result<CommercialDocument>> InvoiceAccepted(Guid actor, Guid quotation, Guid idempotencyKey, CancellationToken ct);
     Task<Result<CommercialTotals>> Preview(Guid actor, PreviewCommercialDocument request, CancellationToken ct);
     Task<Result<Page<CommercialDocument>>> List(Guid actor, int page, int size, string search, string sort, string direction, string group, CancellationToken ct);

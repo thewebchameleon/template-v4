@@ -37,9 +37,26 @@ source uses the corresponding Commercial Billing layer projects, with no nested
 module descriptor or layer projects. File Storage owns only the optional library
 routes and pages because its files, sharing, quota and retention data are core storage.
 
+For demo deployments, an owner can register one `IDemoDataContributor` beside its
+`IMigrationContributor`. The Database Migrator calls demo contributors after every
+migration when `TEMPLATEV4_DEMO_MODE=true`. Give sample records stable IDs, check for
+them before insertion, and keep all sample data inside the owning module. Avoid
+external calls and file uploads. The selected private modules use the same contract.
+Demo startup fails if an enabled business module has no contributor; File Storage is
+the deliberate exception because it must not receive seeded files.
+See [ADR 0057](adr/0057-demo-environment.md) for activation and File Storage behavior.
+
 Use Support, CMS, CRM, and Commercial Billing's invoicing slice as reference
 implementations. Do not create a new service, assembly, or abstraction merely to
 satisfy folder shape.
+
+Commercial Billing keeps issued invoice details immutable. The invoice page can clone
+customer, reference, and line inputs into a new issue form. New invoices save an HTML
+template-rendered PDF with the document, and payment, credit, or refund activity retains
+another PDF version. Authorized users can download prior versions and queue the current
+version for email after confirming the snapshotted customer address. Existing invoices
+from before PDF retention remain downloadable through the earlier renderer; their first
+email action saves a retained version.
 
 ## Layout
 

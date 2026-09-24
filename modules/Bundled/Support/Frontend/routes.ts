@@ -17,14 +17,6 @@ export const routes: Routes = [{
         redirectTo: 'tickets',
       },
       {
-        path: 'tickets',
-        data: { breadcrumb: 'supportTickets' },
-        canActivate: [destinationGuard(workspaceDestinations.support)],
-        canDeactivate: [unsavedGuard],
-        loadComponent: () =>
-          import('./tickets/support').then((m) => m.SupportPage),
-      },
-      {
         path: 'tickets/new',
         data: { breadcrumb: 'supportNew' },
         canActivate: [destinationGuard(workspaceDestinations.support)],
@@ -43,14 +35,27 @@ export const routes: Routes = [{
           ),
       },
       {
-        path: 'tickets/:id',
-        data: { breadcrumb: 'supportTicketDetails' },
+        path: 'tickets',
+        data: { breadcrumb: 'supportTickets' },
         canActivate: [destinationGuard(workspaceDestinations.support)],
-        canDeactivate: [unsavedGuard],
         loadComponent: () =>
-          import('./tickets/detail/support-detail').then(
-            (m) => m.SupportDetailPage,
-          ),
+          import('./tickets/tickets-layout').then((m) => m.SupportTicketsLayout),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            canDeactivate: [unsavedGuard],
+            loadComponent: () =>
+              import('./tickets/support').then((m) => m.SupportPage),
+          },
+          {
+            path: ':id',
+            data: { breadcrumb: 'supportTicketDetails' },
+            canDeactivate: [unsavedGuard],
+            loadComponent: () =>
+              import('./tickets/detail/support-detail').then((m) => m.SupportDetailPage),
+          },
+        ],
       },
       {
         path: 'contact',

@@ -1,8 +1,15 @@
 # Deployment and operations
 
-Production uses the Web, API, Worker, Migrator, and PostgreSQL workloads. Web is the only
+Production uses the Web, API, Worker, Migrator, PDF renderer, and PostgreSQL workloads. Web is the only
 public service; it serves Angular and proxies `/api` on the same origin. AppHost,
 `compose.yaml`, development certificates, and Mailpit are local-only.
+
+Commercial Billing issues invoice PDFs through the private `pdf` renderer service
+(Gotenberg). API needs `Pdf__RendererUrl` set to its internal HTTP address; the provided
+Compose files configure this. Keep the renderer off the public network. Issuing an invoice
+or recording a balance change fails if PDF conversion fails, so a document and its saved
+PDF version stay aligned. PDF versions are retained in PostgreSQL and belong in database
+backups. Invoice email delivery uses the Worker and SMTP settings.
 
 ## Deploy
 
@@ -39,6 +46,13 @@ mix incompatible Worker or scheduler versions.
 Use expand/contract migrations where mixed-version operation is required. Never delete,
 rename, or regenerate an applied migration. There are no automatic source upgrades;
 client-owned changes remain reviewable changes in the client repository.
+
+Privileged accounts can use email, authenticator, or passkey MFA by default. Existing
+deployments with `Security__RequireAdministratorPasskey=true` (or
+`REQUIRE_ADMINISTRATOR_PASSKEY=true` in local Compose) keep the passkey-only rule until
+the setting is explicitly changed. Accounts with setup-only sessions from the old default
+must sign in again and complete an eligible MFA challenge. Confirm SMTP delivery before
+relying on email MFA.
 
 ## Observe and recover
 

@@ -8,6 +8,7 @@
     <InternalsVisibleTo Include="TemplateV4.Application.Tests" />
     <PackageReference Include="PDFsharp" />
     <EmbeddedResource Include="Invoicing/Fonts/*.ttf" LogicalName="TemplateV4.Infrastructure.Invoicing.Fonts.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Invoicing/Documents/invoice.html" LogicalName="TemplateV4.Infrastructure.Invoicing.Documents.invoice.html" />
     <None Include="Invoicing/Fonts/LICENSE.txt" Pack="true" PackagePath="licenses/NotoSans.txt" />
   </ItemGroup>
 

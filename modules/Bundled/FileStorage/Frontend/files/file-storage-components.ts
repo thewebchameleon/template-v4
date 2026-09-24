@@ -1,4 +1,4 @@
-import { fileIconName, canMoveFolder, filterVisibleFileGroups } from './file-storage-ui';
+import { fileCategory, fileIconName, canMoveFolder, filterVisibleFileGroups } from './file-storage-ui';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { workspaceIcons } from '../../../../../src/TemplateV4.Angular/src/app/shared/workspace';
 import { RowAction } from '../../../../../src/TemplateV4.Angular/src/app/shared/workspace-cells';
@@ -143,7 +143,7 @@ export const fileGroups = [
   ],
   host: {
     class: 'my-file-icon',
-    '[attr.data-category]': 'file().isFolder ? "folders" : file().category || "other"',
+    '[attr.data-category]': 'category()',
   },
   template: `
     <ng-icon [name]="icon()" size="100%" aria-hidden="true" />
@@ -171,7 +171,10 @@ export const fileGroups = [
 })
 export class FileStorageFileIcon {
   private readonly i18n = inject(I18n);
-  readonly file = input.required<FileItem>();
+  readonly file = input.required<
+    Pick<FileItem, 'name' | 'isFolder' | 'category' | 'important' | 'starred' | 'sharedWithSomeone'>
+  >();
+  readonly category = computed(() => fileCategory(this.file()));
   readonly icon = computed(() => fileIconName(this.file()));
   readonly statusLabel = computed(() => {
     const file = this.file();

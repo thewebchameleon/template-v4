@@ -114,11 +114,12 @@
     "storage": "S3-compatible / SeaweedFS; local flat-key filesystem fallback",
     "featureFlags": "configuration",
     "runtimeModules": "Catalog-composed application-wide PostgreSQL activation, dependency-safe transitions and typed module settings",
+    "demoData": "TEMPLATEV4_DEMO_MODE enables deployed modules and runs module-owned idempotent seed contributors after migrations; File Storage seeds no files",
     "apiClient": "ng-openapi-gen",
     "documentation": "DocMD",
     "ui": "Spartan NG",
     "uiSounds": "Foley selected outcome cues; enabled by default with browser-local mute in the theme drawer",
-    "access": "Identity roles with protected built-ins and delegated permissions",
+    "access": "Identity roles with protected built-in names and grants, editable descriptions, and delegated permissions",
     "configuration": "Administrator-only platform settings; organisation-wide name, retained logo branding and general profile; PostgreSQL-backed primary color and shared named custom palette, Spartan picker, public startup branding, all 30 FeralUI login background types and 298 color presets and accessible light/dark palettes",
     "organisationFiles": "Core organisation-wide upload accounting, shared files, attachments, administration, public links, retention and quota enforcement; every persisted upload uses the shared allowance, while the selectable file-storage capability controls only the library navigation and authenticated pages",
     "support": "Support-owned contact enquiries, requester tickets with categories and attachments with independent versioned feature settings"

@@ -102,6 +102,7 @@ public static partial class Registration
         else if (config["Storage:Provider"] is null or "Local") services.AddSingleton<IFileStorage, LocalFileStorage>();
         else throw new InvalidOperationException("Unknown Storage:Provider.");
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<IEmailAttachmentSender, SmtpEmailSender>();
         if (config["Integrations:Status:BaseUrl"] is { Length: > 0 } endpoint)
         {
             var address = new Uri(endpoint, UriKind.Absolute);

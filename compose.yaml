@@ -29,6 +29,8 @@ services:
   mailpit:
     image: axllent/mailpit:v1.31.0
     ports: ["127.0.0.1:${MAILPIT_HTTP_PORT}:8025", "127.0.0.1:${MAILPIT_SMTP_PORT}:1025"]
+  pdf:
+    image: gotenberg/gotenberg:8.37.0
   migrator:
     build:
       context: .
@@ -36,13 +38,14 @@ services:
       args: {PROJECT: TemplateV4.DatabaseMigrator}
     environment: &environment
       ASPNETCORE_ENVIRONMENT: Development
+      TEMPLATEV4_DEMO_MODE: ${TEMPLATEV4_DEMO_MODE:-false}
       ConnectionStrings__app: Host=postgres;Database=templatev4;Username=templatev4;Password=${POSTGRES_PASSWORD}
       DataProtection__KeyPath: /keys/ring
       Jwt__PrivateKeyPath: /secrets/jwt.pem
       Jwt__KeyId: local-v1
       Web__PublicUrl: ${PUBLIC_URL}
       Web__AllowedOrigins__0: ${PUBLIC_URL}
-      Security__RequireAdministratorPasskey: ${REQUIRE_ADMINISTRATOR_PASSKEY}
+      Security__RequireAdministratorPasskey: ${REQUIRE_ADMINISTRATOR_PASSKEY:-false}
       Storage__Provider: S3
       Storage__S3__Endpoint: http://storage:8333
       Storage__S3__Bucket: templatev4
@@ -56,10 +59,12 @@ services:
     environment:
       <<: *environment
       ReverseProxy__Address: web
+      Pdf__RendererUrl: http://pdf:3000
     volumes: ["keys:/keys", "./.local/jwt.pem:/secrets/jwt.pem:ro"]
     depends_on:
       migrator: {condition: service_completed_successfully}
       storage: {condition: service_healthy}
+      pdf: {condition: service_started}
   worker:
     build: {context: ., dockerfile: deploy/Dockerfile.dotnet, args: {PROJECT: TemplateV4.BackgroundWorker}}
     environment:

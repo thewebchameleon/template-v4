@@ -48,7 +48,8 @@ public sealed partial class InvoicingStore
             var brand = await db.Set<TemplateV4.Infrastructure.Persistence.CustomerRow>().AsNoTracking()
                 .Where(x => x.Id == TemplateV4.Application.Customers.Organisation.Id)
                 .Select(x => new { x.Name, x.LogoId }).SingleAsync(ct);
-            snapshot = new(issuer, customer.Value!.Data, totals, request.Reference, brand.LogoId, brand.Name);
+            var logo = brand.LogoId is { } logoId ? await organisations.Logo(logoId, ct) : null;
+            snapshot = new(issuer, customer.Value!.Data, totals, request.Reference, brand.LogoId, brand.Name, logo?.Png);
         }
         if (request.PreviousRevisionId is Guid previousId)
         {
@@ -73,6 +74,7 @@ public sealed partial class InvoicingStore
             PreviousRevisionId = request.PreviousRevisionId
         };
         db.Set<CommercialDocumentRow>().Add(row); Remember(request.IdempotencyKey, hash, row.Id); Audit(actor, row.Id, "invoicing.issued");
+        if (request.Kind == CommercialDocumentKind.Invoice) await RetainPdf(row, "issued", ct);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result<CommercialDocument>.Success(Read(row));
     }
     private static string Number(IssuerSettingsRow settings, IssuerSettings issuer, CommercialDocumentKind kind)

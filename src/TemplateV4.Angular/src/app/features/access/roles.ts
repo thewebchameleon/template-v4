@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { createColumnHelper, flexRenderComponent } from '@tanstack/angular-table';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDrawerImports } from '@spartan-ng/helm/drawer';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { NgScrollbar } from 'ngx-scrollbar';
 import {
   WorkspaceUi,
@@ -24,16 +25,45 @@ import { Auth } from '../../core/auth';
 import { Runtime } from '../../core/runtime';
 import { I18n } from '../../core/i18n';
 import { Notifications } from '../notifications/notifications';
-import { AccessCatalog, RoleItem } from '../../api/models';
+import { AccessCatalog, PermissionItem, RoleItem } from '../../api/models';
 const column = createColumnHelper<DataTableFeatures, RoleItem>();
+const permissionColumn = createColumnHelper<DataTableFeatures, PermissionItem>();
+interface PermissionPage {
+  items: PermissionItem[];
+  total: number;
+  pageNumber: number;
+  pageSize: number;
+}
+
+@Component({
+  selector: 'app-role-permission-checkbox',
+  imports: [HlmCheckboxImports],
+  template: `
+    <hlm-checkbox
+      [inputId]="'role-permission-' + key()"
+      [aria-label]="label()"
+      [checked]="checked()"
+      [disabled]="disabled()"
+      (checkedChange)="onToggle()($event)"
+    />
+  `,
+})
+class RolePermissionCheckbox {
+  readonly key = input.required<string>();
+  readonly label = input.required<string>();
+  readonly checked = input(false);
+  readonly disabled = input(false);
+  readonly onToggle = input.required<(checked: boolean) => void>();
+}
+
 @Component({
   selector: 'app-roles-panel',
   imports: [
     WorkspaceUi,
     DataTable,
-    HlmCheckboxImports,
     HlmDrawerImports,
     HlmScrollAreaImports,
+    HlmTextareaImports,
     NgScrollbar,
   ],
   providers: [workspaceIcons],
@@ -110,7 +140,10 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
       [closeLabel]="'close' | t"
       (stateChanged)="drawerStateChanged($event)"
     >
-      <hlm-drawer-content *hlmDrawerPortal class="overflow-hidden sm:max-w-xl">
+      <hlm-drawer-content
+        *hlmDrawerPortal
+        class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-3xl"
+      >
         <hlm-drawer-header>
           <h2 hlmDrawerTitle>
             {{ (selected()?.builtIn ? 'viewRole' : selected() ? 'editRole' : 'createRole') | t }}
@@ -138,49 +171,16 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
               </div>
               <div hlmField>
                 <label hlmFieldLabel for="role-description">{{ 'description' | t }}</label
-                ><input
-                  hlmInput
+                ><textarea
+                  hlmTextarea
                   id="role-description"
                   name="description"
                   [(ngModel)]="description"
                   maxlength="240"
-                  [disabled]="selected()?.builtIn || busy()"
-                />
+                  rows="4"
+                  [disabled]="busy()"
+                ></textarea>
               </div>
-              <div hlmField>
-                <label hlmFieldLabel for="permission-search">{{ 'findPermission' | t }}</label
-                ><input
-                  hlmInput
-                  id="permission-search"
-                  name="permissionSearch"
-                  [(ngModel)]="permissionSearch"
-                />
-              </div>
-              @for (group of groups(); track group) {
-                <fieldset hlmFieldSet>
-                  <legend hlmFieldLegend>{{ 'permissionGroup.' + group | t }}</legend>
-                  @for (permission of groupPermissions(group); track permission.key) {
-                    <label
-                      hlmFieldLabel
-                      [for]="'permission-' + permission.key"
-                      class="cursor-pointer has-[[data-disabled]]:cursor-not-allowed"
-                    >
-                      <div hlmField orientation="horizontal">
-                        <hlm-checkbox
-                          [inputId]="'permission-' + permission.key"
-                          [checked]="permissions().includes(permission.key)"
-                          [disabled]="selected()?.builtIn || !auth.has(permission.key) || busy()"
-                          (checkedChange)="toggle(permission.key, $event)"
-                        />
-                        <div hlmFieldContent>
-                          <span hlmFieldTitle>{{ 'permission.' + permission.key | t }}</span>
-                          <p hlmFieldDescription>{{ 'permissionHelp.' + permission.key | t }}</p>
-                        </div>
-                      </div>
-                    </label>
-                  }
-                </fieldset>
-              }
               @if (conflict()) {
                 <div hlmAlert role="alert">
                   <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
@@ -189,17 +189,80 @@ const column = createColumnHelper<DataTableFeatures, RoleItem>();
                   </button>
                 </div>
               }
+              <section class="min-w-0 pt-(--card-spacing)" aria-labelledby="role-permissions-heading">
+                <div class="workspace-directory-controls">
+                  <h3 class="font-semibold" id="role-permissions-heading">
+                    {{ 'rolePermissions' | t }}
+                  </h3>
+                  <div class="workspace-directory-toolbar">
+                    <div hlmField class="min-w-0 flex-1 sm:max-w-sm">
+                      <label hlmFieldLabel class="sr-only" for="permission-search">
+                        {{ 'findPermission' | t }}
+                      </label>
+                      <input
+                        hlmInput
+                        id="permission-search"
+                        type="search"
+                        name="permissionSearch"
+                        maxlength="120"
+                        [ngModel]="permissionSearch.value()"
+                        (ngModelChange)="permissionSearch.update($event)"
+                        [placeholder]="'findPermission' | t"
+                      />
+                    </div>
+                    @if (permissionSearch.value()) {
+                      <button hlmBtn type="button" variant="ghost" (click)="permissionSearch.update('')">
+                        {{ 'clear' | t }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                <app-page-state
+                  [state]="permissionData.state()"
+                  skeleton="table"
+                  [refreshError]="permissionData.refreshError()"
+                  [showInitialSkeleton]="false"
+                  (retry)="loadPermissions()"
+                >
+                  <app-data-table
+                    [columns]="permissionColumns()"
+                    [data]="permissionData.value()?.items ?? []"
+                    [loading]="permissionData.state() === 'loading' || permissionData.refreshing()"
+                    [loadingText]="'loading' | t"
+                    [emptyText]="(permissionSearch.value() ? 'permissionsSearchEmpty' : 'permissionsEmpty') | t"
+                    [ariaLabel]="'rolePermissions' | t"
+                    fillColumn="key"
+                    [sortColumn]="permissionQuery.text('sort', 'key')"
+                    [sortDirection]="permissionQuery.direction('asc')"
+                    (sortChange)="sortPermissions($event)"
+                    [getRowId]="permissionRowId"
+                    [rowSelectionActionLabel]="permissionRowLabel"
+                    [rowSelectionActionDisabled]="permissionRowDisabled"
+                    [rowSelected]="permissionRowSelected"
+                    (rowSelectionAction)="selectPermissionRow($event)"
+                  />
+                  <app-list-pager
+                    ariaLabel="permissionPagination"
+                    [total]="permissionData.value()?.total ?? 0"
+                    [page]="permissionQuery.page"
+                    [size]="permissionPageSize()"
+                    [showSizePicker]="true"
+                    sizePickerId="permission-rows-per-page"
+                    [busy]="permissionData.refreshing()"
+                    (pageChange)="permissionQuery.set({ page: $event })"
+                    (sizeChange)="setPermissionPageSize($event)"
+                  />
+                </app-page-state>
+              </section>
             </div>
           </ng-scrollbar>
           <hlm-drawer-footer>
-            @if (!selected()?.builtIn) {
-              <button
-                hlmBtn
-                [disabled]="form.invalid || busy() || conflict() || !hasUnsavedChanges()"
-              >
-                {{ 'saveRole' | t }}
-              </button>
-            }
+            <button
+              hlmBtn
+              [disabled]="form.invalid || busy() || conflict() || !hasUnsavedChanges()"
+            >
+              {{ 'saveRole' | t }}
+            </button>
             <button hlmBtn type="button" variant="outline" (click)="close()">
               {{ 'close' | t }}
             </button>
@@ -214,11 +277,14 @@ export class RolesPanel {
   readonly auth = inject(Auth);
   readonly i18n = inject(I18n);
   readonly data = new Resource<AccessCatalog>();
+  readonly permissionData = new Resource<PermissionPage>();
   readonly selected = signal<RoleItem | null>(null);
   readonly editorOpen = signal(false);
   readonly permissions = signal<string[]>([]);
   readonly query = new ListQuery('role');
   readonly search = new DebouncedSearch(this.query);
+  readonly permissionQuery = new ListQuery('permission');
+  readonly permissionSearch = new DebouncedSearch(this.permissionQuery);
   readonly busy = signal(false);
   readonly conflict = signal(false);
   private readonly http = inject(HttpClient);
@@ -231,7 +297,6 @@ export class RolesPanel {
       this.confirm.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'));
   name = '';
   description = '';
-  permissionSearch = '';
   readonly emptyText = computed(() =>
     this.query.text('search') ? this.i18n.text('roleSearchEmpty') : this.i18n.text('rolesEmpty'),
   );
@@ -266,14 +331,59 @@ export class RolesPanel {
       }),
     ]);
   });
-  readonly groups = computed(() => [
-    ...new Set(this.data.value()?.permissions.map((p) => p.group) ?? []),
-  ]);
+  readonly permissionRowId = (permission: PermissionItem) => permission.key;
+  readonly permissionRowSelected = (permission: PermissionItem) =>
+    this.permissions().includes(permission.key);
+  readonly permissionRowDisabled = (permission: PermissionItem) =>
+    !!this.selected()?.builtIn || !this.auth.has(permission.key) || this.busy();
+  readonly permissionRowLabel = (permission: PermissionItem) =>
+    `${this.i18n.text(this.permissionRowSelected(permission) ? 'deselectPermission' : 'selectPermission')}: ${this.i18n.text('permission.' + permission.key)}`;
+  readonly permissionColumns = computed(() => {
+    this.i18n.culture();
+    const assigned = this.permissions();
+    const disabled = !!this.selected()?.builtIn || this.busy();
+    return permissionColumn.columns([
+      permissionColumn.display({
+        id: 'selection',
+        header: this.i18n.text('selectPermission'),
+        enableSorting: false,
+        cell: ({ row }) =>
+          flexRenderComponent(RolePermissionCheckbox, {
+            inputs: {
+              key: row.original.key,
+              label: this.i18n.text('permission.' + row.original.key),
+              checked: assigned.includes(row.original.key),
+              disabled: disabled || !this.auth.has(row.original.key),
+              onToggle: (checked: boolean) => this.toggle(row.original.key, checked),
+            },
+          }),
+      }),
+      permissionColumn.accessor('key', {
+        header: this.i18n.text('permissionName'),
+        cell: ({ row }) =>
+          flexRenderComponent(RecordIdentity, {
+            inputs: {
+              label: this.i18n.text('permission.' + row.original.key),
+              description: this.i18n.text('permissionHelp.' + row.original.key),
+              constrainWidth: false,
+            },
+          }),
+      }),
+      permissionColumn.accessor('group', {
+        header: this.i18n.text('permissionCategory'),
+        cell: ({ getValue }) => this.i18n.text('permissionGroup.' + getValue()),
+      }),
+    ]);
+  });
   constructor() {
     this.query.connect(() => {
       const search = this.query.text('search');
       this.search.sync(search);
       void this.load();
+    }, ['search', 'page', 'size', 'sort', 'direction']);
+    this.permissionQuery.connect(() => {
+      this.permissionSearch.sync(this.permissionQuery.text('search'));
+      if (this.editorOpen()) void this.loadPermissions();
     }, ['search', 'page', 'size', 'sort', 'direction']);
   }
   async load() {
@@ -291,6 +401,40 @@ export class RolesPanel {
       ),
     );
     if (loaded) this.query.clamp(this.data.value()?.roles.total, this.pageSize());
+    if (loaded && this.editorOpen() && this.permissionQuery.text('search'))
+      void this.loadPermissions();
+    return loaded;
+  }
+  async loadPermissions() {
+    const search = this.permissionQuery.text('search').trim();
+    const matchingKeys = search
+      ? (this.data.value()?.permissions ?? [])
+          .filter((permission) =>
+            [
+              this.i18n.text('permission.' + permission.key),
+              this.i18n.text('permissionHelp.' + permission.key),
+              this.i18n.text('permissionGroup.' + permission.group),
+            ].some((value) => value.toLowerCase().includes(search.toLowerCase())),
+          )
+          .map((permission) => permission.key)
+          .join(',')
+      : '';
+    const loaded = await this.permissionData.load((signal) =>
+      this.api.get<PermissionPage>(
+        '/roles/permissions',
+        {
+          pageNumber: this.permissionQuery.page,
+          pageSize: this.permissionPageSize(),
+          search,
+          matchingKeys,
+          sort: this.permissionQuery.text('sort', 'key'),
+          direction: this.permissionQuery.direction('asc'),
+        },
+        signal,
+      ),
+    );
+    if (loaded)
+      this.permissionQuery.clamp(this.permissionData.value()?.total, this.permissionPageSize());
     return loaded;
   }
   sort(value: ServerSort) {
@@ -303,17 +447,19 @@ export class RolesPanel {
   setPageSize(size: number) {
     void this.query.set({ size, page: 1 });
   }
-  groupPermissions(group: string) {
-    return (
-      this.data.value()?.permissions.filter(
-        (p) =>
-          p.group === group &&
-          this.i18n
-            .text('permission.' + p.key)
-            .toLowerCase()
-            .includes(this.permissionSearch.toLowerCase()),
-      ) ?? []
-    );
+  sortPermissions(value: ServerSort) {
+    void this.permissionQuery.set({ sort: value.column, direction: value.direction, page: 1 });
+  }
+  permissionPageSize() {
+    const size = Number(this.permissionQuery.text('size', String(DEFAULT_PAGE_SIZE)));
+    return PAGE_SIZE_OPTIONS.includes(size) ? size : DEFAULT_PAGE_SIZE;
+  }
+  setPermissionPageSize(size: number) {
+    void this.permissionQuery.set({ size, page: 1 });
+  }
+  selectPermissionRow(permission: PermissionItem) {
+    if (!this.permissionRowDisabled(permission))
+      this.toggle(permission.key, !this.permissionRowSelected(permission));
   }
   toggle(key: string, on: boolean) {
     this.permissions.update((p) => (on ? [...p, key] : p.filter((x) => x !== key)));
@@ -326,10 +472,10 @@ export class RolesPanel {
     const role = this.selected();
     return (
       this.editorOpen() &&
-      !role?.builtIn &&
-      (this.name !== (role?.name ?? '') ||
-        this.description !== (role?.description ?? '') ||
-        [...this.permissions()].sort().join() !== [...(role?.permissions ?? [])].sort().join())
+      (this.description !== (role?.description ?? '') ||
+        (!role?.builtIn &&
+          (this.name !== (role?.name ?? '') ||
+            [...this.permissions()].sort().join() !== [...(role?.permissions ?? [])].sort().join())))
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {
@@ -345,9 +491,9 @@ export class RolesPanel {
     this.name = role?.name ?? '';
     this.description = role?.description ?? '';
     this.permissions.set([...(role?.permissions ?? [])]);
-    this.permissionSearch = '';
     this.conflict.set(false);
     this.editorOpen.set(true);
+    void this.loadPermissions();
   }
   async close() {
     if (this.hasUnsavedChanges() && !(await this.confirm.ask('unsavedTitle', 'unsavedHelp')))
@@ -363,8 +509,15 @@ export class RolesPanel {
     this.apply(this.data.value()?.roles.items.find((r) => r.id === this.selected()?.id) ?? null);
   }
   async save() {
-    if (this.busy() || this.selected()?.builtIn || this.conflict()) return;
-    if (!(await this.confirm.ask('saveRole', 'roleChangeConsequence', this.name))) return;
+    if (this.busy() || this.conflict()) return;
+    if (
+      !(await this.confirm.ask(
+        'saveRole',
+        this.selected()?.builtIn ? 'roleDescriptionChangeConsequence' : 'roleChangeConsequence',
+        this.name,
+      ))
+    )
+      return;
     this.busy.set(true);
     try {
       const role = this.selected();

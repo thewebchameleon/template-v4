@@ -14,6 +14,7 @@ public static class ModuleServices
             .UseNpgsql(provider.GetRequiredService<FrameworkDb>().Database.GetDbConnection(), postgres => postgres.MigrationsHistoryTable("migrations", "support"))
             .AddInterceptors(provider.GetRequiredService<AuditCapture>()));
         services.AddScoped<TemplateV4.Application.Modules.IMigrationContributor, SupportMigrations>();
+        services.AddScoped<TemplateV4.Application.Modules.IDemoDataContributor, SupportDemoData>();
         services.AddScoped<TemplateV4.Application.Privacy.IPrivacyContributor, TemplateV4.Infrastructure.Support.SupportPrivacy>();
         services.AddSingleton<IIntegrationContractContributor, TemplateV4.Infrastructure.Support.SupportIntegrationContracts>();
         SupportRegistration.AddSupport(services);

@@ -9,7 +9,14 @@ import { Auth } from '../../../../../../src/TemplateV4.Angular/src/app/core/auth
 import { WorkspaceUi, Resource } from '../../../../../../src/TemplateV4.Angular/src/app/shared/workspace';
 import { BusinessSelect } from '../../../../../../src/TemplateV4.Angular/src/app/shared/business-select';
 import { BusinessDate } from '../../../../../../src/TemplateV4.Angular/src/app/shared/business-date';
+import { Confirmations } from '../../../../../../src/TemplateV4.Angular/src/app/shared/confirmation';
 import { commercialKinds } from './invoicing';
+
+interface InvoicePdfVersion {
+  version: number;
+  createdAt: string;
+  reason: string;
+}
 
 @Component({
   selector: 'app-commercial-detail',
@@ -32,6 +39,18 @@ import { commercialKinds } from './invoicing';
               <button hlmBtn variant="outline" (click)="download()">
                 {{ 'download' | t }} PDF
               </button>
+              @if (doc.kind === 1) {
+                @if (features.enabled('invoicing') && auth.has('invoicing.issue')) {
+                  <a hlmBtn variant="outline"
+                    [routerLink]="['/organisation', 'invoicing', 'invoices', 'new']"
+                    [queryParams]="{ source: doc.id, mode: 'clone' }">{{ 'cloneInvoice' | t }}</a>
+                }
+                @if (auth.has('invoicing.issue')) {
+                  <button hlmBtn variant="outline" [disabled]="busy() || !doc.snapshot.customer.email" (click)="emailPdf()">
+                    {{ 'emailInvoice' | t }}
+                  </button>
+                }
+              }
               @if (features.enabled('invoicing-files')) {
                 <button hlmBtn variant="outline" [disabled]="busy()" (click)="storePdf()">
                   {{ 'storePdf' | t }}
@@ -53,6 +72,12 @@ import { commercialKinds } from './invoicing';
                 }
               }
             </div>
+            @if (emailQueued()) {
+              <p role="status" class="text-sm text-muted-foreground">{{ 'emailInvoiceQueued' | t }}</p>
+            }
+            @if (doc.kind === 1 && !doc.snapshot.customer.email && auth.has('invoicing.issue')) {
+              <p class="text-sm text-muted-foreground">{{ 'customerEmailRequired' | t }}</p>
+            }
             <div class="grid gap-6 md:grid-cols-2">
               <div>
                 <h3 class="font-semibold">{{ doc.snapshot.issuer.name }}</h3>
@@ -102,6 +127,18 @@ import { commercialKinds } from './invoicing';
             <p class="whitespace-pre-wrap">{{ doc.snapshot.issuer.paymentInstructions }}</p>
           </div>
         </section>
+        @if (doc.kind === 1 && pdfVersions.value()?.length) {
+          <section hlmCard class="mb-6">
+            <div hlmCardHeader><h2 hlmCardTitle>{{ 'invoicePdfHistory' | t }}</h2></div>
+            <div hlmCardContent class="flex flex-wrap gap-2">
+              @for (pdf of pdfVersions.value() ?? []; track pdf.version) {
+                <button hlmBtn variant="outline" (click)="download(pdf.version)">
+                  {{ 'invoicePdfVersion' | t }} {{ pdf.version }} · {{ i18n.date(pdf.createdAt) }}
+                </button>
+              }
+            </div>
+          </section>
+        }
         @if (
           doc.kind === 0 &&
           !doc.accepted &&
@@ -261,11 +298,14 @@ export class CommercialDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(WorkspaceApi);
+  private readonly confirmations = inject(Confirmations);
   readonly i18n = inject(I18n);
   readonly features = inject(Features);
   readonly auth = inject(Auth);
   readonly documentId = this.route.snapshot.paramMap.get('documentId')!;
   readonly data = new Resource<CommercialDetail>();
+  readonly pdfVersions = new Resource<InvoicePdfVersion[]>();
+  readonly emailQueued = signal(false);
   readonly busy = signal(false);
   readonly kinds = commercialKinds;
   readonly methods = [
@@ -282,6 +322,7 @@ export class CommercialDetailPage {
   acceptance = '';
   private key = crypto.randomUUID();
   private submitted = '';
+  private emailKey = crypto.randomUUID();
   constructor() {
     void this.load();
   }
@@ -289,6 +330,10 @@ export class CommercialDetailPage {
     await this.data.load((signal) =>
       this.api.get(`organisation/invoicing/${this.documentId}`, {}, signal),
     );
+    if (this.data.value()?.document.kind === 1)
+      await this.pdfVersions.load((signal) =>
+        this.api.get<InvoicePdfVersion[]>(`organisation/invoicing/${this.documentId}/pdf-versions`, {}, signal),
+      );
   }
   outstanding() {
     const d = this.data.value()?.document;
@@ -317,9 +362,29 @@ export class CommercialDetailPage {
       this.busy.set(false);
     }
   }
-  async download() {
+  async download(version?: number) {
     const d = this.data.value()?.document;
-    if (d) await this.api.download(`organisation/invoicing/${d.id}/pdf`, d.number + '.pdf');
+    if (d) await this.api.download(`organisation/invoicing/${d.id}/pdf${version ? `?version=${version}` : ''}`, d.number + '.pdf');
+  }
+  async emailPdf() {
+    const doc = this.data.value()?.document;
+    if (!doc || !doc.snapshot.customer.email || this.busy()) return;
+    const version = this.pdfVersions.value()?.[0]?.version ?? 0;
+    const approved = await this.confirmations.ask('emailInvoiceTitle', 'emailInvoiceHelp',
+      `${doc.number} → ${doc.snapshot.customer.email}${version ? ` · PDF v${version}` : ''}`, false, 'emailInvoice');
+    if (!approved || this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.api.post(`organisation/invoicing/${this.documentId}/email`, {
+        idempotencyKey: this.emailKey,
+        version,
+      });
+      this.emailKey = crypto.randomUUID();
+      this.emailQueued.set(true);
+      if (version === 0) await this.load();
+    } finally {
+      this.busy.set(false);
+    }
   }
   async accept() {
     if (this.busy()) return;

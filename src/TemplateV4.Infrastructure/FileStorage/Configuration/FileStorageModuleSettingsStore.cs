@@ -6,7 +6,7 @@ using TemplateV4.Infrastructure.Persistence;
 
 namespace TemplateV4.Infrastructure.Storage;
 
-public sealed class FileStorageModuleSettingsStore(FrameworkDb db, IExecutionContext context, TimeProvider time, TemplateV4.Infrastructure.Security.FreshPasswordVerifier passwords) : IFileStorageModuleSettings
+public sealed class FileStorageModuleSettingsStore(FrameworkDb db, IExecutionContext context, TimeProvider time) : IFileStorageModuleSettings
 {
     public async Task<FileStorageModuleSettings> Read(CancellationToken ct)
     {
@@ -18,17 +18,12 @@ public sealed class FileStorageModuleSettingsStore(FrameworkDb db, IExecutionCon
         if (!await ModuleActivationStore.IsAdministrator(db, context, ct)) return Result<FileStorageModuleSettings>.Fail("authorization.denied", ErrorKind.Forbidden);
         var settings = await db.FileStorageSettings.FromSqlRaw("SELECT * FROM file_storage.file_storage_settings WHERE \"Id\" = 1 FOR UPDATE").AsNoTracking().SingleAsync(ct);
         if (settings.Version != request.Version) return Result<FileStorageModuleSettings>.Fail("modules.conflict", ErrorKind.Conflict);
-        if (request.DemoMode && !settings.DemoMode && !await passwords.Verify(context.ActorId!.Value, "file-storage-demo", request.Password, ct))
-            return Result<FileStorageModuleSettings>.Fail("authorization.denied", ErrorKind.Forbidden);
-        if (request.DemoMode == settings.DemoMode && request.SlowUploadMode == settings.SlowUploadMode)
+        if (request.DemoMode != settings.DemoMode) return Result<FileStorageModuleSettings>.Fail("authorization.denied", ErrorKind.Forbidden);
+        if (request.SlowUploadMode == settings.SlowUploadMode)
             return Result<FileStorageModuleSettings>.Success(new(settings.DemoMode, settings.SlowUploadMode, settings.Version, settings.DemoExpiryMinutes));
         var version = Guid.NewGuid();
-        var demoStartedAt = request.DemoMode == settings.DemoMode ? settings.DemoStartedAt
-            : request.DemoMode ? time.GetUtcNow() : (DateTimeOffset?)null;
         await db.FileStorageSettings.Where(x => x.Id == 1).ExecuteUpdateAsync(x => x
-            .SetProperty(s => s.DemoMode, request.DemoMode)
             .SetProperty(s => s.SlowUploadMode, request.SlowUploadMode)
-            .SetProperty(s => s.DemoStartedAt, demoStartedAt)
             .SetProperty(s => s.Version, version), ct);
         void Audit(string action, string field, bool before, bool after)
         {
@@ -45,7 +40,6 @@ public sealed class FileStorageModuleSettingsStore(FrameworkDb db, IExecutionCon
             });
         }
         Audit("module.file-storage_slow_upload_changed", "slowUploadMode", settings.SlowUploadMode, request.SlowUploadMode);
-        Audit("module.file-storage_demo_changed", "demoMode", settings.DemoMode, request.DemoMode);
         return Result<FileStorageModuleSettings>.Success(await Read(ct));
     }
 }

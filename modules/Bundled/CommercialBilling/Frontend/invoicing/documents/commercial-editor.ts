@@ -99,6 +99,7 @@ export class CommercialEditorPage extends BusinessDraft {
         .then((detail) => {
           this.customer = detail.document.customerId;
           this.lines = structuredClone(detail.document.snapshot.totals.lines.map((x) => x.source));
+          if (this.mode === 'clone') this.reference = detail.document.snapshot.reference ?? '';
           this.changed();
           this.markSaved();
         })
