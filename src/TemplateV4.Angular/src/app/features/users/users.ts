@@ -219,7 +219,7 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
       >
         <hlm-drawer-content
           *hlmDrawerPortal
-          class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-2xl"
+          class="overflow-hidden data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-lg"
         >
           <hlm-drawer-header>
             <h2 hlmDrawerTitle>{{ 'personDetails' | t }}</h2>
@@ -231,6 +231,14 @@ const column = createColumnHelper<DataTableFeatures, UserDto>();
             }
           </ng-scrollbar>
           <hlm-drawer-footer>
+            <button
+              hlmBtn
+              type="button"
+              [disabled]="!detailEditor()?.canSave()"
+              (click)="detailEditor()?.save()"
+            >
+              {{ 'saveAccess' | t }}
+            </button>
             <button
               hlmBtn
               type="button"

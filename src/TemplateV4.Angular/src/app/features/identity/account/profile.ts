@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import * as QRCode from 'qrcode';
 import { BrnInputOtp } from '@spartan-ng/brain/input-otp';
+import { BrnTabs } from '@spartan-ng/brain/tabs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -68,43 +69,49 @@ type MfaProfile = ProfileResponse & {
             <p hlmCardDescription>{{ 'preferredMfaHelp' | t }}</p>
           </div>
           <div hlmCardContent class="flex flex-col gap-5">
-            <p class="flex flex-wrap gap-2">
-              <span hlmBadge variant="secondary">{{
-                (user.mfaRequired || user.mfaMethods.length ? 'mfaRequired' : 'mfaOptional') | t
-              }}</span>
-              <span hlmBadge variant="outline">{{
-                (user.mfaEnabled ? 'authenticatorEnabled' : 'authenticatorDisabled') | t
-              }}</span>
-              @if (user.emailMfaEnabled) {
+            @if (user.emailMfaEnabled) {
+              <p>
                 <span hlmBadge variant="outline">{{ 'emailMfaEnabled' | t }}</span>
-              }
-            </p>
-            @if (user.mfaMethods.length) {
-              <fieldset hlmFieldSet>
-                <legend hlmFieldLegend class="sr-only">{{ 'preferredMfaMethod' | t }}</legend>
-                <hlm-tabs
-                  orientation="vertical"
-                  [tab]="preferredMethod"
-                  (tabActivated)="selectPreferred($event)"
-                >
-                  <hlm-tabs-list class="w-full gap-2" [attr.aria-label]="'preferredMfaMethod' | t">
-                    @for (method of user.mfaMethods; track method) {
-                      <button [hlmTabsTrigger]="method" class="w-full">
-                        {{ methodLabel(method) | t }}
-                      </button>
-                    }
-                  </hlm-tabs-list>
-                </hlm-tabs>
-                <button
-                  hlmBtn
-                  variant="outline"
-                  [disabled]="busy() || preferredMethod === user.preferredMfaMethod"
-                  (click)="savePreference()"
-                >
-                  {{ 'savePreference' | t }}
-                </button>
-              </fieldset>
+              </p>
             }
+            <fieldset hlmFieldSet>
+              <legend hlmFieldLegend class="sr-only">{{ 'preferredMfaMethod' | t }}</legend>
+              <hlm-tabs [tab]="preferredMethod" (tabActivated)="selectPreferred($event)">
+                <hlm-tabs-list class="w-full" [attr.aria-label]="'preferredMfaMethod' | t">
+                  @for (method of authenticationMethods; track method) {
+                    <button
+                      [hlmTabsTrigger]="method"
+                      [disabled]="busy() || !user.mfaMethods.includes(method)"
+                      [attr.aria-describedby]="
+                        !user.mfaMethods.includes(method)
+                          ? 'preferred-method-reason-' + method
+                          : busy()
+                            ? 'preferred-method-busy'
+                            : null
+                      "
+                    >
+                      {{ methodLabel(method) | t }}
+                    </button>
+                  }
+                </hlm-tabs-list>
+              </hlm-tabs>
+              @if (user.mfaMethods.length < authenticationMethods.length) {
+                <ul class="grid gap-1 text-sm text-muted-foreground">
+                  @for (method of authenticationMethods; track method) {
+                    @if (!user.mfaMethods.includes(method)) {
+                      <li [id]="'preferred-method-reason-' + method">
+                        {{ methodLabel(method) | t }}: {{ methodUnavailableReason(method, user) | t }}
+                      </li>
+                    }
+                  }
+                </ul>
+              }
+              @if (busy()) {
+                <p id="preferred-method-busy" class="text-sm text-muted-foreground">
+                  {{ 'preferredMethodBusy' | t }}
+                </p>
+              }
+            </fieldset>
             <div class="flex flex-wrap gap-3">
               @if (!user.mfaEnabled) {
                 <button hlmBtn [disabled]="busy()" (click)="chooseAction('enroll')">
@@ -131,27 +138,6 @@ type MfaProfile = ProfileResponse & {
                 }
               }
             </div>
-            @if (codes().length && !setupDialogOpen()) {
-              <div hlmAlert role="status">
-                <h3 hlmAlertTitle>{{ 'saveRecovery' | t }}</h3>
-                <p hlmAlertDescription>{{ 'recoveryHelp' | t }}</p>
-                <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  @for (item of codes(); track item) {
-                    <li>
-                      <code>{{ item }}</code>
-                    </li>
-                  }
-                </ul>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <button hlmBtn variant="outline" (click)="copyCodes()">
-                    {{ 'copyRecoveryCodes' | t }}
-                  </button>
-                  <button hlmBtn variant="outline" (click)="codes.set([])">
-                    {{ 'savedRecovery' | t }}
-                  </button>
-                </div>
-              </div>
-            }
           </div>
         </section>
         <section hlmCard class="min-w-0">
@@ -166,7 +152,7 @@ type MfaProfile = ProfileResponse & {
                   <span class="break-all">{{ key.name }}</span
                   ><button
                     hlmBtn
-                    variant="outline"
+                    variant="destructive"
                     [disabled]="busy()"
                     [attr.aria-label]="('remove' | t) + ': ' + key.name"
                     (click)="chooseAction('remove', key.id)"
@@ -204,7 +190,7 @@ type MfaProfile = ProfileResponse & {
           </div>
         </section>
       </div>
-      @if (action() && action() !== 'enroll' && action() !== 'register') {
+      @if (action() && action() !== 'enroll' && action() !== 'register' && action() !== 'recovery') {
         <section
           class="mt-6 grid max-w-(--form-content-width) gap-4 rounded-md border p-4"
           aria-labelledby="proof-title"
@@ -249,17 +235,107 @@ type MfaProfile = ProfileResponse & {
           </div>
         </section>
       }
-      @if (isBootstrapAccount(user.email)) {
-        <div hlmAlert class="mt-6">
-          <p hlmAlertDescription>{{ 'bootstrapRecoveryHelp' | t }}</p>
-        </div>
-      }
     } @else if (loadState() === 'error') {
       <div hlmAlert variant="destructive" class="mt-6" role="alert">
         <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
         <button hlmBtn variant="outline" (click)="retry()">{{ 'retry' | t }}</button>
       </div>
     }
+
+    <hlm-dialog
+      [state]="recoveryDialogOpen() ? 'open' : 'closed'"
+      autoFocus="#recovery-password"
+      [disableClose]="busy() || codes().length > 0"
+      [closeOnOutsidePointerEvents]="false"
+      (stateChanged)="$event === 'closed' && closeRecoveryDialog()"
+    >
+      <hlm-dialog-content *hlmDialogPortal class="sm:max-w-lg" [showCloseButton]="!codes().length">
+        @if (codes().length) {
+          <hlm-dialog-header>
+            <h2 hlmDialogTitle>{{ 'saveRecovery' | t }}</h2>
+            <p hlmDialogDescription>{{ 'recoveryHelp' | t }}</p>
+          </hlm-dialog-header>
+          <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (item of codes(); track item) {
+              <li><code>{{ item }}</code></li>
+            }
+          </ul>
+          <hlm-dialog-footer>
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              [disabled]="busy()"
+              (click)="copyCodes()"
+            >
+              {{ 'copyRecoveryCodes' | t }}
+            </button>
+            <button hlmBtn type="button" [disabled]="busy()" (click)="finishRecovery()">
+              {{ 'savedRecovery' | t }}
+            </button>
+          </hlm-dialog-footer>
+        } @else {
+          <hlm-dialog-header>
+            <h2 hlmDialogTitle>{{ 'rotateRecovery' | t }}</h2>
+            <p hlmDialogDescription>{{ 'emailProofHelp' | t }}</p>
+          </hlm-dialog-header>
+          <form
+            class="grid gap-5"
+            #recoveryProof="ngForm"
+            (ngSubmit)="recoveryProof.valid && manage(false)"
+          >
+            <div hlmField>
+              <label hlmFieldLabel for="recovery-password">{{ 'password' | t }}</label>
+              <input
+                hlmInput
+                id="recovery-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                [(ngModel)]="password"
+              />
+            </div>
+            <div hlmField>
+              <label hlmFieldLabel for="recovery-code">{{ 'factorCode' | t }}</label>
+              <input
+                hlmInput
+                id="recovery-code"
+                name="code"
+                autocomplete="one-time-code"
+                required
+                [(ngModel)]="proofCode"
+              />
+              <label hlmFieldLabel for="recovery-code-option" hlmField orientation="horizontal">
+                <hlm-checkbox
+                  inputId="recovery-code-option"
+                  name="recovery"
+                  [(ngModel)]="recovery"
+                />
+                {{ 'useRecovery' | t }}
+              </label>
+            </div>
+            <hlm-dialog-footer>
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                [disabled]="busy()"
+                (click)="closeRecoveryDialog()"
+              >
+                {{ 'cancel' | t }}
+              </button>
+              <button hlmBtn [disabled]="busy() || recoveryProof.invalid">
+                @if (busy()) {
+                  <hlm-spinner />
+                }
+                {{ 'rotateRecovery' | t }}
+              </button>
+            </hlm-dialog-footer>
+          </form>
+        }
+      </hlm-dialog-content>
+    </hlm-dialog>
 
     <hlm-dialog
       [state]="action() === 'enroll' ? 'open' : 'closed'"
@@ -511,6 +587,10 @@ export class ProfilePage {
     this.cancelAction();
     this.action.set(action);
     this.actionId = id;
+    if (action === 'recovery') {
+      this.recoveryDialogOpen.set(true);
+      return;
+    }
     setTimeout(() =>
       document
         .getElementById(
@@ -545,7 +625,7 @@ export class ProfilePage {
   async executeAction() {
     const action = this.action();
     if (action === 'enroll') await this.enroll();
-    else if (action === 'recovery' || action === 'disable') await this.manage(action === 'disable');
+    else if (action === 'disable') await this.manage(true);
     else if (action === 'register') await this.register();
     else if (action === 'remove') await this.remove(this.actionId);
   }
@@ -569,10 +649,13 @@ export class ProfilePage {
   readonly qrSvg = signal<SafeHtml | null>(null);
   readonly manualSetup = signal(false);
   readonly setupDialogOpen = signal(false);
+  readonly recoveryDialogOpen = signal(false);
   readonly codes = signal<string[]>([]);
   readonly busy = signal(false);
   readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
   readonly otpSlots = [0, 1, 2, 3, 4, 5];
+  readonly authenticationMethods = ['Email', 'Authenticator', 'Passkey'];
+  private readonly preferenceTabs = viewChild(BrnTabs);
   private readonly router = inject(Router);
   private readonly notifications = inject(Notifications);
   password = '';
@@ -593,7 +676,9 @@ export class ProfilePage {
         this.http.get<ProfileResponse>(`${this.runtime.apiUrl}/api/v1/auth/profile`),
       );
       this.profile.set(profile);
-      this.preferredMethod = (profile as MfaProfile).preferredMfaMethod ?? 'Email';
+      this.preferredMethod = profile.mfaMethods.includes(profile.preferredMfaMethod)
+        ? profile.preferredMfaMethod
+        : '';
       this.loadState.set('ready');
     } catch (error) {
       this.loadState.set('error');
@@ -656,6 +741,15 @@ export class ProfilePage {
     this.codes.set([]);
     this.closeSetupDialog();
   }
+  closeRecoveryDialog() {
+    if (this.busy() || this.codes().length) return;
+    this.recoveryDialogOpen.set(false);
+    this.cancelAction();
+  }
+  finishRecovery() {
+    this.codes.set([]);
+    this.closeRecoveryDialog();
+  }
   manage(disable: boolean) {
     return this.run(async () => {
       this.codes.set(
@@ -686,18 +780,37 @@ export class ProfilePage {
         ? 'authenticatorMethod'
         : 'emailMethod';
   }
+  methodUnavailableReason(method: string, user: MfaProfile) {
+    if (user.passkeyRequired && method !== 'Passkey') return 'preferredPasskeyRequired';
+    if (method === 'Passkey' && !user.passkeys.length) return 'preferredPasskeyNotConfigured';
+    if (method === 'Authenticator' && !user.mfaEnabled)
+      return 'preferredAuthenticatorNotConfigured';
+    if (method === 'Email' && !user.emailConfirmed) return 'preferredEmailUnconfirmed';
+    if (method === 'Email' && !user.emailMfaEnabled) return 'preferredEmailUnavailable';
+    return 'preferredMethodUnavailable';
+  }
   selectPreferred(value: string | string[] | null | undefined) {
-    if (typeof value === 'string' && value) this.preferredMethod = value;
-  }
-  savePreference() {
-    return this.run(async () => {
-      await this.auth.action('mfa/preference', { method: this.preferredMethod });
-      await this.load();
-      this.notifications.success('securitySaved');
+    const user = this.profile();
+    if (
+      typeof value !== 'string' ||
+      !user?.mfaMethods.includes(value) ||
+      value === user.preferredMfaMethod ||
+      this.busy()
+    )
+      return;
+    const previousMethod = this.preferredMethod;
+    this.preferredMethod = value;
+    void this.run(async () => {
+      try {
+        await this.auth.action('mfa/preference', { method: value });
+        this.profile.update((current) => current && { ...current, preferredMfaMethod: value });
+        this.notifications.success('securitySaved');
+      } catch (error) {
+        this.preferredMethod = previousMethod;
+        this.preferenceTabs()?.setActiveTab(previousMethod);
+        throw error;
+      }
     });
-  }
-  isBootstrapAccount(email: string) {
-    return email.toLowerCase().endsWith('@example.invalid');
   }
   private async redirectForReauthentication() {
     const returnUrl = this.router.url;
@@ -706,6 +819,7 @@ export class ProfilePage {
     this.qrSvg.set(null);
     this.manualSetup.set(false);
     this.setupDialogOpen.set(false);
+    this.recoveryDialogOpen.set(false);
     this.codes.set([]);
     this.code = '';
     await this.auth.logout();

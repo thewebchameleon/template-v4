@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { lucidePencil } from '@ng-icons/lucide';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
@@ -19,9 +20,10 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { WorkspaceUi, Resource } from '../../../shared/workspace';
 import { WorkspaceApi } from '../../../core/workspace-api';
 import { Notifications } from '../../notifications/notifications';
-import { I18n } from '../../../core/i18n';
+import { I18n, browserTimeZone } from '../../../core/i18n';
 import { Auth } from '../../../core/auth';
 import { CurrentProfile } from './current-profile';
+import { Confirmations } from '../../../shared/confirmation';
 import { dictionary } from '../../../core/translations';
 import { profileDictionary } from './profile-translations';
 import { ProfileOptions, ProfileResponse, UpdateProfileRequest } from '../../../api/models';
@@ -385,39 +387,7 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
               [(ngModel)]="usernamePassword"
             />
           </div>
-          @if (profile()?.mfaEnabled) {
-            <div class="grid gap-5 sm:grid-cols-2">
-              <div hlmField>
-                <label hlmFieldLabel for="username-code">{{
-                  'authenticatorCodeOptional' | t
-                }}</label>
-                <input
-                  hlmInput
-                  id="username-code"
-                  name="usernameCode"
-                  autocomplete="one-time-code"
-                  inputmode="numeric"
-                  maxlength="64"
-                  [(ngModel)]="usernameCode"
-                />
-              </div>
-              <label
-                hlmFieldLabel
-                for="username-recovery"
-                class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-              >
-                <div hlmField orientation="horizontal">
-                  <hlm-checkbox
-                    inputId="username-recovery"
-                    name="usernameRecovery"
-                    [(ngModel)]="usernameRecovery"
-                  />
-                  <span>{{ 'useRecovery' | t }}</span>
-                </div>
-              </label>
-            </div>
-          }
-          <p class="workspace-meta">{{ 'usernameProofHelp' | t }}</p>
+          <p class="workspace-meta">{{ 'profileChangeProofHelp' | t }}</p>
           <hlm-dialog-footer>
             <button
               hlmBtn
@@ -497,39 +467,7 @@ import { TimeZoneSelect } from '../../../shared/time-zone-select';
                 [(ngModel)]="emailPassword"
               />
             </div>
-            @if (profile()?.mfaEnabled) {
-              <div class="grid gap-5 sm:grid-cols-2">
-                <div hlmField>
-                  <label hlmFieldLabel for="email-code">{{
-                    'authenticatorCodeOptional' | t
-                  }}</label>
-                  <input
-                    hlmInput
-                    id="email-code"
-                    name="emailCode"
-                    autocomplete="one-time-code"
-                    inputmode="numeric"
-                    maxlength="64"
-                    [(ngModel)]="emailCode"
-                  />
-                </div>
-                <label
-                  hlmFieldLabel
-                  for="email-recovery"
-                  class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
-                >
-                  <div hlmField orientation="horizontal">
-                    <hlm-checkbox
-                      inputId="email-recovery"
-                      name="emailRecovery"
-                      [(ngModel)]="emailRecovery"
-                    />
-                    <span>{{ 'useRecovery' | t }}</span>
-                  </div>
-                </label>
-              </div>
-            }
-            <p class="workspace-meta">{{ 'emailProofHelp' | t }}</p>
+            <p class="workspace-meta">{{ 'profileChangeProofHelp' | t }}</p>
             <hlm-dialog-footer>
               <button
                 hlmBtn
@@ -560,6 +498,8 @@ export class ProfileEditor {
   private readonly toast = inject(Notifications);
   private readonly i18n = inject(I18n);
   private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly confirmations = inject(Confirmations);
   private readonly currentProfile = inject(CurrentProfile);
   readonly options = new Resource<ProfileOptions>();
   readonly busy = signal(false);
@@ -578,18 +518,14 @@ export class ProfileEditor {
     lastName: '',
     phoneNumber: '',
     culture: 'en-ZA',
-    timeZone: 'UTC',
+    timeZone: browserTimeZone(),
     version: '',
   };
   avatarPreview: string | null = null;
   username = '';
   usernamePassword = '';
-  usernameCode = '';
-  usernameRecovery = false;
   email = '';
   emailPassword = '';
-  emailCode = '';
-  emailRecovery = false;
   private original = '';
   private readonly photoInput = viewChild<ElementRef<HTMLInputElement>>('photoInput');
   private readonly usernameFormRef = viewChild<NgForm>('usernameForm');
@@ -614,7 +550,7 @@ export class ProfileEditor {
       lastName: profile.lastName ?? '',
       phoneNumber: profile.phoneNumber ?? '',
       culture: profile.culture,
-      timeZone: profile.timeZone,
+      timeZone: profile.timeZone?.trim() || browserTimeZone(),
       version: profile.version,
     };
     this.avatarPreview = profile.avatarDataUrl ?? null;
@@ -630,10 +566,8 @@ export class ProfileEditor {
       this.hasProfileChanges() ||
       this.username ||
       this.usernamePassword ||
-      this.usernameCode ||
       this.email ||
-      this.emailPassword ||
-      this.emailCode
+      this.emailPassword
     );
   }
   initials() {
@@ -751,11 +685,7 @@ export class ProfileEditor {
     try {
       const username = await this.api.post<string>('profile/username', {
         username: this.username.trim(),
-        proof: {
-          password: this.usernamePassword,
-          code: this.usernameCode,
-          recoveryCode: this.usernameRecovery,
-        },
+        proof: { password: this.usernamePassword },
       });
       const updated = { ...current, username };
       this.saved.emit(updated);
@@ -763,8 +693,9 @@ export class ProfileEditor {
       this.toast.success('usernameChanged');
       this.resetUsernameDialog();
       this.usernameDialogOpen.set(false);
-    } catch {
-      /* Retain the form so the user can correct the proof or username. */
+    } catch (error) {
+      if (this.reauthenticationRequired(error)) await this.redirectForReauthentication();
+      // Otherwise retain the form so the user can correct the proof or username.
     } finally {
       this.usernameBusy.set(false);
     }
@@ -775,17 +706,14 @@ export class ProfileEditor {
     try {
       await this.api.post('privacy/email', {
         email: this.email.trim(),
-        proof: {
-          password: this.emailPassword,
-          code: this.emailCode,
-          recoveryCode: this.emailRecovery,
-        },
+        proof: { password: this.emailPassword },
       });
       this.resetEmailDialog();
       this.emailSent.set(true);
       this.toast.success('emailChangeSent');
-    } catch {
-      /* Retain the form so the user can correct the proof or email. */
+    } catch (error) {
+      if (this.reauthenticationRequired(error)) await this.redirectForReauthentication();
+      // Otherwise retain the form so the user can correct the proof or email.
     } finally {
       this.emailBusy.set(false);
     }
@@ -820,7 +748,7 @@ export class ProfileEditor {
         version,
       };
       this.i18n.set(updated.culture);
-      this.i18n.timeZone.set(updated.timeZone);
+      this.i18n.timeZone.set(this.draft.timeZone);
       this.auth.access.update((access) =>
         access ? { ...access, culture: updated.culture, timeZone: updated.timeZone } : access,
       );
@@ -836,8 +764,6 @@ export class ProfileEditor {
   private clearUsernameDialog() {
     this.username = '';
     this.usernamePassword = '';
-    this.usernameCode = '';
-    this.usernameRecovery = false;
   }
   private resetUsernameDialog() {
     this.usernameFormRef()?.resetForm();
@@ -846,11 +772,28 @@ export class ProfileEditor {
   private clearEmailDialog() {
     this.email = '';
     this.emailPassword = '';
-    this.emailCode = '';
-    this.emailRecovery = false;
   }
   private resetEmailDialog() {
     this.emailFormRef()?.resetForm();
     this.clearEmailDialog();
+  }
+  private reauthenticationRequired(error: unknown) {
+    return error instanceof HttpErrorResponse && error.error?.code === 'auth.reauthentication_required';
+  }
+  private async redirectForReauthentication() {
+    if (
+      this.hasProfileChanges() &&
+      !(await this.confirmations.ask('unsavedTitle', 'unsavedHelp', '', true, 'discardChanges'))
+    )
+      return;
+    const returnUrl = this.router.url;
+    this.reset();
+    this.resetUsernameDialog();
+    this.resetEmailDialog();
+    this.usernameDialogOpen.set(false);
+    this.emailDialogOpen.set(false);
+    await this.auth.logout();
+    await this.router.navigate(['/login'], { queryParams: { returnUrl } });
+    this.toast.info('reauthenticationRedirected');
   }
 }

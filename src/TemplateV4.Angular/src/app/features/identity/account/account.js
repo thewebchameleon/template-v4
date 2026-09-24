@@ -134,7 +134,22 @@ export class AccountPage {
     parts = this.parseAction();
     parseAction() {
         try {
-            return location.hash.slice(1).split('/').map(decodeURIComponent);
+            const fragment = location.hash.slice(1);
+            const firstSlash = fragment.indexOf('/');
+            if (firstSlash < 0)
+                return [];
+            const kind = decodeURIComponent(fragment.slice(0, firstSlash));
+            const rest = fragment.slice(firstSlash + 1);
+            if (kind === 'EmailChange')
+                return [kind, decodeURIComponent(rest)];
+            const secondSlash = rest.indexOf('/');
+            if (secondSlash < 0)
+                return [];
+            return [
+                kind,
+                decodeURIComponent(rest.slice(0, secondSlash)),
+                decodeURIComponent(rest.slice(secondSlash + 1)),
+            ];
         }
         catch {
             return [];

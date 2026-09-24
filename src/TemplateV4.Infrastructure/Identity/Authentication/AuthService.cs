@@ -53,7 +53,7 @@ public sealed partial class AuthService(FrameworkDb db, UserManager<AppUser> use
     private static string NormalizeIp(string? ipAddress) => string.IsNullOrWhiteSpace(ipAddress) ? "unknown" : ipAddress[..Math.Min(ipAddress.Length, 45)];
 }
 
-public sealed record AccessResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid UserId, string[] Permissions, string Culture, bool MfaConfigured, bool SetupRequired = false, string? ChallengeId = null, bool PasskeyRequired = false, string[]? MfaMethods = null, string? PreferredMfaMethod = null, bool EmailCodeSent = false, DateTimeOffset? EmailResendAt = null, bool IsAdministrator = false, string TimeZone = "UTC");
+public sealed record AccessResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid UserId, string[] Permissions, string Culture, bool MfaConfigured, bool SetupRequired = false, string? ChallengeId = null, bool PasskeyRequired = false, string[]? MfaMethods = null, string? PreferredMfaMethod = null, bool EmailCodeSent = false, DateTimeOffset? EmailResendAt = null, bool IsAdministrator = false, string? TimeZone = null);
 
 public sealed record AuthTokens(AccessResponse Access, string RefreshToken);
 

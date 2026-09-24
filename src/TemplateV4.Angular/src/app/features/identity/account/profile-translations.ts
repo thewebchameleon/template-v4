@@ -45,9 +45,9 @@ export const profileDictionary: Record<string, [string, string]> = {
     'Kies ’n unieke gebruikersnaam om aan te meld. Ander aktiewe sessies sal afgemeld word.',
   ],
   newUsername: ['New username', 'Nuwe gebruikersnaam'],
-  usernameProofHelp: [
-    'Enter your current password. If you use an authenticator, include a fresh code. Other MFA methods require a sign-in within the last five minutes.',
-    'Voer jou huidige wagwoord in. Sluit ’n nuwe verifikasiekode in indien geaktiveer. Ander MFA-metodes vereis aanmelding binne vyf minute.',
+  profileChangeProofHelp: [
+    'Enter your current password. If you use MFA, your last verification must be within the past five minutes.',
+    'Voer jou huidige wagwoord in. Indien jy MFA gebruik, moet jou laaste verifikasie binne die afgelope vyf minute wees.',
   ],
   usernameChanged: ['Username changed.', 'Gebruikersnaam verander.'],
   profileSaved: ['Profile saved.', 'Profiel gestoor.'],

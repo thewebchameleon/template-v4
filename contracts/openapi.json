@@ -9223,8 +9223,10 @@
             "default": false
           },
           "timeZone": {
-            "type": "string",
-            "default": "UTC"
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -14576,7 +14578,10 @@
             ]
           },
           "timeZone": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "avatarDataUrl": {
             "type": [

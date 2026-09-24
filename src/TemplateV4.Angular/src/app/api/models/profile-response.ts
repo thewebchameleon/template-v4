@@ -21,7 +21,7 @@ export interface ProfileResponse {
   preferredMfaMethod: string;
   recoveryCodes: number;
   roles: Array<string>;
-  timeZone: string;
+  timeZone: (string | null);
   username: string;
   version: string;
 }

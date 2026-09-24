@@ -155,8 +155,8 @@ export const adminDictionary: Record<string, [string, string]> = {
     'Huidige toegang en die rolle wat dit verskaf.',
   ],
   noAdministrativePermissions: [
-    'No administrative permissions. Personal account access remains available.',
-    'Geen administratiewe toestemmings nie. Persoonlike rekeningtoegang bly beskikbaar.',
+    'No administrative permissions.',
+    'Geen administratiewe toestemmings nie.',
   ],
   accessReadOnly: [
     'This access is read-only. You cannot change your own access here.',

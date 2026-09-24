@@ -15,6 +15,6 @@ export interface AccessResponse {
   permissions: Array<string>;
   preferredMfaMethod?: (string | null);
   setupRequired?: boolean;
-  timeZone?: string;
+  timeZone?: (string | null);
   userId: string;
 }

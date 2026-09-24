@@ -9,6 +9,8 @@ Every deployment has exactly one organisation, seeded by forward migration and e
 by a PostgreSQL singleton constraint. Administrators manage its identity and defaults.
 The organisation name and retained logo versions identify the application, email, and
 new commercial-document snapshots.
+Fresh deployments leave the organisation name, time zone, and country unconfigured in
+the seeded row; administrators provide them on the Branding page.
 
 There are no organisation memberships, owners, transfers, creation, closure, tenant
 selection, or personal customer accounts. Enabled, confirmed, approved users belong to

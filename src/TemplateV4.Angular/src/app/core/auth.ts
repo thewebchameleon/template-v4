@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CanActivateFn, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Runtime } from './runtime';
-import { I18n } from './i18n';
+import { I18n, browserTimeZone } from './i18n';
 import { UiSounds } from './ui-sounds';
 import { AccessResponse as Access } from '../api/models/access-response';
 type ChallengeAccess = Access & {
@@ -120,7 +120,7 @@ export class Auth {
     this.access.set(value);
     this.csrf = '';
     this.i18n.set(value.culture);
-    this.i18n.timeZone.set(value.timeZone ?? 'UTC');
+    this.i18n.timeZone.set(value.timeZone?.trim() || browserTimeZone());
     if (broadcast) this.channel?.postMessage('login');
   }
   refresh(): Promise<boolean> {

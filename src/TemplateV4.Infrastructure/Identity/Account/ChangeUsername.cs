@@ -12,16 +12,18 @@ public sealed partial class AccountService
     {
         var username = request.Username?.Trim();
         if (!ValidUsername(username)) return Result<string>.Fail("profile.username_invalid", ErrorKind.Validation);
+
+        var user = (await users.FindByIdAsync(actor.ToString()))!;
+        if (await security.RequiresRecentVerification(user, sessionId, ct, includeAuthenticator: true))
+            return Result<string>.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await limiter.Allow("change-username", actor.ToString(), 1, TimeSpan.FromMinutes(2), ct))
             return Result<string>.Fail("invitation.wait", ErrorKind.Conflict);
-
         await using var tx = await db.Session.BeginTransactionAsync(ct);
-        var user = (await users.FindByIdAsync(actor.ToString()))!;
-        if (!await security.Proof(user, request.Proof, ct))
+        if (!await security.Proof(user, request.Proof, ct, allowRecentVerification: true))
         {
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            return Result<string>.Fail("auth.factor_invalid", ErrorKind.Forbidden);
+            return Result<string>.Fail("auth.profile_proof_invalid", ErrorKind.Forbidden);
         }
         if (string.Equals(user.UserName, username, StringComparison.OrdinalIgnoreCase))
             return Result<string>.Fail("profile.same_username", ErrorKind.Validation);

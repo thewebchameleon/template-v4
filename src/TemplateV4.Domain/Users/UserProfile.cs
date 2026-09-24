@@ -13,7 +13,7 @@ public sealed class UserProfile : IDomainEventSource
     public string Culture { get; private set; } = "en-ZA";
     public string? FirstName { get; private set; }
     public string? LastName { get; private set; }
-    public string TimeZone { get; private set; } = "UTC";
+    public string? TimeZone { get; private set; }
     public bool Disabled { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
     public Guid Version { get; private set; } = Guid.NewGuid();
@@ -42,6 +42,6 @@ public sealed class UserProfile : IDomainEventSource
         LastName = string.IsNullOrWhiteSpace(lastName) ? null : lastName.Trim();
         Culture = culture; TimeZone = timeZone; Version = Guid.NewGuid();
     }
-    public void Anonymise(DateTimeOffset now) { DisplayName = "Deleted account"; FirstName = null; LastName = null; Culture = "en-ZA"; TimeZone = "UTC"; SoftDelete(now); }
+    public void Anonymise(DateTimeOffset now) { DisplayName = "Deleted account"; FirstName = null; LastName = null; Culture = "en-ZA"; TimeZone = null; SoftDelete(now); }
     public void ClearEvents() => _events.Clear();
 }

@@ -80,14 +80,15 @@ public sealed partial class SecurityService(FrameworkDb db, UserManager<AppUser>
         else await users.AccessFailedAsync(user);
         await db.SaveChangesAsync(ct); return valid;
     }
-    public async Task<bool> Proof(AppUser user, SecurityProof proof, CancellationToken ct)
+    public async Task<bool> Proof(AppUser user, SecurityProof proof, CancellationToken ct, bool allowRecentVerification = false)
     {
         if (proof is null) return false;
         await Lock(user.Id, ct); await db.Entry(user).ReloadAsync(ct);
         if (user.RegistrationState is "Pending" or "Rejected" || await users.IsLockedOutAsync(user) || string.IsNullOrEmpty(proof.Password) || proof.Password.Length > 1024 || !await users.CheckPasswordAsync(user, proof.Password))
         { await users.AccessFailedAsync(user); return false; }
         if (await PasskeyRequired(user, ct) && (await users.GetPasskeysAsync(user)).Count > 0) return await RecentlyVerified(user.Id, ct);
-        if (user.TwoFactorEnabled) return await VerifyCode(user, proof.Code, proof.RecoveryCode, ct);
+        if (user.TwoFactorEnabled)
+            return allowRecentVerification ? await RecentlyVerified(user.Id, ct) : await VerifyCode(user, proof.Code, proof.RecoveryCode, ct);
         if ((await ConfiguredMethods(user)).Length > 0)
         {
             var sid = http.HttpContext?.User.FindFirst("sid")?.Value;
@@ -95,10 +96,11 @@ public sealed partial class SecurityService(FrameworkDb db, UserManager<AppUser>
         }
         return true;
     }
-    public async Task<bool> RequiresRecentVerification(AppUser user, Guid sessionId, CancellationToken ct)
+    public async Task<bool> RequiresRecentVerification(AppUser user, Guid sessionId, CancellationToken ct, bool includeAuthenticator = false)
     {
         var strong = await PasskeyRequired(user, ct);
-        return (!user.TwoFactorEnabled || strong) && (await ConfiguredMethods(user)).Length > 0 &&
+        return (includeAuthenticator || !user.TwoFactorEnabled || strong) &&
+            ((await ConfiguredMethods(user)).Length > 0 || includeAuthenticator && user.TwoFactorEnabled) &&
             !await db.Sessions.AnyAsync(x => x.Id == sessionId && x.UserId == user.Id && x.RevokedAt == null && x.ExpiresAt > time.GetUtcNow() && x.MfaVerified &&
                 x.MfaVerifiedAt > time.GetUtcNow().AddMinutes(-5) && (!strong || x.PasskeyVerified), ct);
     }
@@ -136,7 +138,7 @@ public sealed record MfaPreferenceRequest(string Method);
 public sealed record SecurityPolicyRequest(string MfaPolicy, Guid Version, bool RegistrationEnabled = false, bool RegistrationApprovalRequired = false);
 
 public sealed record ProfileResponse(Guid Id, string Email, bool EmailConfirmed, string Username, string DisplayName, string Culture, string[] Roles, bool MfaEnabled, bool MfaRequired, int RecoveryCodes, PasskeySummary[] Passkeys, bool EmailMfaEnabled, string[] MfaMethods, string PreferredMfaMethod,
-    string? FirstName, string? LastName, string? PhoneNumber, string TimeZone, string? AvatarDataUrl, Guid Version, bool PasskeyRequired);
+    string? FirstName, string? LastName, string? PhoneNumber, string? TimeZone, string? AvatarDataUrl, Guid Version, bool PasskeyRequired);
 
 public sealed record PasskeySummary(string Id, string Name, DateTimeOffset CreatedAt, Guid? DeviceId);
 

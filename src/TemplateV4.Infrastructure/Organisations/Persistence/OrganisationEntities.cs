@@ -5,11 +5,11 @@ namespace TemplateV4.Infrastructure.Persistence;
 public sealed class CustomerRow
 {
     public Guid Id { get; set; } = Organisation.Id;
-    public string Name { get; set; } = "Organisation";
+    public string Name { get; set; } = "";
     public string? WebsiteUrl { get; set; }
     public string? ContactEmail { get; set; }
-    public string TimeZone { get; set; } = "Africa/Johannesburg";
-    public string? Country { get; set; } = "ZA";
+    public string TimeZone { get; set; } = "";
+    public string? Country { get; set; }
     public string? PrimaryContactNumber { get; set; }
     public Guid? LogoId { get; set; }
     public Guid Version { get; set; } = Guid.NewGuid();

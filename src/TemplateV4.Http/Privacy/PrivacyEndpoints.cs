@@ -12,7 +12,7 @@ public static class PrivacyEndpoints
             .RequireAuthorization().WithName("GetPrivacyStatus").Produces<PrivacyStatus>();
         group.MapGet("/privacy/export", async (ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => Results.File(await service.Export(EndpointSecurity.Actor(principal), ct), "application/json", "account-data.json"))
             .RequireAuthorization().WithName("ExportAccountData").Produces(200, contentType: "application/json");
-        group.MapPost("/privacy/email", async (ChangeEmailRequest request, ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.ChangeEmail(EndpointSecurity.Actor(principal), request, ct)).ToHttp())
+        group.MapPost("/privacy/email", async (ChangeEmailRequest request, ClaimsPrincipal principal, PrivacyService service, CancellationToken ct) => (await service.ChangeEmail(EndpointSecurity.Actor(principal), EndpointSecurity.SessionId(principal), request, ct)).ToHttp())
             .RequireAuthorization().WithName("RequestEmailChange");
         group.MapPost("/privacy/confirm-email", async (ConfirmEmailChangeRequest request, PrivacyService service, CancellationToken ct) => (await service.ConfirmEmail(request, ct)).ToHttp())
             .AllowAnonymous().WithName("ConfirmEmailChange");

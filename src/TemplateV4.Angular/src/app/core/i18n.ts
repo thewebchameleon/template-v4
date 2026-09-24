@@ -2,9 +2,10 @@ import { Runtime } from './runtime';
 import { DestroyRef, Injectable, Pipe, PipeTransform, inject, signal } from '@angular/core';
 import { dictionary } from './translations';
 const storageKey = 'templatev4-culture';
+export const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 @Injectable({ providedIn: 'root' })
 export class I18n {
-  readonly timeZone = signal('UTC');
+  readonly timeZone = signal(browserTimeZone());
   private readonly runtime = inject(Runtime);
   readonly culture = signal(
     this.runtime.supportedCultures.includes(document.documentElement.lang)

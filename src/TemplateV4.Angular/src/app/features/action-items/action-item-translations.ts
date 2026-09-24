@@ -39,7 +39,7 @@ export const actionItemDictionary: Record<string, [string, string]> = {
     'People could not be loaded. Change your search to retry.',
     'Mense kon nie gelaai word nie. Verander jou soektog om weer te probeer.',
   ],
-  actionOverview: ['Action items overview', 'Aksie-itemoorsig'],
+  actionOverview: ['Assigned to others', 'Aan ander toegewys'],
   actionInbox: ['My action items', 'My aksie-items'],
   actionOverviewHelp: [
     'Administrators see all items in the overview. Other users see items they created or are assigned to.',

@@ -9,6 +9,7 @@ import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { Bootstrap } from '../../../core/bootstrap';
+import { Auth } from '../../../core/auth';
 import { Translate } from '../../../core/i18n';
 import { Errors } from '../../../core/interceptors';
 
@@ -146,6 +147,7 @@ import { Errors } from '../../../core/interceptors';
 })
 export class BootstrapPage implements OnInit {
   private readonly bootstrap = inject(Bootstrap);
+  private readonly auth = inject(Auth);
   private readonly errors = inject(Errors);
   private readonly router = inject(Router);
 
@@ -182,14 +184,22 @@ export class BootstrapPage implements OnInit {
     this.rejected.set(false);
     this.fieldErrors.set({});
     try {
+      const username = this.username.trim();
       await this.bootstrap.create({
         token: this.token,
-        username: this.username.trim(),
+        username,
         password: this.password,
       });
       this.token = '';
-      this.password = '';
-      await this.router.navigateByUrl('/login');
+      try {
+        await this.auth.login(username, this.password);
+      } catch {
+        await this.router.navigateByUrl('/login');
+        return;
+      } finally {
+        this.password = '';
+      }
+      await this.router.navigateByUrl(this.auth.landing());
     } catch (error) {
       this.errors.problem.set(null);
       if (error instanceof HttpErrorResponse && [404, 409, 410].includes(error.status)) {

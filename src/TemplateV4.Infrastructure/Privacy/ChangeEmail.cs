@@ -8,14 +8,15 @@ namespace TemplateV4.Infrastructure.Security;
 
 public sealed partial class PrivacyService
 {
-    public async Task<Result<Unit>> ChangeEmail(Guid actor, ChangeEmailRequest request, CancellationToken ct)
+    public async Task<Result<Unit>> ChangeEmail(Guid actor, Guid sessionId, ChangeEmailRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 254 || !MailAddress.TryCreate(request.Email, out var address) || address.Address != request.Email)
             return Result.Fail("validation.failed", ErrorKind.Validation);
+        var user = (await users.FindByIdAsync(actor.ToString()))!;
+        if (await security.RequiresRecentVerification(user, sessionId, ct, includeAuthenticator: true)) return Result.Fail("auth.reauthentication_required", ErrorKind.Unauthorized);
         if (!await limiter.Allow("change-email", actor.ToString(), 1, TimeSpan.FromMinutes(2), ct)) return Result.Fail("invitation.wait", ErrorKind.Conflict);
         await using var tx = await db.Session.BeginTransactionAsync(ct);
-        var user = (await users.FindByIdAsync(actor.ToString()))!;
-        if (!await security.Proof(user, request.Proof, ct)) { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Fail("auth.factor_invalid", ErrorKind.Forbidden); }
+        if (!await security.Proof(user, request.Proof, ct, allowRecentVerification: true)) { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return Result.Fail("auth.profile_proof_invalid", ErrorKind.Forbidden); }
         if (string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase)) return Result.Fail("privacy.same_email", ErrorKind.Validation);
         if (await users.FindByEmailAsync(request.Email) is not null) return Result.Fail("privacy.email_unavailable", ErrorKind.Conflict);
         await db.AuthChallenges.Where(x => x.UserId == actor && x.Purpose == "email-change").ExecuteDeleteAsync(ct);

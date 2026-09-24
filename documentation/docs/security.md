@@ -7,6 +7,10 @@ feature flags, and module state improve navigation but never replace authorizati
 
 Use short-lived access with rotating, revocable sessions. Mutating browser requests
 require CSRF protection. Recent verification is required for sensitive account actions.
+Username and email changes require the current password and, when MFA is configured,
+verification in the current session within the past five minutes. A stale session must
+sign in again; the profile change form does not ask for another authenticator or recovery
+code. A new email address becomes active only after its verification link is used.
 MFA policy may be optional, Administrator-only, or universal; privileged accounts must
 not bypass the configured policy. By default, a verified email code, authenticator, or
 passkey satisfies privileged MFA. Set `Security:RequireAdministratorPasskey=true` to

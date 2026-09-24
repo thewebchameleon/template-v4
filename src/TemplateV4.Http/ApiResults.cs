@@ -101,6 +101,7 @@ public static class ApiResults
             "auth.invalid_credentials" => af ? "Die aanmeldbesonderhede is ongeldig." : "The sign-in details are invalid.",
 
             "auth.factor_invalid" => af ? "Die wagwoord of kode is ongeldig. Gebruik 'n nuwe kode en begin aanmelding weer indien nodig." : "The password or code is invalid. Use a fresh code and restart sign-in if necessary.",
+            "auth.profile_proof_invalid" => af ? "Die huidige wagwoord is ongeldig, of jou onlangse verifikasie het verval. Probeer weer of meld weer aan." : "The current password is invalid, or your recent verification expired. Try again or sign in again.",
 
             "auth.reauthentication_required" => af ? "Meld af en weer aan voordat jy sekuriteitsfaktore verander." : "Sign out and sign in again before changing security factors.",
 

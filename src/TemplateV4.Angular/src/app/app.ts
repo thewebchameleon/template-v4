@@ -248,7 +248,7 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                     [attr.data-active]="userManagementPanelActive()"
                     (click)="selectRailPanel($event, '/user-management')"
                   >
-                    <ng-icon name="lucideUserRound" size="1.5rem" />
+                    <ng-icon name="lucideUsersRound" size="1.5rem" />
                   </a>
                 }
                 <a
@@ -917,7 +917,7 @@ export class App {
           {
             path: '/user-management',
             label: 'userManagement',
-            icon: 'lucideUserRound',
+            icon: 'lucideUsersRound',
             hasPanel: true,
             destination: this.userManagementLinks()[0]?.path ?? '/user-management',
             destinationQueryParams: null,

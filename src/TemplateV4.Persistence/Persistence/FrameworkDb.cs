@@ -108,7 +108,7 @@ public class FrameworkDb : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
             entity.Property(x => x.Culture).HasMaxLength(16);
             entity.Property(x => x.FirstName).HasMaxLength(100);
             entity.Property(x => x.LastName).HasMaxLength(100);
-            entity.Property(x => x.TimeZone).HasMaxLength(100).HasDefaultValue("UTC");
+            entity.Property(x => x.TimeZone).HasMaxLength(100);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.Ignore(x => x.Events); entity.HasQueryFilter(x => x.DeletedAt == null);
             entity.HasIndex(x => x.DisplayName);

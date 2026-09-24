@@ -1,26 +1,24 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBadgeCheck, lucideBadgeX } from '@ng-icons/lucide';
-import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { phosphorCheckCircleFill, phosphorXCircleFill } from '@ng-icons/phosphor-icons/fill';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { CustomerInfo, ProfileResponse } from '../api/models';
-import { I18n, Translate } from '../core/i18n';
+import { I18n, Translate, browserTimeZone } from '../core/i18n';
 
 @Component({
   selector: 'app-profile-summary-card',
   imports: [
     RouterLink,
     NgIcon,
-    HlmBadgeImports,
     HlmButtonImports,
     HlmCardImports,
     HlmSkeletonImports,
     Translate,
   ],
-  providers: [provideIcons({ lucideBadgeCheck, lucideBadgeX })],
+  providers: [provideIcons({ phosphorCheckCircleFill, phosphorXCircleFill })],
   template: `
     <section hlmCard aria-labelledby="profile-summary-title">
       <div hlmCardHeader>
@@ -48,16 +46,21 @@ import { I18n, Translate } from '../core/i18n';
                   <p class="truncate text-lg font-semibold">{{ person.displayName }}</p>
                   <p class="flex items-center gap-1.5 break-words text-sm text-muted-foreground">
                     <span
-                      hlmBadge
-                      [variant]="person.emailConfirmed ? 'default' : 'destructive'"
-                      class="size-5 p-0 text-white data-[variant=destructive]:bg-destructive dark:data-[variant=destructive]:bg-destructive"
+                      role="img"
+                      class="inline-flex size-5 shrink-0 items-center justify-center"
+                      [class]="
+                        person.emailConfirmed
+                          ? 'text-green-600 dark:text-green-500'
+                          : 'text-orange-600 dark:text-orange-500'
+                      "
                       [attr.aria-label]="
                         (person.emailConfirmed ? 'emailVerifiedStatus' : 'emailUnverifiedStatus')
                           | t
                       "
                     >
                       <ng-icon
-                        [name]="person.emailConfirmed ? 'lucideBadgeCheck' : 'lucideBadgeX'"
+                        [name]="person.emailConfirmed ? 'phosphorCheckCircleFill' : 'phosphorXCircleFill'"
+                        size="1.25rem"
                         aria-hidden="true"
                       />
                     </span>
@@ -121,15 +124,19 @@ import { I18n, Translate } from '../core/i18n';
                 }
                 <div class="min-w-0 flex-1">
                   <p class="break-words text-lg font-semibold">{{ company.name }}</p>
-                  <div class="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                  <div class="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
                     @if (country(); as country) {
-                      <span class="sr-only">{{ 'country' | t }}: {{ country.name }}</span>
-                      <img
-                        [src]="country.flagUrl"
-                        alt=""
-                        aria-hidden="true"
-                        class="h-4 w-6 shrink-0 rounded-xs object-cover"
-                      />
+                      <span class="inline-flex items-center gap-2">
+                        <img
+                          [src]="country.flagUrl"
+                          alt=""
+                          aria-hidden="true"
+                          class="h-4 w-6 shrink-0 rounded-xs object-cover"
+                        />
+                        <span>
+                          <span class="sr-only">{{ 'country' | t }}: </span>{{ country.name }}
+                        </span>
+                      </span>
                     }
                     @if (company.websiteUrl?.trim(); as website) {
                       <span class="min-w-0 break-words">{{ website }}</span>
@@ -204,8 +211,7 @@ export class ProfileSummaryCard {
     return `${name} (${culture})`;
   });
   readonly timeZoneLabel = computed(() => {
-    const timeZone = this.profile()?.timeZone;
-    if (!timeZone) return '';
+    const timeZone = this.profile()?.timeZone?.trim() || browserTimeZone();
     const offset = new Intl.DateTimeFormat('en', {
       timeZone,
       timeZoneName: 'longOffset',

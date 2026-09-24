@@ -316,7 +316,34 @@ export const dictionary: Record<string, [string, string]> = {
     'This method is selected first when you sign in. You can still choose another configured method.',
     'Hierdie metode word eerste gekies wanneer jy aanmeld. Jy kan steeds ’n ander opgestelde metode kies.',
   ],
-  savePreference: ['Save preference', 'Stoor voorkeur'],
+  preferredPasskeyRequired: [
+    'Your account requires a passkey for authentication.',
+    'Jou rekening vereis ’n toegangsleutel vir verifikasie.',
+  ],
+  preferredPasskeyNotConfigured: [
+    'Add a passkey to use this method.',
+    'Voeg ’n toegangsleutel by om hierdie metode te gebruik.',
+  ],
+  preferredAuthenticatorNotConfigured: [
+    'Set up an authenticator app to use this method.',
+    'Stel ’n verifikasie-app op om hierdie metode te gebruik.',
+  ],
+  preferredEmailUnconfirmed: [
+    'Confirm your email address to use email codes.',
+    'Bevestig jou e-posadres om e-poskodes te gebruik.',
+  ],
+  preferredEmailUnavailable: [
+    'Email codes are unavailable for this address.',
+    'E-poskodes is nie vir hierdie adres beskikbaar nie.',
+  ],
+  preferredMethodUnavailable: [
+    'Unavailable under the current security settings.',
+    'Nie beskikbaar onder die huidige sekuriteitsinstellings nie.',
+  ],
+  preferredMethodBusy: [
+    'Security settings are being updated. Try again when the current action finishes.',
+    'Sekuriteitsinstellings word opgedateer. Probeer weer wanneer die huidige aksie voltooi is.',
+  ],
   enrollAuthenticator: ['Set up authenticator', 'Stel verifikasie-app op'],
   setupPasskey: ['Set up passkey', 'Stel toegangsleutel op'],
   rotateRecovery: ['Replace recovery codes', 'Vervang herstelkodes'],

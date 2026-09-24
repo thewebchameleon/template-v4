@@ -13,12 +13,12 @@ public static class CustomerBillingModel
             e.Property(x => x.Name).HasMaxLength(120);
             e.Property(x => x.WebsiteUrl).HasMaxLength(2048);
             e.Property(x => x.ContactEmail).HasMaxLength(254);
-            e.Property(x => x.TimeZone).HasMaxLength(100).HasDefaultValue("Africa/Johannesburg");
+            e.Property(x => x.TimeZone).HasMaxLength(100);
             e.Property(x => x.Country).HasMaxLength(2);
             e.Property(x => x.PrimaryContactNumber).HasMaxLength(16);
             e.Property(x => x.Version).IsConcurrencyToken();
             e.HasOne<OrganisationLogoRow>().WithMany().HasForeignKey(x => x.LogoId).OnDelete(DeleteBehavior.Restrict);
-            e.HasData(new CustomerRow { Id = TemplateV4.Application.Customers.Organisation.Id, Name = "Organisation", TimeZone = "Africa/Johannesburg", Country = "ZA", Version = new Guid("d473876e-a68f-4d80-8c97-ccdddcddbcdb") });
+            e.HasData(new CustomerRow { Id = TemplateV4.Application.Customers.Organisation.Id, Version = new Guid("d473876e-a68f-4d80-8c97-ccdddcddbcdb") });
         });
         model.Entity<OrganisationLogoRow>(e =>
         {

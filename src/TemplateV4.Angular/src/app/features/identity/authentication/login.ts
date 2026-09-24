@@ -105,6 +105,7 @@ import { UiSounds } from '../../../core/ui-sounds';
             <p hlmFieldDescription>{{ 'emailCodeHelp' | t }}</p>
             <brn-input-otp
               hlmInputOtp
+              class="justify-center"
               inputId="email-code"
               inputAutocomplete="one-time-code"
               inputMode="numeric"
@@ -134,6 +135,7 @@ import { UiSounds } from '../../../core/ui-sounds';
             } @else {
               <brn-input-otp
                 hlmInputOtp
+                class="justify-center"
                 inputId="factor"
                 inputAutocomplete="one-time-code"
                 inputMode="numeric"

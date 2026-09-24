@@ -1,7 +1,9 @@
 import { Component, computed, inject, input, output, signal, OnInit } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { createColumnHelper } from '@tanstack/angular-table';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import {
   WorkspaceUi,
@@ -11,15 +13,21 @@ import {
   protectUnload,
 } from '../../shared/workspace';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
+import { DataTable, DataTableFeatures } from '../../shared/data-table';
 import { WorkspaceApi } from '../../core/workspace-api';
 import { Runtime } from '../../core/runtime';
-import { Features } from '../../core/features';
 import { Auth } from '../../core/auth';
+import { I18n } from '../../core/i18n';
 import { Notifications } from '../notifications/notifications';
 import { AccessCatalog, UserAccessDetail } from '../../api/models';
+interface EffectivePermissionRow {
+  key: string;
+  roles: string;
+}
+const permissionColumn = createColumnHelper<DataTableFeatures, EffectivePermissionRow>();
 @Component({
   selector: 'app-user-detail',
-  imports: [WorkspaceUi, HlmCheckboxImports],
+  imports: [WorkspaceUi, HlmCheckboxImports, NgTemplateOutlet, DataTable],
   providers: [workspaceIcons],
   host: { '(window:beforeunload)': 'beforeUnload($event)' },
   template: ` @if (!embedded()) {
@@ -37,109 +45,150 @@ import { AccessCatalog, UserAccessDetail } from '../../api/models';
       (retry)="load()"
     >
       @if (data.value(); as detail) {
-        <div [class]="embedded() ? 'grid min-w-0 grid-cols-1 gap-4' : 'workspace-columns'">
-          <section hlmCard>
-            <div hlmCardHeader>
-              <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
-              <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
-              @if (embedded() && detail.user.status === 'Invited' && editable()) {
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  [disabled]="busy()"
-                  (click)="resendInvitation()"
-                >
-                  {{ 'resendInvitation' | t }}
-                </button>
-              }
-              @if (auth.has('settings.manage') && features.enabled('file-storage')) {
-                <a hlmBtn variant="outline" routerLink="/file-storage">{{ 'files' | t }}</a>
-              }
-            </div>
-            <form hlmCardContent class="grid gap-5" (ngSubmit)="save()">
-              <fieldset hlmFieldSet>
-                <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
-                <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
-                @for (role of catalog.value()?.roles.items ?? []; track role.id) {
-                  <div hlmField orientation="horizontal">
-                    <hlm-checkbox
-                      [inputId]="'role-' + role.id"
-                      [checked]="roles().includes(role.name)"
-                      [disabled]="!editable() || !canAssign(role.permissions) || busy()"
-                      (checkedChange)="toggle(role.name, $event)"
-                    /><label hlmFieldLabel [for]="'role-' + role.id">{{ role.name }}</label>
-                  </div>
-                }
-              </fieldset>
-              @if (catalog.state() === 'error') {
-                <div hlmAlert>
-                  <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
-                  <button hlmBtn type="button" variant="outline" (click)="load()">
-                    {{ 'retry' | t }}
-                  </button>
+        <ng-template #accessFields>
+          <fieldset hlmFieldSet>
+            <legend hlmFieldLegend>{{ 'roles' | t }}</legend>
+            <p hlmFieldDescription>{{ 'assignmentHelp' | t }}</p>
+            @for (role of catalog.value()?.roles.items ?? []; track role.id) {
+              <label
+                hlmFieldLabel
+                [for]="'role-' + role.id"
+                class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+              >
+                <div hlmField orientation="horizontal">
+                  <hlm-checkbox
+                    [inputId]="'role-' + role.id"
+                    [checked]="roles().includes(role.name)"
+                    [disabled]="!editable() || !canAssign(role.permissions) || busy()"
+                    (checkedChange)="toggle(role.name, $event)"
+                  /><span>{{ role.name }}</span>
                 </div>
-              }
-              <div hlmField orientation="horizontal">
-                <hlm-switch
-                  inputId="disabled-user"
-                  [checked]="disabled()"
-                  [disabled]="!editable() || busy()"
-                  (checkedChange)="disabled.set($event)"
-                /><label hlmFieldLabel for="disabled-user">{{ 'disabled' | t }}</label>
-              </div>
-              @if (!editable()) {
-                <p class="workspace-meta">{{ 'accessReadOnly' | t }}</p>
-              }
-              @if (conflict()) {
-                <div hlmAlert role="alert">
-                  <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
-                  <button hlmBtn type="button" variant="outline" (click)="reloadDraft()">
-                    {{ 'discardDraft' | t }}
-                  </button>
-                </div>
-              }
-              <div>
-                <button
-                  hlmBtn
-                  [disabled]="busy() || !editable() || !hasUnsavedChanges() || conflict()"
-                >
-                  {{ 'saveAccess' | t }}
-                </button>
-              </div>
-            </form>
-          </section>
-          <section hlmCard>
-            <div hlmCardHeader>
-              <h2 hlmCardTitle>{{ 'effectivePermissions' | t }}</h2>
-              <p hlmCardDescription>{{ 'effectivePermissionsHelp' | t }}</p>
-            </div>
-            <div hlmCardContent class="grid gap-4">
-              @for (permission of detail.effectivePermissions; track permission) {
-                <div>
-                  <p class="font-medium">{{ 'permission.' + permission | t }}</p>
-                  <p class="workspace-meta">{{ sources(permission) }}</p>
-                </div>
-              } @empty {
-                <p class="workspace-meta">{{ 'noAdministrativePermissions' | t }}</p>
-              }
-            </div>
-            @if (auth.has('settings.manage')) {
-              <div hlmCardFooter>
-                <a
-                  hlmBtn
-                  variant="outline"
-                  routerLink="/administration/audit-history"
-                  [queryParams]="{
-                    subjectId: detail.user.id,
-                    subjectName: detail.user.displayName,
-                  }"
-                  >{{ 'viewAudit' | t }}</a
-                >
-              </div>
+              </label>
             }
-          </section>
-        </div>
+          </fieldset>
+          @if (catalog.state() === 'error') {
+            <div hlmAlert>
+              <p hlmAlertDescription>{{ 'loadFailed' | t }}</p>
+              <button hlmBtn type="button" variant="outline" (click)="load()">
+                {{ 'retry' | t }}
+              </button>
+            </div>
+          }
+          <label
+            hlmFieldLabel
+            for="disabled-user"
+            class="cursor-pointer has-[[data-disabled=true]]:cursor-not-allowed"
+          >
+            <div hlmField orientation="horizontal">
+              <hlm-switch
+                inputId="disabled-user"
+                [checked]="disabled()"
+                [disabled]="!editable() || busy()"
+                (checkedChange)="disabled.set($event)"
+              /><span>{{ 'disabled' | t }}</span>
+            </div>
+          </label>
+          @if (!editable()) {
+            <p class="workspace-meta">{{ 'accessReadOnly' | t }}</p>
+          }
+          @if (conflict()) {
+            <div hlmAlert role="alert">
+              <p hlmAlertDescription>{{ 'draftConflict' | t }}</p>
+              <button hlmBtn type="button" variant="outline" (click)="reloadDraft()">
+                {{ 'discardDraft' | t }}
+              </button>
+            </div>
+          }
+        </ng-template>
+        <ng-template #permissionList>
+          <div class="min-w-0 [&_td]:whitespace-normal [&_td]:break-words">
+            <app-data-table
+              [columns]="permissionColumns()"
+              [data]="permissionRows()"
+              [emptyText]="'noAdministrativePermissions' | t"
+              [ariaLabel]="'effectivePermissions' | t"
+              sortColumn="none"
+              sortDirection="asc"
+              [getRowId]="permissionRowId"
+            />
+          </div>
+        </ng-template>
+        <ng-template #auditLink>
+          @if (auth.has('settings.manage')) {
+            <a
+              hlmBtn
+              variant="outline"
+              routerLink="/administration/audit-history"
+              [queryParams]="{
+                subjectId: detail.user.id,
+                subjectName: detail.user.displayName,
+              }"
+              >{{ 'viewAudit' | t }}</a
+            >
+          }
+        </ng-template>
+        @if (embedded()) {
+          <div class="grid min-w-0 content-start gap-6">
+            <div class="grid gap-1">
+              <h3 class="break-words font-medium">{{ detail.user.displayName }}</h3>
+              <p class="workspace-meta break-words">{{ detail.user.email }}</p>
+            </div>
+            @if (detail.user.status === 'Invited' && editable()) {
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="justify-self-start"
+                [disabled]="busy()"
+                (click)="resendInvitation()"
+              >
+                {{ 'resendInvitation' | t }}
+              </button>
+            }
+            <form class="grid gap-5" (ngSubmit)="save()">
+              <ng-container [ngTemplateOutlet]="accessFields" />
+            </form>
+            <section class="grid gap-4" aria-labelledby="user-effective-permissions">
+              <div class="grid gap-1">
+                <h3 id="user-effective-permissions" class="font-medium">
+                  {{ 'effectivePermissions' | t }}
+                </h3>
+                <p class="workspace-meta">{{ 'effectivePermissionsHelp' | t }}</p>
+              </div>
+              <ng-container [ngTemplateOutlet]="permissionList" />
+              @if (auth.has('settings.manage')) {
+                <div class="justify-self-start"><ng-container [ngTemplateOutlet]="auditLink" /></div>
+              }
+            </section>
+          </div>
+        } @else {
+          <div class="workspace-columns">
+            <section hlmCard>
+              <div hlmCardHeader>
+                <h2 hlmCardTitle class="break-words">{{ detail.user.displayName }}</h2>
+                <p hlmCardDescription class="break-words">{{ detail.user.email }}</p>
+              </div>
+              <form hlmCardContent class="grid gap-5" (ngSubmit)="save()">
+                <ng-container [ngTemplateOutlet]="accessFields" />
+                <div>
+                  <button hlmBtn [disabled]="!canSave()">{{ 'saveAccess' | t }}</button>
+                </div>
+              </form>
+            </section>
+            <section hlmCard>
+              <div hlmCardHeader>
+                <h2 hlmCardTitle>{{ 'effectivePermissions' | t }}</h2>
+                <p hlmCardDescription>{{ 'effectivePermissionsHelp' | t }}</p>
+              </div>
+              <div hlmCardContent class="grid gap-4">
+                <ng-container [ngTemplateOutlet]="permissionList" />
+              </div>
+              @if (auth.has('settings.manage')) {
+                <div hlmCardFooter><ng-container [ngTemplateOutlet]="auditLink" /></div>
+              }
+            </section>
+          </div>
+        }
       }
     </app-page-state>`,
 })
@@ -149,7 +198,7 @@ export class UserDetailPage implements OnInit {
   readonly saved = output<void>();
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(Auth);
-  readonly features = inject(Features);
+  readonly i18n = inject(I18n);
   readonly data = new Resource<UserAccessDetail>();
   readonly catalog = new Resource<AccessCatalog>();
   readonly roles = signal<string[]>([]);
@@ -170,6 +219,30 @@ export class UserDetailPage implements OnInit {
       this.catalog.state() === 'ready' &&
       (this.data.value()?.effectivePermissions.every((p) => this.auth.has(p)) ?? false),
   );
+  readonly canSave = computed(
+    () => !this.busy() && this.editable() && this.hasUnsavedChanges() && !this.conflict(),
+  );
+  readonly permissionRowId = (row: EffectivePermissionRow) => row.key;
+  readonly permissionRows = computed(() =>
+    (this.data.value()?.effectivePermissions ?? []).map((key) => ({
+      key,
+      roles: this.sources(key),
+    })),
+  );
+  readonly permissionColumns = computed(() => {
+    this.i18n.culture();
+    return permissionColumn.columns([
+      permissionColumn.accessor('key', {
+        header: this.i18n.text('permissionName'),
+        cell: (cell) => this.i18n.text('permission.' + cell.getValue()),
+        enableSorting: false,
+      }),
+      permissionColumn.accessor('roles', {
+        header: this.i18n.text('roles'),
+        enableSorting: false,
+      }),
+    ]);
+  });
   ngOnInit() {
     void this.load();
   }
