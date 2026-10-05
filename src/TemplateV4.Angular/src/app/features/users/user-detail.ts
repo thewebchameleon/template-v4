@@ -157,7 +157,9 @@ const permissionColumn = createColumnHelper<DataTableFeatures, EffectivePermissi
               </div>
               <ng-container [ngTemplateOutlet]="permissionList" />
               @if (auth.has('settings.manage')) {
-                <div class="justify-self-start"><ng-container [ngTemplateOutlet]="auditLink" /></div>
+                <div class="justify-self-start">
+                  <ng-container [ngTemplateOutlet]="auditLink" />
+                </div>
               }
             </section>
           </div>

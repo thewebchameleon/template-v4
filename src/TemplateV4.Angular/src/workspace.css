@@ -139,8 +139,12 @@
     margin-block-start: calc(-1 * var(--card-spacing));
   }
   @keyframes workspace-skeleton-reveal {
-    from { visibility: hidden; }
-    to { visibility: visible; }
+    from {
+      visibility: hidden;
+    }
+    to {
+      visibility: visible;
+    }
   }
   .workspace-columns {
     display: grid;

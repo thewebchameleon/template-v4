@@ -229,7 +229,9 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                 @if (userManagementPanelActive() || administrationPanelActive()) {
                   <span
                     class="sidebar-rail-bottom-indicator"
-                    [style.--rail-bottom-active-index]="administrationPanelActive() && userManagementLinks().length ? 1 : 0"
+                    [style.--rail-bottom-active-index]="
+                      administrationPanelActive() && userManagementLinks().length ? 1 : 0
+                    "
                     aria-hidden="true"
                   ></span>
                 }
@@ -365,8 +367,14 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                     [attr.aria-label]="panel.label | t"
                   >
                     @for (section of panel.sections; track section.label) {
-                      <div role="group" [attr.aria-labelledby]="'panel-' + panel.label + '-' + section.label">
-                        <div hlmSidebarGroupLabel [id]="'panel-' + panel.label + '-' + section.label">
+                      <div
+                        role="group"
+                        [attr.aria-labelledby]="'panel-' + panel.label + '-' + section.label"
+                      >
+                        <div
+                          hlmSidebarGroupLabel
+                          [id]="'panel-' + panel.label + '-' + section.label"
+                        >
                           {{ section.label | t }}
                         </div>
                         <ul hlmSidebarMenu>
@@ -386,7 +394,11 @@ const runtimeConfigurableModules = new Set<string>(runtimeConfigurableModuleIds)
                                 closeMobileSidebarOnClick
                                 ><ng-icon [name]="item.icon" /><span>{{ item.label | t }}</span></a
                               >
-                              @if (item.createPath && auth.has('invoicing.issue') && features.enabled('invoicing')) {
+                              @if (
+                                item.createPath &&
+                                auth.has('invoicing.issue') &&
+                                features.enabled('invoicing')
+                              ) {
                                 <button
                                   hlmSidebarMenuAction
                                   type="button"
@@ -761,22 +773,28 @@ export class App {
       createLabel: 'newInvoice',
     },
   ];
-  readonly navigationPanels = computed<{
-    label: string;
-    sections: { label: string; links: readonly PanelLink[] }[];
-    settings?: Pick<Destination, 'path' | 'label'>;
-    active: boolean;
-  }[]>(() => [
+  readonly navigationPanels = computed<
+    {
+      label: string;
+      sections: { label: string; links: readonly PanelLink[] }[];
+      settings?: Pick<Destination, 'path' | 'label'>;
+      active: boolean;
+    }[]
+  >(() => [
     ...this.moduleRailLinks()
       .filter((item) => item.path !== '/file-storage' && item.path !== '/cms' && item.hasPanel)
       .map((item) => {
-        const links: readonly PanelLink[] = item.moduleId === 'support'
-          ? this.supportLinks()
-          : item.capability === 'invoicing'
-            ? this.invoicingLinks
-            : this.organisationPanelLinks(item);
+        const links: readonly PanelLink[] =
+          item.moduleId === 'support'
+            ? this.supportLinks()
+            : item.capability === 'invoicing'
+              ? this.invoicingLinks
+              : this.organisationPanelLinks(item);
         const sections = [...new Set(links.map((link) => link.section ?? item.label))].map(
-          (label) => ({ label, links: links.filter((link) => (link.section ?? item.label) === label) }),
+          (label) => ({
+            label,
+            links: links.filter((link) => (link.section ?? item.label) === label),
+          }),
         );
         return {
           label: item.label,
@@ -810,9 +828,11 @@ export class App {
   readonly organisationRailLinks = computed<RailLink[]>(() => {
     this.navigationEnd();
     return [
-      ...organisationDestinations.map((item) => item.capability === 'invoicing'
-        ? { ...item, moduleId: 'commercial-billing', runtimeConfigurable: true }
-        : item),
+      ...organisationDestinations.map((item) =>
+        item.capability === 'invoicing'
+          ? { ...item, moduleId: 'commercial-billing', runtimeConfigurable: true }
+          : item,
+      ),
       ...this.extensions.flatMap((feature) =>
         (feature.organisationDestinations ?? []).map((item) => ({
           ...item,
@@ -940,7 +960,10 @@ export class App {
     },
   ]);
   readonly railModuleStartIndex = computed(() => {
-    if (!this.moduleRailLinks().length || this.scrollRailLinks().length === this.moduleRailLinks().length)
+    if (
+      !this.moduleRailLinks().length ||
+      this.scrollRailLinks().length === this.moduleRailLinks().length
+    )
       return -1;
     return this.scrollRailLinks().length - this.moduleRailLinks().length;
   });

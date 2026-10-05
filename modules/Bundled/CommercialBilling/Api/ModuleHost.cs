@@ -1,5 +1,6 @@
 using TemplateV4.ApiService.Endpoints;
 namespace TemplateV4.Bundled.CommercialBilling;
+
 public static class ModuleHost
 {
     public static void Map(WebApplication app)

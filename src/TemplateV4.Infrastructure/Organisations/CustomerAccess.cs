@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using TemplateV4.Application.Customers;
 using TemplateV4.Application.CommercialBilling;
+using TemplateV4.Application.Customers;
 using TemplateV4.Application.Users;
 using TemplateV4.Infrastructure.Persistence;
 

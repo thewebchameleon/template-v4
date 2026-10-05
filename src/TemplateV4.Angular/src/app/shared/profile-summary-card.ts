@@ -10,14 +10,7 @@ import { I18n, Translate, browserTimeZone } from '../core/i18n';
 
 @Component({
   selector: 'app-profile-summary-card',
-  imports: [
-    RouterLink,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmSkeletonImports,
-    Translate,
-  ],
+  imports: [RouterLink, NgIcon, HlmButtonImports, HlmCardImports, HlmSkeletonImports, Translate],
   providers: [provideIcons({ phosphorCheckCircleFill, phosphorXCircleFill })],
   template: `
     <section hlmCard aria-labelledby="profile-summary-title">
@@ -59,7 +52,9 @@ import { I18n, Translate, browserTimeZone } from '../core/i18n';
                       "
                     >
                       <ng-icon
-                        [name]="person.emailConfirmed ? 'phosphorCheckCircleFill' : 'phosphorXCircleFill'"
+                        [name]="
+                          person.emailConfirmed ? 'phosphorCheckCircleFill' : 'phosphorXCircleFill'
+                        "
                         size="1.25rem"
                         aria-hidden="true"
                       />
@@ -85,7 +80,10 @@ import { I18n, Translate, browserTimeZone } from '../core/i18n';
               <div class="grid gap-5" role="status">
                 <span class="sr-only">{{ 'loading' | t }}</span>
                 <div class="flex items-center gap-4">
-                  <div hlmSkeleton class="size-16 shrink-0 rounded-full motion-reduce:animate-none"></div>
+                  <div
+                    hlmSkeleton
+                    class="size-16 shrink-0 rounded-full motion-reduce:animate-none"
+                  ></div>
                   <div class="grid min-w-0 flex-1 gap-2">
                     <div hlmSkeleton class="h-5 w-40 max-w-full motion-reduce:animate-none"></div>
                     <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>
@@ -124,7 +122,9 @@ import { I18n, Translate, browserTimeZone } from '../core/i18n';
                 }
                 <div class="min-w-0 flex-1">
                   <p class="break-words text-lg font-semibold">{{ company.name }}</p>
-                  <div class="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <div
+                    class="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground"
+                  >
                     @if (country(); as country) {
                       <span class="inline-flex items-center gap-2">
                         <img
@@ -169,7 +169,10 @@ import { I18n, Translate, browserTimeZone } from '../core/i18n';
               <div class="grid gap-5" role="status">
                 <span class="sr-only">{{ 'loading' | t }}</span>
                 <div class="flex items-center gap-4">
-                  <div hlmSkeleton class="size-16 shrink-0 rounded-lg motion-reduce:animate-none"></div>
+                  <div
+                    hlmSkeleton
+                    class="size-16 shrink-0 rounded-lg motion-reduce:animate-none"
+                  ></div>
                   <div class="grid min-w-0 flex-1 gap-2">
                     <div hlmSkeleton class="h-5 w-40 max-w-full motion-reduce:animate-none"></div>
                     <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>

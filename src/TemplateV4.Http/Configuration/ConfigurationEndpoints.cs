@@ -1,5 +1,5 @@
-using TemplateV4.Application.Platform;
 using TemplateV4.Application.Customers;
+using TemplateV4.Application.Platform;
 using TemplateV4.Application.Users;
 
 namespace TemplateV4.ApiService.Endpoints;

@@ -32,10 +32,16 @@ public sealed class CrmDemoData(CrmDb db) : IDemoDataContributor
             if (await db.Set<CrmRecordRow>().AnyAsync(x => x.Id == id, ct)) return;
             db.Set<CrmRecordRow>().Add(new()
             {
-                Id = id, Kind = data.Kind.ToString(), Name = data.Name,
-                Email = data.Email ?? "", Phone = data.Phone ?? "",
-                Outcome = data.Outcome.ToString(), Value = data.Value ?? 0,
-                CreatedAt = now, UpdatedAt = now, Data = JsonSerializer.Serialize(data, json)
+                Id = id,
+                Kind = data.Kind.ToString(),
+                Name = data.Name,
+                Email = data.Email ?? "",
+                Phone = data.Phone ?? "",
+                Outcome = data.Outcome.ToString(),
+                Value = data.Value ?? 0,
+                CreatedAt = now,
+                UpdatedAt = now,
+                Data = JsonSerializer.Serialize(data, json)
             });
         }
         await Add(DemoDataIds.Customer, new(CrmRecordKind.Company, "Harbour & Pine Studio",

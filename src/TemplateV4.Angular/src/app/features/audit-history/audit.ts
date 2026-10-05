@@ -272,7 +272,12 @@ class RelatedRecordHeader {}
           </button>
         </div>
 
-        <app-page-state [state]="data.state()" skeleton="table" [skeletonColumns]="columns().length" [refreshError]="data.refreshError()" (retry)="load()"
+        <app-page-state
+          [state]="data.state()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
+          [refreshError]="data.refreshError()"
+          (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [rowActionLabel]="detailsLabel"

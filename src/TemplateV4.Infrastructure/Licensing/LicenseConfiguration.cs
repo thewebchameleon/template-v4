@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using TemplateV4.Application.Licensing;
-using TemplateV4.Application.Platform;
 using TemplateV4.Application.Modules;
+using TemplateV4.Application.Platform;
 
 namespace TemplateV4.Infrastructure.Licensing;
 

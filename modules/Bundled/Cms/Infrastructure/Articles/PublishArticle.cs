@@ -1,5 +1,6 @@
 using TemplateV4.Application.Cms;
 namespace TemplateV4.Infrastructure.Cms;
+
 public sealed partial class CmsStore
 {
     public async Task<Result<CmsArticle>> Publish(Guid id, PublishArticle request, CancellationToken ct)

@@ -189,7 +189,10 @@ class RolePermissionCheckbox {
                   </button>
                 </div>
               }
-              <section class="min-w-0 pt-(--card-spacing)" aria-labelledby="role-permissions-heading">
+              <section
+                class="min-w-0 pt-(--card-spacing)"
+                aria-labelledby="role-permissions-heading"
+              >
                 <div class="workspace-directory-controls">
                   <h3 class="font-semibold" id="role-permissions-heading">
                     {{ 'rolePermissions' | t }}
@@ -211,7 +214,12 @@ class RolePermissionCheckbox {
                       />
                     </div>
                     @if (permissionSearch.value()) {
-                      <button hlmBtn type="button" variant="ghost" (click)="permissionSearch.update('')">
+                      <button
+                        hlmBtn
+                        type="button"
+                        variant="ghost"
+                        (click)="permissionSearch.update('')"
+                      >
                         {{ 'clear' | t }}
                       </button>
                     }
@@ -229,7 +237,9 @@ class RolePermissionCheckbox {
                     [data]="permissionData.value()?.items ?? []"
                     [loading]="permissionData.state() === 'loading' || permissionData.refreshing()"
                     [loadingText]="'loading' | t"
-                    [emptyText]="(permissionSearch.value() ? 'permissionsSearchEmpty' : 'permissionsEmpty') | t"
+                    [emptyText]="
+                      (permissionSearch.value() ? 'permissionsSearchEmpty' : 'permissionsEmpty') | t
+                    "
                     [ariaLabel]="'rolePermissions' | t"
                     fillColumn="key"
                     [sortColumn]="permissionQuery.text('sort', 'key')"
@@ -475,7 +485,8 @@ export class RolesPanel {
       (this.description !== (role?.description ?? '') ||
         (!role?.builtIn &&
           (this.name !== (role?.name ?? '') ||
-            [...this.permissions()].sort().join() !== [...(role?.permissions ?? [])].sort().join())))
+            [...this.permissions()].sort().join() !==
+              [...(role?.permissions ?? [])].sort().join())))
     );
   }
   beforeUnload(event: BeforeUnloadEvent) {

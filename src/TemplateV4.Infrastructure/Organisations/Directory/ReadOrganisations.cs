@@ -1,6 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Customers;
 using TemplateV4.Application.Users;
-using Microsoft.EntityFrameworkCore;
 
 namespace TemplateV4.Infrastructure.Customers;
 

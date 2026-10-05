@@ -246,12 +246,22 @@ export class PageHeader {
     HlmAlertImports,
   ],
   template: ` @if (state() === 'loading' && showInitialSkeleton()) {
-      <div class="workspace-skeleton" [class.workspace-skeleton-table]="skeleton() === 'table'" role="status" aria-live="polite">
+      <div
+        class="workspace-skeleton"
+        [class.workspace-skeleton-table]="skeleton() === 'table'"
+        role="status"
+        aria-live="polite"
+      >
         <span class="sr-only">{{ 'loading' | t }}</span>
         @switch (skeleton()) {
           @case ('table') {
             <div class="-mx-(--card-spacing) border-y">
-              <div class="grid items-center gap-4 border-b px-(--card-spacing) py-3" [style.grid-template-columns]="'repeat(' + tableSkeletonColumns().length + ', minmax(0, 1fr))'">
+              <div
+                class="grid items-center gap-4 border-b px-(--card-spacing) py-3"
+                [style.grid-template-columns]="
+                  'repeat(' + tableSkeletonColumns().length + ', minmax(0, 1fr))'
+                "
+              >
                 @for (column of tableSkeletonColumns(); track column) {
                   <div hlmSkeleton class="h-5 w-2/3 motion-reduce:animate-none"></div>
                 }
@@ -313,7 +323,9 @@ export class PageHeader {
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               @for (card of cardSkeletonSlots(); track card) {
                 <section hlmCard>
-                  <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
+                  <div hlmCardHeader>
+                    <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                  </div>
                   <div hlmCardContent class="grid gap-3">
                     <div hlmSkeleton class="h-9 w-20 motion-reduce:animate-none"></div>
                     <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
@@ -325,7 +337,9 @@ export class PageHeader {
           @case ('summary-cards') {
             <div class="grid gap-6">
               <section hlmCard>
-                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardHeader>
+                  <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                </div>
                 <div hlmCardContent class="grid gap-3">
                   <div hlmSkeleton class="h-4 w-2/3 motion-reduce:animate-none"></div>
                   <div hlmSkeleton class="h-4 w-1/2 motion-reduce:animate-none"></div>
@@ -334,8 +348,12 @@ export class PageHeader {
               <div class="grid gap-6 md:grid-cols-3">
                 @for (card of cardSkeletonSlots(); track card) {
                   <section hlmCard>
-                    <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
-                    <div hlmCardContent><div hlmSkeleton class="h-8 w-24 motion-reduce:animate-none"></div></div>
+                    <div hlmCardHeader>
+                      <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                    </div>
+                    <div hlmCardContent>
+                      <div hlmSkeleton class="h-8 w-24 motion-reduce:animate-none"></div>
+                    </div>
                   </section>
                 }
               </div>
@@ -343,7 +361,9 @@ export class PageHeader {
           }
           @case ('card') {
             <section hlmCard>
-              <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+              <div hlmCardHeader>
+                <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+              </div>
               <div hlmCardContent class="grid gap-3">
                 <div hlmSkeleton class="h-5 w-2/3 motion-reduce:animate-none"></div>
                 <div hlmSkeleton class="h-5 w-1/2 motion-reduce:animate-none"></div>
@@ -370,21 +390,31 @@ export class PageHeader {
               <div class="workspace-stack">
                 @for (card of [1, 2]; track card) {
                   <section hlmCard>
-                    <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
-                    <div hlmCardContent><div hlmSkeleton class="h-16 w-full motion-reduce:animate-none"></div></div>
+                    <div hlmCardHeader>
+                      <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                    </div>
+                    <div hlmCardContent>
+                      <div hlmSkeleton class="h-16 w-full motion-reduce:animate-none"></div>
+                    </div>
                   </section>
                 }
               </div>
               <section hlmCard>
-                <div hlmCardHeader><div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div></div>
-                <div hlmCardContent><div hlmSkeleton class="h-32 w-full motion-reduce:animate-none"></div></div>
+                <div hlmCardHeader>
+                  <div hlmSkeleton class="h-5 w-32 motion-reduce:animate-none"></div>
+                </div>
+                <div hlmCardContent>
+                  <div hlmSkeleton class="h-32 w-full motion-reduce:animate-none"></div>
+                </div>
               </section>
             </div>
           }
           @case ('split') {
             <div class="grid gap-6 lg:grid-cols-2">
               <section hlmCard>
-                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardHeader>
+                  <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                </div>
                 <div hlmCardContent class="grid gap-3">
                   @for (row of [1, 2]; track row) {
                     <div hlmSkeleton class="h-9 w-full motion-reduce:animate-none"></div>
@@ -392,7 +422,9 @@ export class PageHeader {
                 </div>
               </section>
               <section hlmCard>
-                <div hlmCardHeader><div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div></div>
+                <div hlmCardHeader>
+                  <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
+                </div>
                 <div hlmCardContent class="grid gap-4">
                   <div hlmSkeleton class="h-10 w-full motion-reduce:animate-none"></div>
                   <div hlmSkeleton class="h-12 w-full motion-reduce:animate-none"></div>
@@ -413,7 +445,9 @@ export class PageHeader {
             </div>
           }
           @case ('empty') {
-            <div class="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border px-4 py-8">
+            <div
+              class="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border px-4 py-8"
+            >
               <div hlmSkeleton class="h-10 w-10 rounded-full motion-reduce:animate-none"></div>
               <div hlmSkeleton class="h-5 w-40 motion-reduce:animate-none"></div>
               <div hlmSkeleton class="h-4 w-56 max-w-full motion-reduce:animate-none"></div>

@@ -225,10 +225,7 @@
     box-shadow: var(--shadow-sm);
     opacity: var(--sidebar-selection-opacity, 0);
     pointer-events: none;
-    transform: translate(
-      var(--sidebar-selection-x, 0),
-      var(--sidebar-selection-y, 0)
-    );
+    transform: translate(var(--sidebar-selection-x, 0), var(--sidebar-selection-y, 0));
   }
   [appSidebarSelectionIndicator] [data-sidebar='menu-button'] {
     position: relative;

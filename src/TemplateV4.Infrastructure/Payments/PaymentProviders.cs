@@ -223,7 +223,8 @@ public sealed class PayFastPaymentProvider(HttpClient http, IConfiguration confi
         if (!Guid.TryParse(token, out _)) throw new PaymentProviderException();
         var fields = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
-            ["merchant-id"] = PaymentHttp.Required(config, "Payments:PayFast:MerchantId"), ["version"] = "v1",
+            ["merchant-id"] = PaymentHttp.Required(config, "Payments:PayFast:MerchantId"),
+            ["version"] = "v1",
             ["timestamp"] = time.GetUtcNow().ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture),
             ["passphrase"] = PaymentHttp.Required(config, "Payments:PayFast:Passphrase")
         };

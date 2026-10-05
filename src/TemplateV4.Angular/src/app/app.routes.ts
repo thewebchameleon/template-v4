@@ -6,7 +6,12 @@ import { backgroundJobTranslations } from './features/operations/background-job-
 import { customerTranslations } from './features/organisations/customer-resolver';
 import { businessTranslations } from './core/business-translations';
 import { administrationLandingGuard, peopleLandingGuard } from './core/administration';
-import { destinationGuard, workspaceDestinations, administrationDestinations, userManagementDestinations } from './core/destinations';
+import {
+  destinationGuard,
+  workspaceDestinations,
+  administrationDestinations,
+  userManagementDestinations,
+} from './core/destinations';
 import { moduleSettingsTranslations } from './features/modules/module-settings-resolver';
 import { apiKeyTranslations } from './features/api-keys/api-key-resolver';
 import { privateModuleTranslations } from './features/private-modules/private-module-resolver';
@@ -16,7 +21,7 @@ import { authGuard, mfaSetupGuard } from './core/auth';
 import { unsavedGuard } from './shared/confirmation';
 import { bootstrapLandingGuard, bootstrapLoginGuard } from './core/bootstrap';
 export const routes: Routes = [
-  ...bundledFeatures.flatMap(feature => feature.routes),
+  ...bundledFeatures.flatMap((feature) => feature.routes),
   {
     path: 'organisation/crm/configuration',
     redirectTo: ({ queryParams, fragment }) =>
@@ -295,14 +300,15 @@ export const routes: Routes = [
     path: 'administration',
     data: { breadcrumb: 'administration' },
     canActivate: [authGuard],
-    children: [...bundledFeatures.flatMap(feature => feature.administrationRoutes ?? []),
-{
+    children: [
+      ...bundledFeatures.flatMap((feature) => feature.administrationRoutes ?? []),
+      {
         path: 'organisation',
         redirectTo: 'branding',
         pathMatch: 'full',
       },
-{ path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
-{
+      { path: '', pathMatch: 'full', canActivate: [administrationLandingGuard], children: [] },
+      {
         path: 'private-modules',
         resolve: { privateModuleTranslations },
         data: { breadcrumb: 'privateModules', permission: 'settings.manage' },
@@ -310,21 +316,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/private-modules/private-modules').then((m) => m.PrivateModulesPage),
       },
-{
+      {
         path: 'api-keys',
         resolve: { apiKeyTranslations },
         data: { breadcrumb: 'apiKeys', permission: 'api-keys.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.apiKeys)],
         loadComponent: () => import('./features/api-keys/api-keys').then((m) => m.ApiKeysPage),
       },
-{
+      {
         path: 'modules',
         resolve: { moduleSettingsTranslations },
         data: { breadcrumb: 'modules', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.modules)],
         loadComponent: () => import('./features/modules/modules').then((m) => m.ModulesPage),
       },
-{
+      {
         path: 'payment-methods',
         canDeactivate: [unsavedGuard],
         resolve: { customerTranslations, businessTranslations },
@@ -335,7 +341,7 @@ export const routes: Routes = [
             (m) => m.PaymentMethodSettingsPage,
           ),
       },
-{
+      {
         path: 'branding',
         resolve: { customerTranslations },
         data: { breadcrumb: 'configuration', permission: 'settings.manage' },
@@ -344,13 +350,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/configuration/configuration').then((m) => m.ConfigurationPage),
       },
-{
+      {
         path: 'audit-history',
         data: { breadcrumb: 'auditHistory', permission: 'settings.manage' },
         canActivate: [authGuard, destinationGuard(administrationDestinations.auditHistory)],
         loadComponent: () => import('./features/audit-history/audit').then((m) => m.AuditPage),
       },
-{
+      {
         path: 'background-jobs',
         resolve: { backgroundJobTranslations },
         data: { breadcrumb: 'backgroundJobs', permission: 'settings.manage' },
@@ -358,14 +364,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/operations/background-jobs').then((m) => m.BackgroundJobsPage),
       },
-{
+      {
         path: 'system-health',
         resolve: { updateTranslations },
         data: { breadcrumb: 'systemHealth', permissions: ['settings.manage', 'jobs.trigger'] },
         canActivate: [authGuard, destinationGuard(administrationDestinations.operations)],
         loadComponent: () =>
           import('./features/operations/operations').then((m) => m.OperationsPage),
-      }],
+      },
+    ],
   },
   {
     path: 'forbidden',

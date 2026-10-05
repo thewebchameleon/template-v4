@@ -49,8 +49,14 @@ public sealed partial class ContentStore(CmsDb db, IExecutionContext context, IC
         await Modules.ModuleActivationStore.LockRows(db, ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(74842001)", ct);
     }
-    private void Audit(Guid id, string action) => db.Audit.Add(new() { ActorId = context.ActorId, SubjectId = id,
-        SubjectType = "cms.content", Action = action, At = time.GetUtcNow() });
+    private void Audit(Guid id, string action) => db.Audit.Add(new()
+    {
+        ActorId = context.ActorId,
+        SubjectId = id,
+        SubjectType = "cms.content",
+        Action = action,
+        At = time.GetUtcNow()
+    });
     private async Task<ContentCollection> View(ContentCollectionRow row, CancellationToken ct) => new(row.Key, row.Label, row.Version,
         Decode<ContentField[]>(row.Fields), Decode<ContentWorkflow>(row.Workflow), row.PublicRead, await Actions(row.Key, ct),
         context.Permissions.Contains(Permissions.Roles) ? await db.Set<ContentGrantRow>().Where(x => x.Collection == row.Key)

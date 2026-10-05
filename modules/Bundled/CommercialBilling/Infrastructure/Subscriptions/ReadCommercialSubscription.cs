@@ -27,10 +27,10 @@ public sealed partial class CommercialBillingStore
                                        select claim.Id).AnyAsync(ct);
         var invoiceRows = canReadFinancials ? await db.Set<CommercialBillingInvoiceRow>().AsNoTracking().Where(x => x.CustomerId == CustomerId).OrderByDescending(x => x.IssuedAt).Take(50).ToArrayAsync(ct) : [];
         var receiptRows = canReadFinancials ? await (from receipt in db.Set<PaymentReceiptRow>().AsNoTracking()
-                                 join payment in db.Set<PaymentOrderRow>().AsNoTracking() on receipt.PaymentOrderId equals payment.Id
-                                 where payment.CustomerId == CustomerId
-                                 orderby receipt.SettledAt descending
-                                 select receipt).Take(50).ToArrayAsync(ct) : [];
+                                                     join payment in db.Set<PaymentOrderRow>().AsNoTracking() on receipt.PaymentOrderId equals payment.Id
+                                                     where payment.CustomerId == CustomerId
+                                                     orderby receipt.SettledAt descending
+                                                     select receipt).Take(50).ToArrayAsync(ct) : [];
         var entitlementRows = await db.Set<CommercialEntitlementRow>().AsNoTracking().Where(x => x.CustomerId == CustomerId).ToArrayAsync(ct);
         var usageRows = await db.Set<CommercialUsageCounterRow>().AsNoTracking().Where(x => x.CustomerId == CustomerId && x.PeriodEnd > time.GetUtcNow()).ToArrayAsync(ct);
         var now = time.GetUtcNow();

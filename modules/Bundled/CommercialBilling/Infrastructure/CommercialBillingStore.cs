@@ -30,7 +30,11 @@ public sealed partial class CommercialBillingStore(
 
     private void Audit(Guid? actor, Guid customer, string action) => db.Audit.Add(new()
     {
-        ActorId = actor, SubjectId = customer, SubjectType = "commercial-subscription", Action = action, At = time.GetUtcNow()
+        ActorId = actor,
+        SubjectId = customer,
+        SubjectType = "commercial-subscription",
+        Action = action,
+        At = time.GetUtcNow()
     });
 
     private async Task<(CommercialPlanRow Plan, CommercialPlanPriceRow Price)[]> Plans(CancellationToken ct)

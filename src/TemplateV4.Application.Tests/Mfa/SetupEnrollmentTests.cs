@@ -1,5 +1,5 @@
-using TemplateV4.Infrastructure.Security;
 using TemplateV4.Infrastructure.Persistence;
+using TemplateV4.Infrastructure.Security;
 using Xunit;
 
 namespace TemplateV4.Application.Tests.Mfa;

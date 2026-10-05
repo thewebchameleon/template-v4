@@ -49,7 +49,13 @@ export function foundationConfig(features: readonly FoundationFeature[] = []): A
         inject(UiSounds);
         const runtime = inject(Runtime);
         const appearance = inject(PlatformAppearanceTheme);
-        return Promise.all([runtime.load().then(() => appearance.load()), Promise.resolve(businessTranslations({} as never, {} as never)), import('../../../../modules/Bundled/FileStorage/Frontend/file-storage-translations').then(m => Object.assign(dictionary, m.fileStorageDictionary))]).then(() => undefined);
+        return Promise.all([
+          runtime.load().then(() => appearance.load()),
+          Promise.resolve(businessTranslations({} as never, {} as never)),
+          import('../../../../modules/Bundled/FileStorage/Frontend/file-storage-translations').then(
+            (m) => Object.assign(dictionary, m.fileStorageDictionary),
+          ),
+        ]).then(() => undefined);
       }),
     ],
   };
