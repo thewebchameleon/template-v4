@@ -35,6 +35,7 @@ import { Resource, WorkspaceUi } from '../../shared/workspace';
       lucideBoxes,
       lucideCar,
       lucideContactRound,
+      lucideCreditCard,
       lucideFileSpreadsheet,
       lucideFolderOpen,
       lucideLifeBuoy,

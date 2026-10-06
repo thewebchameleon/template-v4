@@ -23,11 +23,15 @@ public sealed class ClientModuleTests
         configuration["ClientModules:identity"] = "false";
         Assert.Throws<InvalidOperationException>(() => ModuleConfiguration.Load(configuration));
         configuration["ClientModules:identity"] = null;
-        var invalid = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var withoutCrm = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         { ["ClientModules:crm"] = "false" }).Build();
-        Assert.Throws<InvalidOperationException>(() => ModuleConfiguration.Load(invalid));
-        invalid["ClientModules:invoicing"] = "false";
-        Assert.False(ModuleConfiguration.Load(invalid).Enabled("crm"));
+        var selected = ModuleConfiguration.Load(withoutCrm);
+        Assert.False(selected.Enabled("crm"));
+        var capabilities = selected.Evaluate(new Dictionary<string, bool> { ["commercial-billing"] = true }, _ => true);
+        Assert.True(capabilities["commercial-billing"]);
+        Assert.False(capabilities["invoicing"]);
+        Assert.Throws<InvalidOperationException>(() => ModuleConfiguration.Load(withoutCrm,
+            [new("crm-dependent", false, true, ["crm"], Category: "private")]));
         Assert.Throws<InvalidOperationException>(() => new ModuleCatalog([new("invalid", false, true, [], true, Category: "core")], new Dictionary<string, bool>()));
     }
 }
