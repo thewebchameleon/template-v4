@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Modules;
 namespace TemplateV4.Infrastructure.Persistence;
+
 public sealed class InvoicingMigrations(InvoicingDb db) : IMigrationContributor
 {
     public string ModuleId => "commercial-billing";

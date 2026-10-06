@@ -100,7 +100,8 @@ type MfaProfile = ProfileResponse & {
                   @for (method of authenticationMethods; track method) {
                     @if (!user.mfaMethods.includes(method)) {
                       <li [id]="'preferred-method-reason-' + method">
-                        {{ methodLabel(method) | t }}: {{ methodUnavailableReason(method, user) | t }}
+                        {{ methodLabel(method) | t }}:
+                        {{ methodUnavailableReason(method, user) | t }}
                       </li>
                     }
                   }
@@ -190,7 +191,9 @@ type MfaProfile = ProfileResponse & {
           </div>
         </section>
       </div>
-      @if (action() && action() !== 'enroll' && action() !== 'register' && action() !== 'recovery') {
+      @if (
+        action() && action() !== 'enroll' && action() !== 'register' && action() !== 'recovery'
+      ) {
         <section
           class="mt-6 grid max-w-(--form-content-width) gap-4 rounded-md border p-4"
           aria-labelledby="proof-title"
@@ -257,7 +260,9 @@ type MfaProfile = ProfileResponse & {
           </hlm-dialog-header>
           <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             @for (item of codes(); track item) {
-              <li><code>{{ item }}</code></li>
+              <li>
+                <code>{{ item }}</code>
+              </li>
             }
           </ul>
           <hlm-dialog-footer>

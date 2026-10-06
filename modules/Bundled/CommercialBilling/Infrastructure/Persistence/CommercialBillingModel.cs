@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 namespace TemplateV4.Infrastructure.Persistence;
+
 public static class CommercialBillingModel
 {
     public static void Configure(ModelBuilder model)

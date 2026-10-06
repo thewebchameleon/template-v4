@@ -14,7 +14,8 @@ public sealed partial class CmsStore(CmsDb db, IExecutionContext context, ICapab
 {
     public CmsStore(CmsDb db, IExecutionContext context, ICapabilities capabilities, TimeProvider time)
         : this(db, context, capabilities, time, new ContentStore(db, context, capabilities, new ActionItemsService(db, time), time,
-            new Security.AccessManagementService(db, context, time, [new CmsRoleDelegation(db)]), new Storage.FileReferences(db, time))) { }
+            new Security.AccessManagementService(db, context, time, [new CmsRoleDelegation(db)]), new Storage.FileReferences(db, time)))
+    { }
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private IQueryable<ArticleRow> Rows => db.Set<ArticleRow>();
     private static ArticleContent Content(string value) => JsonSerializer.Deserialize<ArticleContent>(value, Json)!;

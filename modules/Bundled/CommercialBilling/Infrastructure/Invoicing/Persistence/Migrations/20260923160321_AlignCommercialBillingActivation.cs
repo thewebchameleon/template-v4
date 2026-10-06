@@ -1,22 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TemplateV4.CommercialBilling.Infrastructure.Invoicing.Persistence.Migrations
+namespace TemplateV4.CommercialBilling.Infrastructure.Invoicing.Persistence.Migrations;
+
+/// <inheritdoc />
+public partial class AlignCommercialBillingActivation : Migration
 {
     /// <inheritdoc />
-    public partial class AlignCommercialBillingActivation : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            // The core migration owns the activation merge. This migration aligns the inherited model snapshot.
-        }
+        // The core migration owns the activation merge. This migration aligns the inherited model snapshot.
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

@@ -26,20 +26,36 @@ public sealed class CmsDemoData(CmsDb db) : IDemoDataContributor
         var revisionId = Guid.NewGuid();
         db.Set<ContentItemRow>().Add(new()
         {
-            Id = DemoDataIds.Article, Collection = "articles", DraftRevisionId = revisionId,
-            PublishedRevisionId = revisionId, Title = article.Title, State = "Published",
-            UpdatedAt = now, PublishedAt = now, PublishedUpdatedAt = now
+            Id = DemoDataIds.Article,
+            Collection = "articles",
+            DraftRevisionId = revisionId,
+            PublishedRevisionId = revisionId,
+            Title = article.Title,
+            State = "Published",
+            UpdatedAt = now,
+            PublishedAt = now,
+            PublishedUpdatedAt = now
         });
         db.Set<ContentRevisionRow>().Add(new()
         {
-            Id = revisionId, ItemId = DemoDataIds.Article, SchemaId = collection.Version,
-            AuthorId = DemoDataIds.Participant, Values = json, CreatedAt = now
+            Id = revisionId,
+            ItemId = DemoDataIds.Article,
+            SchemaId = collection.Version,
+            AuthorId = DemoDataIds.Participant,
+            Values = json,
+            CreatedAt = now
         });
         db.Set<ArticleRow>().Add(new()
         {
-            Id = DemoDataIds.Article, Slug = article.Slug, Title = article.Title,
-            Draft = json, PublishedContent = json, Published = true,
-            UpdatedAt = now, PublishedAt = now, PublishedUpdatedAt = now
+            Id = DemoDataIds.Article,
+            Slug = article.Slug,
+            Title = article.Title,
+            Draft = json,
+            PublishedContent = json,
+            Published = true,
+            UpdatedAt = now,
+            PublishedAt = now,
+            PublishedUpdatedAt = now
         });
         await db.SaveChangesAsync(ct);
     }

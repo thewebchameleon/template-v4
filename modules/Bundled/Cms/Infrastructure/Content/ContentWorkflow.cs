@@ -25,8 +25,15 @@ public sealed partial class ContentStore
             case "submit":
                 if (row.State != "Draft") return Invalid<ContentItem>("cms.workflow_state");
                 // Each submission has an immutable revision, even when resubmitting unchanged content.
-                var submitted = new ContentRevisionRow { ItemId = row.Id, SchemaId = revision.SchemaId, AuthorId = revision.AuthorId ?? context.ActorId,
-                    Values = revision.Values, Workflow = Encode(workflow), CreatedAt = time.GetUtcNow() };
+                var submitted = new ContentRevisionRow
+                {
+                    ItemId = row.Id,
+                    SchemaId = revision.SchemaId,
+                    AuthorId = revision.AuthorId ?? context.ActorId,
+                    Values = revision.Values,
+                    Workflow = Encode(workflow),
+                    CreatedAt = time.GetUtcNow()
+                };
                 db.Add(submitted);
                 var links = await db.Set<ContentRelationRow>().Where(x => x.RevisionId == revision.Id).ToArrayAsync(ct);
                 db.AddRange(links.Select(x => new ContentRelationRow { RevisionId = submitted.Id, TargetId = x.TargetId, Path = x.Path }));
@@ -50,7 +57,8 @@ public sealed partial class ContentStore
                     row.State = "InReview";
                 }
                 break;
-            case "approve": case "changes":
+            case "approve":
+            case "changes":
                 if (row.State != "InReview" || revision.AuthorId == context.ActorId) return Invalid<ContentItem>("cms.workflow_state");
                 var reviewRow = await db.Set<ContentReviewRow>().SingleOrDefaultAsync(x => x.RevisionId == revision.Id && x.ReviewerId == context.ActorId && x.State == "Pending", ct);
                 if (reviewRow is null) return Denied<ContentItem>();

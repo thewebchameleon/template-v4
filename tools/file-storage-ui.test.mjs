@@ -56,16 +56,18 @@ test("submenu keeps every file group visible regardless of its file count", () =
   );
 });
 
-test("group folders require direct files rather than nested folders", () => {
+test("group folders show only folders with direct files outside the main library", () => {
   const folders = [
     { id: "empty", fileCount: 0, itemCount: 0 },
     { id: "nested-only", fileCount: 0, itemCount: 1 },
     { id: "with-file", fileCount: 1, itemCount: 1 },
   ];
   assert.deepEqual(
-    filterVisibleFileFolders("recent", folders).map((entry) => entry.id),
+    filterVisibleFileFolders("shared", folders).map((entry) => entry.id),
     ["with-file"],
   );
+  for (const group of ["recent", "important", "starred"])
+    assert.equal(filterVisibleFileFolders(group, folders).length, 0);
   assert.deepEqual(
     filterVisibleFileFolders("file-storage", folders).map((entry) => entry.id),
     ["empty", "nested-only", "with-file"],

@@ -29,10 +29,12 @@ public sealed partial class ContentStore
         {
             "title" => published ? "coalesce(r.\"Values\" ->> 'title', r.\"Values\" ->> 'name', i.\"Id\"::text)" : "i.\"Title\"",
             "updatedAt" => published ? "i.\"PublishedUpdatedAt\"" : "i.\"UpdatedAt\"",
-            "state" => "i.\"State\"", "published" => "i.\"PublishedRevisionId\" IS NOT NULL",
+            "state" => "i.\"State\"",
+            "published" => "i.\"PublishedRevisionId\" IS NOT NULL",
             _ => fields.Single(x => x.Key == q.Sort).Type switch
             {
-                "number" => "(r.\"Values\" ->> @sort)::numeric", "boolean" => "(r.\"Values\" ->> @sort)::boolean",
+                "number" => "(r.\"Values\" ->> @sort)::numeric",
+                "boolean" => "(r.\"Values\" ->> @sort)::boolean",
                 _ => "r.\"Values\" ->> @sort"
             }
         };

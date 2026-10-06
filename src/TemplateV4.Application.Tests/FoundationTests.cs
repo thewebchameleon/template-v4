@@ -1,12 +1,12 @@
-using TemplateV4.Application;
-using TemplateV4.Application.Users;
-using TemplateV4.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using TemplateV4.ApiService.Endpoints;
+using TemplateV4.Application;
+using TemplateV4.Application.Users;
+using TemplateV4.Domain.Users;
 using TemplateV4.Infrastructure;
 using Xunit;
 

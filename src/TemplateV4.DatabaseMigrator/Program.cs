@@ -75,8 +75,10 @@ try
             row.Version = Guid.NewGuid();
             db.Audit.Add(new()
             {
-                Action = "module." + row.Id + "_enabled", Source = "migrator",
-                SubjectType = "module", SubjectNameSnapshot = row.Id,
+                Action = "module." + row.Id + "_enabled",
+                Source = "migrator",
+                SubjectType = "module",
+                SubjectNameSnapshot = row.Id,
                 ChangesJson = AuditCapture.Changes(new AuditChange("enabled", "False", "True")),
                 At = DateTimeOffset.UtcNow
             });
@@ -85,8 +87,10 @@ try
     if (fileSettings.DemoMode != demoMode)
         db.Audit.Add(new()
         {
-            Action = "module.file-storage_demo_changed", Source = "migrator",
-            SubjectType = "module", SubjectNameSnapshot = "file-storage",
+            Action = "module.file-storage_demo_changed",
+            Source = "migrator",
+            SubjectType = "module",
+            SubjectNameSnapshot = "file-storage",
             ChangesJson = AuditCapture.Changes(new AuditChange("demoMode", fileSettings.DemoMode.ToString(), demoMode.ToString())),
             At = DateTimeOffset.UtcNow
         });

@@ -40,10 +40,17 @@ public sealed partial class CommercialBillingStore
                 return Result<PaymentCheckout>.Fail("commercial-billing.checkout_expired", ErrorKind.Conflict);
             order = previous ?? new()
             {
-                Id = request.RequestId, CustomerId = CustomerId, PlanId = plan.Id, PlanPriceId = price.Id,
-                Description = plan.Name, Provider = request.Provider, Interval = request.Interval, Currency = price.Currency,
+                Id = request.RequestId,
+                CustomerId = CustomerId,
+                PlanId = plan.Id,
+                PlanPriceId = price.Id,
+                Description = plan.Name,
+                Provider = request.Provider,
+                Interval = request.Interval,
+                Currency = price.Currency,
                 UnitMinor = request.Interval == "month" ? price.MonthlyMinor : price.YearlyMinor,
-                Quantity = quantity, CreatedAt = time.GetUtcNow()
+                Quantity = quantity,
+                CreatedAt = time.GetUtcNow()
             };
             if (previous is null)
             {
@@ -54,9 +61,13 @@ public sealed partial class CommercialBillingStore
                 subscription.TrialUntil = null; subscription.PaidUntil = null;
                 db.Add(new CommercialBillingInvoiceRow
                 {
-                    Id = Guid.NewGuid(), CustomerId = CustomerId, PaymentOrderId = order.Id,
+                    Id = Guid.NewGuid(),
+                    CustomerId = CustomerId,
+                    PaymentOrderId = order.Id,
                     Number = $"CB-{time.GetUtcNow():yyyyMM}-{order.Id.ToString("N")[..8].ToUpperInvariant()}",
-                    Currency = order.Currency, TotalMinor = checked(order.UnitMinor * order.Quantity), IssuedAt = time.GetUtcNow()
+                    Currency = order.Currency,
+                    TotalMinor = checked(order.UnitMinor * order.Quantity),
+                    IssuedAt = time.GetUtcNow()
                 });
                 Audit(actor, CustomerId, "commercial-billing.checkout_requested"); await db.SaveChangesAsync(ct);
             }

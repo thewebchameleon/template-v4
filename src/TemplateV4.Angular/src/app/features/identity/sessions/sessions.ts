@@ -79,7 +79,12 @@ const auditColumn = createColumnHelper<DataTableFeatures, SessionAuditItem>();
             [placeholder]="'searchSessions' | t"
           />
         </div>
-        <app-page-state [state]="data.state()" skeleton="table" [skeletonColumns]="columns().length" [refreshError]="data.refreshError()" (retry)="load()"
+        <app-page-state
+          [state]="data.state()"
+          skeleton="table"
+          [skeletonColumns]="columns().length"
+          [refreshError]="data.refreshError()"
+          (retry)="load()"
           ><app-data-table
             [columns]="columns()"
             [rowActionLabel]="detailsLabel"
@@ -137,7 +142,9 @@ const auditColumn = createColumnHelper<DataTableFeatures, SessionAuditItem>();
                 </div>
                 <div class="grid gap-1">
                   <dt class="text-muted-foreground">{{ 'status' | t }}</dt>
-                  <dd class="font-medium">{{ (session.current ? 'currentSession' : 'active') | t }}</dd>
+                  <dd class="font-medium">
+                    {{ (session.current ? 'currentSession' : 'active') | t }}
+                  </dd>
                 </div>
                 <div class="grid gap-1">
                   <dt class="text-muted-foreground">{{ 'lastActivity' | t }}</dt>

@@ -64,34 +64,38 @@ test('known disable blockers prevent posting an invalid activation change', asyn
   await page.save({ ...activation(), disableBlockers: ['invoicing'] }, false);
 });
 
-test('demo cancellation sends no request; enabling sends proof once and clears it', async () => {
+test('file storage settings save preserves server-controlled demo mode', async () => {
   const requests = [];
-  let settings = { demoMode: false, slowUploadMode: false, version: 'first', demoExpiryMinutes: 60 };
+  let settings = { demoMode: true, slowUploadMode: false, version: 'first' };
   const editor = harness('file-storage-settings-editor', 'FileStorageSettingsEditor', {
     get: async () => settings,
-    post: async (_path, body) => { requests.push(body); settings = { ...settings, demoMode: body.demoMode, version: 'saved' }; return settings; },
+    post: async (_path, body) => { requests.push(body); settings = { ...settings, slowUploadMode: body.slowUploadMode, version: 'saved' }; return settings; },
   });
-  await editor.load(); editor.demoMode = true; editor.toggleDemo(true); editor.password = 'not-submitted'; editor.close();
-  assert.equal(requests.length, 0); assert.equal(editor.password, ''); assert.equal(editor.data.value().demoMode, false);
-  assert.equal(editor.demoMode, false);
-  editor.toggleDemo(true); editor.password = 'test-proof'; await editor.enableDemo();
-  assert.equal(requests.length, 1); assert.equal(requests[0].password, 'test-proof');
-  assert.equal(editor.password, ''); assert.equal(editor.confirming(), false);
+  await editor.load(); await editor.save(true);
+  assert.equal(requests.length, 1);
+  assert.equal(JSON.stringify(requests[0]), JSON.stringify({ demoMode: true, slowUploadMode: true, version: 'first' }));
   assert.equal(editor.data.value().demoMode, true);
+  assert.equal(editor.data.value().slowUploadMode, true);
 });
 
-test('failed demo proof leaves activation unchanged and a stale settings version reloads without retrying', async () => {
-  let status = 403, calls = 0;
-  let settings = { demoMode: false, slowUploadMode: false, version: 'first' };
+test('a stale file storage settings save reloads current state without retrying', async () => {
+  let calls = 0, loads = 0;
+  let settings = { demoMode: true, slowUploadMode: false, version: 'first' };
   const editor = harness('file-storage-settings-editor', 'FileStorageSettingsEditor', {
-    get: async () => settings,
-    post: async () => { calls++; throw new HttpErrorResponse(status); },
+    get: async () => { loads++; return settings; },
+    post: async () => {
+      calls++;
+      settings = { demoMode: false, slowUploadMode: true, version: 'other-admin' };
+      throw new HttpErrorResponse(409);
+    },
   });
-  await editor.load(); editor.demoMode = true; editor.toggleDemo(true); editor.password = 'wrong'; await editor.enableDemo();
-  assert.equal(editor.data.value().demoMode, false); assert.equal(editor.failed(), true); assert.equal(editor.password, '');
-  assert.equal(editor.demoMode, false);
-  status = 409; settings = { ...settings, version: 'other-admin' };
-  editor.password = 'test-proof'; await editor.enableDemo();
-  assert.equal(calls, 2); assert.equal(editor.conflict(), true); assert.equal(editor.confirming(), false);
+  await editor.load();
+  const initialLoads = loads;
+  await editor.save(true);
+  assert.equal(calls, 1);
+  assert.equal(loads, initialLoads + 1);
+  assert.equal(editor.conflict(), true);
   assert.equal(editor.data.value().version, 'other-admin');
+  assert.equal(editor.data.value().demoMode, false);
+  assert.equal(editor.data.value().slowUploadMode, true);
 });

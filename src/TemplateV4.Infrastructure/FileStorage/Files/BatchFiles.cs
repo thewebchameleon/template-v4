@@ -78,10 +78,18 @@ public sealed partial class FileStorageService
                 if (root) names.Add(name);
                 var copy = new StoredFile
                 {
-                    Id = map[source.Id], OwnerId = actor, ParentId = root ? request.ParentId : map[source.ParentId!.Value],
-                    IsFolder = source.IsFolder, Name = name,
-                    Important = source.Important, Starred = source.Starred, ContentType = source.ContentType,
-                    Size = source.Size, CreatedAt = now, UpdatedAt = now, Ready = false
+                    Id = map[source.Id],
+                    OwnerId = actor,
+                    ParentId = root ? request.ParentId : map[source.ParentId!.Value],
+                    IsFolder = source.IsFolder,
+                    Name = name,
+                    Important = source.Important,
+                    Starred = source.Starred,
+                    ContentType = source.ContentType,
+                    Size = source.Size,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    Ready = false
                 };
                 copies.Add((source, copy)); db.Files.Add(copy);
             }

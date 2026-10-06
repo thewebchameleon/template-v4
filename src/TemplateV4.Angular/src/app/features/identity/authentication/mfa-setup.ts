@@ -165,7 +165,13 @@ import { Notifications } from '../../notifications/notifications';
             {{ 'confirmFactor' | t }}
           </button>
         </form>
-        <button hlmBtn type="button" variant="link" [disabled]="busy()" (click)="chooseAnotherMethod()">
+        <button
+          hlmBtn
+          type="button"
+          variant="link"
+          [disabled]="busy()"
+          (click)="chooseAnotherMethod()"
+        >
           {{ 'chooseAnotherMethod' | t }}
         </button>
       } @else {

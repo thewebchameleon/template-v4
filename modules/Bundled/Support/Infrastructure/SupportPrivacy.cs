@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Privacy;
 using TemplateV4.Infrastructure.Persistence;
 namespace TemplateV4.Infrastructure.Support;
+
 public sealed class SupportPrivacy(SupportDb db) : IPrivacyContributor
 {
     public async Task<IReadOnlyDictionary<string, object?>> Export(Guid actor, CancellationToken ct)
@@ -15,12 +16,12 @@ public sealed class SupportPrivacy(SupportDb db) : IPrivacyContributor
     }
     public async Task Erase(Guid actor, CancellationToken ct)
     {
-            // Erasure runs even when Support is disabled. Remove requester conversations and files,
-            // and erase contributions to other requesters' tickets without retaining content in audit.
-            await db.Set<SupportTicketRow>().Where(x => x.RequesterId == actor).ExecuteDeleteAsync(ct);
-            await db.Set<SupportMessageRow>().Where(x => x.AuthorId == actor).ExecuteDeleteAsync(ct);
-            await db.Set<SupportAttachmentRow>().Where(x => x.OwnerId == actor).ExecuteDeleteAsync(ct);
-            await db.Set<SupportTicketRow>().Where(x => x.AssigneeId == actor).ExecuteUpdateAsync(x => x.SetProperty(t => t.AssigneeId, (Guid?)null).SetProperty(t => t.Version, Guid.NewGuid()), ct);
+        // Erasure runs even when Support is disabled. Remove requester conversations and files,
+        // and erase contributions to other requesters' tickets without retaining content in audit.
+        await db.Set<SupportTicketRow>().Where(x => x.RequesterId == actor).ExecuteDeleteAsync(ct);
+        await db.Set<SupportMessageRow>().Where(x => x.AuthorId == actor).ExecuteDeleteAsync(ct);
+        await db.Set<SupportAttachmentRow>().Where(x => x.OwnerId == actor).ExecuteDeleteAsync(ct);
+        await db.Set<SupportTicketRow>().Where(x => x.AssigneeId == actor).ExecuteUpdateAsync(x => x.SetProperty(t => t.AssigneeId, (Guid?)null).SetProperty(t => t.Version, Guid.NewGuid()), ct);
 
     }
 }

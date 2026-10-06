@@ -42,7 +42,9 @@ import { Resource, WorkspaceUi } from '../../../shared/workspace';
           />
           <div hlmFieldContent>
             <span hlmFieldTitle>{{ 'fileStorageSlowUploadMode' | t }}</span>
-            <p hlmFieldDescription id="file-storage-slow-help">{{ 'fileStorageSlowUploadHelp' | t }}</p>
+            <p hlmFieldDescription id="file-storage-slow-help">
+              {{ 'fileStorageSlowUploadHelp' | t }}
+            </p>
           </div>
         </div>
       </label>
@@ -64,7 +66,11 @@ export class FileStorageSettingsEditor {
   }
   load() {
     return this.data.load((signal) =>
-      this.api.get<FileStorageModuleSettings>('administration/modules/file-storage/settings', {}, signal),
+      this.api.get<FileStorageModuleSettings>(
+        'administration/modules/file-storage/settings',
+        {},
+        signal,
+      ),
     );
   }
   async save(slowUploadMode: boolean) {

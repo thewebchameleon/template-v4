@@ -778,7 +778,9 @@ export class ProfileEditor {
     this.clearEmailDialog();
   }
   private reauthenticationRequired(error: unknown) {
-    return error instanceof HttpErrorResponse && error.error?.code === 'auth.reauthentication_required';
+    return (
+      error instanceof HttpErrorResponse && error.error?.code === 'auth.reauthentication_required'
+    );
   }
   private async redirectForReauthentication() {
     if (

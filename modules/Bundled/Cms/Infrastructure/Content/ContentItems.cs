@@ -39,8 +39,14 @@ public sealed partial class ContentStore
         if (row is null) return Missing<ContentItem>();
         if (request.Id.HasValue && row.Version != request.Version) return Conflict<ContentItem>();
         var fields = Decode<ContentField[]>(collection.Fields);
-        var revision = new ContentRevisionRow { ItemId = row.Id, SchemaId = collection.Version,
-            AuthorId = context.ActorId, Values = Encode(request.Values), CreatedAt = time.GetUtcNow() };
+        var revision = new ContentRevisionRow
+        {
+            ItemId = row.Id,
+            SchemaId = collection.Version,
+            AuthorId = context.ActorId,
+            Values = Encode(request.Values),
+            CreatedAt = time.GetUtcNow()
+        };
         var relations = new List<ContentRelationRow>();
         if (!await ValidValues(fields, request.Values, revision.Id, relations, "", ct)) return Invalid<ContentItem>();
         if (key == "articles" && await ArticleError(row, request.Values, ct) is { } articleError)
@@ -71,14 +77,18 @@ public sealed partial class ContentStore
                 var entry = entries[index]; var location = path + field.Key + (field.Multiple ? "/" + index : "");
                 switch (field.Type)
                 {
-                    case "text": case "richText": case "select": case "date":
+                    case "text":
+                    case "richText":
+                    case "select":
+                    case "date":
                         if (entry.ValueKind != JsonValueKind.String || field.Required && string.IsNullOrWhiteSpace(entry.GetString())) return false;
                         if (field.Type == "date" && !DateOnly.TryParseExact(entry.GetString(), "yyyy-MM-dd", out _)) return false;
                         if (field.Type == "select" && !(field.Options ?? []).Contains(entry.GetString())) return false;
                         break;
                     case "number": if (entry.ValueKind != JsonValueKind.Number || !entry.TryGetDecimal(out _)) return false; break;
                     case "boolean": if (entry.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) return false; break;
-                    case "file": case "image":
+                    case "file":
+                    case "image":
                         if (entry.ValueKind != JsonValueKind.String || !entry.TryGetGuid(out var fileId) ||
                             !await files.Available(context.ActorId!.Value, fileId, field.Type == "image", ct)) return false;
                         break;

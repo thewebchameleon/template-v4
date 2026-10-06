@@ -119,7 +119,9 @@ export interface DataTableRowDragEvent<TData> {
                   (!!rowSelectionActionLabel() && !rowSelectionActionDisabled()?.(row.original))
                 "
                 [attr.tabindex]="
-                  !rowActionLabel() && rowSelectionActionLabel() && !rowSelectionActionDisabled()?.(row.original)
+                  !rowActionLabel() &&
+                  rowSelectionActionLabel() &&
+                  !rowSelectionActionDisabled()?.(row.original)
                     ? 0
                     : null
                 "
@@ -197,7 +199,8 @@ export interface DataTableRowDragEvent<TData> {
                           data-row-action
                           aria-haspopup="dialog"
                           [attr.aria-label]="
-                            rowDoubleActionLabel()?.(row.original) ?? rowActionLabel()?.(row.original)
+                            rowDoubleActionLabel()?.(row.original) ??
+                            rowActionLabel()?.(row.original)
                           "
                           (click)="activateRowAction($event, row.original)"
                         >
@@ -290,9 +293,7 @@ export class DataTable<TData extends RowData> {
     )
       return;
     if (this.rowActionLabel()) {
-      (event.currentTarget as HTMLElement)
-        .querySelector<HTMLElement>('[data-row-action]')
-        ?.focus();
+      (event.currentTarget as HTMLElement).querySelector<HTMLElement>('[data-row-action]')?.focus();
       this.rowAction.emit(row);
     } else {
       (event.currentTarget as HTMLElement).focus();

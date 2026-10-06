@@ -45,6 +45,7 @@ export class BusinessSelect {
   readonly disabled = input(false);
   readonly optionLabel = (value: string) =>
     this.i18n.text(
-      this.options().find((option) => option.id === value)?.label ?? (value === '' ? 'none' : value),
+      this.options().find((option) => option.id === value)?.label ??
+        (value === '' ? 'none' : value),
     );
 }

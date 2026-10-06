@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
+using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Crm;
 using TemplateV4.Application.Invoicing;
 using TemplateV4.Domain.Invoicing;

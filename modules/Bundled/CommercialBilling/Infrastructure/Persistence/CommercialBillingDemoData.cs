@@ -25,23 +25,39 @@ public sealed class CommercialBillingDemoData(CommercialBillingDb billing, Invoi
         {
             billing.Set<PaymentOrderRow>().Add(new()
             {
-                Id = orderId, CustomerId = Organisation.Id, PlanId = "standard",
+                Id = orderId,
+                CustomerId = Organisation.Id,
+                PlanId = "standard",
                 PlanPriceId = new Guid("22222222-2222-4222-8222-222222222222"),
-                Purpose = "commercial-subscription", Description = "Demo Standard plan payment",
-                Provider = "demo", Interval = "month", Currency = "ZAR",
-                UnitMinor = 9900, Quantity = 1, CreatedAt = now.AddDays(-7)
+                Purpose = "commercial-subscription",
+                Description = "Demo Standard plan payment",
+                Provider = "demo",
+                Interval = "month",
+                Currency = "ZAR",
+                UnitMinor = 9900,
+                Quantity = 1,
+                CreatedAt = now.AddDays(-7)
             });
             billing.Set<PaymentReceiptRow>().Add(new()
             {
-                Provider = "demo", Id = "demo-standard-payment", PaymentOrderId = orderId,
-                AmountMinor = 9900, Currency = "ZAR", SettledAt = now.AddDays(-7)
+                Provider = "demo",
+                Id = "demo-standard-payment",
+                PaymentOrderId = orderId,
+                AmountMinor = 9900,
+                Currency = "ZAR",
+                SettledAt = now.AddDays(-7)
             });
             billing.Set<CommercialBillingInvoiceRow>().Add(new()
             {
                 Id = new Guid("8ad94c4a-58c0-4a86-852f-499bf6329e0b"),
-                CustomerId = Organisation.Id, PaymentOrderId = orderId,
-                Number = "DEMO-BILL-0001", State = "Paid", Currency = "ZAR",
-                TotalMinor = 9900, IssuedAt = now.AddDays(-7), PaidAt = now.AddDays(-7)
+                CustomerId = Organisation.Id,
+                PaymentOrderId = orderId,
+                Number = "DEMO-BILL-0001",
+                State = "Paid",
+                Currency = "ZAR",
+                TotalMinor = 9900,
+                IssuedAt = now.AddDays(-7),
+                PaidAt = now.AddDays(-7)
             });
             await billing.SaveChangesAsync(ct);
         }
@@ -62,11 +78,16 @@ public sealed class CommercialBillingDemoData(CommercialBillingDb billing, Invoi
                 1, 18500m, TaxTreatment.OutsideScope, 0)]);
             invoicing.Set<CommercialDocumentRow>().Add(new()
             {
-                Id = DemoDataIds.Quotation, Number = "DEMO-Q-0001", Kind = "Quotation",
-                CustomerId = DemoDataIds.Customer, CustomerName = customer.Name,
+                Id = DemoDataIds.Quotation,
+                Number = "DEMO-Q-0001",
+                Kind = "Quotation",
+                CustomerId = DemoDataIds.Customer,
+                CustomerName = customer.Name,
                 Snapshot = JsonSerializer.Serialize(new CommercialSnapshot(issuer, customer, totals,
                     "Illustrative quotation for the CRM opportunity", null, "Demo Organisation"), json),
-                Total = totals.Total, IssuedAt = now.AddDays(-2), ActorId = DemoDataIds.Participant
+                Total = totals.Total,
+                IssuedAt = now.AddDays(-2),
+                ActorId = DemoDataIds.Participant
             });
         }
         if (!invoiceExists)
@@ -75,11 +96,16 @@ public sealed class CommercialBillingDemoData(CommercialBillingDb billing, Invoi
                 1, 1250m, TaxTreatment.OutsideScope, 0)]);
             invoicing.Set<CommercialDocumentRow>().Add(new()
             {
-                Id = DemoDataIds.Invoice, Number = "DEMO-I-0001", Kind = "Invoice",
-                CustomerId = DemoDataIds.Customer, CustomerName = customer.Name,
+                Id = DemoDataIds.Invoice,
+                Number = "DEMO-I-0001",
+                Kind = "Invoice",
+                CustomerId = DemoDataIds.Customer,
+                CustomerName = customer.Name,
                 Snapshot = JsonSerializer.Serialize(new CommercialSnapshot(issuer, customer, totals,
                     "Illustrative invoice — no payment required", null, "Demo Organisation"), json),
-                Total = totals.Total, IssuedAt = now.AddDays(-4), ActorId = DemoDataIds.Participant
+                Total = totals.Total,
+                IssuedAt = now.AddDays(-4),
+                ActorId = DemoDataIds.Participant
             });
         }
         await invoicing.SaveChangesAsync(ct);

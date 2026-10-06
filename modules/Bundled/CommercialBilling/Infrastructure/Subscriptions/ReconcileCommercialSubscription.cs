@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using TemplateV4.Application.Payments;
 using TemplateV4.Infrastructure.Payments;
 using TemplateV4.Infrastructure.Persistence;
@@ -46,9 +46,15 @@ public sealed partial class CommercialBillingStore
         {
             invoice = new()
             {
-                Id = Guid.NewGuid(), CustomerId = order.CustomerId, PaymentOrderId = order.Id,
+                Id = Guid.NewGuid(),
+                CustomerId = order.CustomerId,
+                PaymentOrderId = order.Id,
                 Number = $"CB-{time.GetUtcNow():yyyyMM}-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}",
-                Currency = order.Currency, TotalMinor = checked(order.UnitMinor * order.Quantity), IssuedAt = time.GetUtcNow(), PeriodStart = previousPaidUntil, PeriodEnd = paidUntil
+                Currency = order.Currency,
+                TotalMinor = checked(order.UnitMinor * order.Quantity),
+                IssuedAt = time.GetUtcNow(),
+                PeriodStart = previousPaidUntil,
+                PeriodEnd = paidUntil
             };
             db.Add(invoice);
         }

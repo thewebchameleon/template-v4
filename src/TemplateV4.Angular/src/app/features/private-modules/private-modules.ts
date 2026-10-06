@@ -67,9 +67,7 @@ interface RegistrationResult {
             </div>
             @if (!value.configured) {
               <form hlmCardContent class="grid gap-4" (ngSubmit)="register()">
-                <div
-                  class="grid items-end gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
-                >
+                <div class="grid items-end gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto]">
                   <div hlmField class="min-w-0">
                     <label hlmFieldLabel for="private-module-name">{{
                       'privateModuleAppName' | t

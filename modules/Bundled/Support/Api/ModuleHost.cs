@@ -1,5 +1,6 @@
 using TemplateV4.ApiService.Endpoints;
 namespace TemplateV4.Bundled.Support;
+
 public static class ModuleHost
 {
     public static void Configure(WebApplicationBuilder builder) { }
