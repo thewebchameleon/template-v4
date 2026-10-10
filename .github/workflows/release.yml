@@ -15,7 +15,7 @@ jobs:
       - name: Read Node version
         id: tools
         run: echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: ${{ steps.tools.outputs.node }}
       - name: Publish successful release metadata
@@ -98,7 +98,7 @@ jobs:
           dotnet-version: ${{ steps.sdk.outputs.version }}
           cache: true
           cache-dependency-path: "**/packages.lock.json"
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: ${{ steps.sdk.outputs.node }}
           registry-url: https://npm.pkg.github.com
