@@ -93,7 +93,7 @@ jobs:
           echo "version=$(jq -r .toolchains.dotnet framework.json)" >> "$GITHUB_OUTPUT"
           echo "node=$(jq -r .toolchains.node framework.json)" >> "$GITHUB_OUTPUT"
           echo "npm=$(jq -r .toolchains.npm framework.json)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
         with:
           dotnet-version: ${{ steps.sdk.outputs.version }}
           cache: true
